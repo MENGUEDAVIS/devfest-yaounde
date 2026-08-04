@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr" data-base="">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DevFest Yaoundé 2025 | Le plus grand rendez-vous tech de Yaoundé</title>
+    <meta
+      name="description"
+      content="DevFest Yaoundé 2025 — deux journées d'innovation, d'apprentissage et de communauté organisées par GDG Yaoundé. Conférences le 18 octobre, ateliers le 25 octobre. Participation gratuite."
+    />
+    <link rel="icon" href="assets/img/devfest-logo.svg" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body data-page="home">
+    <div id="site-nav"></div>
+
+    <main>
+      <div id="hero"></div>
+      <div id="marquee"></div>
+
+      <!-- Intro -->
+      <section class="section section--tight">
+        <div class="container section__head">
+          <h2 class="display-lg">
+            Deux journées.<br />Une communauté.<br />Zéro franc à payer.
+          </h2>
+          <p data-field="event.intro"></p>
+        </div>
+        <div class="container">
+          <div class="stats" id="stats"></div>
+        </div>
+      </section>
+
+      <!-- Partenaires -->
+      <section class="section section--dark section--round-top">
+        <div class="container section__head">
+          <h2 class="display-lg">Nos partenaires</h2>
+          <p>
+            Le DevFest Yaoundé existe grâce aux entreprises qui soutiennent l'écosystème tech
+            camerounais. Les partenaires estompés ont accompagné les éditions précédentes.
+          </p>
+        </div>
+        <div class="container">
+          <div class="partners" id="partners"></div>
+        </div>
+      </section>
+
+      <!-- Inscription -->
+      <section class="section">
+        <div class="container section__head">
+          <h2 class="display-lg">Réservez votre place</h2>
+          <p>
+            La participation est entièrement gratuite, les deux journées comprises. Choisissez la
+            journée qui vous parle — ou venez aux deux.
+          </p>
+        </div>
+        <div class="container">
+          <div class="passes" id="passes"></div>
+        </div>
+      </section>
+
+      <!-- Speakers -->
+      <section class="section section--dark section--round-top section--round-bottom">
+        <div class="container section__head">
+          <h2 class="display-lg">
+            <span data-field="speakers.length"></span> speakers &amp; experts
+          </h2>
+          <p>
+            Des leads de communauté, des Google Developer Experts, des ingénieurs et des
+            entrepreneurs de Yaoundé et d'ailleurs. Voici un aperçu du plateau.
+          </p>
+        </div>
+        <div class="container">
+          <div class="speakers-grid" id="speakers-preview"></div>
+          <p style="margin-top: 4rem">
+            <a class="btn btn--ghost" href="speakers/">Voir tout le plateau</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- Thématiques -->
+      <section class="section">
+        <div class="container section__head">
+          <h2 class="display-lg">Il y a une thématique pour vous</h2>
+          <p>
+            De l'IA générative à la cybersécurité, du design produit à l'IoT : le DevFest couvre
+            l'ensemble de l'écosystème Google et bien au-delà.
+          </p>
+        </div>
+        <div class="container">
+          <div class="tracks" id="tracks"></div>
+        </div>
+      </section>
+
+      <!-- Programme -->
+      <section class="section section--dark section--round-top">
+        <div class="container section__head">
+          <h2 class="display-lg">Le programme</h2>
+          <p>
+            Une journée de conférences le 18 octobre, une journée d'ateliers pratiques le
+            25 octobre. Tout est détaillé, session par session.
+          </p>
+        </div>
+        <div class="container">
+          <div class="day-tabs" id="day-tabs" role="tablist" aria-label="Journées du DevFest"></div>
+          <div id="day-panels"></div>
+          <p style="margin-top: 4rem">
+            <a class="btn btn--ghost" href="schedule/">Programme complet</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- Communauté -->
+      <section class="section">
+        <div class="container">
+          <div class="cta-band">
+            <div>
+              <h2 class="display-md">Le DevFest n'est qu'un jour dans l'année</h2>
+              <p data-field="community.mission"></p>
+              <ul style="margin-top: 2rem; display: grid; gap: 0.8rem; font-size: 1.5rem" id="other-events"></ul>
+            </div>
+            <a
+              class="btn btn--dark"
+              href="https://gdg.community.dev/gdg-yaounde/"
+              target="_blank"
+              rel="noopener"
+              >Rejoindre la communauté</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section section--tight">
+        <div class="container section__head">
+          <h2 class="display-lg">Vos questions,<br />nos réponses</h2>
+          <p>
+            De l'inscription à ce qui vous attend sur place — l'essentiel est ici, le reste sur la
+            page FAQ.
+          </p>
+        </div>
+        <div class="container">
+          <div id="faqs-preview"></div>
+          <p style="margin-top: 3.2rem">
+            <a class="btn btn--ghost-dark" href="faqs/">Toutes les questions</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "devfest-yaounde",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site DevFest Yaoundé (GDG Yaoundé) — statique, sans dépendance.",
+  "type": "module",
+  "scripts": {
+    "verify": "node tools/verify.mjs && node tools/render-test.mjs",
+    "test": "npm run verify",
+    "serve": "node tools/serve.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
