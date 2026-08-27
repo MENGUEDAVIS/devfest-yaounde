@@ -11,11 +11,13 @@ Three words every design decision must hold to: **Welcoming. Playful. Credible.*
 
 ## Typography
 
-Fonts: `Google Sans` (display/headings, bold; body, regular), `Google Sans Mono` (accents only — tags, prices, dates, badges, countdowns — never full paragraphs).
+Fonts: `Google Sans` (display/headings, bold; body, regular), `Google Sans Code` (accents only — tags, prices, dates, badges, countdowns — never full paragraphs). Note the corrected name: DESIGN.md's brand-deck source calls the second family "Google Sans Mono," but its real Google Fonts family name is **Google Sans Code** — always use the Google Fonts name in code.
+
+Both families are loaded for real via `next/font/google` in `src/app/[locale]/layout.tsx` (`Google_Sans` → `--font-google-sans`, `Google_Sans_Code` → `--font-google-sans-code`), confirmed present in this project's installed Next.js font manifest. The fallback stack below only engages if that load ever fails — see `docs/decisions/0004-font-loading.md`.
 
 ```css
---font-sans: 'Google Sans', 'Product Sans', 'Inter', system-ui, sans-serif;
---font-mono: 'Google Sans Mono', 'Roboto Mono', ui-monospace, monospace;
+--font-sans: var(--font-google-sans), 'Google Sans', 'Product Sans', 'Inter', system-ui, sans-serif;
+--font-mono: var(--font-google-sans-code), 'Google Sans Code', 'Roboto Mono', ui-monospace, monospace;
 ```
 
 Type scale (Tailwind `fontSize` extension):
@@ -36,7 +38,7 @@ fontSize: {
 Rules:
 - Never mix Bold and Regular within one sentence — vary across lines/blocks instead.
 - Minimum body text: 16px, always.
-- Mono is seasoning, not a meal.
+- Google Sans Code is seasoning, not a meal.
 
 ## Color
 
@@ -114,6 +116,8 @@ Primitives: circles (avatars, bullets, loading states), rounded rects (cards/but
 Decorative shapes: low-opacity/pastel when behind text (seasoning, not the main character) — except in hero moments where a shape IS the main character. Max one "hero" focal element per screen.
 
 ## Motion
+
+This section is the *spec* — easing curves, durations, tiers. For actual reusable, named code presets built from this spec (e.g. `bouncyPop`, `fadeInUp`, `staggerReveal`, `marqueeLoop`) and the required `prefers-reduced-motion` wrapper, see the **`devfest-animation`** skill — extend that skill rather than hand-rolling a one-off animation that doesn't reuse its presets.
 
 ```css
 --ease-bouncy: cubic-bezier(0.34, 1.56, 0.64, 1); /* button press, add-to-cart, badge reveal, easter eggs */

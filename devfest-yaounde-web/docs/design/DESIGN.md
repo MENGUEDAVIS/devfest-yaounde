@@ -25,10 +25,14 @@ Three words to hold onto for every decision in this doc: **Welcoming. Playful. C
 |---|---|---|
 | Display / Headings | **Google Sans** (Bold) | Inherited from GDG brand system. Confident, geometric, friendly rounded terminals — carries the "big bold Google energy." |
 | Body copy | **Google Sans** (Regular) | Keeps the whole page in one family so nothing feels bolted-on. |
-| Accents, labels, data, code-flavor | **Google Sans Mono** | Reserved for short bursts: ticket tier names, prices, dates, tags, countdown timers, badge text. This is what gives the site its "developer" wink. |
+| Accents, labels, data, code-flavor | **Google Sans Code** | Reserved for short bursts: ticket tier names, prices, dates, tags, countdown timers, badge text. This is what gives the site its "developer" wink. |
 
-> Fallback stack (for web, before Google Sans loads): `'Google Sans', 'Product Sans', 'Inter', system-ui, sans-serif`
-> Mono fallback: `'Google Sans Mono', 'Roboto Mono', ui-monospace, monospace`
+> **Naming correction (2026-08-27):** the GDG/DevFest brand decks refer to this second typeface as "Google Sans Mono." On Google Fonts, both families are published under different names — the display family is listed as **Google Sans**, and its monospace companion is listed as **Google Sans Code**, not "Google Sans Mono." Use the Google Fonts names in code (font-family declarations, `next/font` imports); "Google Sans Mono" only appears in Google's own brand documentation, not the actual font catalog.
+>
+> Both families are confirmed available on Google Fonts as of this correction — load them for real via `next/font/google` where the installed toolchain's font manifest supports them, or self-host via `next/font/local` (downloading the files from the Google Fonts specimen pages, license permitting) as a fallback. This replaces the earlier fallback-stack-only approach.
+>
+> Fallback stack (only engages if the real fonts fail to load for any reason): `'Google Sans', 'Product Sans', 'Inter', system-ui, sans-serif`
+> Mono fallback: `'Google Sans Code', 'Roboto Mono', ui-monospace, monospace`
 
 ### 1.2 Type Scale (web reference)
 
@@ -45,7 +49,7 @@ Three words to hold onto for every decision in this doc: **Welcoming. Playful. C
 
 **Rules:**
 - Never mix Bold and Regular *within the same sentence* — mix them across lines/blocks instead (e.g., a Bold word on one line, Regular sentence below), matching the GDG guide's own instruction.
-- Google Sans Mono is a seasoning, not a meal — never set full paragraphs in it.
+- Google Sans Code is a seasoning, not a meal — never set full paragraphs in it.
 - Minimum body text size: 16px. This is a community site for everyone, including on old phones and small screens.
 
 ---
@@ -194,6 +198,8 @@ This is where the site earns its "hype" — but every animation should feel *pur
 | **Ease-in-out** | `cubic-bezier(0.65, 0, 0.35, 1)` | Transitions between states: tab switches, page transitions, color theme shifts |
 | **Linear** | `linear` | Continuous/looping motion: marquee sponsor logos, rotating decorative shapes, progress bars, countdown ticks |
 
+> **Implementation note:** this vocabulary (easing curves, durations, tiers) is the spec — the `devfest-animation` project skill is where it gets turned into reusable, named code primitives (e.g. shared spring/transition presets) so every component pulls from the same set instead of hand-rolling similar-but-slightly-different animations. If you're implementing motion and that skill doesn't cover the case you're building, extend the skill rather than freehanding it once and moving on.
+
 ### 6.2 Motion Tiers
 
 - **Micro** (100–250ms): button hover/press, icon state changes, input focus rings, link underline draw-ins.
@@ -235,7 +241,7 @@ Flagged for later, not this release: short, optional UI sound effects (button cl
 | Component | Notes |
 |---|---|
 | **Buttons** | `radius-pill` or `radius-md`, Google Sans Bold label, bouncy press animation, primary = core color fill, secondary = outline/pastel fill |
-| **Ticket tier cards** | Tier name in `mono-tag` style (e.g., "HAIKYU", "SONNET"), price in Google Sans Mono, perks list with Phosphor check icons, card border color matches tier rank (free → paid gradient of intensity) |
+| **Ticket tier cards** | Tier name in `mono-tag` style (e.g., "HAIKYU", "SONNET"), price in Google Sans Code, perks list with Phosphor check icons, card border color matches tier rank (free → paid gradient of intensity) |
 | **Swag product cards** | Morphed-frame or rounded-square product photo, status pill (`In Stock` green / `Pre-order` yellow / `Sold Out` red, always with text label) |
 | **Badges/tags** | `radius-pill`, pastel background + core color text, Mono type |
 | **Nav** | Sticky, Off White or blurred-glass background, Blue 500 active state underline |
@@ -245,7 +251,7 @@ Flagged for later, not this release: short, optional UI sound effects (button cl
 ## 9. Governance — Rules & Regulations
 
 ### Do
-- Do use Google Sans + Google Sans Mono exclusively.
+- Do use Google Sans + Google Sans Code exclusively.
 - Do use only the hex values listed in §2 — no invented brand colors, no gradients that blend core colors into muddy in-between hues.
 - Do use Phosphor Icons exclusively, matching weight to context.
 - Do round every corner.

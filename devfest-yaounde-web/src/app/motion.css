@@ -1,0 +1,73 @@
+/*
+ * Motion primitives for DESIGN.md §6. See .claude/skills/devfest-animation/SKILL.md
+ * for how to use these, and src/lib/motion.ts for the named JS exports.
+ *
+ * Every animation utility here disables itself under prefers-reduced-motion
+ * by default — that handling is NOT opt-in per component. If you add a new
+ * utility to this file, add it to the reduced-motion block below too.
+ */
+
+@keyframes df-bouncy-pop {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes df-fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes df-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Micro/meso tier — button press, badge reveal, add-to-cart, easter eggs */
+.anim-bouncy-pop {
+  animation: df-bouncy-pop 400ms var(--ease-bouncy) both;
+}
+
+/* Meso tier — scroll reveals, modal open, card entrance */
+.anim-fade-in-up {
+  animation: df-fade-in-up 500ms var(--ease-out-devfest) both;
+}
+
+/* Macro tier — staggered children entrance (set --stagger-index per child, see src/lib/motion.ts) */
+.anim-stagger-reveal > * {
+  animation: df-fade-in-up 500ms var(--ease-out-devfest) both;
+  animation-delay: calc(var(--stagger-index, 0) * 80ms);
+}
+
+/* Continuous/linear — sponsor logo marquees, ticker text */
+.anim-marquee {
+  animation: df-marquee 20s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-bouncy-pop,
+  .anim-fade-in-up,
+  .anim-stagger-reveal > *,
+  .anim-marquee {
+    animation: none !important;
+    transition: none !important;
+  }
+}

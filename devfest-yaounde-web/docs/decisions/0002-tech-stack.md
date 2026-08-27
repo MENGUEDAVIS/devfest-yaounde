@@ -1,7 +1,7 @@
 # 0002 — Tech Stack for the New Build
 
 Date: 2026-08-27
-Status: Proposed
+Status: Accepted
 
 ## Context
 

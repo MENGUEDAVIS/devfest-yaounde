@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./motion.css";
 
 /*
  * Design tokens sourced from docs/design/DESIGN.md.
@@ -49,8 +50,15 @@
   --color-offwhite: var(--color-offwhite);
   --color-black02: var(--color-black02);
 
-  --font-sans: "Google Sans", "Product Sans", "Inter", system-ui, sans-serif;
-  --font-mono: "Google Sans Mono", "Roboto Mono", ui-monospace, monospace;
+  /*
+   * Real families loaded via next/font/google in src/app/[locale]/layout.tsx
+   * (CSS variables --font-google-sans / --font-google-sans-code), with the
+   * DESIGN.md §1.1 fallback stack engaging only if that load ever fails.
+   */
+  --font-sans: var(--font-google-sans), "Google Sans", "Product Sans",
+    "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-google-sans-code), "Google Sans Code",
+    "Roboto Mono", ui-monospace, monospace;
 
   /* Type scale — see DESIGN.md §1.2 */
   --text-display-xl: 72px;
