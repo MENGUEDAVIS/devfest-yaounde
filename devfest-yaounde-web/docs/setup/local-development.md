@@ -17,14 +17,14 @@ The dev server runs at `http://localhost:3000`. Visiting `/` redirects to the de
 
 ## Scripts
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Start the local dev server |
-| `npm run build` | Production build (also type-checks) |
-| `npm run start` | Run a built app |
-| `npm run lint` | ESLint (Next.js core-web-vitals + TypeScript rules, Prettier conflicts disabled) |
-| `npm run format` | Format the whole project with Prettier |
-| `npm run format:check` | Check formatting without writing changes |
+| Command                | What it does                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| `npm run dev`          | Start the local dev server                                                       |
+| `npm run build`        | Production build (also type-checks)                                              |
+| `npm run start`        | Run a built app                                                                  |
+| `npm run lint`         | ESLint (Next.js core-web-vitals + TypeScript rules, Prettier conflicts disabled) |
+| `npm run format`       | Format the whole project with Prettier                                           |
+| `npm run format:check` | Check formatting without writing changes                                         |
 
 ## Environment variables
 

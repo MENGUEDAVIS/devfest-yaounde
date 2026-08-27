@@ -9,17 +9,17 @@ Source of truth: `docs/content/PAGES.md`. Pairs with the `devfest-design-system`
 
 ## Sitemap
 
-| Route | Page | Auth |
-|---|---|---|
-| `/` | Home — single scrolling story, teasers only | public |
-| `/schedule` | Full agenda, all days | public |
-| `/speakers` | Full speaker grid | public |
-| `/faqs` | Grouped, searchable FAQ | public |
-| `/team` | Organizers | public |
-| `/tickets` | Buy/manage tickets | auth required to track own tickets |
-| `/shop` | Merch store, evergreen (live year-round, independent of ticket windows) | auth required to track own orders |
-| `/dp-generator` | Standalone DP generator, no login, no dependency on rest of site's auth | public |
-| *(external)* | GDG Bevy chapter page — RSVP source of truth | linked from Home hero, nav, footer |
+| Route           | Page                                                                    | Auth                               |
+| --------------- | ----------------------------------------------------------------------- | ---------------------------------- |
+| `/`             | Home — single scrolling story, teasers only                             | public                             |
+| `/schedule`     | Full agenda, all days                                                   | public                             |
+| `/speakers`     | Full speaker grid                                                       | public                             |
+| `/faqs`         | Grouped, searchable FAQ                                                 | public                             |
+| `/team`         | Organizers                                                              | public                             |
+| `/tickets`      | Buy/manage tickets                                                      | auth required to track own tickets |
+| `/shop`         | Merch store, evergreen (live year-round, independent of ticket windows) | auth required to track own orders  |
+| `/dp-generator` | Standalone DP generator, no login, no dependency on rest of site's auth | public                             |
+| _(external)_    | GDG Bevy chapter page — RSVP source of truth                            | linked from Home hero, nav, footer |
 
 Every route exists under both `/fr/...` and `/en/...`.
 
@@ -87,7 +87,7 @@ interface Product {
   priceXAF: number;
   images: string[];
   variants?: { size?: string[]; color?: string[] };
-  status: 'pre-order' | 'in-stock' | 'venue-only' | 'sold-out'; // always paired with a visible text label, never color alone
+  status: "pre-order" | "in-stock" | "venue-only" | "sold-out"; // always paired with a visible text label, never color alone
 }
 
 interface TeamMember {
@@ -103,7 +103,7 @@ interface TeamMember {
 
 interface FaqItem {
   id: string;
-  category: 'general' | 'tickets' | 'venue' | 'shop' | 'code-of-conduct';
+  category: "general" | "tickets" | "venue" | "shop" | "code-of-conduct";
   question: LocalizedString;
   answer: LocalizedString; // can contain links (e.g. pricing Q -> /tickets)
 }

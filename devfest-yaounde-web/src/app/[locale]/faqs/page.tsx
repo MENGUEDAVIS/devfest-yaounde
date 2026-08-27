@@ -10,7 +10,10 @@ export default async function FaqsPage({
   const t = await getTranslations("pages.faqs");
 
   return (
-    <main className="flex-1 flex items-center justify-center p-8">
+    <main
+      id="main-content"
+      className="flex-1 flex items-center justify-center p-8"
+    >
       <div className="text-center max-w-2xl">
         <h1 className="text-display-l font-bold text-black02">{t("title")}</h1>
         <p className="text-body-l mt-4 text-black02">{t("placeholder")}</p>

@@ -41,6 +41,22 @@
   }
 }
 
+@keyframes df-confetti-piece {
+  0% {
+    transform: translate(0, 0) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--confetti-x, 0), var(--confetti-y, 0)) scale(0.6)
+      rotate(var(--confetti-r, 45deg));
+    opacity: 0;
+  }
+}
+
 /* Micro/meso tier — button press, badge reveal, add-to-cart, easter eggs */
 .anim-bouncy-pop {
   animation: df-bouncy-pop 400ms var(--ease-bouncy) both;
@@ -62,11 +78,17 @@
   animation: df-marquee 20s linear infinite;
 }
 
+/* Easter-egg confetti piece — set --confetti-x/-y/-r per piece, see src/lib/motion.ts */
+.anim-confetti-piece {
+  animation: df-confetti-piece 900ms var(--ease-bouncy) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-bouncy-pop,
   .anim-fade-in-up,
   .anim-stagger-reveal > *,
-  .anim-marquee {
+  .anim-marquee,
+  .anim-confetti-piece {
     animation: none !important;
     transition: none !important;
   }

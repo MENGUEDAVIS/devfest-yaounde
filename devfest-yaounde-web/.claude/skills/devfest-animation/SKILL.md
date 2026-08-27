@@ -19,19 +19,34 @@ No animation library (Framer Motion, GSAP, etc.) is installed. Everything below 
 ## The easing tokens (from DESIGN.md §6.1, defined in `globals.css`'s `@theme` block)
 
 ```css
---ease-bouncy: cubic-bezier(0.34, 1.56, 0.64, 1);      /* playful: button press, add-to-cart, badge reveal, easter eggs */
---ease-out-devfest: cubic-bezier(0.16, 1, 0.3, 1);      /* content entering: scroll reveals, modal open, card hover-lift */
---ease-in-out-devfest: cubic-bezier(0.65, 0, 0.35, 1);  /* state transitions: tab switches, page transitions */
+--ease-bouncy: cubic-bezier(
+  0.34,
+  1.56,
+  0.64,
+  1
+); /* playful: button press, add-to-cart, badge reveal, easter eggs */
+--ease-out-devfest: cubic-bezier(
+  0.16,
+  1,
+  0.3,
+  1
+); /* content entering: scroll reveals, modal open, card hover-lift */
+--ease-in-out-devfest: cubic-bezier(
+  0.65,
+  0,
+  0.35,
+  1
+); /* state transitions: tab switches, page transitions */
 /* linear (no token needed — just `linear`): marquees, rotating shapes, progress bars, countdown ticks */
 ```
 
 ## Motion tiers (durations — DESIGN.md §6.2)
 
-| Tier | Duration | Use for |
-|---|---|---|
-| Micro | 100–250ms | button hover/press, icon state changes, focus rings, underline draw-ins |
-| Meso | 250–600ms | card hover-lift, modal/drawer open, tab content swap, mask reveal |
-| Macro | 600ms–1.2s | hero load sequence, staggered scroll-reveals, celebration animations |
+| Tier  | Duration   | Use for                                                                 |
+| ----- | ---------- | ----------------------------------------------------------------------- |
+| Micro | 100–250ms  | button hover/press, icon state changes, focus rings, underline draw-ins |
+| Meso  | 250–600ms  | card hover-lift, modal/drawer open, tab content swap, mask reveal       |
+| Macro | 600ms–1.2s | hero load sequence, staggered scroll-reveals, celebration animations    |
 
 ## Named presets — import from `@/lib/motion`
 

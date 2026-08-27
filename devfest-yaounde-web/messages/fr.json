@@ -5,7 +5,40 @@
     "faqs": "FAQ",
     "team": "Équipe",
     "shop": "Boutique",
-    "tickets": "Billets"
+    "tickets": "Billets",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "switchToEnglish": "Passer en anglais",
+    "switchToFrench": "Passer en français",
+    "skipToContent": "Aller au contenu"
+  },
+  "announcement": {
+    "message": "🎟️ Les billets early bird se terminent bientôt — réservez le vôtre avant l'augmentation des prix !",
+    "dismiss": "Fermer l'annonce"
+  },
+  "footer": {
+    "rsvpCta": "Faites partie de l'histoire — RSVP maintenant",
+    "event": {
+      "title": "Événement",
+      "schedule": "Programme",
+      "speakers": "Intervenants",
+      "team": "Équipe",
+      "faqs": "FAQ"
+    },
+    "getInvolved": {
+      "title": "S'impliquer",
+      "shop": "Boutique",
+      "dpGenerator": "Générateur de DP",
+      "community": "Rejoindre la communauté",
+      "rsvp": "RSVP"
+    },
+    "legal": {
+      "title": "Légal",
+      "privacy": "Politique de confidentialité",
+      "codeOfConduct": "Code de conduite"
+    },
+    "followUs": "Suivez-nous",
+    "copyright": "DevFest Yaoundé · GDG Yaoundé"
   },
   "pages": {
     "home": {

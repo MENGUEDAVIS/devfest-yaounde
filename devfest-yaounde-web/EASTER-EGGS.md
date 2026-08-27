@@ -4,6 +4,9 @@ A changelog of every hidden delight added to the site, so future organizers don'
 
 Format: one entry per egg — what it is, where it lives, how to trigger it, and which year/PR added it.
 
-## None yet
+## Logo confetti burst
 
-No easter eggs have been implemented yet — this file is a placeholder created during the initial scaffold (`docs/decisions/0001-initial-scaffold.md`). The first entries will likely come with `feat/global-chrome` (logo-click confetti) per `PAGES.md` §1.1.
+- **What**: clicking the "DevFest Yaoundé" navbar wordmark 6 times within ~1.5 seconds triggers a burst of 12 halftone-colored confetti pieces around the logo.
+- **Where**: `src/components/global/Navbar.tsx` (click tracking) + `src/components/global/ConfettiBurst.tsx` (the burst itself, using the `confettiPiece` preset from `src/lib/motion.ts`).
+- **How to trigger**: click the logo rapidly, 6+ times, in the navbar (any page).
+- **Added**: `feat/global-chrome`, per `PAGES.md` §1.1's seed idea.

@@ -26,7 +26,7 @@ Source: `docs/content/PAGES.md` §10.2. This is not a "nice to have" — a featu
 - Email/receipt templates
 - DP Generator share captions
 - Empty/error/confirmation microcopy (see `devfest-brand-voice` skill for tone)
-- Session titles/descriptions *unless* the speaker submitted only one language (see below)
+- Session titles/descriptions _unless_ the speaker submitted only one language (see below)
 
 ## What stays language-neutral (do not force-translate)
 

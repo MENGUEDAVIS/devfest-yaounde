@@ -1,21 +1,22 @@
 # DevFest Yaoundé — Pages & Content Guide
+
 ### Companion to DESIGN.md — defines what lives on every page, and why
 
 ---
 
 ## 0. Sitemap
 
-| Route | Page | Notes |
-|---|---|---|
-| `/` | Home | Main scrolling landing |
-| `/schedule` | Schedule | Full agenda, all days |
-| `/speakers` | Speakers | Full grid, all speakers |
-| `/faqs` | FAQs | Grouped, searchable |
-| `/team` | Team | Organizers |
-| `/tickets` | Tickets | Buy / manage tickets (auth required to track) |
-| `/shop` | Shop | Merch store, live year-round |
-| `/dp-generator` | DP Generator | Standalone, no login, can even live on a subdomain like Lagos does |
-| *(external)* | GDG Bevy chapter page | RSVP source of truth; linked from Home hero, nav, and footer |
+| Route           | Page                  | Notes                                                              |
+| --------------- | --------------------- | ------------------------------------------------------------------ |
+| `/`             | Home                  | Main scrolling landing                                             |
+| `/schedule`     | Schedule              | Full agenda, all days                                              |
+| `/speakers`     | Speakers              | Full grid, all speakers                                            |
+| `/faqs`         | FAQs                  | Grouped, searchable                                                |
+| `/team`         | Team                  | Organizers                                                         |
+| `/tickets`      | Tickets               | Buy / manage tickets (auth required to track)                      |
+| `/shop`         | Shop                  | Merch store, live year-round                                       |
+| `/dp-generator` | DP Generator          | Standalone, no login, can even live on a subdomain like Lagos does |
+| _(external)_    | GDG Bevy chapter page | RSVP source of truth; linked from Home hero, nav, and footer       |
 
 Every route above exists in **both languages** (see §9 Localization) — e.g. `/fr/` and `/en/` prefixes, with a persistent switcher.
 
@@ -24,6 +25,7 @@ Every route above exists in **both languages** (see §9 Localization) — e.g. `
 ## 1. Global Chrome
 
 ### 1.1 Navbar
+
 - **Floating**, pill-shaped, fixed at top with a small offset from the viewport edge (not flush) — this alone makes it feel less "default template."
 - Layout: **Logo** (far left) — **Schedule · Speakers · FAQs · Team** (center) — **Shop** (secondary button, outline style) + **Get Tickets** (primary button, filled, core color) (far right). Language switcher (EN/FR toggle) sits just before or after the ticket button, small and unobtrusive.
 - On scroll: navbar shrinks slightly and gains a soft shadow/blur background (glass effect) — a small, satisfying micro-animation (ease-out, ~200ms).
@@ -31,13 +33,15 @@ Every route above exists in **both languages** (see §9 Localization) — e.g. `
 - **Easter egg idea:** clicking the logo rapidly (5–7 times) triggers a burst of halftone confetti shapes across the navbar, or briefly morphs the logo into a goofy alternate version for a second. Log this (and future ones) in `/EASTER-EGGS.md` per DESIGN.md §6.3.
 
 ### 1.2 Announcement Banner
+
 - Sits above the navbar, dismissible (persists dismissal via localStorage/cookie for the session).
 - **Marquee scroll** behavior for longer messages (e.g. "🎟️ Early bird tickets end in 3 days — grab yours before prices go up!").
 - Visually attaches to the navbar (shared rounded container or touching edge) so they read as one cohesive unit, not two competing bars.
 - Used sparingly and only for genuinely time-sensitive updates — ticket deadlines, schedule changes, weather/venue alerts.
 
 ### 1.3 Footer (full, DevFest-Lagos-style)
-- **Top:** a wide community photo strip (real photos, maybe in a horizontal scroll or collage of morphed frames) with an overlaid CTA: *"Be part of the story — RSVP now"* — links to Bevy.
+
+- **Top:** a wide community photo strip (real photos, maybe in a horizontal scroll or collage of morphed frames) with an overlaid CTA: _"Be part of the story — RSVP now"_ — links to Bevy.
 - **Link groups**, clearly separated:
   - **Event**: Schedule, Speakers, Team, FAQs
   - **Get Involved**: Shop, DP Generator, Join the Community (Bevy), RSVP
@@ -60,7 +64,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
    - Sponsor/partner logo marquee (linear-eased, continuous scroll, like Lagos's) directly under the hero — bold and boastful, sponsors deserve prime real estate.
 
 2. **What is DevFest Yaoundé** (community + this year's direction)
-   - Short, warm paragraph: what DevFest is, what GDG Yaoundé is, and a line specific to *this* year's theme/focus (AI, cloud, whatever the direction is).
+   - Short, warm paragraph: what DevFest is, what GDG Yaoundé is, and a line specific to _this_ year's theme/focus (AI, cloud, whatever the direction is).
    - This is the section that carries the "friendly, welcoming, casual" voice hardest — write it like a community member talking to a friend, not a press release.
 
 3. **Playful interstitial** (breathing room #1)
@@ -99,8 +103,8 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 - **Day tabs** across the top (one per event day).
 - **View toggle**:
-  - *Structured view* — calendar/timeline layout, time-blocked, visually rich (this is the "hero" experience).
-  - *Grid/List view* — flat, scannable list grouped by time slot; better for screen readers, slow connections, and quick lookup. This toggle is explicitly there for **accessibility**, so make sure the list view is a first-class citizen, not an afterthought.
+  - _Structured view_ — calendar/timeline layout, time-blocked, visually rich (this is the "hero" experience).
+  - _Grid/List view_ — flat, scannable list grouped by time slot; better for screen readers, slow connections, and quick lookup. This toggle is explicitly there for **accessibility**, so make sure the list view is a first-class citizen, not an afterthought.
 - **Filters**: by track, by room/stage (if multi-track).
 - **Session card** fields: time, title, one-line description, speaker(s) (avatar + name, links to their modal), track tag (color-coded per DESIGN.md), room/location.
 - **Add to calendar** action per session (Google/Apple/ICS).
@@ -111,11 +115,13 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 ## 4. Speakers Page (`/speakers`)
 
 ### 4.1 Grid
+
 - All speakers, photo in morphed frame, name, role + company, small social icons.
 - Search bar + filter by track/day.
 - Consistent card sizing regardless of bio length (bio lives in the modal, not the card).
 
 ### 4.2 Speaker Modal (shared with Home preview)
+
 - Opens on click, doesn't navigate away (URL can still update via query param/hash for shareability, e.g. `/speakers?spk=jane-doe`, without a full page load).
 - Contains: full photo, name, role, company, full bio, session(s) they're speaking at (linking to `/schedule`), and social links (X, LinkedIn, personal site — only rendered if provided).
 - Animation: modal should feel like it "grows" from the clicked card (shared-element transition, ease-out) rather than a generic fade-in — this is a nice macro-interaction moment.
@@ -145,23 +151,29 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 Inspired by the Lagos flow (date/tier select → details → summary → payment), adapted for tiered, swag-bundled, named tickets.
 
 **Step 1 — Choose your ticket**
+
 - Tier cards laid out clearly (not crowded): **Haikyu** (free), **Sonnet** (basic paid), up through the top tier — each shows price, what's included (entry, swag items, perks), in the `mono-tag`-styled name treatment from DESIGN.md.
 - Quantity selector per tier.
 
 **Step 2 — Attendee details**
+
 - If quantity > 1, collect details **per person** (name, email, and — for apparel-bearing tiers — T-shirt size). Clear indication of "Ticket 1 of 3," etc., so it doesn't feel like a wall of a form.
 
 **Step 3 — Discount code**
+
 - Optional field, applies before payment step, clearly shows the adjusted total.
 
 **Step 4 — Payment**
+
 - Mobile Money (MTN/Orange via Flutterwave or a Cameroon-focused gateway) as the lead option, card as secondary, per our earlier discussion.
 
 **Step 5 — Confirmation**
+
 - On-screen success state (a little celebratory animation — confetti burst, bouncy easing — this is a moment worth spending polish on).
 - Email receipt + ticket confirmation, each ticket carrying a **QR/badge code** for check-in.
 
 **Account & tracking**
+
 - Login required (shared account system with Shop, per your decision) so people can return to a **"My Tickets"** dashboard — view/download tickets, resend confirmation email, see order history.
 - Sticky order summary throughout steps 1–4 so the running total/what's-included is never out of sight.
 
@@ -190,10 +202,12 @@ Inspired by the Lagos flow (date/tier select → details → summary → payment
 ## 10. Shared Systems
 
 ### 10.1 Authentication
+
 - **One account system shared between Tickets and Shop** (per your decision) — a person logs in once and sees both their tickets and their orders in a unified dashboard (e.g. `/account` with tabs for "Tickets" and "Orders").
 - DP Generator and the main informational pages (Home, Schedule, Speakers, FAQs, Team) remain fully public, no auth needed.
 
 ### 10.2 Localization (French/English)
+
 - Every route ships in both languages with a persistent switcher in the navbar (§1.1).
 - Recommend **path-based locales** (`/fr/...`, `/en/...`) over query params — better for SEO, sharing, and clarity.
 - Default language: worth deciding based on your actual audience split — Yaoundé skews Francophone, so defaulting to **French** with an easy switch to English (for international speakers/sponsors) is likely the safer default, but flag this as an assumption to confirm.
@@ -201,7 +215,9 @@ Inspired by the Lagos flow (date/tier select → details → summary → payment
 - Content that can stay language-neutral: speaker/organizer names, session titles if the speaker submitted them in one language only (consider a small "original language" tag rather than force-translating), sponsor names/logos.
 
 ### 10.3 Voice & Microcopy
+
 Carry the "friends who build things" tone into every small moment, not just headlines:
+
 - Buttons: prefer active, warm phrasing ("Grab your ticket" over "Submit"; "Add to bag" over "Add to cart").
 - Empty/error states: light, never sterile ("Nothing here yet — check back soon" rather than "No data available").
 - Confirmation moments (ticket bought, order placed): genuinely celebratory, matches the bouncy animation energy from DESIGN.md.
@@ -218,4 +234,4 @@ Carry the "friends who build things" tone into every small moment, not just head
 
 ---
 
-*Pairs with DESIGN.md — that file defines how things look and move; this file defines what exists and what it says.*
+_Pairs with DESIGN.md — that file defines how things look and move; this file defines what exists and what it says._

@@ -5,7 +5,40 @@
     "faqs": "FAQs",
     "team": "Team",
     "shop": "Shop",
-    "tickets": "Get Tickets"
+    "tickets": "Get Tickets",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "switchToEnglish": "Switch to English",
+    "switchToFrench": "Switch to French",
+    "skipToContent": "Skip to content"
+  },
+  "announcement": {
+    "message": "🎟️ Early bird tickets end soon — grab yours before prices go up!",
+    "dismiss": "Dismiss announcement"
+  },
+  "footer": {
+    "rsvpCta": "Be part of the story — RSVP now",
+    "event": {
+      "title": "Event",
+      "schedule": "Schedule",
+      "speakers": "Speakers",
+      "team": "Team",
+      "faqs": "FAQs"
+    },
+    "getInvolved": {
+      "title": "Get Involved",
+      "shop": "Shop",
+      "dpGenerator": "DP Generator",
+      "community": "Join the Community",
+      "rsvp": "RSVP"
+    },
+    "legal": {
+      "title": "Legal",
+      "privacy": "Privacy Policy",
+      "codeOfConduct": "Code of Conduct"
+    },
+    "followUs": "Follow us",
+    "copyright": "DevFest Yaoundé · GDG Yaoundé"
   },
   "pages": {
     "home": {

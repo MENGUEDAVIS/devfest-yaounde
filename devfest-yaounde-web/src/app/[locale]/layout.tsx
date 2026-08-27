@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Google_Sans, Google_Sans_Code } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { Footer } from "@/components/global/Footer";
+import { GlobalChrome } from "@/components/global/GlobalChrome";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -41,6 +43,7 @@ export default async function LocaleLayout({
   }
 
   setRequestLocale(locale);
+  const t = await getTranslations("nav");
 
   return (
     <html
@@ -48,7 +51,17 @@ export default async function LocaleLayout({
       className={`${googleSans.variable} ${googleSansCode.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-pill focus:bg-black02 focus:px-4 focus:py-2 focus:text-offwhite"
+          >
+            {t("skipToContent")}
+          </a>
+          <GlobalChrome />
+          <div className="flex flex-1 flex-col pt-28 sm:pt-32">{children}</div>
+          <Footer />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

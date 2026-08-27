@@ -24,12 +24,15 @@ Date: YYYY-MM-DD
 Status: Proposed | Accepted | Superseded by NNNN
 
 ## Context
+
 What situation led to this decision needing to be made?
 
 ## Decision
+
 What was decided.
 
 ## Consequences
+
 What this makes easier, harder, or what it locks in.
 ```
 

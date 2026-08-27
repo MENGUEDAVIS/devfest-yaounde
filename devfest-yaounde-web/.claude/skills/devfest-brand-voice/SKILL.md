@@ -5,7 +5,7 @@ description: Use when writing microcopy for the DevFest Yaoundé site — button
 
 # DevFest Yaoundé Brand Voice
 
-Source: `DESIGN.md` §0 and `PAGES.md` §10.3. The vibe in one sentence: *a developer meetup thrown by friends who happen to be really, really good at building things — bold like Google, warm like home.* Every piece of copy should feel like a community member talking to a friend, not a press release or a sterile SaaS product.
+Source: `DESIGN.md` §0 and `PAGES.md` §10.3. The vibe in one sentence: _a developer meetup thrown by friends who happen to be really, really good at building things — bold like Google, warm like home._ Every piece of copy should feel like a community member talking to a friend, not a press release or a sterile SaaS product.
 
 ## The tone
 
@@ -16,17 +16,17 @@ Source: `DESIGN.md` §0 and `PAGES.md` §10.3. The vibe in one sentence: *a deve
 
 ## Before → After examples
 
-| Context | Sterile (don't) | DevFest voice (do) |
-|---|---|---|
-| Ticket purchase button | "Submit" | "Grab your ticket" |
-| Add to cart | "Add to cart" | "Add to bag" |
-| Empty schedule | "No data available" | "Schedule's still cooking — check back soon 👀" |
-| Empty search results | "No results found" | "Nothing here yet — try a different search" |
-| Ticket confirmation | "Your order has been processed." | "You're in! 🎉 Ticket's on its way to your inbox." |
-| Order placed (shop) | "Order confirmed." | "Order locked in — we'll let you know the moment it's ready." |
-| Generic error | "An error occurred." | "Something glitched on our end — give it another shot?" |
-| Form validation | "Field required." | "Don't forget this one — we need it to save your ticket." |
-| Newsletter/community CTA | "Subscribe" | "Join the community" |
+| Context                  | Sterile (don't)                  | DevFest voice (do)                                            |
+| ------------------------ | -------------------------------- | ------------------------------------------------------------- |
+| Ticket purchase button   | "Submit"                         | "Grab your ticket"                                            |
+| Add to cart              | "Add to cart"                    | "Add to bag"                                                  |
+| Empty schedule           | "No data available"              | "Schedule's still cooking — check back soon 👀"               |
+| Empty search results     | "No results found"               | "Nothing here yet — try a different search"                   |
+| Ticket confirmation      | "Your order has been processed." | "You're in! 🎉 Ticket's on its way to your inbox."            |
+| Order placed (shop)      | "Order confirmed."               | "Order locked in — we'll let you know the moment it's ready." |
+| Generic error            | "An error occurred."             | "Something glitched on our end — give it another shot?"       |
+| Form validation          | "Field required."                | "Don't forget this one — we need it to save your ticket."     |
+| Newsletter/community CTA | "Subscribe"                      | "Join the community"                                          |
 
 ## Rules
 

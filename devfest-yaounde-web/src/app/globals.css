@@ -55,10 +55,12 @@
    * (CSS variables --font-google-sans / --font-google-sans-code), with the
    * DESIGN.md §1.1 fallback stack engaging only if that load ever fails.
    */
-  --font-sans: var(--font-google-sans), "Google Sans", "Product Sans",
-    "Inter", system-ui, sans-serif;
-  --font-mono: var(--font-google-sans-code), "Google Sans Code",
-    "Roboto Mono", ui-monospace, monospace;
+  --font-sans:
+    var(--font-google-sans), "Google Sans", "Product Sans", "Inter", system-ui,
+    sans-serif;
+  --font-mono:
+    var(--font-google-sans-code), "Google Sans Code", "Roboto Mono",
+    ui-monospace, monospace;
 
   /* Type scale — see DESIGN.md §1.2 */
   --text-display-xl: 72px;

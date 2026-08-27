@@ -16,8 +16,12 @@ Fonts: `Google Sans` (display/headings, bold; body, regular), `Google Sans Code`
 Both families are loaded for real via `next/font/google` in `src/app/[locale]/layout.tsx` (`Google_Sans` → `--font-google-sans`, `Google_Sans_Code` → `--font-google-sans-code`), confirmed present in this project's installed Next.js font manifest. The fallback stack below only engages if that load ever fails — see `docs/decisions/0004-font-loading.md`.
 
 ```css
---font-sans: var(--font-google-sans), 'Google Sans', 'Product Sans', 'Inter', system-ui, sans-serif;
---font-mono: var(--font-google-sans-code), 'Google Sans Code', 'Roboto Mono', ui-monospace, monospace;
+--font-sans:
+  var(--font-google-sans), "Google Sans", "Product Sans", "Inter", system-ui,
+  sans-serif;
+--font-mono:
+  var(--font-google-sans-code), "Google Sans Code", "Roboto Mono", ui-monospace,
+  monospace;
 ```
 
 Type scale (Tailwind `fontSize` extension):
@@ -36,6 +40,7 @@ fontSize: {
 ```
 
 Rules:
+
 - Never mix Bold and Regular within one sentence — vary across lines/blocks instead.
 - Minimum body text: 16px, always.
 - Google Sans Code is seasoning, not a meal.
@@ -57,14 +62,15 @@ colors: {
 
 Section → color mapping (fixed across years, never change this):
 
-| Page | Primary | Accent |
-|---|---|---|
-| Event (Home/Schedule/Speakers/Team) | Blue 500 | Halftone Blue |
-| Tickets | Yellow 600 | Halftone Yellow |
-| Swag/Shop | Green 500 (in stock) / Red 500 (sold out) | Halftone Green |
-| Community/Bevy | all four | — |
+| Page                                | Primary                                   | Accent          |
+| ----------------------------------- | ----------------------------------------- | --------------- |
+| Event (Home/Schedule/Speakers/Team) | Blue 500                                  | Halftone Blue   |
+| Tickets                             | Yellow 600                                | Halftone Yellow |
+| Swag/Shop                           | Green 500 (in stock) / Red 500 (sold out) | Halftone Green  |
+| Community/Bevy                      | all four                                  | —               |
 
 Accessibility (non-negotiable):
+
 - 4.5:1 minimum contrast for body text. Yellow 600 and pastels usually need `black02` text, not white — check every time.
 - Never place Red 500 text on Green 500 or vice versa.
 - Every color-coded status (e.g. "Sold out") must also carry a text label or icon — color alone is never sufficient.
@@ -73,12 +79,12 @@ Accessibility (non-negotiable):
 
 Phosphor Icons **exclusively** — never mix in another icon set (no Material, FontAwesome, emoji-as-icon).
 
-| Weight | Use |
-|---|---|
-| Regular | default UI: nav, forms, inline icons |
-| Bold | emphasis, primary buttons, active states |
+| Weight  | Use                                                                            |
+| ------- | ------------------------------------------------------------------------------ |
+| Regular | default UI: nav, forms, inline icons                                           |
+| Bold    | emphasis, primary buttons, active states                                       |
 | Duotone | feature highlights, empty states, illustrative/fun moments (swag, easter eggs) |
-| Fill | active/toggled state only (e.g. saved heart) |
+| Fill    | active/toggled state only (e.g. saved heart)                                   |
 
 Sizes: 16 / 20 / 24 / 32 / 48px+ (inline → hero). Icons inherit text color unless intentionally accented. Never skew/stretch — scale proportionally only. Regular weight = transactional (checkout, forms); duotone/fill = fun (swag, easter eggs).
 
@@ -87,6 +93,7 @@ Sizes: 16 / 20 / 24 / 32 / 48px+ (inline → hero). Icons inherit text color unl
 The one visual signature of the brand: photos masked into a shape formed by the **union of two overlapping rounded rectangles**, rotated 15–35° apart from each other.
 
 Build steps:
+
 1. Two rounded rectangles, corner radius ≥ 24px each.
 2. Rotate one relative to the other (e.g. 0° and 25°).
 3. Boolean union of the two → one continuous irregular rounded blob outline.
@@ -117,18 +124,34 @@ Decorative shapes: low-opacity/pastel when behind text (seasoning, not the main 
 
 ## Motion
 
-This section is the *spec* — easing curves, durations, tiers. For actual reusable, named code presets built from this spec (e.g. `bouncyPop`, `fadeInUp`, `staggerReveal`, `marqueeLoop`) and the required `prefers-reduced-motion` wrapper, see the **`devfest-animation`** skill — extend that skill rather than hand-rolling a one-off animation that doesn't reuse its presets.
+This section is the _spec_ — easing curves, durations, tiers. For actual reusable, named code presets built from this spec (e.g. `bouncyPop`, `fadeInUp`, `staggerReveal`, `marqueeLoop`) and the required `prefers-reduced-motion` wrapper, see the **`devfest-animation`** skill — extend that skill rather than hand-rolling a one-off animation that doesn't reuse its presets.
 
 ```css
---ease-bouncy: cubic-bezier(0.34, 1.56, 0.64, 1); /* button press, add-to-cart, badge reveal, easter eggs */
---ease-out: cubic-bezier(0.16, 1, 0.3, 1);         /* scroll reveals, modal open, card hover-lift */
---ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);     /* tab switches, page transitions, theme shifts */
+--ease-bouncy: cubic-bezier(
+  0.34,
+  1.56,
+  0.64,
+  1
+); /* button press, add-to-cart, badge reveal, easter eggs */
+--ease-out: cubic-bezier(
+  0.16,
+  1,
+  0.3,
+  1
+); /* scroll reveals, modal open, card hover-lift */
+--ease-in-out: cubic-bezier(
+  0.65,
+  0,
+  0.35,
+  1
+); /* tab switches, page transitions, theme shifts */
 /* linear for: marquees, rotating decorative shapes, progress bars, countdown ticks */
 ```
 
 Durations: Micro 100–250ms (hover/press, icon state, focus rings). Meso 250–600ms (card lift, modal open, tab swap, mask reveal). Macro 600ms–1.2s (hero load sequence, staggered scroll-reveals, celebration animations).
 
 Accessibility (non-negotiable):
+
 - Respect `prefers-reduced-motion` — swap bouncy/macro animation for simple fades or instant states.
 - No task or information may require motion to complete/access (checkout must work with animations off).
 - No flashing faster than 3×/second.
