@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "schedule": "Schedule",
+    "speakers": "Speakers",
+    "faqs": "FAQs",
+    "team": "Team",
+    "shop": "Shop",
+    "tickets": "Get Tickets"
+  },
+  "pages": {
+    "home": {
+      "title": "Home",
+      "placeholder": "The home page is on its way — check back soon 👀"
+    },
+    "schedule": {
+      "title": "Schedule",
+      "placeholder": "Schedule's still cooking — check back soon 👀"
+    },
+    "speakers": {
+      "title": "Speakers",
+      "placeholder": "The speaker lineup is coming soon."
+    },
+    "faqs": {
+      "title": "FAQs",
+      "placeholder": "Frequently asked questions are coming soon."
+    },
+    "team": {
+      "title": "Team",
+      "placeholder": "The team page is coming soon."
+    },
+    "tickets": {
+      "title": "Tickets",
+      "placeholder": "Ticket sales aren't open yet — the payment provider hasn't been chosen."
+    },
+    "shop": {
+      "title": "Shop",
+      "placeholder": "The shop is coming soon."
+    },
+    "dpGenerator": {
+      "title": "DP Generator",
+      "placeholder": "The DP generator is coming soon."
+    }
+  }
+}

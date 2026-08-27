@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "schedule": "Programme",
+    "speakers": "Intervenants",
+    "faqs": "FAQ",
+    "team": "Équipe",
+    "shop": "Boutique",
+    "tickets": "Billets"
+  },
+  "pages": {
+    "home": {
+      "title": "Accueil",
+      "placeholder": "La page d'accueil arrive bientôt — revenez faire un tour 👀"
+    },
+    "schedule": {
+      "title": "Programme",
+      "placeholder": "Le programme mijote encore — revenez bientôt 👀"
+    },
+    "speakers": {
+      "title": "Intervenants",
+      "placeholder": "La liste des intervenants arrive bientôt."
+    },
+    "faqs": {
+      "title": "FAQ",
+      "placeholder": "Les questions fréquentes arrivent bientôt."
+    },
+    "team": {
+      "title": "Équipe",
+      "placeholder": "La page de l'équipe arrive bientôt."
+    },
+    "tickets": {
+      "title": "Billets",
+      "placeholder": "La billetterie n'est pas encore ouverte — le fournisseur de paiement n'a pas encore été choisi."
+    },
+    "shop": {
+      "title": "Boutique",
+      "placeholder": "La boutique arrive bientôt."
+    },
+    "dpGenerator": {
+      "title": "Générateur de photo de profil",
+      "placeholder": "Le générateur de DP arrive bientôt."
+    }
+  }
+}
