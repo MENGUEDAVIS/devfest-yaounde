@@ -41,6 +41,26 @@
   }
 }
 
+@keyframes df-modal-backdrop {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes df-modal-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes df-confetti-piece {
   0% {
     transform: translate(0, 0) scale(0) rotate(0deg);
@@ -83,12 +103,22 @@
   animation: df-confetti-piece 900ms var(--ease-bouncy) both;
 }
 
+/* Modal — DESIGN.md §6.1 maps "modal open" to ease-out, meso tier */
+.anim-modal-backdrop {
+  animation: df-modal-backdrop 200ms var(--ease-out-devfest) both;
+}
+.anim-modal-pop {
+  animation: df-modal-pop 300ms var(--ease-out-devfest) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-bouncy-pop,
   .anim-fade-in-up,
   .anim-stagger-reveal > *,
   .anim-marquee,
-  .anim-confetti-piece {
+  .anim-confetti-piece,
+  .anim-modal-backdrop,
+  .anim-modal-pop {
     animation: none !important;
     transition: none !important;
   }

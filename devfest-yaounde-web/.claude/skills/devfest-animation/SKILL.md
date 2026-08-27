@@ -14,7 +14,7 @@ No animation library (Framer Motion, GSAP, etc.) is installed. Everything below 
 ## Where the code lives
 
 - `src/app/motion.css` — the actual `@keyframes` and utility classes, imported into `src/app/globals.css`.
-- `src/lib/motion.ts` — named JS exports (`bouncyPop`, `fadeInUp`, `staggerReveal`, `marqueeLoop`, `staggerStyle`) so components import symbols instead of hardcoding class-name strings.
+- `src/lib/motion.ts` — named JS exports (`bouncyPop`, `fadeInUp`, `staggerReveal`, `marqueeLoop`, `confettiPiece`, `modalBackdropIn`, `modalPopIn`, `staggerStyle`, `confettiPieceStyle`) so components import symbols instead of hardcoding class-name strings.
 
 ## The easing tokens (from DESIGN.md §6.1, defined in `globals.css`'s `@theme` block)
 
@@ -68,6 +68,10 @@ import { bouncyPop, fadeInUp, staggerReveal, marqueeLoop, staggerStyle } from "@
 
 // Continuous linear scroll — sponsor logo marquee, ticker text
 <div className={marqueeLoop}>...</div>
+
+// Modal backdrop fade + panel scale-in (ease-out, meso tier — DESIGN.md §6.1 maps "modal open" to ease-out)
+<div className={modalBackdropIn}>...</div>
+<div className={modalPopIn}>...</div>
 ```
 
 Adding a new named preset: add the `@keyframes` + utility class to `src/app/motion.css`, export its class name from `src/lib/motion.ts`, and add its reduced-motion override in the same `@media (prefers-reduced-motion: reduce)` block — don't create a preset that skips that step.

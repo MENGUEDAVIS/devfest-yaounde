@@ -40,11 +40,50 @@
     "followUs": "Follow us",
     "copyright": "DevFest Yaoundé · GDG Yaoundé"
   },
-  "pages": {
-    "home": {
-      "title": "Home",
-      "placeholder": "The home page is on its way — check back soon 👀"
+  "home": {
+    "hero": {
+      "eyebrow": "GDG Yaoundé presents",
+      "headline": "DevFest Yaoundé {year}",
+      "dates": "Dates to be announced",
+      "venue": "Yaoundé, Cameroon",
+      "ctaPrimary": "Get Tickets",
+      "ctaSecondary": "Shop",
+      "ctaTertiary": "RSVP on GDG Bevy",
+      "sponsorsLabel": "This year's partners"
     },
+    "about": {
+      "title": "What is DevFest Yaoundé?",
+      "body": "DevFest is Google's global series of developer-led, community events — and DevFest Yaoundé is our local chapter's flagship gathering, run by GDG Yaoundé for the people building things in and around this city. Expect real talks from real practitioners, hallway conversations that turn into collaborations, and a room full of people who'd rather be here than anywhere else."
+    },
+    "speakers": {
+      "title": "Meet this year's speakers",
+      "cta": "See the full lineup"
+    },
+    "schedule": {
+      "title": "What's on",
+      "empty": "Full schedule's still cooking — check back soon 👀",
+      "cta": "See the full schedule",
+      "day": "Day {day}"
+    },
+    "quotes": {
+      "title": "What people are saying"
+    },
+    "memoryLane": {
+      "title": "Memory lane",
+      "body": "A few frames from past editions — proof this community has history, and it's only getting started.",
+      "recapCta": "Watch the recap"
+    },
+    "community": {
+      "title": "What is GDG Yaoundé up to?",
+      "body": "GDG Yaoundé keeps the community going all year, not just on event day — meetups, study jams, and a place to ask the questions you're too embarrassed to ask on Stack Overflow.",
+      "cta": "Join the Community"
+    },
+    "faq": {
+      "title": "Quick questions",
+      "cta": "More questions?"
+    }
+  },
+  "pages": {
     "schedule": {
       "title": "Schedule",
       "placeholder": "Schedule's still cooking — check back soon 👀"

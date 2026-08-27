@@ -1,0 +1,37 @@
+[
+  {
+    "id": "acme-cloud",
+    "name": "Acme Cloud",
+    "logoUrl": "/placeholders/sponsor-1.svg",
+    "tier": "platinum",
+    "websiteUrl": "#"
+  },
+  {
+    "id": "globex-systems",
+    "name": "Globex Systems",
+    "logoUrl": "/placeholders/sponsor-2.svg",
+    "tier": "gold",
+    "websiteUrl": "#"
+  },
+  {
+    "id": "initech-labs",
+    "name": "Initech Labs",
+    "logoUrl": "/placeholders/sponsor-3.svg",
+    "tier": "gold",
+    "websiteUrl": "#"
+  },
+  {
+    "id": "umbrella-devs",
+    "name": "Umbrella Devs",
+    "logoUrl": "/placeholders/sponsor-4.svg",
+    "tier": "silver",
+    "websiteUrl": "#"
+  },
+  {
+    "id": "soylent-tech",
+    "name": "Soylent Tech",
+    "logoUrl": "/placeholders/sponsor-5.svg",
+    "tier": "community",
+    "websiteUrl": "#"
+  }
+]

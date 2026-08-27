@@ -1,0 +1,50 @@
+[
+  {
+    "id": "faq-ticket-required",
+    "category": "general",
+    "question": {
+      "fr": "Ai-je besoin d'un billet pour participer ?",
+      "en": "Do I need a ticket to attend?"
+    },
+    "answer": {
+      "fr": "Oui — même notre billet gratuit nécessite une réservation, pour qu'on puisse bien organiser la salle. Direction la page Billets pour récupérer le vôtre.",
+      "en": "Yes — even our free tier needs a ticket so we can plan the room properly. Head to the Tickets page to grab yours."
+    }
+  },
+  {
+    "id": "faq-beginner-friendly",
+    "category": "general",
+    "question": {
+      "fr": "Est-ce adapté aux débutants ?",
+      "en": "Is this beginner-friendly?"
+    },
+    "answer": {
+      "fr": "Tout à fait. DevFest Yaoundé s'adresse à toute personne curieuse de construire des choses, pas seulement aux ingénieurs expérimentés — aucune expérience de conférence requise.",
+      "en": "Very. DevFest Yaoundé is for anyone curious about building things, not just senior engineers — no prior conference experience required."
+    }
+  },
+  {
+    "id": "faq-venue",
+    "category": "venue",
+    "question": {
+      "fr": "Où se déroule DevFest Yaoundé ?",
+      "en": "Where is DevFest Yaoundé held?"
+    },
+    "answer": {
+      "fr": "À Yaoundé — le lieu exact sera annoncé à l'approche de la date.",
+      "en": "In Yaoundé — exact venue details will be announced closer to the date."
+    }
+  },
+  {
+    "id": "faq-volunteer",
+    "category": "general",
+    "question": {
+      "fr": "Puis-je aider à l'organisation ou faire du bénévolat ?",
+      "en": "Can I help organize or volunteer?"
+    },
+    "answer": {
+      "fr": "Bien sûr — contactez-nous via la page communauté GDG Yaoundé et quelqu'un de l'équipe vous répondra.",
+      "en": "Absolutely — reach out through the GDG Yaoundé community page and someone from the team will get back to you."
+    }
+  }
+]

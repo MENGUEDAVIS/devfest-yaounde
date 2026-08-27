@@ -27,7 +27,7 @@ export async function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-16 bg-black02 text-offwhite">
+    <footer className="bg-black02 text-offwhite">
       {/*
         Community photo strip placeholder — DESIGN.md §4.1 requires real
         community photos, none exist in this bootstrap yet. Replace this

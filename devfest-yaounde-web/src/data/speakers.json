@@ -1,0 +1,89 @@
+[
+  {
+    "id": "jane-doe",
+    "name": "Jane Doe",
+    "role": { "fr": "Ingénieure principale", "en": "Staff Engineer" },
+    "company": "Acme Cloud",
+    "photoUrl": "/placeholders/speaker-1.svg",
+    "bio": {
+      "fr": "Espace réservé — Jane construit des systèmes distribués depuis dix ans et adore expliquer les choses compliquées simplement.",
+      "en": "Placeholder bio — Jane has been building distributed systems for a decade and loves explaining complicated things simply."
+    },
+    "sessionIds": [],
+    "social": { "x": "#", "linkedin": "#" },
+    "featured": true
+  },
+  {
+    "id": "kwame-asante",
+    "name": "Kwame Asante",
+    "role": { "fr": "Développeur avocat", "en": "Developer Advocate" },
+    "company": "Globex Systems",
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "bio": {
+      "fr": "Espace réservé — Kwame aide les communautés de développeurs à travers l'Afrique de l'Ouest à adopter le cloud natif.",
+      "en": "Placeholder bio — Kwame helps developer communities across West Africa adopt cloud-native tooling."
+    },
+    "sessionIds": [],
+    "social": { "linkedin": "#", "website": "#" },
+    "featured": true
+  },
+  {
+    "id": "amara-nwosu",
+    "name": "Amara Nwosu",
+    "role": {
+      "fr": "Ingénieure en apprentissage automatique",
+      "en": "ML Engineer"
+    },
+    "company": "Initech Labs",
+    "photoUrl": "/placeholders/speaker-3.svg",
+    "bio": {
+      "fr": "Espace réservé — Amara construit des modèles qui doivent fonctionner dans le monde réel, pas seulement dans un notebook.",
+      "en": "Placeholder bio — Amara builds models that need to work in the real world, not just in a notebook."
+    },
+    "sessionIds": [],
+    "social": { "x": "#" },
+    "featured": true
+  },
+  {
+    "id": "yusuf-mbarga",
+    "name": "Yusuf Mbarga",
+    "role": { "fr": "Responsable Frontend", "en": "Frontend Lead" },
+    "company": "Umbrella Devs",
+    "photoUrl": "/placeholders/speaker-4.svg",
+    "bio": {
+      "fr": "Espace réservé — Yusuf pense que les interfaces rapides et accessibles ne sont pas négociables.",
+      "en": "Placeholder bio — Yusuf believes fast, accessible interfaces aren't optional extras."
+    },
+    "sessionIds": [],
+    "social": { "linkedin": "#" },
+    "featured": true
+  },
+  {
+    "id": "fatima-njoya",
+    "name": "Fatima Njoya",
+    "role": { "fr": "Architecte Cloud", "en": "Cloud Architect" },
+    "company": "Soylent Tech",
+    "photoUrl": "/placeholders/speaker-5.svg",
+    "bio": {
+      "fr": "Espace réservé — Fatima conçoit des infrastructures qui survivent au succès du produit.",
+      "en": "Placeholder bio — Fatima designs infrastructure that survives the product actually succeeding."
+    },
+    "sessionIds": [],
+    "social": {},
+    "featured": false
+  },
+  {
+    "id": "marcus-fotso",
+    "name": "Marcus Fotso",
+    "role": { "fr": "Ingénieur sécurité", "en": "Security Engineer" },
+    "company": "Acme Cloud",
+    "photoUrl": "/placeholders/speaker-6.svg",
+    "bio": {
+      "fr": "Espace réservé — Marcus casse des choses pour vivre, dans le bon sens du terme.",
+      "en": "Placeholder bio — Marcus breaks things for a living, in the good way."
+    },
+    "sessionIds": [],
+    "social": { "x": "#", "website": "#" },
+    "featured": false
+  }
+]

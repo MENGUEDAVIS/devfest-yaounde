@@ -1,0 +1,22 @@
+[
+  {
+    "id": "developers",
+    "value": 500,
+    "suffix": "+",
+    "label": { "fr": "développeurs", "en": "developers" }
+  },
+  {
+    "id": "speakers",
+    "value": 40,
+    "suffix": "+",
+    "label": { "fr": "intervenants", "en": "speakers" }
+  },
+  {
+    "id": "weekend",
+    "value": 1,
+    "label": {
+      "fr": "week-end inoubliable",
+      "en": "unforgettable weekend"
+    }
+  }
+]

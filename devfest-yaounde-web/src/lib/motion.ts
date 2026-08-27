@@ -13,6 +13,8 @@ export const fadeInUp = "anim-fade-in-up";
 export const staggerReveal = "anim-stagger-reveal";
 export const marqueeLoop = "anim-marquee";
 export const confettiPiece = "anim-confetti-piece";
+export const modalBackdropIn = "anim-modal-backdrop";
+export const modalPopIn = "anim-modal-pop";
 
 /**
  * Apply to the Nth child of a `staggerReveal` container to offset its

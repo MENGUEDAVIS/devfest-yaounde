@@ -40,11 +40,50 @@
     "followUs": "Suivez-nous",
     "copyright": "DevFest Yaoundé · GDG Yaoundé"
   },
-  "pages": {
-    "home": {
-      "title": "Accueil",
-      "placeholder": "La page d'accueil arrive bientôt — revenez faire un tour 👀"
+  "home": {
+    "hero": {
+      "eyebrow": "GDG Yaoundé présente",
+      "headline": "DevFest Yaoundé {year}",
+      "dates": "Dates à venir",
+      "venue": "Yaoundé, Cameroun",
+      "ctaPrimary": "Réserver un billet",
+      "ctaSecondary": "Boutique",
+      "ctaTertiary": "RSVP sur GDG Bevy",
+      "sponsorsLabel": "Les partenaires de cette édition"
     },
+    "about": {
+      "title": "C'est quoi, DevFest Yaoundé ?",
+      "body": "DevFest, c'est la série mondiale d'événements communautaires de Google, portée par des développeurs pour des développeurs — et DevFest Yaoundé, c'est le grand rendez-vous de notre chapitre local, organisé par GDG Yaoundé pour celles et ceux qui construisent des choses ici, à Yaoundé et autour. Attendez-vous à de vraies conférences données par de vrais praticiens, des discussions de couloir qui se transforment en collaborations, et une salle pleine de gens qui n'auraient voulu être nulle part ailleurs."
+    },
+    "speakers": {
+      "title": "Découvrez nos intervenants",
+      "cta": "Voir tous les intervenants"
+    },
+    "schedule": {
+      "title": "Au programme",
+      "empty": "Le programme complet mijote encore — revenez bientôt 👀",
+      "cta": "Voir le programme complet",
+      "day": "Jour {day}"
+    },
+    "quotes": {
+      "title": "Ce qu'on en dit"
+    },
+    "memoryLane": {
+      "title": "Souvenirs",
+      "body": "Quelques images des éditions précédentes — la preuve que cette communauté a une histoire, et qu'elle ne fait que commencer.",
+      "recapCta": "Voir le récap"
+    },
+    "community": {
+      "title": "Que prépare GDG Yaoundé ?",
+      "body": "GDG Yaoundé fait vivre la communauté toute l'année, pas seulement le jour de l'événement — meetups, study jams, et un endroit où poser les questions qu'on n'ose pas poser sur Stack Overflow.",
+      "cta": "Rejoindre la communauté"
+    },
+    "faq": {
+      "title": "Questions rapides",
+      "cta": "D'autres questions ?"
+    }
+  },
+  "pages": {
     "schedule": {
       "title": "Programme",
       "placeholder": "Le programme mijote encore — revenez bientôt 👀"

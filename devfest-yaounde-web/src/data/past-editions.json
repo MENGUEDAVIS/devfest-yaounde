@@ -1,0 +1,38 @@
+[
+  {
+    "id": "memory-1",
+    "imageUrl": "/placeholders/memory-1.svg",
+    "alt": {
+      "fr": "Photo espace réservé de DevFest Yaoundé 2023",
+      "en": "Placeholder photo from DevFest Yaoundé 2023"
+    },
+    "year": 2023
+  },
+  {
+    "id": "memory-2",
+    "imageUrl": "/placeholders/memory-2.svg",
+    "alt": {
+      "fr": "Photo espace réservé de DevFest Yaoundé 2023",
+      "en": "Placeholder photo from DevFest Yaoundé 2023"
+    },
+    "year": 2023
+  },
+  {
+    "id": "memory-3",
+    "imageUrl": "/placeholders/memory-3.svg",
+    "alt": {
+      "fr": "Photo espace réservé de DevFest Yaoundé 2024",
+      "en": "Placeholder photo from DevFest Yaoundé 2024"
+    },
+    "year": 2024
+  },
+  {
+    "id": "memory-4",
+    "imageUrl": "/placeholders/memory-4.svg",
+    "alt": {
+      "fr": "Photo espace réservé de DevFest Yaoundé 2024",
+      "en": "Placeholder photo from DevFest Yaoundé 2024"
+    },
+    "year": 2024
+  }
+]

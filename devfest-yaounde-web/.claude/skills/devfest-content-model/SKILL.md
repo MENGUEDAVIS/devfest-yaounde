@@ -109,7 +109,39 @@ interface FaqItem {
 }
 
 type LocalizedString = { fr: string; en: string };
+
+// Home-page-specific shapes (added feat/home-page — Phase 3)
+interface Sponsor {
+  id: string;
+  name: string; // language-neutral
+  logoUrl: string;
+  tier?: "platinum" | "gold" | "silver" | "community";
+  websiteUrl?: string;
+}
+
+interface Stat {
+  id: string;
+  value: number;
+  suffix?: string; // e.g. "+"
+  label: LocalizedString;
+}
+
+interface Quote {
+  id: string;
+  text: LocalizedString;
+  author: string; // language-neutral name
+  role?: LocalizedString; // e.g. "Attendee, DevFest 2025"
+}
+
+interface PastEditionPhoto {
+  id: string;
+  imageUrl: string;
+  alt: LocalizedString;
+  year?: number;
+}
 ```
+
+All placeholder content for these (and `Speaker`) lives under `src/data/*.json` — see `docs/guides/updating-home-page.md` for which file maps to which visible section and what must be replaced before launch.
 
 ## Page-specific structure notes
 
