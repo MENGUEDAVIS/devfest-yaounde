@@ -3,6 +3,7 @@
 import { List, X } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
+import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { Link, usePathname } from "@/i18n/navigation";
 import { ConfettiBurst } from "./ConfettiBurst";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -56,13 +57,14 @@ export function Navbar({ compact }: { compact: boolean }) {
         <button
           type="button"
           onClick={handleLogoClick}
-          className="relative shrink-0 whitespace-nowrap font-sans text-heading-m font-bold text-black02 transition-transform duration-200 ease-bouncy hover:-rotate-2 hover:scale-105"
+          className="logo-interactive relative flex shrink-0 items-center gap-2.5 whitespace-nowrap font-sans text-heading-m font-bold text-black02 transition-transform duration-200 ease-bouncy hover:scale-105"
         >
+          <DevFestLogo className="h-6 w-auto shrink-0" />
           DevFest Yaoundé
           {showConfetti && <ConfettiBurst />}
         </button>
 
-        <div className="hidden min-w-0 items-center gap-5 lg:flex xl:gap-7">
+        <div className="hidden min-w-0 items-center gap-4 lg:flex xl:gap-6">
           {NAV_LINKS.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -81,7 +83,7 @@ export function Navbar({ compact }: { compact: boolean }) {
           })}
         </div>
 
-        <div className="hidden shrink-0 items-center gap-2.5 lg:flex">
+        <div className="hidden shrink-0 items-center gap-2 lg:flex">
           <LanguageSwitcher />
           <Link
             href="/shop"

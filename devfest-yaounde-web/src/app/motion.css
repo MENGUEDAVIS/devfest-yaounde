@@ -106,6 +106,129 @@
   }
 }
 
+/*
+ * DevFest logo brackets — the two halves of the "><" mark animate as
+ * separate pieces. Entrance lives on an OUTER <g>; hover/easter-egg
+ * transforms live on an INNER <g>, so a `both`-filled entrance animation
+ * never fights the hover transition for the same transform property.
+ */
+@keyframes df-bracket-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-70px) rotate(-35deg) scale(0.8);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(6px) rotate(4deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes df-bracket-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(70px) rotate(35deg) scale(0.8);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-6px) rotate(-4deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0) scale(1);
+  }
+}
+
+/* Easter egg: brackets fling apart, spin, and snap back together */
+@keyframes df-bracket-spin-left {
+  0% {
+    transform: translateX(0) rotate(0);
+  }
+  35% {
+    transform: translateX(-38px) rotate(-180deg);
+  }
+  70% {
+    transform: translateX(8px) rotate(-350deg);
+  }
+  100% {
+    transform: translateX(0) rotate(-360deg);
+  }
+}
+
+@keyframes df-bracket-spin-right {
+  0% {
+    transform: translateX(0) rotate(0);
+  }
+  35% {
+    transform: translateX(38px) rotate(180deg);
+  }
+  70% {
+    transform: translateX(-8px) rotate(350deg);
+  }
+  100% {
+    transform: translateX(0) rotate(360deg);
+  }
+}
+
+.logo-piece {
+  /* SVG needs fill-box or rotation pivots around the viewBox origin */
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.logo-bracket-in-left {
+  animation: df-bracket-in-left 900ms var(--ease-bouncy) both;
+}
+.logo-bracket-in-right {
+  animation: df-bracket-in-right 900ms var(--ease-bouncy) both;
+}
+
+/* Inner layer: hover parting + easter-egg spin */
+.logo-hover-left,
+.logo-hover-right {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 350ms var(--ease-bouncy);
+}
+.logo-interactive:hover .logo-hover-left {
+  transform: translateX(-7px) rotate(-6deg);
+}
+.logo-interactive:hover .logo-hover-right {
+  transform: translateX(7px) rotate(6deg);
+}
+
+.logo-spin-left {
+  animation: df-bracket-spin-left 1100ms var(--ease-bouncy) both;
+}
+.logo-spin-right {
+  animation: df-bracket-spin-right 1100ms var(--ease-bouncy) both;
+}
+
+/* Kinetic headline words — festival energy through type, not more color */
+@keyframes df-word-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(48px) rotate(-4deg) scale(0.9);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-6px) rotate(1deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+.anim-word-pop {
+  display: inline-block;
+  animation: df-word-pop 800ms var(--ease-bouncy) both;
+  animation-delay: calc(var(--word-index, 0) * 90ms + var(--word-base, 0ms));
+}
+
 /* Nav settle-on-load — the bouncy arrival called for in DESIGN.md §7c */
 @keyframes df-nav-settle {
   0% {
@@ -189,6 +312,100 @@
   transform: translateY(0);
 }
 
+/*
+ * Spotlight group (speaker preview) — hovering one card lifts it forward
+ * while its siblings recede. Driven purely by CSS sibling selectors off the
+ * container's :hover, so there's no JS hover state and no re-render churn.
+ *
+ * NOTE: the container must NOT clip (no overflow-hidden on an ancestor of
+ * the lifted card) or the lift gets cropped — that was a real bug. The
+ * horizontal scroller uses padding + `overflow-x: auto` with visible
+ * vertical overflow via `overflow-y: visible` and generous padding instead.
+ */
+.spotlight-item {
+  transition:
+    transform 400ms var(--ease-out-devfest),
+    opacity 400ms var(--ease-out-devfest),
+    filter 400ms var(--ease-out-devfest);
+}
+
+.spotlight-group:hover .spotlight-item {
+  opacity: 0.45;
+  transform: scale(0.94);
+  filter: saturate(0.5);
+}
+
+.spotlight-group:hover .spotlight-item:hover,
+.spotlight-group:focus-within .spotlight-item:focus-visible {
+  opacity: 1;
+  transform: scale(1.06) translateY(-14px);
+  filter: saturate(1);
+  z-index: 10;
+}
+
+/*
+ * Footer link spotlight (PHASE5 §9) — hovering one link dims its siblings
+ * within the SAME group only. Scoping comes for free from putting
+ * `.link-group` on each individual column rather than the footer as a
+ * whole. Opacity only: links must not move, or the pointer would chase
+ * them.
+ */
+.link-item {
+  transition: opacity 250ms var(--ease-out-devfest);
+}
+
+.link-group:hover .link-item {
+  opacity: 0.4;
+}
+
+.link-group:hover .link-item:hover,
+.link-group:focus-within .link-item:focus-visible {
+  opacity: 1;
+}
+
+/*
+ * Memory Lane scroll choreography — enter AND exit. The <ScrollStage>
+ * component writes --stage-progress (0 -> 1 across the section's travel
+ * through the viewport) and toggles is-entering / is-leaving, so photos
+ * assemble on the way in and disperse on the way out rather than doing a
+ * one-time reveal.
+ */
+.stage-photo {
+  transition:
+    transform 700ms var(--ease-out-devfest),
+    opacity 700ms var(--ease-out-devfest);
+  /* Resting (pre-entry) state: dropped, tilted further, slightly small */
+  transform: translateY(70px) rotate(calc(var(--stage-rot, 0deg) * 2.2))
+    scale(0.9);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* is-entering / is-leaving are set on the <ScrollStage> container */
+.is-entering .stage-photo {
+  transform: translateY(0) rotate(var(--stage-rot, 0deg)) scale(1);
+  opacity: 1;
+  transition-delay: calc(var(--stagger-index, 0) * 120ms);
+}
+
+.is-leaving .stage-photo {
+  transform: translateY(-56px) rotate(calc(var(--stage-rot, 0deg) * -1.6))
+    scale(0.94);
+  opacity: 0.25;
+  transition-delay: calc(var(--stagger-index, 0) * 60ms);
+}
+
+/*
+ * Parallax drift tied to scroll position. --stage-progress runs 0..1; the
+ * -0.5 recentres it so elements drift through zero at mid-viewport.
+ */
+.stage-parallax {
+  transform: translateY(
+    calc((var(--stage-progress, 0.5) - 0.5) * var(--parallax-depth, 60px) * -2)
+  );
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-bouncy-pop,
   .anim-fade-in-up,
@@ -198,15 +415,45 @@
   .anim-confetti-piece,
   .anim-modal-backdrop,
   .anim-modal-pop,
-  .anim-nav-settle {
+  .anim-nav-settle,
+  .anim-word-pop,
+  .logo-bracket-in-left,
+  .logo-bracket-in-right,
+  .logo-spin-left,
+  .logo-spin-right,
+  .logo-hover-left,
+  .logo-hover-right,
+  .spotlight-item,
+  .link-item,
+  .stage-photo {
     animation: none !important;
     transition: none !important;
   }
 
-  /* Reduced-motion users get the content immediately, never a hidden state */
-  .anim-reveal {
+  /* Never leave content in a hidden/transformed state for these users */
+  .anim-reveal,
+  .anim-word-pop,
+  .stage-photo,
+  .is-entering .stage-photo,
+  .is-leaving .stage-photo {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+  }
+
+  /* Hover parting and spotlight recede are decorative — drop them entirely */
+  .logo-interactive:hover .logo-hover-left,
+  .logo-interactive:hover .logo-hover-right,
+  .spotlight-group:hover .spotlight-item,
+  .spotlight-group:hover .spotlight-item:hover,
+  .link-group:hover .link-item {
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+
+  /* Parallax is the most motion-sickness-prone effect here — fully off */
+  .stage-parallax {
+    transform: none !important;
   }
 }

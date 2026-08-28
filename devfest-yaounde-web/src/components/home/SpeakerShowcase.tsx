@@ -8,6 +8,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import speakers from "@/data/speakers.json";
+import { spotlightGroup, spotlightItem } from "@/lib/motion";
 import type { Speaker } from "@/data/types";
 
 const featuredSpeakers = (speakers as Speaker[]).filter((s) => s.featured);
@@ -37,18 +38,32 @@ export function SpeakerShowcase() {
         </div>
       </Reveal>
 
-      <div className="mt-16 flex gap-8 overflow-x-auto pb-6">
+      {/*
+        CROP FIX (PHASE5 §4): `overflow-x: auto` makes the computed
+        `overflow-y` become `auto` as well — CSS doesn't allow one axis to
+        scroll while the other stays `visible`. The hover lift was therefore
+        being clipped vertically. Rather than removing the horizontal
+        scroller, the scroll box carries its own generous vertical padding
+        (py-12) so a lifted/scaled card stays *inside* the padded box, with
+        a negative margin pulling the surrounding rhythm back.
+      */}
+      <div
+        className={`${spotlightGroup} -my-6 mt-10 flex gap-8 overflow-x-auto px-1 py-12`}
+      >
         {featuredSpeakers.map((speaker, i) => (
           <Reveal key={speaker.id} index={i} className="shrink-0">
             <button
               type="button"
               onClick={() => setActiveSpeaker(speaker)}
-              className="group w-56 text-left sm:w-64"
+              // spotlight-item sits on the button, NOT on <Reveal> — Reveal
+              // owns its own transform for the scroll entrance, and two
+              // rules setting `transform` on one element would collide.
+              className={`${spotlightItem} group relative w-72 text-left sm:w-80`}
             >
               <MorphedImageFrame
                 src={speaker.photoUrl}
                 alt={speaker.name}
-                className="border-2 border-black02 transition-transform duration-300 ease-bouncy group-hover:-translate-y-2 group-hover:rotate-2"
+                className="border-2 border-black02 shadow-[0_5px_0_0_var(--color-black02)]"
               />
               <p className="mt-5 font-sans text-heading-l font-bold text-black02">
                 {speaker.name}

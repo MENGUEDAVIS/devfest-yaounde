@@ -47,12 +47,16 @@
     "hero": {
       "eyebrow": "GDG Yaoundé présente",
       "headline": "DevFest Yaoundé {year}",
-      "dates": "Dates à venir",
+      "dates": "Dates bientôt annoncées",
       "venue": "Yaoundé, Cameroun",
-      "ctaPrimary": "Réserver un billet",
-      "ctaSecondary": "Boutique",
-      "ctaTertiary": "RSVP sur GDG Bevy",
-      "sponsorsLabel": "Les partenaires de cette édition"
+      "ctaPrimary": "Prends ta place",
+      "ctaSecondary": "Voir le swag",
+      "ctaTertiary": "ou juste RSVP sur Bevy",
+      "sponsorsLabel": "Portés par des gens biens",
+      "headlineLead": "DevFest",
+      "headlineCity": "Yaoundé",
+      "tagline": "Une journée. Toute la communauté. Une salle pleine de gens qui construisent des trucs fous — et toi, on espère, au milieu.",
+      "logoHint": "psst — clique sur le logo"
     },
     "about": {
       "title": "C'est quoi, DevFest Yaoundé ?",
@@ -79,11 +83,13 @@
     "community": {
       "title": "Que prépare GDG Yaoundé ?",
       "body": "GDG Yaoundé fait vivre la communauté toute l'année, pas seulement le jour de l'événement — meetups, study jams, et un endroit où poser les questions qu'on n'ose pas poser sur Stack Overflow.",
-      "cta": "Rejoindre la communauté"
+      "cta": "Rejoindre la communauté",
+      "ticketsCta": "Prends ta place"
     },
     "faq": {
       "title": "Questions rapides",
-      "cta": "D'autres questions ?"
+      "cta": "D'autres questions ?",
+      "toggleHint": "Touche une question"
     }
   },
   "pages": {

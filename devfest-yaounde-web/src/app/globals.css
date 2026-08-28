@@ -73,7 +73,7 @@
    * scales fluidly to 120px on large screens. Tightened tracking keeps
    * huge display type from feeling loose.
    */
-  --text-display-hero: clamp(3.5rem, 9vw, 7.5rem); /* 56px → 120px */
+  --text-display-hero: clamp(2.75rem, 8vw, 7.5rem); /* 44px → 120px */
   --text-display-hero--line-height: 0.95;
   --text-display-hero--letter-spacing: -0.03em;
   --text-display-xl: clamp(2.75rem, 5.5vw, 4.5rem); /* 44px → 72px */

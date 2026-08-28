@@ -46,7 +46,7 @@ export function GlobalChrome() {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-3 sm:px-6 sm:pt-5">
       <div
-        className={`${navSettle} pointer-events-auto w-full max-w-4xl overflow-hidden border-2 border-black02 bg-offwhite transition-[border-radius,box-shadow,transform] duration-500 ease-bouncy ${
+        className={`${navSettle} pointer-events-auto w-full max-w-5xl overflow-hidden border-2 border-black02 bg-offwhite transition-[border-radius,box-shadow,transform] duration-500 ease-bouncy ${
           pillShape ? "rounded-pill" : "rounded-lg"
         } ${
           scrolled

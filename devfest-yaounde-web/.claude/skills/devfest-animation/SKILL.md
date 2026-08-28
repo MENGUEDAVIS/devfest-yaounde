@@ -16,6 +16,14 @@ No animation library (Framer Motion, GSAP, etc.) is installed. Everything below 
 - `src/app/motion.css` — the actual `@keyframes` and utility classes, imported into `src/app/globals.css`.
 - `src/lib/motion.ts` — named JS exports (`bouncyPop`, `fadeInUp`, `heroRise`, `shapeDrift`, `marqueeLoop`, `marqueeTrack`, `confettiPiece`, `modalBackdropIn`, `modalPopIn`, `navSettle`, `revealOnScroll`, plus `staggerStyle` / `heroDelayStyle` / `confettiPieceStyle`) so components import symbols instead of hardcoding class-name strings.
 - `src/components/ui/Reveal.tsx` — the scroll-reveal wrapper (see `docs/components/reveal.md`). Use this for section entrances rather than hand-rolling an IntersectionObserver.
+- `src/components/ui/ScrollStage.tsx` — scroll-position-linked choreography with **enter AND exit** motion plus parallax (see `docs/components/scroll-stage.md`). Use when a one-shot reveal isn't enough.
+
+Additional presets: `wordPop` + `wordStyle(i, baseMs)` for kinetic per-word headlines; `spotlightGroup`/`spotlightItem` for hover-spotlight card groups; `stagePhoto`/`stageParallax` with `stagePhotoStyle`/`parallaxStyle` for ScrollStage choreography; `.link-group`/`.link-item` for scoped link dimming.
+
+### Two rules that keep biting
+
+1. **Never put two transform-setting classes on the same element.** Parallax + stage choreography, or Reveal + spotlight, must live on separate nested elements — otherwise one silently overwrites the other.
+2. **`overflow-x: auto` forces `overflow-y` to compute as `auto` too.** A horizontal scroller therefore clips vertical hover lifts. Give the scroller generous vertical padding (and a negative margin to claw the spacing back) rather than expecting `overflow-y: visible` to work.
 
 ## The easing tokens (from DESIGN.md §6.1, defined in `globals.css`'s `@theme` block)
 
