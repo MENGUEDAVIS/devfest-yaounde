@@ -62,12 +62,12 @@ All colors are sourced directly from the GDG/DevFest brand decks. **CMYK/Pantone
 
 ### 2.1 Core Palette
 
-| Name       | Hex       | Role                                                            |
-| ---------- | --------- | --------------------------------------------------------------- |
-| Blue 500   | `#4285F4` | Primary brand color — links, primary CTAs, "Event" section      |
-| Green 500  | `#34A853` | Success states, confirmations, "Swag/Shop" availability         |
-| Yellow 600 | `#F9AB00` | Energy accent, "Tickets" section, highlights, hover glows       |
-| Red 500    | `#EA4335` | Urgency, "sold out"/"closing soon" states, sparingly for alerts |
+| Name       | Hex       | Role                                                                    |
+| ---------- | --------- | ----------------------------------------------------------------------- |
+| Blue 500   | `#4285F4` | Links, occasional secondary CTA, "Event"-flavored moments               |
+| Green 500  | `#34A853` | Success states, confirmations, "Swag/Shop" availability                 |
+| Yellow 600 | `#F9AB00` | **Primary emphasis** — key CTAs, active states, themed scrollbar        |
+| Red 500    | `#EA4335` | Urgency, "sold out"/"closing soon" states, errors — rare and meaningful |
 
 ### 2.2 Halftones (brighter, more saturated — for digital energy)
 
@@ -78,7 +78,7 @@ All colors are sourced directly from the GDG/DevFest brand decks. **CMYK/Pantone
 | Halftone Yellow | `#FFD427` |
 | Halftone Red    | `#FF7DAF` |
 
-Use for: gradients, glow/blur effects behind shapes, hover states, decorative confetti/blob shapes, dark-mode accent boosts.
+Use for: glow/blur effects behind shapes, hover states, decorative confetti/blob shapes, dark-mode accent boosts. (Note: gradients are banned — see §2.6.)
 
 ### 2.3 Pastels (soft — for backgrounds and calm surfaces)
 
@@ -95,23 +95,45 @@ Use for: section background washes, card backgrounds, tags/pills, empty states �
 
 | Name      | Hex       | Usage                                                        |
 | --------- | --------- | ------------------------------------------------------------ |
-| Off White | `#F0F0F0` | Primary light background (not pure white — softer, warmer)   |
+| Off White | `#F0F0F0` | Secondary light background (not pure white — softer, warmer) |
 | Black 02  | `#1E1E1E` | Primary text color and dark-mode background (not pure black) |
 
-### 2.5 Color-to-Section Mapping (consistency across years)
+### 2.5 Base Theme — the single most important color rule
 
-To keep the three priority pages instantly recognizable and to make the site easy to navigate by color memory alone:
+**The site is not a rainbow. It has ONE dominant color that carries the whole experience, and the other three core colors are used sparingly as supporting accents.**
 
-| Page                 | Primary Color                                     | Accent                           |
-| -------------------- | ------------------------------------------------- | -------------------------------- |
-| **Event**            | Blue 500                                          | Halftone Blue                    |
-| **Tickets**          | Yellow 600                                        | Halftone Yellow                  |
-| **Swag / Shop**      | Green 500 (in stock) + Red 500 (sold out/urgency) | Halftone Green                   |
-| **Community / Bevy** | Full rainbow mix (all four)                       | — represents the whole community |
+This is the DevFest Lagos lesson: they lead with **yellow** — a gentle, warm yellow/pastel-yellow wash sits behind most of the site, the scrollbar is themed, even the cursor picks it up. Blue/green/red show up only in small supporting moments. The result is calm and cohesive; you're not hit with a new color at every section.
 
-Each year's edition may shift _which pastel/halftone shade leads decoratively_ for freshness, but the **section-to-core-color mapping stays fixed** — that consistency is what makes this a template, not a one-off.
+For DevFest Yaoundé, the base theme is:
 
-### 2.6 Accessibility Rules
+- **Dominant (≈70% of colored surface area):** Yellow family — **Pastel Yellow `#FFE7A5`** as the default warm background wash across most sections, **Yellow 600 `#F9AB00`** for primary emphasis (key CTAs, active states, themed scrollbar), **Halftone Yellow `#FFD427`** for energy accents and hover glows.
+- **Supporting (≈30%, used deliberately and sparingly):** Blue 500, Green 500, Red 500 and their halftone/pastel variants — for specific semantic jobs only (see below), never just for decoration's sake.
+- **Neutrals:** Off White `#F0F0F0` and Black 02 `#1E1E1E` as before.
+
+**What "supporting, sparingly" means in practice:**
+
+- Blue → links, the occasional secondary CTA, "Event"-flavored moments.
+- Green → success/confirmation, "in stock" shop states.
+- Red → urgency/sold-out/errors ONLY. Red should feel rare and meaningful.
+- A section should almost never show all four core colors at once. If it does, that's a smell — pull it back to yellow-dominant plus at most one accent.
+
+**Themed chrome details (do these — they're what makes it feel intentional):**
+
+- Custom scrollbar tinted in the yellow family.
+- Optional custom cursor accent on desktop (subtle, yellow-family) — an easter-egg-adjacent delight, not a distraction.
+- Text selection highlight (`::selection`) tinted yellow-family, not the browser default blue.
+
+> **This section overrides the earlier per-section color mapping idea.** Earlier drafts of this doc suggested giving each page its own core color (Event=Blue, Tickets=Yellow, etc.). That is explicitly **retired** — it produced exactly the "new color every section" problem we're avoiding. Instead: yellow leads everywhere; page-specific accents are a light touch on top of the yellow base, not a wholesale color swap per page.
+
+### 2.6 Gradients — banned
+
+**No gradients. Anywhere.** No linear-gradient, no radial-gradient, no mesh gradients, no subtle two-stop "is that even a gradient" fills. Every colored surface is a **flat, solid fill** from the palette in §2.1–2.4. This matches Google's bold flat-shape language (Gemini shapes, Material) and keeps the brand crisp. If a design feels like it "needs" a gradient for depth, use a flat shape layered over another flat shape, or a subtle flat shadow — never a gradient.
+
+### 2.7 Color-to-Section Mapping (retired — see §2.5)
+
+The previous per-section color assignment has been replaced by the base-theme system in §2.5. Kept here as a pointer so nobody reintroduces it by accident.
+
+### 2.8 Accessibility Rules
 
 - Body text must maintain **4.5:1 contrast minimum** against its background (verify Yellow 600 and pastels against text color — they often need Black 02 text, not white).
 - Never place Red 500 text on Green 500 or vice versa (color-blind safety).
@@ -163,6 +185,8 @@ Our visual signature — the one thing that should make a screenshot instantly r
 
 **Where NOT to use it:** never on UI screenshots, diagrams, or anything informational — reserve the morphed frame for _people and moments_, so it keeps its meaning.
 
+> **Interim directive (current build phase):** the morphed two-rectangle-union frame has been repeatedly implemented wrong (rendering as plain rectangles or as circle-unions that don't match the spec). Until the real morphed asset is designed and supplied, **do NOT attempt to fake it.** Use clean, plain shapes instead — a simple rounded rectangle (`radius-lg`) or a circle for photos — with the image properly filling the frame. A correct, honest plain rounded rectangle is far better than a broken attempt at the signature shape. Leave the component's API ready to swap in the real morphed `clip-path` later (i.e. keep it a single `MorphedImageFrame` component whose mask can be replaced without touching every call site), but its current visual output is just a clean rounded shape. This is explicitly the human's instruction — they will supply morphed versions later.
+
 ---
 
 ## 5. Shapes
@@ -189,7 +213,7 @@ Inspired directly by how Google treats shape in Gemini and DevFest key art: **si
 ### 5.3 Decorative Shape Usage
 
 - Scatter small circles/blobs in halftone colors as ambient background texture — behind hero sections, between content sections as "breathing room" decoration.
-- Large single blob shapes work well as full-bleed section background dividers (like Google's Gemini gradients, but with our flat/halftone palette instead of gradient mesh, to stay true to brand color rules).
+- Large single blob shapes work well as full-bleed section background dividers (like Google's Gemini key art, but with our flat/halftone palette — flat fills only, never gradient mesh, per §2.6).
 - Keep decorative shapes **low-opacity or pastel-toned** when they sit behind text — they're seasoning, not the main character, except in hero moments where they _are_ the main character.
 
 ---
@@ -243,22 +267,50 @@ Flagged for later, not this release: short, optional UI sound effects (button cl
 
 ## 7. Layout Principles
 
-- **Go bold, then get quiet.** Hero sections can use `display-xl` type, full-bleed color blocks, and oversized shapes — Google-style confidence. Once past the hero, let content breathe with generous whitespace and restrained color (mostly Off White / pastels).
-- **Section rhythm:** alternate background treatments (Off White → pastel wash → Off White → Black 02 dark band) so the long single-page scroll (Home) doesn't feel monotonous, while still respecting the color-to-section mapping in §2.5.
+- **Go bold, then get quiet.** Hero sections can use `display-xl` type, full-bleed color blocks, and oversized shapes — Google-style confidence. Once past the hero, let content breathe with generous whitespace and restrained color (mostly Pastel Yellow / Off White).
+- **Section rhythm:** alternate background treatments (Pastel Yellow wash → Off White → Pastel Yellow wash → Black 02 dark band) so the long single-page scroll (Home) does not feel monotonous — but keep yellow as the through-line per the base theme in §2.5, and never introduce a gradient to make a section "pop."
 - **Grid:** 12-column responsive grid, generous gutters (24–32px desktop, 16px mobile). Cards and shapes should feel like they're arranged with intention, not just stacked.
 - **One bold move per screen.** Per section, pick a single "hero" element (a big headline, a big shape, a big number) and keep everything else supporting it — avoid competing focal points.
 
 ---
 
+## 7b. Boldness — the "grotesk exaggeration" bar (READ THIS)
+
+Past builds came out looking like a generic, timid Next.js starter. That is a failure of this brand, not a neutral default. DevFest Yaoundé should feel **deliberately exaggerated** — the way Google's own showcases do (reference: `design.google`, `m3.material.io`). Everything is a little bigger, a little bolder, a little more confident than a "normal" website, _balanced_ against calm whitespace so it reads as intentional, not cluttered. The tension between exaggerated hero elements and quiet supporting space IS the aesthetic.
+
+Concrete, enforceable minimums (not suggestions):
+
+- **Hero headline** is genuinely huge — `display-xl` (72px) is a _floor_ on desktop, not a ceiling. Big display type should push toward 80–120px on large screens for the main hero. It should feel almost too big, then be reined in by whitespace around it.
+- **Buttons are big and chunky.** Primary CTAs get generous padding (think ~18–24px vertical, ~32–40px horizontal), large bold label text (18px+), full pill or `radius-lg` corners. A primary CTA should never look like a default HTML button. Look at how large and confident the buttons on `m3.material.io` and `design.google` are — match that presence.
+- **Shapes are oversized and few.** One big bold shape beats five small timid ones. A decorative blob/circle/rounded-rect in a hero can legitimately be 300–600px. Big flat color blocks are encouraged (flat only — no gradients, §2.6).
+- **Weight contrast is dramatic.** Pair very bold display headings against light, calm body text — don't let everything sit at a medium, safe weight. The GDG rule (mix Bold + Regular across lines) should read as a real contrast, not a subtle one.
+- **Generous spacing is part of boldness.** Exaggerated size only reads as confident if it has room. Sections get large vertical padding (96–160px desktop). Cramped + big = messy; spacious + big = bold.
+- **The test:** screenshot any section. If it could pass for an unstyled Bootstrap/Tailwind-default page, it fails. If it's unmistakably loud, warm, and intentional — with one clear star element and breathing room around it — it passes.
+
+Balance clause: "grotesk/exaggerated" applies to the **hero and focal moments**, not literally everything simultaneously — that would be exhausting. The pattern is _big bold star element → calm supporting space → next big bold star element._ Exaggeration and restraint take turns; they don't fight for the same square inch.
+
+---
+
+## 7c. Chrome behavior — navbar + top banner (specific requirements)
+
+Past builds got this visibly wrong (banner not attached to navbar, mismatched widths, overlapping nav content, a plain uninspired pill). Requirements, to remove ambiguity:
+
+- **Banner and navbar are ONE integrated unit**, exactly like the Claude.ai model — the announcement/notice bar sits directly attached to the top of the navbar with the **same width and same horizontal alignment**, reading as a single connected component, not two separate floating bars of different sizes. When the banner is dismissed, the navbar smoothly reclaims the space (animated collapse, not a hard jump).
+- **No overlapping content, ever.** Nav items, logo, and action buttons must have correct spacing at every breakpoint. Test at narrow widths — if the logo and links overlap, the layout is broken and not shippable. This is a hard correctness bug, not a polish item.
+- **The navbar must be more interesting than a plain pill.** Acceptable directions (pick and refine one, don't ship the default): the banner+nav combining/morphing into a single shape on scroll; the nav pill reshaping or the corners animating as the banner collapses; a subtle themed (yellow-family) accent that responds to scroll; the nav "settling" with a bouncy micro-animation on load. The bar to clear: someone who's seen a hundred pill navbars should notice this one does something thoughtful.
+- **Animations must be actually visible.** If a reviewer scrolls the page and "feels like everything is normal," the motion layer has failed. Entrances should be noticeable (staggered reveals on scroll per `devfest-animation`), hovers should have real feedback, the load sequence should have a clear moment. Respect `prefers-reduced-motion`, but for everyone else, motion should be _present and felt_, not homeopathic.
+
+---
+
 ## 8. Component Patterns (quick reference)
 
-| Component              | Notes                                                                                                                                                                                              |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Buttons**            | `radius-pill` or `radius-md`, Google Sans Bold label, bouncy press animation, primary = core color fill, secondary = outline/pastel fill                                                           |
-| **Ticket tier cards**  | Tier name in `mono-tag` style (e.g., "HAIKYU", "SONNET"), price in Google Sans Code, perks list with Phosphor check icons, card border color matches tier rank (free → paid gradient of intensity) |
-| **Swag product cards** | Morphed-frame or rounded-square product photo, status pill (`In Stock` green / `Pre-order` yellow / `Sold Out` red, always with text label)                                                        |
-| **Badges/tags**        | `radius-pill`, pastel background + core color text, Mono type                                                                                                                                      |
-| **Nav**                | Sticky, Off White or blurred-glass background, Blue 500 active state underline                                                                                                                     |
+| Component              | Notes                                                                                                                                                                                   |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Buttons**            | `radius-pill` or `radius-lg`, Google Sans Bold label 18px+, chunky padding (§7b), bouncy press animation, primary = Yellow 600 fill, secondary = outline/pastel fill                    |
+| **Ticket tier cards**  | Tier name in `mono-tag` style (e.g., "HAIKYU", "SONNET"), price in Google Sans Code, perks list with Phosphor check icons, card border weight/color signals tier rank (flat fills only) |
+| **Swag product cards** | Rounded-square product photo (plain shapes per §4.2 interim directive), status pill (`In Stock` green / `Pre-order` yellow / `Sold Out` red, always with text label)                    |
+| **Badges/tags**        | `radius-pill`, pastel background + core color text, Mono type                                                                                                                           |
+| **Nav**                | Banner+nav as one connected unit (§7c), yellow-family themed, Yellow 600 active state                                                                                                   |
 
 ---
 
@@ -267,10 +319,10 @@ Flagged for later, not this release: short, optional UI sound effects (button cl
 ### Do
 
 - Do use Google Sans + Google Sans Code exclusively.
-- Do use only the hex values listed in §2 — no invented brand colors, no gradients that blend core colors into muddy in-between hues.
+- Do use only the hex values listed in §2 — no invented brand colors.
 - Do use Phosphor Icons exclusively, matching weight to context.
 - Do round every corner.
-- Do keep the section-to-color mapping (§2.5) fixed across years.
+- Do keep yellow as the dominant base color across every page and year (§2.5) — accents stay supporting and sparing.
 - Do respect `prefers-reduced-motion` and color-contrast minimums on every new component.
 - Do log new easter eggs so they don't get overwritten or duplicated next year.
 
@@ -283,6 +335,10 @@ Flagged for later, not this release: short, optional UI sound effects (button cl
 - Don't overload a single screen with more than one "hero" focal moment.
 - Don't autoplay sound, ever, without explicit opt-in.
 - Don't use CMYK/Pantone values in any digital asset — those exist only for print, sourced separately from the original brand decks if needed.
+- Don't use gradients of any kind — flat solid fills only (§2.6).
+- Don't lead with any color other than yellow, or spread all four core colors evenly across a section (§2.5).
+- Don't ship timid, default-looking heroes, buttons, or shapes — clear the boldness bar in §7b or it's not done.
+- Don't ship a navbar/banner that overlaps, misaligns, or reads as two mismatched bars (§7c).
 
 ### Extending this system for future editions
 

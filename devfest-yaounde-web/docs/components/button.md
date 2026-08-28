@@ -2,25 +2,31 @@
 
 `src/components/ui/Button.tsx`
 
-Primary (filled) / secondary (outline) button in pill or md radius, `DESIGN.md` §5.2/§8. Renders as a locale-aware `Link` (from `@/i18n/navigation`) when `href` is given, otherwise a real `<button>`.
+Chunky primary/secondary button per `DESIGN.md` §7b's boldness bar. Renders as a locale-aware `Link` when `href` is given (or a plain `<a>` with `external`), otherwise a real `<button>`.
 
 ## Props
 
-| Prop        | Type                                                  | Default                                               |
-| ----------- | ----------------------------------------------------- | ----------------------------------------------------- |
-| `tone`      | `"blue" \| "green" \| "yellow" \| "red" \| "black02"` | `"blue"`                                              |
-| `variant`   | `"primary" \| "secondary"`                            | `"primary"`                                           |
-| `radius`    | `"pill" \| "md"`                                      | `"pill"`                                              |
-| `href`      | `string`                                              | — (renders a `Link` instead of a `<button>` when set) |
-| `onClick`   | `() => void`                                          | —                                                     |
-| `type`      | `"button" \| "submit"`                                | `"button"` (ignored if `href` is set)                 |
-| `className` | `string`                                              | —                                                     |
+| Prop        | Type                                                       | Default                                                                |
+| ----------- | ---------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `tone`      | `"yellow" \| "black02" \| "offwhite" \| "blue" \| "green"` | `"yellow"`                                                             |
+| `variant`   | `"primary"` (filled) \| `"secondary"` (outline)            | `"primary"`                                                            |
+| `size`      | `"lg"` (px-9 py-4, 18px label) \| `"md"` (px-7 py-3, 16px) | `"lg"`                                                                 |
+| `radius`    | `"pill" \| "lg"`                                           | `"pill"`                                                               |
+| `href`      | `string`                                                   | — renders a `Link` instead of a `<button>`                             |
+| `external`  | `boolean`                                                  | with `href`, renders a plain `<a>` (for Bevy and other off-site links) |
+| `onClick`   | `() => void`                                               | —                                                                      |
+| `type`      | `"button" \| "submit"`                                     | `"button"` (ignored when `href` is set)                                |
+| `className` | `string`                                                   | —                                                                      |
 
-`tone` picks the core color — map it to the relevant section per `DESIGN.md` §2.5 (e.g. `yellow` for a Tickets CTA, `green` for Shop, `blue` for general Event actions).
+## Tone: yellow is the default, and that's deliberate
+
+Per the base theme (`DESIGN.md` §2.5 / `docs/decisions/0005-base-color-theme.md`), yellow is the dominant brand color. `blue` and `green` exist for the sparing semantic cases — **don't reach for them just to make a section look different from its neighbour.** `black02` is the right choice for a high-contrast CTA sitting on a yellow surface.
 
 ## Motion
 
-`DESIGN.md` §6.1 lists "buttons on click" under the Bouncy/Spring easing. This is implemented as a hover-lift + active-press CSS transform transition (`hover:scale-[1.03] active:scale-95`) using the `--ease-bouncy` token directly — **not** the `bouncyPop` keyframe preset from `devfest-animation`, since a press is an ongoing interaction state, not a one-shot entrance. If you need an entrance animation for a button appearing on screen (e.g. a badge-reveal moment), wrap it in `bouncyPop` separately.
+Hover lifts the button and grows a flat offset shadow (`shadow-[0_8px_0_0_black02]`); pressing pushes it back down and squashes it slightly. This uses the `--ease-bouncy` token directly rather than the one-shot `bouncyPop` keyframe, because a press is an ongoing interaction state, not an entrance. Flat offset shadows (never blurred gradients) keep this within `DESIGN.md` §2.6.
+
+`motion-reduce:` variants disable the transform and transition entirely.
 
 ## Usage
 
@@ -28,10 +34,11 @@ Primary (filled) / secondary (outline) button in pill or md radius, `DESIGN.md` 
 import { Button } from "@/components/ui/Button";
 
 <Button tone="yellow" href="/tickets">Get Tickets</Button>
-<Button tone="green" variant="secondary" href="/shop">Shop</Button>
-<Button onClick={() => setOpen(true)}>Open</Button>
+<Button tone="black02" variant="secondary" href="/shop">Shop</Button>
+<Button tone="yellow" href={BEVY_URL} external>Join the Community</Button>
+<Button onClick={() => setOpen(true)} size="md">Open</Button>
 ```
 
 ## Built on
 
-`@/i18n/navigation`'s `Link` for internal navigation.
+`@/i18n/navigation`'s `Link` for internal navigation; Tailwind utilities otherwise.

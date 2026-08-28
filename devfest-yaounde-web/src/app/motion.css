@@ -4,16 +4,21 @@
  *
  * Every animation utility here disables itself under prefers-reduced-motion
  * by default — that handling is NOT opt-in per component. If you add a new
- * utility to this file, add it to the reduced-motion block below too.
+ * utility to this file, add it to the reduced-motion block at the bottom too.
+ *
+ * PERCEPTIBILITY (DESIGN.md §7c): motion here is deliberately tuned to be
+ * FELT, not homeopathic. Travel distances are large (40-64px, not 12px) and
+ * durations sit at the top of their tier. If a reviewer scrolls and "feels
+ * like everything is normal," this layer has failed.
  */
 
 @keyframes df-bouncy-pop {
   0% {
-    transform: scale(0.9);
+    transform: scale(0.85);
     opacity: 0;
   }
   60% {
-    transform: scale(1.03);
+    transform: scale(1.06);
     opacity: 1;
   }
   100% {
@@ -24,11 +29,35 @@
 @keyframes df-fade-in-up {
   0% {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(40px);
   }
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Hero load sequence — macro tier, the page's opening statement */
+@keyframes df-hero-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(64px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes df-shape-drift {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(0, -24px) rotate(6deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
   }
 }
 
@@ -77,28 +106,53 @@
   }
 }
 
+/* Nav settle-on-load — the bouncy arrival called for in DESIGN.md §7c */
+@keyframes df-nav-settle {
+  0% {
+    opacity: 0;
+    transform: translateY(-120%);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(6%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Micro/meso tier — button press, badge reveal, add-to-cart, easter eggs */
 .anim-bouncy-pop {
-  animation: df-bouncy-pop 400ms var(--ease-bouncy) both;
+  animation: df-bouncy-pop 450ms var(--ease-bouncy) both;
 }
 
-/* Meso tier — scroll reveals, modal open, card entrance */
+/* Meso tier — card entrance, modal open */
 .anim-fade-in-up {
-  animation: df-fade-in-up 500ms var(--ease-out-devfest) both;
+  animation: df-fade-in-up 650ms var(--ease-out-devfest) both;
 }
 
-/* Macro tier — staggered children entrance (set --stagger-index per child, see src/lib/motion.ts) */
-.anim-stagger-reveal > * {
-  animation: df-fade-in-up 500ms var(--ease-out-devfest) both;
-  animation-delay: calc(var(--stagger-index, 0) * 80ms);
+/* Macro tier — hero load sequence. Set --hero-delay per element to stagger. */
+.anim-hero-rise {
+  animation: df-hero-rise 900ms var(--ease-out-devfest) both;
+  animation-delay: var(--hero-delay, 0ms);
+}
+
+/* Ambient — big decorative shapes breathing slowly behind hero content */
+.anim-shape-drift {
+  animation: df-shape-drift 14s ease-in-out infinite;
 }
 
 /* Continuous/linear — sponsor logo marquees, ticker text */
 .anim-marquee {
-  animation: df-marquee 20s linear infinite;
+  animation: df-marquee 32s linear infinite;
 }
 
-/* Easter-egg confetti piece — set --confetti-x/-y/-r per piece, see src/lib/motion.ts */
+.anim-marquee-track:hover .anim-marquee {
+  animation-play-state: paused;
+}
+
+/* Easter-egg confetti piece — set --confetti-x/-y/-r per piece */
 .anim-confetti-piece {
   animation: df-confetti-piece 900ms var(--ease-bouncy) both;
 }
@@ -108,18 +162,51 @@
   animation: df-modal-backdrop 200ms var(--ease-out-devfest) both;
 }
 .anim-modal-pop {
-  animation: df-modal-pop 300ms var(--ease-out-devfest) both;
+  animation: df-modal-pop 350ms var(--ease-out-devfest) both;
+}
+
+.anim-nav-settle {
+  animation: df-nav-settle 800ms var(--ease-bouncy) both;
+}
+
+/*
+ * Scroll reveal — driven by the <Reveal> component (src/components/ui/Reveal.tsx),
+ * which adds `is-visible` via IntersectionObserver when the element enters
+ * the viewport. Children stagger via --stagger-index.
+ */
+.anim-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 700ms var(--ease-out-devfest),
+    transform 700ms var(--ease-out-devfest);
+  transition-delay: calc(var(--stagger-index, 0) * 110ms);
+  will-change: opacity, transform;
+}
+
+.anim-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .anim-bouncy-pop,
   .anim-fade-in-up,
-  .anim-stagger-reveal > *,
+  .anim-hero-rise,
+  .anim-shape-drift,
   .anim-marquee,
   .anim-confetti-piece,
   .anim-modal-backdrop,
-  .anim-modal-pop {
+  .anim-modal-pop,
+  .anim-nav-settle {
     animation: none !important;
+    transition: none !important;
+  }
+
+  /* Reduced-motion users get the content immediately, never a hidden state */
+  .anim-reveal {
+    opacity: 1 !important;
+    transform: none !important;
     transition: none !important;
   }
 }

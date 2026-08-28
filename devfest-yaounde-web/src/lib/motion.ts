@@ -10,18 +10,28 @@ import type { CSSProperties } from "react";
  */
 export const bouncyPop = "anim-bouncy-pop";
 export const fadeInUp = "anim-fade-in-up";
-export const staggerReveal = "anim-stagger-reveal";
+export const heroRise = "anim-hero-rise";
+export const shapeDrift = "anim-shape-drift";
 export const marqueeLoop = "anim-marquee";
+export const marqueeTrack = "anim-marquee-track";
 export const confettiPiece = "anim-confetti-piece";
 export const modalBackdropIn = "anim-modal-backdrop";
 export const modalPopIn = "anim-modal-pop";
+export const navSettle = "anim-nav-settle";
+/** Applied by <Reveal>; pairs with `is-visible` toggled on scroll-into-view. */
+export const revealOnScroll = "anim-reveal";
 
 /**
- * Apply to the Nth child of a `staggerReveal` container to offset its
- * entrance by `index * 80ms`.
+ * Offset a staggered child. Used by both `revealOnScroll` (110ms steps) and
+ * any container that stages its children.
  */
 export function staggerStyle(index: number): CSSProperties {
   return { "--stagger-index": index } as CSSProperties;
+}
+
+/** Delay an element within the hero load sequence (`heroRise`). */
+export function heroDelayStyle(ms: number): CSSProperties {
+  return { "--hero-delay": `${ms}ms` } as CSSProperties;
 }
 
 /**

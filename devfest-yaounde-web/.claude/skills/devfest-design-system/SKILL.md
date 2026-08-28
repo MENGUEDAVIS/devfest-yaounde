@@ -47,27 +47,39 @@ Rules:
 
 ## Color
 
-Never invent a hex value outside this list. No gradients that blend core colors into muddy in-betweens.
+Never invent a hex value outside this list.
 
 ```js
 colors: {
-  blue:   { DEFAULT: '#4285F4', halftone: '#57CAFF', pastel: '#C3ECF6' },
-  green:  { DEFAULT: '#34A853', halftone: '#5CDB6D', pastel: '#CCF6C5' },
-  yellow: { DEFAULT: '#F9AB00', halftone: '#FFD427', pastel: '#FFE7A5' },
-  red:    { DEFAULT: '#EA4335', halftone: '#FF7DAF', pastel: '#F8D8D8' },
-  offwhite: '#F0F0F0', // primary light bg — not pure white
+  yellow: { DEFAULT: '#F9AB00', halftone: '#FFD427', pastel: '#FFE7A5' }, // DOMINANT
+  blue:   { DEFAULT: '#4285F4', halftone: '#57CAFF', pastel: '#C3ECF6' }, // accent only
+  green:  { DEFAULT: '#34A853', halftone: '#5CDB6D', pastel: '#CCF6C5' }, // accent only
+  red:    { DEFAULT: '#EA4335', halftone: '#FF7DAF', pastel: '#F8D8D8' }, // accent only
+  offwhite: '#F0F0F0', // secondary light bg — not pure white
   black02:  '#1E1E1E', // primary text + dark bg — not pure black
 }
 ```
 
-Section → color mapping (fixed across years, never change this):
+### THE BASE THEME RULE (DESIGN.md §2.5) — read before picking any color
 
-| Page                                | Primary                                   | Accent          |
-| ----------------------------------- | ----------------------------------------- | --------------- |
-| Event (Home/Schedule/Speakers/Team) | Blue 500                                  | Halftone Blue   |
-| Tickets                             | Yellow 600                                | Halftone Yellow |
-| Swag/Shop                           | Green 500 (in stock) / Red 500 (sold out) | Halftone Green  |
-| Community/Bevy                      | all four                                  | —               |
+**The site is not a rainbow. Yellow leads everywhere.**
+
+- **Dominant (~70% of colored surface):** Pastel Yellow `#FFE7A5` is the default page/section wash — this is the page ground, NOT off-white. Yellow 600 `#F9AB00` for primary emphasis (key CTAs, active states). Halftone Yellow `#FFD427` for accents and hover.
+- **Supporting (~30%, semantic jobs only):** Blue → links / occasional secondary CTA. Green → success, "in stock". Red → urgency/sold-out/errors ONLY, and it should feel rare.
+- **A section should almost never show all four core colors at once.** If it does, pull it back to yellow-dominant plus at most one accent.
+- **Never give a page its own core color.** The old per-section mapping (Event=Blue, Tickets=Yellow, Shop=Green) is **RETIRED** — see `docs/decisions/0005-base-color-theme.md`. Reintroducing it is a regression, not a refresh.
+
+Section rhythm down a long scroll: Pastel Yellow → Off White → Pastel Yellow → Black02 dark band. Use `SectionContainer`'s `background` prop (`yellow-wash` | `offwhite` | `yellow` | `black02`) rather than hand-coding section colors.
+
+### GRADIENTS ARE BANNED (DESIGN.md §2.6)
+
+**No gradients. Anywhere. Zero exceptions.** No `bg-gradient-*`, no `linear-gradient`/`radial-gradient` in CSS or inline styles, no `<linearGradient>`/`<radialGradient>` in SVG assets. Every colored surface is a flat solid fill.
+
+If something feels like it needs a gradient for depth: layer a flat shape over another flat shape, or use a flat offset shadow (`shadow-[0_4px_0_0_var(--color-black02)]`). A `grep -ri gradient src/ public/` must come back empty.
+
+### Themed chrome (already wired in `globals.css` — keep it)
+
+Yellow-family scrollbar, `::selection`, and focus ring. Don't override these per-component.
 
 Accessibility (non-negotiable):
 
@@ -88,22 +100,35 @@ Phosphor Icons **exclusively** — never mix in another icon set (no Material, F
 
 Sizes: 16 / 20 / 24 / 32 / 48px+ (inline → hero). Icons inherit text color unless intentionally accented. Never skew/stretch — scale proportionally only. Regular weight = transactional (checkout, forms); duotone/fill = fun (swag, easter eggs).
 
-## Imagery — Morphed Photo Frame (the signature shape)
+## Imagery — MorphedImageFrame
 
-The one visual signature of the brand: photos masked into a shape formed by the **union of two overlapping rounded rectangles**, rotated 15–35° apart from each other.
+The brand's eventual signature is a photo masked into the union of two overlapping rounded rectangles (15–35° apart).
 
-Build steps:
-
-1. Two rounded rectangles, corner radius ≥ 24px each.
-2. Rotate one relative to the other (e.g. 0° and 25°).
-3. Boolean union of the two → one continuous irregular rounded blob outline.
-4. Apply as SVG `clip-path` or CSS `mask` over the photo.
-5. Vary rotation/proportions per instance (so repeated photos don't look copy-pasted) but keep the radius and two-rectangle-union logic consistent everywhere.
+> **INTERIM DIRECTIVE — DO NOT FAKE THE MORPH (DESIGN.md §4.2).** This shape has been implemented wrong repeatedly. Until the human supplies real morphed assets, `MorphedImageFrame` deliberately renders a **clean plain shape** — a rounded rect (`radius-lg`) or a circle — with the image filling it. An honest plain shape beats a broken signature shape. Do not re-attempt a hand-rolled union, and do not create one-off image containers elsewhere; the swap point stays inside that single component.
 
 Use for: speaker photos, organizer/team photos, past-event galleries, optionally swag shots.
 Never use for: UI screenshots, diagrams, anything informational — reserve it for people/moments only.
 
 Photography: real community photos only, never stock. Light natural grading, no heavy filters, no crushed blacks/oversaturation.
+
+## Boldness bar (DESIGN.md §7b) — enforceable, not suggestions
+
+Past builds shipped looking like a default Next.js starter. That's a brand failure, not a neutral default. Reference `design.google` / `m3.material.io`.
+
+- **Hero headline:** `text-display-hero` (clamps 56→120px). `display-xl` (72px) is a FLOOR on desktop, not a ceiling.
+- **Buttons:** chunky — the `Button` component's `size="lg"` (px-9 py-4, 18px bold label) is the default for CTAs. A primary CTA must never look like a default HTML button.
+- **Shapes:** oversized and FEW. One 300–600px flat shape beats five small ones. Flat fills only.
+- **Spacing:** section vertical padding 96–160px desktop — `SectionContainer` already does this. Big + cramped = messy; big + spacious = bold.
+- **Weight contrast:** very bold display headings against calm, lighter body text (e.g. `text-black02` heading over `text-black02/80` body).
+- **The test:** screenshot a section. If it could pass for an unstyled Bootstrap/Tailwind-default page, it fails.
+
+Balance clause: exaggeration applies to hero/focal moments, not everything at once. Pattern = big bold star element → calm supporting space → next star element.
+
+## Chrome (DESIGN.md §7c)
+
+Banner + navbar are **ONE connected unit** — same width, same alignment, banner attached to the nav's top (Claude.ai credit-notice model), never two mismatched floating bars. Implemented in `GlobalChrome.tsx`; the banner collapses via `grid-template-rows: 1fr → 0fr` and the unit morphs `rounded-lg → rounded-pill` as the nav reclaims the space.
+
+**No overlapping nav content at any breakpoint — that's a correctness bug, not a polish item.** The full desktop row doesn't fit under 1024px, so the hamburger persists until `lg`. Re-test across widths after any nav change.
 
 ## Shapes & Corner Radius
 
@@ -168,13 +193,15 @@ Easter eggs: log every one added in `/EASTER-EGGS.md` at the project root so fut
 ## Component quick reference
 
 - **Buttons**: `radius-pill` or `radius-md`, Google Sans Bold label, bouncy press animation, primary = core color fill, secondary = outline/pastel fill.
-- **Ticket tier cards**: tier name in `mono-tag`, price in mono, Phosphor check icons for perks, border color = tier rank.
-- **Swag cards**: morphed-frame or rounded-square photo, status pill always paired with text label (never color alone).
+- **Ticket tier cards**: tier name in `mono-tag`, price in mono, Phosphor check icons for perks, border weight/color signals tier rank (flat fills only).
+- **Swag cards**: plain rounded photo frame (see interim directive above), status pill always paired with text label (never color alone).
 - **Badges/tags**: `radius-pill`, pastel bg + core color text, mono type.
-- **Nav**: sticky, off-white/glass-blur bg, Blue 500 active underline.
+- **Nav**: connected banner+nav unit, yellow-family themed, Yellow 600 active state.
+
+Reuse the existing primitives rather than rebuilding: `Button`, `Badge`, `SectionContainer`, `IconWrapper`, `StatCounter`, `Modal`, `Reveal`, `MorphedImageFrame` — all documented in `docs/components/`.
 
 ## Governance
 
-Do: use only the fonts/colors/icons listed above; round every corner; keep §2.5 mapping fixed across years; respect reduced-motion and contrast on every new component; log easter eggs.
+Do: use only the fonts/colors/icons listed above; **keep yellow dominant on every page and year (§2.5)**; round every corner; clear the §7b boldness bar; respect reduced-motion and contrast on every new component; log easter eggs.
 
-Don't: stock photography for people; mix icon libraries; sharp corners; color-only status; more than one hero focal point per screen; autoplay sound; CMYK/Pantone values (print-only, out of scope here).
+Don't: **use a gradient of any kind (§2.6)**; **lead with a non-yellow color or give a page its own core color (§2.5, retired)**; **fake the morphed shape (§4.2 interim directive)**; ship a nav/banner that overlaps or reads as two mismatched bars (§7c); ship timid default-looking heroes/buttons/shapes (§7b); stock photography for people; mix icon libraries; sharp corners; color-only status; more than one hero focal point per screen; autoplay sound; CMYK/Pantone values.

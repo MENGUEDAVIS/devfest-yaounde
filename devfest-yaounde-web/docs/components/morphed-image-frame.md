@@ -2,21 +2,23 @@
 
 `src/components/ui/MorphedImageFrame.tsx`
 
-The brand's signature shape (`DESIGN.md` §4.2): a photo masked into the union of two overlapping rounded rectangles, rotated 15–35° apart.
+## ⚠️ Currently renders a PLAIN shape on purpose
 
-## How it works
+`DESIGN.md` §4.2's signature shape is a photo masked into the union of two overlapping rounded rectangles. That morph was implemented wrong repeatedly (it came out as plain rectangles, or as circle-unions that didn't match the spec), so the design doc now carries an explicit **interim directive**: don't fake it.
 
-Built as an inline SVG `<mask>` containing two white rounded `<rect>` elements (one at 0°, one rotated). Overlapping white shapes drawn into one SVG mask naturally union — any pixel covered by _either_ rect is visible — so no boolean-geometry library is needed to get the "two rectangles had a friendly collision" outline from `DESIGN.md`.
+This component therefore renders a **clean plain rounded rectangle (`radius-lg`) or circle**, with the image properly filling the frame. An honest plain shape is better than a broken signature shape. The project owner will supply real morphed assets later.
+
+**Do not** re-attempt a hand-rolled morph, and **do not** scatter one-off image containers around the codebase. When the real assets arrive, the swap happens by editing the shape inside this one file — every call site keeps working untouched. That's the whole reason it stays a single component with this name.
 
 ## Props
 
-| Prop          | Type                                | Default  | Notes                                                                                                                                                                                                                                        |
-| ------------- | ----------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src`         | `string`                            | required |                                                                                                                                                                                                                                              |
-| `alt`         | `string`                            | required | Real accessibility text — these wrap real community photos                                                                                                                                                                                   |
-| `rotation`    | `number`                            | auto     | Degrees between the two rects (15–35 per spec). Omit to derive a stable value from `src`+`alt` via a seeded hash — **not** `Math.random()`, which would both violate React's render-purity rule and cause a server/client hydration mismatch |
-| `aspectRatio` | `string` (CSS `aspect-ratio` value) | `"1/1"`  | e.g. `"4/3"` for a wider photo                                                                                                                                                                                                               |
-| `className`   | `string`                            | —        |                                                                                                                                                                                                                                              |
+| Prop          | Type                          | Default     | Notes                                                               |
+| ------------- | ----------------------------- | ----------- | ------------------------------------------------------------------- |
+| `src`         | `string`                      | required    |                                                                     |
+| `alt`         | `string`                      | required    | Real accessibility text — these wrap real community photos          |
+| `shape`       | `"rounded" \| "circle"`       | `"rounded"` | `rounded` = `radius-lg`; `circle` for avatars                       |
+| `aspectRatio` | `string` (CSS `aspect-ratio`) | `"1/1"`     | e.g. `"4/3"` for a wider photo                                      |
+| `className`   | `string`                      | —           | Callers commonly add `border-2 border-black02` and hover transforms |
 
 ## Usage
 
@@ -26,7 +28,7 @@ import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 <MorphedImageFrame
   src={speaker.photoUrl}
   alt={speaker.name}
-  className="w-40"
+  className="border-2 border-black02"
 />;
 ```
 
@@ -36,4 +38,4 @@ Per `DESIGN.md` §4.2: speaker photos, organizer/team photos, past-event galleri
 
 ## Built on
 
-Plain inline SVG — no image-processing library, no next/image (SVG `<image>` doesn't compose with next/image's optimizer, so this renders the source directly; swap in a CDN-optimized URL upstream if that's ever needed).
+A plain `<div>` + `<img object-cover>`. It uses a raw `<img>` rather than `next/image` because sources come from content JSON (and later, arbitrary uploaded/CDN URLs); wiring `next/image` here is a separate decision, not something to slip in.

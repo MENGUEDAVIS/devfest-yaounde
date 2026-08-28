@@ -59,7 +59,12 @@ export default async function LocaleLayout({
             {t("skipToContent")}
           </a>
           <GlobalChrome />
-          <div className="flex flex-1 flex-col pt-28 sm:pt-32">{children}</div>
+          {/*
+            The chrome is fixed-position, so page content needs its own top
+            offset. Hero sections apply their own generous top padding
+            (§7b spacing), so this only needs to clear the bar itself.
+          */}
+          <div className="flex flex-1 flex-col">{children}</div>
           <Footer />
         </NextIntlClientProvider>
       </body>

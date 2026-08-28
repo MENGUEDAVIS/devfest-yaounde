@@ -11,7 +11,7 @@ The banner text lives in the translation files, not in any component code:
 
 Edit both — the site requires both languages before a change counts as "done." Keep it short; long messages scroll (marquee), which is fine, but very long text is harder to read while scrolling.
 
-**To hide the banner entirely** for now, an organizer without dev help would need to ask a developer to remove it from `src/components/global/GlobalChrome.tsx` — there's no on/off toggle yet. If frequent on/off toggling turns out to be needed, that's worth a small follow-up feature (a `announcement.enabled` flag in the messages file or a config file), not something to hack in on the spot.
+**To hide the banner entirely** for now, an organizer without dev help would need to ask a developer to remove it from `src/components/global/GlobalChrome.tsx` — there's no on/off toggle yet. Note that visitors can dismiss it themselves; the navbar then smoothly collapses the space and the whole bar morphs into a pill. If frequent on/off toggling turns out to be needed, that's worth a small follow-up feature (a `announcement.enabled` flag in the messages file or a config file), not something to hack in on the spot.
 
 ## Changing nav links, Shop/Get Tickets button labels
 
@@ -27,7 +27,7 @@ Adding or removing an actual link (not just relabeling) requires a code change i
 ## Known gaps as of this bootstrap
 
 - **No real logo image** — the navbar shows a text wordmark ("DevFest Yaoundé") since no logo asset was supplied. Swapping in a real logo is a `Navbar.tsx` code change.
-- **No real community photos** — the footer's top strip is a placeholder gradient block, not an actual photo strip. `DESIGN.md` §4.1 requires real photos here; this needs a developer to swap in actual images once they exist.
+- **No real community photos** — the footer's top strip is a flat Yellow 600 CTA block, not an actual photo strip. `DESIGN.md` §4.1 requires real photos here; this needs a developer to swap in actual images once they exist. (It was a gradient block until the design-foundation pass; gradients are now banned outright per `DESIGN.md` §2.6, so whatever replaces it must be flat fills or real photography.)
 - **Privacy Policy and Code of Conduct have no pages yet** — `PAGES.md` §1.3 links to them from the footer, but neither is in the sitemap (`PAGES.md` §0). Until that's resolved (new routes vs. an external doc), their footer links are `#` placeholders in `site-config.ts`.
 - **Bevy chapter URL is a placeholder** — every "RSVP" / "Join the Community" link points at `#` until the real GDG Yaoundé Bevy URL is added to `site-config.ts`.
 

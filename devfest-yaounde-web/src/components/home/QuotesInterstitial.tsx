@@ -20,8 +20,8 @@ export function QuotesInterstitial() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     // WCAG 2.2.2: auto-advancing content must be pausable — simplest
-    // compliant approach here is to just not auto-advance for
-    // reduced-motion users; manual dot navigation still works.
+    // compliant approach here is to not auto-advance for reduced-motion
+    // users; manual dot navigation still works.
     if (reduceMotion) return;
 
     const interval = setInterval(() => {
@@ -33,20 +33,23 @@ export function QuotesInterstitial() {
   const quote = quoteList[index];
 
   return (
-    <SectionContainer background="pastel-yellow" maxWidth="3xl">
-      <h2 className="text-center text-caption font-mono uppercase tracking-wide text-black02/60">
+    <SectionContainer background="yellow-wash" maxWidth="4xl">
+      <p className="text-center font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
         {t("title")}
-      </h2>
-      <div key={quote.id} className={`${fadeInUp} mt-6 text-center`}>
-        <p className="text-heading-l font-bold text-black02">
+      </p>
+
+      {/* key forces the entrance animation to replay on each rotation */}
+      <blockquote key={quote.id} className={`${fadeInUp} mt-10 text-center`}>
+        <p className="font-sans text-display-l font-bold text-black02">
           &ldquo;{quote.text[locale]}&rdquo;
         </p>
-        <p className="mt-4 text-body-m text-black02/70">
+        <footer className="mt-8 font-mono text-caption text-black02/70">
           {quote.author}
           {quote.role ? ` · ${quote.role[locale]}` : ""}
-        </p>
-      </div>
-      <div className="mt-6 flex justify-center gap-2">
+        </footer>
+      </blockquote>
+
+      <div className="mt-12 flex justify-center gap-3">
         {quoteList.map((q, i) => (
           <button
             key={q.id}
@@ -54,8 +57,8 @@ export function QuotesInterstitial() {
             onClick={() => setIndex(i)}
             aria-label={`${i + 1}`}
             aria-current={i === index}
-            className={`h-2.5 w-2.5 rounded-pill transition-colors ${
-              i === index ? "bg-black02" : "bg-black02/20"
+            className={`h-3.5 rounded-pill border-2 border-black02 transition-[width,background-color] duration-300 ease-bouncy ${
+              i === index ? "w-10 bg-yellow" : "w-3.5 bg-transparent"
             }`}
           />
         ))}

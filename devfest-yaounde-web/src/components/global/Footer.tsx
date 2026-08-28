@@ -6,6 +6,7 @@ import {
   YoutubeLogo,
 } from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
+import { Button } from "@/components/ui/Button";
 import { Link } from "@/i18n/navigation";
 import {
   BEVY_URL,
@@ -30,41 +31,60 @@ export async function Footer() {
     <footer className="bg-black02 text-offwhite">
       {/*
         Community photo strip placeholder — DESIGN.md §4.1 requires real
-        community photos, none exist in this bootstrap yet. Replace this
-        gradient block with an actual photo strip/collage.
+        community photos, none exist yet. Flat Yellow 600 block per §2.6
+        (gradients banned); swap for an actual photo strip/collage later.
       */}
-      <div className="relative flex h-40 items-center justify-center overflow-hidden bg-gradient-to-r from-blue via-green to-yellow sm:h-48">
-        <a
-          href={BEVY_URL}
-          className="rounded-pill bg-black02 px-6 py-3 text-body-m font-bold text-offwhite transition-transform hover:scale-[1.03]"
-        >
-          {t("rsvpCta")}
-        </a>
+      <div className="relative overflow-hidden border-b-4 border-black02 bg-yellow">
+        {/* One oversized flat shape, §7b — big and few, not a scatter */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-24 -top-24 h-104 w-104 rounded-pill bg-yellow-halftone"
+        />
+        <div className="relative mx-auto flex max-w-5xl flex-col items-start gap-8 px-5 py-24 sm:px-8 sm:py-28">
+          <p className="max-w-2xl font-sans text-display-l font-bold text-black02">
+            {t("rsvpCta")}
+          </p>
+          <Button tone="black02" href={BEVY_URL} external size="lg">
+            {t("getInvolved.rsvp")}
+          </Button>
+        </div>
       </div>
 
       <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 px-6 py-12 sm:grid-cols-3">
         <div>
-          <h3 className="text-caption font-mono uppercase tracking-wide text-offwhite/60">
+          <h3 className="font-mono text-mono-tag font-bold uppercase tracking-wide text-yellow">
             {t("event.title")}
           </h3>
           <ul className="mt-4 flex flex-col gap-2">
             <li>
-              <Link href="/schedule" className="text-body-m hover:underline">
+              <Link
+                href="/schedule"
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
+              >
                 {t("event.schedule")}
               </Link>
             </li>
             <li>
-              <Link href="/speakers" className="text-body-m hover:underline">
+              <Link
+                href="/speakers"
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
+              >
                 {t("event.speakers")}
               </Link>
             </li>
             <li>
-              <Link href="/team" className="text-body-m hover:underline">
+              <Link
+                href="/team"
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
+              >
                 {t("event.team")}
               </Link>
             </li>
             <li>
-              <Link href="/faqs" className="text-body-m hover:underline">
+              <Link
+                href="/faqs"
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
+              >
                 {t("event.faqs")}
               </Link>
             </li>
@@ -72,30 +92,39 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="text-caption font-mono uppercase tracking-wide text-offwhite/60">
+          <h3 className="font-mono text-mono-tag font-bold uppercase tracking-wide text-yellow">
             {t("getInvolved.title")}
           </h3>
           <ul className="mt-4 flex flex-col gap-2">
             <li>
-              <Link href="/shop" className="text-body-m hover:underline">
+              <Link
+                href="/shop"
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
+              >
                 {t("getInvolved.shop")}
               </Link>
             </li>
             <li>
               <Link
                 href="/dp-generator"
-                className="text-body-m hover:underline"
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
               >
                 {t("getInvolved.dpGenerator")}
               </Link>
             </li>
             <li>
-              <a href={BEVY_URL} className="text-body-m hover:underline">
+              <a
+                href={BEVY_URL}
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
+              >
                 {t("getInvolved.community")}
               </a>
             </li>
             <li>
-              <a href={BEVY_URL} className="text-body-m hover:underline">
+              <a
+                href={BEVY_URL}
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
+              >
                 {t("getInvolved.rsvp")}
               </a>
             </li>
@@ -103,14 +132,14 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="text-caption font-mono uppercase tracking-wide text-offwhite/60">
+          <h3 className="font-mono text-mono-tag font-bold uppercase tracking-wide text-yellow">
             {t("legal.title")}
           </h3>
           <ul className="mt-4 flex flex-col gap-2">
             <li>
               <a
                 href={PRIVACY_POLICY_URL}
-                className="text-body-m hover:underline"
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
               >
                 {t("legal.privacy")}
               </a>
@@ -118,7 +147,7 @@ export async function Footer() {
             <li>
               <a
                 href={CODE_OF_CONDUCT_URL}
-                className="text-body-m hover:underline"
+                className="text-body-m text-offwhite/80 transition-colors duration-200 hover:text-yellow"
               >
                 {t("legal.codeOfConduct")}
               </a>

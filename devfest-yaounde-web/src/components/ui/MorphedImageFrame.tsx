@@ -1,91 +1,45 @@
-import { useId } from "react";
+/* eslint-disable @next/next/no-img-element -- frame renders arbitrary local/remote photo URLs from content JSON; next/image optimization isn't wired for these yet */
+
+/**
+ * DESIGN.md §4.2 interim directive: the two-rectangle-union morphed frame
+ * has been repeatedly implemented wrong, so we deliberately render a CLEAN
+ * PLAIN SHAPE for now — a rounded rectangle (radius-lg) or a circle — with
+ * the image properly filling it. An honest plain shape beats a broken
+ * signature shape.
+ *
+ * This stays a single component so the real morphed clip-path can be
+ * swapped in later by editing ONLY this file — every call site keeps
+ * working untouched. Do not re-fake the morph, and do not scatter one-off
+ * image containers elsewhere.
+ */
+export type FrameShape = "rounded" | "circle";
 
 export interface MorphedImageFrameProps {
   src: string;
-  /** Required — these wrap real community photos, never decorative-only. */
+  /** Required — these wrap real community photos. */
   alt: string;
-  /**
-   * Degrees between the two rectangles (DESIGN.md §4.2: 15-35°). Omit to
-   * derive a stable pseudo-random value from `src`+`alt`, so repeated
-   * instances don't look identical but stay stable across re-renders/SSR
-   * (a true Math.random() here would both violate render purity and cause
-   * a server/client mismatch).
-   */
-  rotation?: number;
+  /** "rounded" (radius-lg) by default; "circle" for avatars. */
+  shape?: FrameShape;
   /** CSS aspect-ratio for the frame, e.g. "1/1" (default) or "4/3". */
   aspectRatio?: string;
   className?: string;
 }
 
-function seededAngle(seed: string, min: number, max: number): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
-  }
-  const normalized = (Math.abs(hash) % 1000) / 1000;
-  return min + normalized * (max - min);
-}
-
-/**
- * DESIGN.md §4.2 signature shape: a photo masked into the union of two
- * overlapping rounded rectangles, rotated 15-35° apart. Built as an inline
- * SVG <mask> — two white rounded rects drawn into one mask naturally union
- * (any pixel covered by *either* rect is visible), no boolean-geometry
- * library needed.
- *
- * Use for: speaker/organizer photos, past-event galleries. Never for UI
- * screenshots or informational imagery (DESIGN.md §4.2).
- */
 export function MorphedImageFrame({
   src,
   alt,
-  rotation,
+  shape = "rounded",
   aspectRatio = "1/1",
   className = "",
 }: MorphedImageFrameProps) {
-  const rawId = useId();
-  const maskId = `morphed-frame-${rawId.replace(/[:]/g, "")}`;
-  const angle = rotation ?? seededAngle(`${src}:${alt}`, 15, 35);
+  const shapeClass = shape === "circle" ? "rounded-pill" : "rounded-lg";
 
   return (
-    <div className={className} style={{ aspectRatio }}>
-      <svg
-        viewBox="0 0 100 100"
-        className="h-full w-full"
-        role="img"
-        aria-label={alt}
-      >
-        <defs>
-          <mask
-            id={maskId}
-            maskUnits="userSpaceOnUse"
-            x="0"
-            y="0"
-            width="100"
-            height="100"
-          >
-            <rect x="6" y="6" width="88" height="88" rx="28" fill="white" />
-            <rect
-              x="6"
-              y="6"
-              width="88"
-              height="88"
-              rx="28"
-              fill="white"
-              transform={`rotate(${angle} 50 50)`}
-            />
-          </mask>
-        </defs>
-        <image
-          href={src}
-          x="0"
-          y="0"
-          width="100"
-          height="100"
-          preserveAspectRatio="xMidYMid slice"
-          mask={`url(#${maskId})`}
-        />
-      </svg>
+    <div
+      className={`overflow-hidden ${shapeClass} ${className}`}
+      style={{ aspectRatio }}
+    >
+      <img src={src} alt={alt} className="h-full w-full object-cover" />
     </div>
   );
 }

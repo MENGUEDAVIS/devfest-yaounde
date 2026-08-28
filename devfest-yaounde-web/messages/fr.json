@@ -1,4 +1,7 @@
 {
+  "common": {
+    "close": "Fermer"
+  },
   "nav": {
     "schedule": "Programme",
     "speakers": "Intervenants",

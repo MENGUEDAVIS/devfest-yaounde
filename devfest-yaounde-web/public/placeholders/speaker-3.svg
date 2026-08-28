@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <rect width="400" height="400" fill="#F9AB00"/>
-  <circle cx="340" cy="90" r="65" fill="#FFD427" opacity="0.4"/>
-  <circle cx="70" cy="320" r="70" fill="#FFD427" opacity="0.3"/>
-  <text x="200" y="230" font-family="sans-serif" font-size="120" font-weight="700" fill="#1E1E1E" text-anchor="middle">AN</text>
+  <rect width="400" height="400" fill="#FFE7A5"/>
+  <circle cx="335" cy="75" r="62" fill="#F9AB00" opacity="0.6"/>
+  <circle cx="62" cy="338" r="82" fill="#F9AB00" opacity="0.45"/>
+  <text x="200" y="232" font-family="sans-serif" font-size="120" font-weight="700" fill="#1E1E1E" text-anchor="middle">AN</text>
 </svg>

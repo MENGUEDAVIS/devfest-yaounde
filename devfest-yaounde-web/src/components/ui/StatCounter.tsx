@@ -67,12 +67,15 @@ export function StatCounter({
   }, [value, durationMs]);
 
   return (
-    <div ref={ref} className={`text-center ${className}`}>
-      <div className="font-sans text-display-l font-bold text-black02">
+    <div ref={ref} className={className}>
+      {/* §7b: a big number IS the section's star element — size it like one */}
+      <div className="font-sans text-display-hero font-bold leading-none text-black02 tabular-nums">
         {displayValue.toLocaleString()}
         {suffix}
       </div>
-      <div className="mt-1 text-body-m text-black02">{label}</div>
+      <div className="mt-4 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70">
+        {label}
+      </div>
     </div>
   );
 }

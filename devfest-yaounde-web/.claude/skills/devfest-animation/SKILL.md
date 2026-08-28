@@ -14,7 +14,8 @@ No animation library (Framer Motion, GSAP, etc.) is installed. Everything below 
 ## Where the code lives
 
 - `src/app/motion.css` — the actual `@keyframes` and utility classes, imported into `src/app/globals.css`.
-- `src/lib/motion.ts` — named JS exports (`bouncyPop`, `fadeInUp`, `staggerReveal`, `marqueeLoop`, `confettiPiece`, `modalBackdropIn`, `modalPopIn`, `staggerStyle`, `confettiPieceStyle`) so components import symbols instead of hardcoding class-name strings.
+- `src/lib/motion.ts` — named JS exports (`bouncyPop`, `fadeInUp`, `heroRise`, `shapeDrift`, `marqueeLoop`, `marqueeTrack`, `confettiPiece`, `modalBackdropIn`, `modalPopIn`, `navSettle`, `revealOnScroll`, plus `staggerStyle` / `heroDelayStyle` / `confettiPieceStyle`) so components import symbols instead of hardcoding class-name strings.
+- `src/components/ui/Reveal.tsx` — the scroll-reveal wrapper (see `docs/components/reveal.md`). Use this for section entrances rather than hand-rolling an IntersectionObserver.
 
 ## The easing tokens (from DESIGN.md §6.1, defined in `globals.css`'s `@theme` block)
 
@@ -51,30 +52,51 @@ No animation library (Framer Motion, GSAP, etc.) is installed. Everything below 
 ## Named presets — import from `@/lib/motion`
 
 ```tsx
-import { bouncyPop, fadeInUp, staggerReveal, marqueeLoop, staggerStyle } from "@/lib/motion";
+import {
+  bouncyPop, fadeInUp, heroRise, heroDelayStyle,
+  shapeDrift, marqueeLoop, marqueeTrack,
+  modalBackdropIn, modalPopIn,
+} from "@/lib/motion";
+import { Reveal } from "@/components/ui/Reveal";
 
-// Bouncy pop-in — buttons on click, badge reveals, easter-egg pop-ins (micro/meso tier)
+// Bouncy pop-in — badge reveals, easter-egg pop-ins (micro/meso tier)
 <div className={bouncyPop}>🎉</div>
 
-// Fade + rise — scroll reveals, modal open, card entrance (meso tier)
-<div className={fadeInUp}>...</div>
+// Fade + rise on mount — e.g. a rotating quote replaying via `key`
+<blockquote key={quote.id} className={fadeInUp}>...</blockquote>
 
-// Staggered children — set staggerStyle(index) per child (macro tier)
-<div className={staggerReveal}>
-  {items.map((item, i) => (
-    <div key={item.id} style={staggerStyle(i)}>{item.label}</div>
-  ))}
-</div>
+// Hero load sequence — stagger each element with heroDelayStyle (macro tier)
+<h1 className={heroRise} style={heroDelayStyle(120)}>...</h1>
+<p  className={heroRise} style={heroDelayStyle(240)}>...</p>
 
-// Continuous linear scroll — sponsor logo marquee, ticker text
-<div className={marqueeLoop}>...</div>
+// Staggered scroll-reveal — the standard way to animate sections in
+{items.map((item, i) => (
+  <Reveal key={item.id} index={i}><Card {...item} /></Reveal>
+))}
 
-// Modal backdrop fade + panel scale-in (ease-out, meso tier — DESIGN.md §6.1 maps "modal open" to ease-out)
+// Continuous linear scroll — sponsor marquee. Wrap in marqueeTrack to
+// pause on hover; only marquee when content actually overflows.
+<div className={marqueeTrack}><div className={marqueeLoop}>...</div></div>
+
+// Ambient drift for a big decorative hero shape
+<div aria-hidden className={shapeDrift} />
+
+// Modal backdrop fade + panel scale-in (ease-out, meso tier)
 <div className={modalBackdropIn}>...</div>
 <div className={modalPopIn}>...</div>
 ```
 
 Adding a new named preset: add the `@keyframes` + utility class to `src/app/motion.css`, export its class name from `src/lib/motion.ts`, and add its reduced-motion override in the same `@media (prefers-reduced-motion: reduce)` block — don't create a preset that skips that step.
+
+## PERCEPTIBILITY IS THE BAR (DESIGN.md §7c)
+
+The Phase 1–3 build had motion "on paper" that nobody could feel. Motion here is tuned to be **felt**: travel distances are 40–64px (not 12px), durations sit at the top of their tier, and stagger steps are 110ms. If a reviewer scrolls the page and feels like nothing is animating, this layer has failed — that's a bug, not a taste question.
+
+Required on any new page:
+
+1. A noticeable load/entrance sequence (`heroRise` + `heroDelayStyle` staggering).
+2. Staggered scroll-reveals on sections as they enter the viewport (`<Reveal index={i}>`).
+3. Real hover feedback on every interactive element — lift + flat offset shadow, not just a color tint.
 
 ## Reduced motion — applied by default, not opt-in
 
