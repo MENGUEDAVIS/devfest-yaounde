@@ -18,6 +18,12 @@ export interface Speaker {
   day: number;
   sessionIds: string[];
   social?: { x?: string; linkedin?: string; website?: string };
+  /** Casual interview-style question shown in the detail reveal. */
+  icebreakerQuestion: LocalizedString;
+  /** Their short answer to it — brand-voice personality, not a data row. */
+  icebreakerAnswer: LocalizedString;
+  /** Optional short, shareable funny note. Omit rather than leaving blank. */
+  funnyMoment?: LocalizedString;
   /** true = shown in the Home preview slider. */
   featured?: boolean;
 }
@@ -28,8 +34,21 @@ export interface TeamMember {
   role: LocalizedString;
   /** Personality-forward one-liner, not a formal bio (PAGES.md §6). */
   oneLiner: LocalizedString;
+  /**
+   * What they actually do for the event (Organising, Sponsoring, Ushering,
+   * Design, Logistics, Programme…). This doubles as the grouping/filter axis
+   * on /team — we group by contribution rather than an invented sub-team org
+   * chart, which was never confirmed. See docs/decisions/0010-team-grouping.md.
+   */
+  contribution: LocalizedString;
   photoUrl: string;
   social?: { x?: string; linkedin?: string; website?: string };
+  /** Casual interview-style question shown in the detail reveal. */
+  icebreakerQuestion: LocalizedString;
+  /** Their short answer to it. */
+  icebreakerAnswer: LocalizedString;
+  /** Optional short, shareable funny note. */
+  funnyMoment?: LocalizedString;
   /** true = rendered in the Alumni / Past Organizers section. */
   alumni?: boolean;
   /** Year(s) they organised — alumni only. */

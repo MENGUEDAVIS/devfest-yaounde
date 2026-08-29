@@ -1,6 +1,29 @@
 {
   "common": {
-    "close": "Fermer"
+    "close": "Fermer",
+    "filters": {
+      "title": "Filtres",
+      "open": "Filtres",
+      "close": "Fermer les filtres",
+      "clear": "Tout effacer",
+      "applied": "{count} actifs",
+      "done": "Voir les résultats",
+      "group": "Groupe de filtres"
+    },
+    "views": {
+      "label": "Vue",
+      "grid": "Grille",
+      "slider": "Diaporama",
+      "prev": "Précédent",
+      "next": "Suivant",
+      "position": "{current} sur {total}",
+      "dragHint": "Glisse, balaie ou utilise les flèches"
+    },
+    "person": {
+      "icebreaker": "Petite question",
+      "funny": "Histoire vraie",
+      "contribution": "Dans l'équipe"
+    }
   },
   "nav": {
     "schedule": "Programme",
@@ -144,7 +167,9 @@
       "results": "{count} intervenants",
       "noResults": "Personne ne correspond — essaie une autre recherche.",
       "clear": "Réinitialiser",
-      "hint": "Touche une carte pour tout savoir"
+      "hint": "Touche une carte pour tout savoir",
+      "trackLabel": "Piste",
+      "dayLabel": "Jour"
     },
     "faqs": {
       "title": "FAQ",
@@ -169,7 +194,12 @@
       "metaDesc": "Les organisateurs GDG Yaoundé derrière DevFest Yaoundé, et les alumni qui l'ont construit avant nous.",
       "alumniTitle": "Anciens organisateurs",
       "alumniLead": "Celles et ceux qui ont mené les éditions précédentes. Cette communauté a une histoire.",
-      "structureNote": "Les organisateurs sont présentés en un seul groupe — la structure par sous-équipes n'est pas encore confirmée."
+      "contribution": "Contribution",
+      "allContributions": "Tout le monde",
+      "groupBy": "Regroupés par contribution",
+      "search": "Rechercher par nom",
+      "searchLabel": "Rechercher dans l'équipe",
+      "noResults": "Personne ne correspond — essaie une autre recherche."
     },
     "tickets": {
       "title": "Billets",

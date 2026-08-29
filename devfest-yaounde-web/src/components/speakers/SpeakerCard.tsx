@@ -1,36 +1,9 @@
 "use client";
 
-import { GlobeSimple, LinkedinLogo, XLogo } from "@phosphor-icons/react";
 import { useLocale } from "next-intl";
+import { PersonDetail } from "@/components/people/PersonDetail";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 import type { Speaker } from "@/data/types";
-
-/** Social links, rendered only for the networks a speaker actually has. */
-export function speakerSocials(s: Speaker) {
-  const out: {
-    key: string;
-    href: string;
-    Icon: typeof XLogo;
-    label: string;
-  }[] = [];
-  if (s.social?.x)
-    out.push({ key: "x", href: s.social.x, Icon: XLogo, label: "X" });
-  if (s.social?.linkedin)
-    out.push({
-      key: "in",
-      href: s.social.linkedin,
-      Icon: LinkedinLogo,
-      label: "LinkedIn",
-    });
-  if (s.social?.website)
-    out.push({
-      key: "web",
-      href: s.social.website,
-      Icon: GlobeSimple,
-      label: "Website",
-    });
-  return out;
-}
 
 export interface SpeakerCardProps {
   speaker: Speaker;
@@ -63,7 +36,6 @@ export function SpeakerCard({
   className = "",
 }: SpeakerCardProps) {
   const locale = useLocale() as "fr" | "en";
-  const socials = speakerSocials(speaker);
 
   return (
     <article
@@ -92,44 +64,25 @@ export function SpeakerCard({
             }`}
           >
             <p className="font-sans text-heading-m font-bold leading-tight text-black02">
-              {speaker.name}
+              {/* Signature moment (/speakers): a marker stroke wipes in under
+                  the name on hover/focus — see .name-marker in motion.css */}
+              <span className="name-marker">{speaker.name}</span>
             </p>
             <p className="mt-1 truncate text-body-m text-black02/70">
               {speaker.role[locale]}
             </p>
           </div>
 
-          {/* Swipe-up detail — transform-driven, stays mounted */}
+          {/* Swipe-up detail — transform-driven, stays mounted.
+              Body is the shared PersonDetail, so the icebreaker Q&A and
+              funny moment render identically here, on TeamCard and in the
+              slider. */}
           <div
             id={`speaker-detail-${speaker.id}`}
             inert={!open}
-            className="speaker-detail absolute inset-0 flex flex-col justify-end overflow-y-auto bg-black02/92 px-6 py-6 text-left"
+            className="speaker-detail absolute inset-0 overflow-y-auto bg-black02/92 px-6 py-6 text-left"
           >
-            <p className="font-sans text-heading-l font-bold leading-tight text-offwhite">
-              {speaker.name}
-            </p>
-            <p className="mt-1.5 font-mono text-caption text-yellow">
-              {speaker.role[locale]} · {speaker.company}
-            </p>
-            <p className="mt-4 text-body-m leading-relaxed text-offwhite/85">
-              {speaker.bio[locale]}
-            </p>
-            {socials.length > 0 && (
-              <div className="mt-5 flex gap-2.5">
-                {socials.map(({ key, href, Icon, label }) => (
-                  <a
-                    key={key}
-                    href={href}
-                    aria-label={`${speaker.name} — ${label}`}
-                    tabIndex={open ? undefined : -1}
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex h-10 w-10 items-center justify-center rounded-pill border-2 border-offwhite/30 text-offwhite transition-[background-color,color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow hover:text-black02"
-                  >
-                    <Icon size={20} />
-                  </a>
-                ))}
-              </div>
-            )}
+            <PersonDetail person={speaker} tone="dark" interactive={open} />
           </div>
         </div>
       </button>

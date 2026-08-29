@@ -22,7 +22,19 @@
       "fr": "Keynote",
       "en": "Keynote"
     },
-    "day": 1
+    "day": 1,
+    "icebreakerQuestion": {
+      "fr": "Quelle citation te motive ?",
+      "en": "What's a quote that keeps you going?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Peu importe ta taille, dehors tu vois quand même le ciel.",
+      "en": "No matter how short you are, if you go out you still see the sky."
+    },
+    "funnyMoment": {
+      "fr": "A débogué toute une nuit un problème qui était un point-virgule.",
+      "en": "Once debugged all night and the problem was a semicolon."
+    }
   },
   {
     "id": "kwame-asante",
@@ -47,7 +59,19 @@
       "fr": "Atelier",
       "en": "Workshop"
     },
-    "day": 1
+    "day": 1,
+    "icebreakerQuestion": {
+      "fr": "Ton conseil à un dev qui débute ?",
+      "en": "Your advice to a dev just starting out?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Publie le truc moche. Tu le rendras beau après.",
+      "en": "Ship the ugly thing. You can make it pretty later."
+    },
+    "funnyMoment": {
+      "fr": "A fait une démo live avec zéro connexion. Ça s'est bien passé. Presque.",
+      "en": "Did a live demo with zero connectivity. It went fine. Nearly."
+    }
   },
   {
     "id": "amara-nwosu",
@@ -71,7 +95,15 @@
       "fr": "IA",
       "en": "AI"
     },
-    "day": 1
+    "day": 1,
+    "icebreakerQuestion": {
+      "fr": "Qu'est-ce qui te fascine en ce moment ?",
+      "en": "What are you obsessed with right now?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Les modèles qui admettent qu'ils ne savent pas.",
+      "en": "Models that admit when they don't know something."
+    }
   },
   {
     "id": "yusuf-mbarga",
@@ -95,7 +127,19 @@
       "fr": "Web",
       "en": "Web"
     },
-    "day": 2
+    "day": 2,
+    "icebreakerQuestion": {
+      "fr": "Ton avis le plus tranché sur le web ?",
+      "en": "Your spiciest web opinion?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Si ça ne marche pas au clavier, ça ne marche pas.",
+      "en": "If it doesn't work with a keyboard, it doesn't work."
+    },
+    "funnyMoment": {
+      "fr": "A refait le CSS d'un site entier la veille du lancement.",
+      "en": "Rewrote an entire site's CSS the night before launch."
+    }
   },
   {
     "id": "fatima-njoya",
@@ -117,7 +161,15 @@
       "fr": "Cloud",
       "en": "Cloud"
     },
-    "day": 2
+    "day": 2,
+    "icebreakerQuestion": {
+      "fr": "Qu'est-ce qui rend une infra saine ?",
+      "en": "What makes infrastructure healthy?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Des déploiements ennuyeux. L'ennui, c'est la réussite.",
+      "en": "Boring deploys. Boring is the goal."
+    }
   },
   {
     "id": "marcus-fotso",
@@ -142,7 +194,15 @@
       "fr": "Sécurité",
       "en": "Security"
     },
-    "day": 2
+    "day": 2,
+    "icebreakerQuestion": {
+      "fr": "La chose la plus surprenante que tu aies cassée ?",
+      "en": "Most surprising thing you've broken?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Un formulaire de contact. Il en disait long.",
+      "en": "A contact form. It said a lot about the rest."
+    }
   },
   {
     "id": "nadia-eboa",
@@ -166,7 +226,19 @@
     "social": {
       "linkedin": "#"
     },
-    "featured": false
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Comment tu sais qu'une idée est bonne ?",
+      "en": "How do you know an idea is good?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Quand quelqu'un l'utilise sans qu'on lui explique.",
+      "en": "When someone uses it without being told how."
+    },
+    "funnyMoment": {
+      "fr": "A nommé une variable « temp » en 2019. Elle est toujours là.",
+      "en": "Named a variable 'temp' in 2019. It is still there."
+    }
   },
   {
     "id": "thierry-nkomo",
@@ -191,7 +263,15 @@
       "x": "#",
       "linkedin": "#"
     },
-    "featured": false
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Ton rituel avant de coder ?",
+      "en": "Your pre-coding ritual?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Un café, puis relire le ticket. Dans cet ordre.",
+      "en": "Coffee, then re-read the ticket. In that order."
+    }
   },
   {
     "id": "laure-mbappe",
@@ -215,7 +295,19 @@
     "social": {
       "website": "#"
     },
-    "featured": false
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Une règle de design que tu ne casses jamais ?",
+      "en": "One design rule you never break?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Laisser respirer. Le vide fait partie du dessin.",
+      "en": "Leave room to breathe. Space is part of the design."
+    },
+    "funnyMoment": {
+      "fr": "A envoyé une maquette avec « Lorem ipsum » en titre principal.",
+      "en": "Shipped a mockup with 'Lorem ipsum' as the main headline."
+    }
   },
   {
     "id": "samuel-owona",
@@ -239,7 +331,15 @@
     "social": {
       "x": "#"
     },
-    "featured": false
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Le téléphone sur lequel tu testes toujours ?",
+      "en": "The phone you always test on?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Le plus vieux du bureau. Si ça passe là, ça passe partout.",
+      "en": "The oldest one in the office. If it works there, it works."
+    }
   },
   {
     "id": "aisha-bello",
@@ -265,7 +365,19 @@
       "linkedin": "#",
       "website": "#"
     },
-    "featured": false
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Comment expliquer un truc compliqué ?",
+      "en": "How do you explain something complicated?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Trouve la version que tu aurais comprise à 15 ans.",
+      "en": "Find the version 15-year-old you would have understood."
+    },
+    "funnyMoment": {
+      "fr": "A expliqué les API à sa mère. Elle a posé une meilleure question.",
+      "en": "Explained APIs to my mum. She asked a better question than most."
+    }
   },
   {
     "id": "eric-tchoua",
@@ -289,7 +401,15 @@
     "social": {
       "linkedin": "#"
     },
-    "featured": false
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Ta définition d'une bonne journée ?",
+      "en": "Your definition of a good day?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Personne ne m'a écrit. Tout tournait.",
+      "en": "Nobody messaged me. Everything was running."
+    }
   },
   {
     "id": "grace-fon",
@@ -314,7 +434,19 @@
       "x": "#",
       "website": "#"
     },
-    "featured": false
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Le test d'accessibilité le plus rapide ?",
+      "en": "Fastest accessibility test?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Range la souris. Essaie de finir la tâche.",
+      "en": "Put the mouse away. Try to finish the task."
+    },
+    "funnyMoment": {
+      "fr": "A trouvé un piège au clavier sur son propre portfolio.",
+      "en": "Found a keyboard trap on my own portfolio."
+    }
   },
   {
     "id": "olivier-manga",
@@ -338,6 +470,14 @@
     "social": {
       "linkedin": "#"
     },
-    "featured": false
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Ce qui fait vraiment livrer une équipe ?",
+      "en": "What actually makes a team ship?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Se sentir en sécurité pour dire « je ne sais pas ».",
+      "en": "Feeling safe enough to say 'I don't know'."
+    }
   }
 ]

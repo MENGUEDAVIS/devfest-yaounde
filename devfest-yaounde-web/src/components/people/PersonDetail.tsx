@@ -1,0 +1,202 @@
+"use client";
+
+import {
+  GlobeSimple,
+  LinkedinLogo,
+  Quotes,
+  Sparkle,
+  XLogo,
+} from "@phosphor-icons/react";
+import { useLocale, useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/Badge";
+import type { LocalizedString } from "@/data/types";
+
+export interface PersonLike {
+  id: string;
+  name: string;
+  role: LocalizedString;
+  /** Speakers have a company; team members don't. */
+  company?: string;
+  /** Team members have a contribution; speakers don't. */
+  contribution?: LocalizedString;
+  /** Speakers have a bio; team members have a one-liner. */
+  bio?: LocalizedString;
+  oneLiner?: LocalizedString;
+  icebreakerQuestion: LocalizedString;
+  icebreakerAnswer: LocalizedString;
+  funnyMoment?: LocalizedString;
+  social?: { x?: string; linkedin?: string; website?: string };
+}
+
+export function personSocials(p: PersonLike) {
+  const out: {
+    key: string;
+    href: string;
+    Icon: typeof XLogo;
+    label: string;
+  }[] = [];
+  if (p.social?.x)
+    out.push({ key: "x", href: p.social.x, Icon: XLogo, label: "X" });
+  if (p.social?.linkedin)
+    out.push({
+      key: "in",
+      href: p.social.linkedin,
+      Icon: LinkedinLogo,
+      label: "LinkedIn",
+    });
+  if (p.social?.website)
+    out.push({
+      key: "web",
+      href: p.social.website,
+      Icon: GlobeSimple,
+      label: "Website",
+    });
+  return out;
+}
+
+export interface PersonDetailProps {
+  person: PersonLike;
+  /** "dark" = over a photo scrim; "light" = on a pale surface. */
+  tone?: "dark" | "light";
+  /** Larger type for the slider's roomier surface. */
+  size?: "compact" | "roomy";
+  /** Focusable children need tabIndex -1 when the surface is closed. */
+  interactive?: boolean;
+}
+
+/**
+ * The shared person detail block — PHASE9 §1.
+ *
+ * Renders bio/one-liner, contribution, the icebreaker Q&A and the optional
+ * funny moment, so speakers and team members show the same personality
+ * fields in the same treatment across the card swipe-up AND the slider.
+ *
+ * The icebreaker is deliberately styled as a real quote moment (oversized
+ * quote mark, answer in display type) rather than a labelled data row —
+ * per the brief, it's a warmth beat, not a spec table. The funny moment
+ * gets a distinct "true story" chip so it reads as an aside.
+ */
+export function PersonDetail({
+  person,
+  tone = "dark",
+  size = "compact",
+  interactive = true,
+}: PersonDetailProps) {
+  const locale = useLocale() as "fr" | "en";
+  const t = useTranslations("common.person");
+  const socials = personSocials(person);
+  const blurb = person.bio ?? person.oneLiner;
+
+  const dark = tone === "dark";
+  const roomy = size === "roomy";
+
+  const nameCls = dark ? "text-offwhite" : "text-black02";
+  const metaCls = dark ? "text-yellow" : "text-black02/70";
+  const bodyCls = dark ? "text-offwhite/85" : "text-black02/80";
+  const labelCls = dark ? "text-offwhite/55" : "text-black02/50";
+  const ruleCls = dark ? "border-offwhite/20" : "border-black02/15";
+
+  return (
+    <div className={roomy ? "flex flex-col gap-6" : "flex flex-col gap-4"}>
+      <div>
+        <p
+          className={`font-sans font-bold leading-tight ${nameCls} ${roomy ? "text-display-l" : "text-heading-l"}`}
+        >
+          {person.name}
+        </p>
+        <p className={`mt-1.5 font-mono text-caption ${metaCls}`}>
+          {person.role[locale]}
+          {person.company ? ` · ${person.company}` : ""}
+        </p>
+        {person.contribution && (
+          <div className="mt-3">
+            <Badge tone="yellow" variant={dark ? "solid" : "outline"}>
+              {person.contribution[locale]}
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      {blurb && (
+        <p
+          className={`leading-relaxed ${bodyCls} ${roomy ? "text-body-l" : "text-body-m"}`}
+        >
+          {blurb[locale]}
+        </p>
+      )}
+
+      {/* Icebreaker — a quote moment, not a data row */}
+      <div className={`border-t-2 pt-5 ${ruleCls}`}>
+        <p
+          className={`font-mono text-mono-tag font-bold uppercase tracking-wide ${labelCls}`}
+        >
+          {t("icebreaker")}
+        </p>
+        <p className={`mt-2 text-body-m ${bodyCls}`}>
+          {person.icebreakerQuestion[locale]}
+        </p>
+        <div className="mt-3 flex gap-2.5">
+          <Quotes
+            size={roomy ? 28 : 22}
+            weight="fill"
+            aria-hidden
+            className={`shrink-0 ${dark ? "text-yellow" : "text-yellow"}`}
+          />
+          <p
+            className={`font-sans font-bold leading-snug ${nameCls} ${roomy ? "text-heading-l" : "text-heading-m"}`}
+          >
+            {person.icebreakerAnswer[locale]}
+          </p>
+        </div>
+      </div>
+
+      {person.funnyMoment && (
+        <div
+          className={`flex items-start gap-2.5 rounded-lg border-2 px-4 py-3 ${
+            dark
+              ? "border-offwhite/25 bg-offwhite/5"
+              : "border-black02/20 bg-yellow-pastel"
+          }`}
+        >
+          <Sparkle
+            size={18}
+            weight="duotone"
+            aria-hidden
+            className="mt-0.5 shrink-0 text-yellow"
+          />
+          <div>
+            <p
+              className={`font-mono text-mono-tag font-bold uppercase tracking-wide ${labelCls}`}
+            >
+              {t("funny")}
+            </p>
+            <p className={`mt-1 text-body-m ${bodyCls}`}>
+              {person.funnyMoment[locale]}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {socials.length > 0 && (
+        <div className="flex gap-2.5">
+          {socials.map(({ key, href, Icon, label }) => (
+            <a
+              key={key}
+              href={href}
+              aria-label={`${person.name} — ${label}`}
+              tabIndex={interactive ? undefined : -1}
+              onClick={(e) => e.stopPropagation()}
+              className={`flex h-10 w-10 items-center justify-center rounded-pill border-2 transition-[background-color,color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow hover:text-black02 motion-reduce:transform-none ${
+                dark
+                  ? "border-offwhite/30 text-offwhite"
+                  : "border-black02 text-black02"
+              }`}
+            >
+              <Icon size={20} />
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

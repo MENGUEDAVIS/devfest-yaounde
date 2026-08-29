@@ -32,9 +32,30 @@ Two rules that apply to every file here:
   "day": 1,
   "sessionIds": ["s1-keynote"],
   "social": { "x": "https://...", "linkedin": "https://..." },
+  "icebreakerQuestion": {
+    "fr": "Quelle citation te motive ?",
+    "en": "What's a quote that keeps you going?"
+  },
+  "icebreakerAnswer": {
+    "fr": "Une phrase courte, dans leurs mots.",
+    "en": "One short line, in their own words."
+  },
+  "funnyMoment": {
+    "fr": "Optionnel — une anecdote courte et sympa.",
+    "en": "Optional — one short, shareable story."
+  },
   "featured": true
 }
 ```
+
+- **`icebreakerQuestion` / `icebreakerAnswer`** are the personality beat — they
+  show up as a pull-quote in the detail reveal, not as a table row. Ask
+  something a human would actually ask ("what's a quote that keeps you
+  going?"), and keep the answer to one line. This is the field most likely to
+  make someone smile, so it's worth getting real answers rather than filler.
+- **`funnyMoment`** is **optional**. Leave the whole field out if there isn't
+  one — an empty string will render an empty box. It appears as a "true story"
+  aside.
 
 - **`photoUrl`** — put the image in `public/` (e.g. `public/speakers/`) and
   reference it from there. Roughly square works best; the card crops to 4:5.
@@ -129,9 +150,21 @@ Day 2 is worked out automatically as the following day. The buttons appear on
     "en": "One line with personality, not a formal bio."
   },
   "photoUrl": "/team/real-name.jpg",
-  "social": { "linkedin": "https://..." }
+  "social": { "linkedin": "https://..." },
+  "contribution": { "fr": "Logistique", "en": "Logistics" },
+  "icebreakerQuestion": { "fr": "...", "en": "..." },
+  "icebreakerAnswer": { "fr": "...", "en": "..." },
+  "funnyMoment": { "fr": "...", "en": "..." }
 }
 ```
+
+- **`contribution`** is what the team page **groups and filters by** — reuse an
+  existing value exactly (Organising, Design, Logistics, Sponsoring, Ushering,
+  Programme), or you'll create a new one-person group. A new value is fine when
+  it's genuinely a new kind of contribution; it appears as a group and a filter
+  chip with no code change.
+- **Icebreaker and funny moment** work exactly as they do for speakers (above),
+  and render through the same component.
 
 - **`oneLiner`** is the point of this page — "keeps the Wi-Fi (and the vibes)
   running" beats "responsible for infrastructure operations".
@@ -139,13 +172,16 @@ Day 2 is worked out automatically as the following day. The buttons appear on
   `"alumni": true` and `"years": "2024"`. They keep their entry; it just moves
   down the page. Nobody gets deleted — that's the multi-year community story.
 
-### Team structure is an open question
+### How the team page is organised
 
-Organizers currently display as **one flat grid**, with a visible note on the
-page saying the sub-team structure isn't confirmed. `PAGES.md` §6 allows
-grouping by sub-team (Design / Logistics / DevRel / Community) — but only if
-that reflects the real org chart. **Once you know the actual structure, tell a
-developer** and the page can be grouped. We deliberately didn't invent one.
+Organizers are grouped **by contribution**, not by a sub-team org chart —
+because the real reporting structure was never confirmed, and inventing one
+would have been worse than not having it. See
+`docs/decisions/0010-team-grouping.md`.
+
+This means you control the grouping purely by what you put in
+`contribution`. If a real sub-team structure is confirmed later, the page can
+be regrouped — it's driven by one field, so it's a small change.
 
 ---
 

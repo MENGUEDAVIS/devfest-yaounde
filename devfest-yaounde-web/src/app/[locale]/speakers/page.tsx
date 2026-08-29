@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
-import { SpeakerGrid } from "@/components/speakers/SpeakerGrid";
+import { SpeakerBrowser } from "@/components/speakers/SpeakerBrowser";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import speakers from "@/data/speakers.json";
 import type { Speaker } from "@/data/types";
@@ -51,7 +51,7 @@ export default async function SpeakersPage({
             statically prerendered.
           */}
           <Suspense fallback={null}>
-            <SpeakerGrid speakers={allSpeakers} />
+            <SpeakerBrowser speakers={allSpeakers} />
           </Suspense>
         </div>
       </SectionContainer>

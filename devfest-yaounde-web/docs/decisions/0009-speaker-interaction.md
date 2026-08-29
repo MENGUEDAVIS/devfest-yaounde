@@ -1,7 +1,7 @@
 # 0009 — One speaker interaction: swipe-up card, not a modal
 
 Date: 2026-08-29
-Status: Accepted (default per PHASE8 §3 — open to veto)
+Status: Accepted — **confirmed in Phase 9** (not vetoed)
 
 ## Context
 
@@ -25,5 +25,5 @@ Everything §4.2 asked for is preserved:
 ## Consequences
 
 - One component, one set of interaction bugs, one place to change the behaviour. The slider adds spotlight/auto-advance _around_ `SpeakerCard`; the grid just lays them out.
-- The detail panel is constrained to the card's own area, so it's a smaller reading surface than a modal would be. It scrolls internally when a bio overflows. If real bios turn out much longer than the placeholders, this is the thing to re-check — and the point at which a larger modal on the full page might genuinely be worth reconsidering.
+- ~~The detail panel is constrained to the card's own area, so it's a smaller reading surface than a modal would be.~~ **Resolved in Phase 9:** `/speakers` and `/team` gained a **Slider view** — a full-width spotlight showing one person with the roomy detail (bio, socials, icebreaker Q&A, funny moment). The compact card swipe-up and the roomy slider are now two views of the same filtered set, so the small-reading-area tradeoff no longer needs a modal to solve it. The panel still scrolls internally in grid view for long bios.
 - **This was the default choice, taken to avoid building two divergent patterns. It's reversible** — flipping `/speakers` back to the Phase 3 `Modal` shell would be a change to `SpeakerGrid` alone, since the data and deep-link handling are already separate from the presentation.

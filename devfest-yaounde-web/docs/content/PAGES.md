@@ -114,6 +114,12 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 ## 4. Speakers Page (`/speakers`)
 
+> **Updated in Phase 9.** `/speakers` now offers **two views** — the grid below, and a **Slider view** that spotlights one speaker at a time with the fuller detail (next/prev foreshadowed at the edges; mouse-drag, touch-swipe, click and arrow keys all work). Search and filters apply to both views and persist across the toggle, as does the focused speaker.
+>
+> Search and filters live in a **sticky sidebar** on desktop and a **bottom drawer** on mobile, grouped under labelled headings — one shared pattern across `/speakers`, `/schedule` and `/team` (`FilterLayout` + `FilterGroup`).
+>
+> Speakers also carry `icebreakerQuestion`, `icebreakerAnswer` and an optional `funnyMoment`, surfaced in the detail reveal as a warm quote moment rather than a data row.
+
 ### 4.1 Grid
 
 - All speakers, photo in morphed frame, name, role + company, small social icons.
@@ -138,6 +144,8 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 ---
 
 ## 6. Team Page (`/team`)
+
+> **Updated in Phase 9.** The team is grouped and filtered by a **`contribution`** field (Organising, Design, Logistics, Sponsoring, Ushering, Programme) rather than a sub-team org chart, which was never confirmed — see `docs/decisions/0010-team-grouping.md`. `/team` has the same **grid ↔ slider** views and the same sticky-sidebar/bottom-drawer filter pattern as `/speakers`. Team members carry `contribution`, `icebreakerQuestion`, `icebreakerAnswer` and an optional `funnyMoment`. Alumni sit outside the filtered set in their own section.
 
 - Organizer photos (morphed frames), name, role/title (Lead Organizer, Design, Logistics, DevRel/Partnerships, Community, etc.) — grouped by sub-team if the org chart supports it, otherwise one grid.
 - Short, personality-forward one-liners rather than formal bios — e.g. "Keeps the Wi-Fi (and the vibes) running."

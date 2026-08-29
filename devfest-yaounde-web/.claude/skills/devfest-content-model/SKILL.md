@@ -51,23 +51,35 @@ interface Speaker {
   name: string; // language-neutral
   role: LocalizedString;
   company: string; // language-neutral
-  photoUrl: string; // rendered in morphed frame
+  photoUrl: string;
   bio: LocalizedString;
+  track: LocalizedString; // drives the /speakers track filter
+  day: number; // drives the /speakers day filter
   sessionIds: string[]; // links to Session.id
   social?: { x?: string; linkedin?: string; website?: string }; // only rendered if provided
-  featured?: boolean; // true = appears in Home preview carousel
+  icebreakerQuestion: LocalizedString;
+  icebreakerAnswer: LocalizedString;
+  funnyMoment?: LocalizedString;
+  featured?: boolean; // true = appears in Home preview slider
 }
 
+// Actual shape as implemented (src/data/types.ts) — sessions carry a time of
+// day plus a duration, NOT a start/end date, because the event date is not
+// confirmed. See src/lib/calendar.ts (EVENT_BASE_DATE).
 interface Session {
   id: string;
-  title: LocalizedString; // or language-neutral + originalLanguage tag if speaker submitted in one language only
-  description: LocalizedString; // one-line
+  time: string; // "HH:mm" local event time
+  durationMin: number;
   day: number; // 1-indexed event day
-  startTime: string; // ISO or "HH:mm"
-  endTime: string;
+  kind: "talk" | "workshop" | "panel" | "break"; // icon + text label, never colour alone
+  title: LocalizedString;
+  description: LocalizedString;
+  track: LocalizedString;
+  room: LocalizedString;
+  tags: LocalizedString[];
+  bring?: LocalizedString; // e.g. "bring a laptop" — only rendered when present
+  provided?: LocalizedString;
   speakerIds: string[];
-  track?: string; // color-coded per design system §2.5-adjacent track tagging
-  room?: string;
 }
 
 interface TicketTier {
@@ -93,12 +105,20 @@ interface Product {
 interface TeamMember {
   id: string;
   name: string;
-  role: LocalizedString; // e.g. "Lead Organizer", personality-forward one-liner allowed
-  subTeam?: string; // Design / Logistics / DevRel / Community — confirm real org chart, currently an open question (PAGES.md §11)
-  photoUrl: string;
+  role: LocalizedString; // e.g. "Lead Organizer"
   oneLiner: LocalizedString; // e.g. "Keeps the Wi-Fi (and the vibes) running."
+  // What they DO for the event: Organising / Design / Logistics / Sponsoring
+  // / Ushering / Programme. /team groups AND filters by this. There is NO
+  // subTeam field — a sub-team org chart was never confirmed and is not
+  // invented. See docs/decisions/0010-team-grouping.md.
+  contribution: LocalizedString;
+  photoUrl: string;
   social?: { x?: string; linkedin?: string; website?: string };
-  alumni?: boolean; // true = renders in "Past Organizers" section
+  icebreakerQuestion: LocalizedString;
+  icebreakerAnswer: LocalizedString;
+  funnyMoment?: LocalizedString;
+  alumni?: boolean; // true = renders in "Past Organizers" section (unfiltered)
+  years?: string; // alumni only, e.g. "2023 · 2024"
 }
 
 interface FaqItem {
@@ -109,6 +129,21 @@ interface FaqItem {
 }
 
 type LocalizedString = { fr: string; en: string };
+
+// --- Personality fields (Phase 9) ---
+// Speakers AND team members both carry these. They render through the shared
+// <PersonDetail>, so they look identical on the card swipe-up and in the
+// slider. Treat them as brand-voice warmth, not a spec table.
+interface PersonalityFields {
+  icebreakerQuestion: LocalizedString; // casual interview-style question
+  icebreakerAnswer: LocalizedString; // short answer — shown as a quote moment
+  funnyMoment?: LocalizedString; // OPTIONAL; omit rather than leave blank
+}
+
+// Team members additionally carry:
+//   contribution: LocalizedString
+// which is what /team groups AND filters by — NOT a sub-team org chart,
+// which was never confirmed. See docs/decisions/0010-team-grouping.md.
 
 // Home-page-specific shapes (added feat/home-page — Phase 3)
 interface Sponsor {
@@ -140,6 +175,12 @@ interface PastEditionPhoto {
   year?: number;
 }
 ```
+
+### Shared page patterns (Phase 9) — reuse, don't re-implement
+
+- **Filtering:** `FilterLayout` (sticky sidebar on desktop, focus-trapped bottom drawer on mobile) + `FilterGroup` (one labelled, optionally collapsible group per dimension). Used by `/speakers`, `/schedule` and `/team`. Any new filtered page uses these — do not write a fourth bespoke filter UI.
+- **People views:** `/speakers` and `/team` both offer grid ↔ slider via `ViewToggle`. The grid uses `SpeakerCard`/`TeamCard` (swipe-up detail); the slider uses `PersonSlider` (drag + touch + click + arrow keys, no carousel library). Both render `PersonDetail`, so the personality fields look the same everywhere.
+- **Filters apply to both views** and persist across the toggle, as does the focused person.
 
 All placeholder content for these (and `Speaker`) lives under `src/data/*.json` — see `docs/guides/updating-home-page.md` for which file maps to which visible section and what must be replaced before launch.
 

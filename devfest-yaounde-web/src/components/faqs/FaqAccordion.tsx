@@ -1,6 +1,5 @@
 "use client";
 
-import { CaretDown } from "@phosphor-icons/react";
 import { useLocale } from "next-intl";
 import type { ReactNode } from "react";
 import type { FaqItem } from "@/data/types";
@@ -32,7 +31,7 @@ export function FaqAccordion({
 
   return (
     <div
-      className={`overflow-hidden rounded-lg border-2 border-black02 transition-[background-color,box-shadow,transform] duration-300 ease-bouncy motion-reduce:transition-none ${
+      className={`${open ? "faq-open" : ""} overflow-hidden rounded-lg border-2 border-black02 transition-[background-color,box-shadow,transform] duration-300 ease-bouncy motion-reduce:transition-none ${
         open
           ? "bg-offwhite shadow-[0_5px_0_0_var(--color-black02)]"
           : "bg-transparent hover:-translate-y-0.5 hover:bg-offwhite/60 motion-reduce:transform-none"
@@ -49,13 +48,19 @@ export function FaqAccordion({
         <span className="font-sans text-heading-m font-bold text-black02">
           {faq.question[locale]}
         </span>
+        {/* Signature moment (/faqs): the toggle glyph flips from "?" to "!"
+            as the answer opens — a question becoming an answer. It's
+            aria-hidden and purely decorative: the button already gets its
+            accessible name from the question text, and its state from
+            aria-expanded. */}
         <span
           aria-hidden
-          className={`shrink-0 rounded-pill border-2 border-black02 p-1.5 transition-transform duration-300 ease-bouncy motion-reduce:transition-none ${
-            open ? "rotate-180 bg-yellow" : "bg-transparent"
+          className={`faq-glyph h-9 w-9 shrink-0 rounded-pill border-2 border-black02 font-sans text-heading-m font-bold leading-none ${
+            open ? "bg-yellow text-black02" : "bg-transparent text-black02/70"
           }`}
         >
-          <CaretDown size={20} weight="bold" />
+          <span className="faq-glyph-a">?</span>
+          <span className="faq-glyph-b">!</span>
         </span>
       </button>
 

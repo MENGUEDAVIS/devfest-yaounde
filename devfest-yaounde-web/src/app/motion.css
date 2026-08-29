@@ -586,6 +586,128 @@
   animation-delay: calc(var(--session-index, 0) * 90ms);
 }
 
+/* Mobile filter drawer rising from the bottom edge (PHASE9 §2.3) */
+@keyframes df-drawer-up {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.anim-drawer-up {
+  animation: df-drawer-up 380ms var(--ease-out-devfest) both;
+}
+
+/*
+ * ============================================================
+ * SIGNATURE MOMENTS — one per content page (PHASE9 §5).
+ * Each is small, on-brand, flat, and must not affect usability:
+ * they are all decoration layered on top of already-working UI.
+ * ============================================================
+ */
+
+/* /speakers — a marker stroke wipes in under the name on hover/focus, as if
+   someone is highlighting who to go see. A pseudo-element bar, NOT a
+   gradient of any kind (DESIGN.md §2.6) and no z-index games: it sits just
+   below the baseline rather than behind the glyphs. */
+.name-marker {
+  position: relative;
+  display: inline-block;
+}
+.name-marker::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.1em;
+  height: 0.26em;
+  border-radius: var(--radius-pill);
+  background: var(--color-yellow-halftone);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 420ms var(--ease-out-devfest);
+}
+.speaker-card:hover .name-marker::after,
+.speaker-card:focus-within .name-marker::after {
+  transform: scaleX(1);
+}
+
+/* /schedule — day buttons read as real folder tabs: the active one loses its
+   bottom edge and sits flush against the board below it. */
+.day-tab {
+  position: relative;
+  transition:
+    transform 220ms var(--ease-bouncy),
+    background-color 220ms var(--ease-out-devfest);
+}
+.day-tab[aria-pressed="true"] {
+  transform: translateY(2px);
+  border-bottom-color: transparent;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+/* The little bridge that visually joins the active tab to the board */
+.day-tab[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 6px;
+  background: var(--color-yellow);
+}
+
+/* /faqs — the toggle glyph flips from "?" to "!" when an answer opens */
+.faq-glyph {
+  display: grid;
+  place-items: center;
+  transition: transform 380ms var(--ease-bouncy);
+  transform-style: preserve-3d;
+}
+.faq-glyph > span {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  transition: opacity 200ms linear;
+}
+.faq-glyph > .faq-glyph-a {
+  opacity: 1;
+}
+.faq-glyph > .faq-glyph-b {
+  opacity: 0;
+  transform: rotateY(180deg);
+}
+.faq-open .faq-glyph {
+  transform: rotateY(180deg);
+}
+.faq-open .faq-glyph > .faq-glyph-a {
+  opacity: 0;
+}
+.faq-open .faq-glyph > .faq-glyph-b {
+  opacity: 1;
+}
+
+/* /team — the contribution chip lands like a rubber stamp on scroll-in */
+@keyframes df-contrib-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.5) rotate(-10deg);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(0.95) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-2deg);
+  }
+}
+.anim-contrib-stamp {
+  animation: df-contrib-stamp 620ms var(--ease-bouncy) both;
+  animation-delay: calc(var(--stamp-index, 0) * 70ms + 200ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-bouncy-pop,
   .anim-fade-in-up,
@@ -598,6 +720,10 @@
   .anim-nav-settle,
   .anim-word-pop,
   .anim-stamp,
+  .anim-drawer-up,
+  .anim-contrib-stamp,
+  .faq-glyph,
+  .day-tab,
   .anim-session-in,
   .anim-hero-bg,
   .anim-tile-in,
@@ -619,6 +745,7 @@
   .anim-reveal,
   .anim-word-pop,
   .anim-stamp,
+  .anim-contrib-stamp,
   .anim-session-in,
   .mask-line > *,
   .anim-tile-in,
@@ -654,6 +781,19 @@
   }
   .speaker-track[data-spotlight="on"] .speaker-card.is-focused {
     opacity: 1 !important;
+  }
+
+  /* Signature moments: keep the end state, drop the motion */
+  .name-marker::after {
+    transition: none !important;
+  }
+  .speaker-card:hover .name-marker::after,
+  .speaker-card:focus-within .name-marker::after {
+    transform: scaleX(1);
+  }
+  .faq-glyph,
+  .faq-glyph > span {
+    transition: none !important;
   }
 
   /* Hover parting and spotlight recede are decorative — drop them entirely */

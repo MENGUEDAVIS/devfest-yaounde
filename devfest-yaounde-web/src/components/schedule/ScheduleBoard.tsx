@@ -3,6 +3,8 @@
 import { ListBullets, SquaresFour } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { FilterGroup } from "@/components/ui/FilterGroup";
+import { FilterLayout } from "@/components/ui/FilterLayout";
 import { Reveal } from "@/components/ui/Reveal";
 import { sessionIn, sessionStyle } from "@/lib/motion";
 import { SessionCard } from "./SessionCard";
@@ -63,14 +65,40 @@ export function ScheduleBoard({
     .filter((s) => !room || s.room[locale] === room)
     .sort((a, b) => a.time.localeCompare(b.time));
 
-  const chip = (active: boolean) =>
-    `rounded-pill border-2 border-black02 px-4 py-2 font-mono text-mono-tag font-bold uppercase tracking-wide transition-[transform,background-color] duration-200 ease-bouncy hover:-translate-y-0.5 motion-reduce:transform-none ${
-      active
-        ? "bg-yellow text-black02"
-        : "bg-transparent text-black02/70 hover:bg-yellow-pastel"
-    }`;
+  const activeCount = (track ? 1 : 0) + (room ? 1 : 0);
 
-  return (
+  /**
+   * Filters as labelled groups inside the shared FilterLayout (PHASE9 §2/§3).
+   * Day stays in the main column as prominent tabs — it's the primary axis
+   * people navigate by, not a refinement, so burying it in a sidebar drawer
+   * would cost more than it tidies.
+   */
+  const filters = (
+    <>
+      <FilterGroup
+        label={t("track")}
+        selected={track}
+        onSelect={setTrack}
+        collapsible
+        options={[
+          { value: null, label: t("allTracks") },
+          ...tracks.map((tr) => ({ value: tr, label: tr })),
+        ]}
+      />
+      <FilterGroup
+        label={t("room")}
+        selected={room}
+        onSelect={setRoom}
+        collapsible
+        options={[
+          { value: null, label: t("allRooms") },
+          ...rooms.map((rm) => ({ value: rm, label: rm })),
+        ]}
+      />
+    </>
+  );
+
+  const board = (
     <>
       {/* Day tabs + view toggle */}
       <Reveal>
@@ -85,7 +113,7 @@ export function ScheduleBoard({
                   setOpenId(null);
                 }}
                 aria-pressed={d === activeDay}
-                className={`rounded-lg border-2 border-black02 px-6 py-3.5 font-sans text-body-l font-bold transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 motion-reduce:transform-none ${
+                className={`day-tab rounded-lg border-2 border-black02 px-6 py-3.5 font-sans text-body-l font-bold hover:-translate-y-0.5 motion-reduce:transform-none ${
                   d === activeDay
                     ? "bg-yellow text-black02 shadow-[0_5px_0_0_var(--color-black02)]"
                     : "bg-transparent text-black02/70 hover:bg-yellow-pastel"
@@ -133,61 +161,6 @@ export function ScheduleBoard({
           </div>
         </div>
       </Reveal>
-
-      {showFilters && (
-        <Reveal index={1}>
-          <div className="mt-8 flex flex-col gap-4">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
-                {t("track")}
-              </span>
-              <button
-                type="button"
-                onClick={() => setTrack(null)}
-                aria-pressed={track === null}
-                className={chip(track === null)}
-              >
-                {t("allTracks")}
-              </button>
-              {tracks.map((tr) => (
-                <button
-                  key={tr}
-                  type="button"
-                  onClick={() => setTrack(tr)}
-                  aria-pressed={track === tr}
-                  className={chip(track === tr)}
-                >
-                  {tr}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
-                {t("room")}
-              </span>
-              <button
-                type="button"
-                onClick={() => setRoom(null)}
-                aria-pressed={room === null}
-                className={chip(room === null)}
-              >
-                {t("allRooms")}
-              </button>
-              {rooms.map((rm) => (
-                <button
-                  key={rm}
-                  type="button"
-                  onClick={() => setRoom(rm)}
-                  aria-pressed={room === rm}
-                  className={chip(room === rm)}
-                >
-                  {rm}
-                </button>
-              ))}
-            </div>
-          </div>
-        </Reveal>
-      )}
 
       {/* key remounts on day/view/filter change so the stagger replays */}
       <div
@@ -246,5 +219,22 @@ export function ScheduleBoard({
         )}
       </div>
     </>
+  );
+
+  // The Home preview has no filters, so it skips the sidebar layout entirely
+  // rather than rendering an empty one.
+  if (!showFilters) return board;
+
+  return (
+    <FilterLayout
+      filters={filters}
+      activeCount={activeCount}
+      onClearAll={() => {
+        setTrack(null);
+        setRoom(null);
+      }}
+    >
+      {board}
+    </FilterLayout>
   );
 }
