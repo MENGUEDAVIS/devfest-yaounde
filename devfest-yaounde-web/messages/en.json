@@ -41,7 +41,10 @@
       "codeOfConduct": "Code of Conduct"
     },
     "followUs": "Follow us",
-    "copyright": "DevFest Yaoundé · GDG Yaoundé"
+    "copyright": "DevFest Yaoundé · GDG Yaoundé",
+    "closingLine": "See you in Yaoundé",
+    "photoAlt": "The DevFest Yaoundé community at a past edition",
+    "ticketsCta": "Grab your ticket"
   },
   "home": {
     "hero": {
@@ -56,7 +59,9 @@
       "headlineLead": "DevFest",
       "headlineCity": "Yaoundé",
       "tagline": "One day. The whole community. A room full of people building wild things — and you, hopefully, in it.",
-      "logoHint": "psst — click the logo"
+      "logoHint": "psst — click the logo",
+      "scrollCue": "Scroll",
+      "photoCredit": "Scenes from past editions"
     },
     "about": {
       "title": "What is DevFest Yaoundé?",

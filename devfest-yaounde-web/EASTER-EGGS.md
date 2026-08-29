@@ -15,6 +15,6 @@ Format: one entry per egg — what it is, where it lives, how to trigger it, and
 
 - **What**: the DevFest "><" mark in the hero is built from its two bracket halves as separately animatable pieces. Hovering parts them slightly; **clicking** flings them apart, spins each a full turn in opposite directions, and snaps them back together.
 - **Where**: `src/components/brand/DevFestLogo.tsx` (the inlined SVG + click state) with the `df-bracket-spin-left/right` keyframes in `src/app/motion.css`.
-- **How to trigger**: click the large logo in the hero (top-left, next to "GDG Yaoundé presents"). Hover alone gives the smaller parting tease.
+- **How to trigger**: click the large logo at the top of the hero (centred above the headline, since the Phase 6 hero redesign). Hover alone gives the smaller parting tease.
 - **Added**: `feat/home-polish`, per PHASE5 §1.
 - **Note**: the navbar's smaller copy of the mark is intentionally _not_ click-spinnable — that button already owns the confetti easter egg above, and stacking two behaviours on one control would make both feel accidental.

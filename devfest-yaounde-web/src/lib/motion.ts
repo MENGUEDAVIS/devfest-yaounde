@@ -28,6 +28,12 @@ export const spotlightItem = "spotlight-item";
 /** Memory-lane scroll choreography — driven by <ScrollStage>. */
 export const stagePhoto = "stage-photo";
 export const stageParallax = "stage-parallax";
+/** Hero background layer: slow ambient drift behind the flat scrim. */
+export const heroBgDrift = "anim-hero-bg";
+/** Hero photo tiles fanning in behind the scrim. */
+export const tileIn = "anim-tile-in";
+/** Bobbing scroll cue at the base of the full-page hero. */
+export const scrollCue = "anim-scroll-cue";
 
 /**
  * Offset a staggered child. Used by both `revealOnScroll` (110ms steps) and
@@ -58,6 +64,14 @@ export function stagePhotoStyle(
   return {
     "--stagger-index": index,
     "--stage-rot": `${rotateDeg}deg`,
+  } as CSSProperties;
+}
+
+/** Stagger + resting tilt for a `tileIn` hero photo tile. */
+export function tileStyle(index: number, rotateDeg: number): CSSProperties {
+  return {
+    "--tile-index": index,
+    "--tile-rot": `${rotateDeg}deg`,
   } as CSSProperties;
 }
 

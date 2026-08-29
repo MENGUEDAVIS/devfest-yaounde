@@ -41,7 +41,10 @@
       "codeOfConduct": "Code de conduite"
     },
     "followUs": "Suivez-nous",
-    "copyright": "DevFest Yaoundé · GDG Yaoundé"
+    "copyright": "DevFest Yaoundé · GDG Yaoundé",
+    "closingLine": "On se voit à Yaoundé",
+    "photoAlt": "La communauté DevFest Yaoundé lors d'une édition précédente",
+    "ticketsCta": "Prends ta place"
   },
   "home": {
     "hero": {
@@ -56,7 +59,9 @@
       "headlineLead": "DevFest",
       "headlineCity": "Yaoundé",
       "tagline": "Une journée. Toute la communauté. Une salle pleine de gens qui construisent des trucs fous — et toi, on espère, au milieu.",
-      "logoHint": "psst — clique sur le logo"
+      "logoHint": "psst — clique sur le logo",
+      "scrollCue": "Défiler",
+      "photoCredit": "Scènes des éditions précédentes"
     },
     "about": {
       "title": "C'est quoi, DevFest Yaoundé ?",

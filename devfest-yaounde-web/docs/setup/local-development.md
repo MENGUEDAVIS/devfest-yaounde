@@ -59,6 +59,33 @@ devfest-yaounde-web/
   .claude/skills/          # project-specific Claude Code skills (design, content, i18n, voice, docs workflow)
 ```
 
+## The Grammarly hydration warning (benign — already handled)
+
+If you see a React hydration warning in the console naming
+`data-new-gr-c-s-check-loaded` and `data-gr-ext-installed` on `<body>`,
+**that is the Grammarly browser extension, not our code.** The extension
+writes those attributes onto `<body>` before React hydrates, so the server
+HTML and the client DOM legitimately differ by two attributes.
+
+`suppressHydrationWarning` is set on `<body>` in
+`src/app/[locale]/layout.tsx` for exactly this reason. It is deliberately
+scoped to that one element: React only suppresses one level deep, so any
+_real_ mismatch inside the tree still surfaces normally.
+
+This was verified rather than assumed — with the extension's attributes
+simulated the warning appears, and without them the console is completely
+clean, so nothing genuine is being masked. The usual real culprits were
+also checked and ruled out: no `Math.random()`/`Date.now()` runs during
+render (`ConfettiBurst`'s randomness sits in a `useState` initializer on a
+component that never server-renders, and `Date.now()` is only in an event
+handler), there are no `typeof window` branches in render, and the one
+locale-formatted number (`StatCounter`) now takes an explicit locale
+instead of relying on the runtime default.
+
+**Don't widen `suppressHydrationWarning` to other elements** to silence a
+future warning — if one appears somewhere else, it's real, and the cause
+should be fixed.
+
 ## A known open gap: fonts
 
 `DESIGN.md` specifies **Google Sans** and **Google Sans Mono** as the typefaces, but these are Google's internal/proprietary fonts — they are not published on Google Fonts (`fonts.google.com`) for general web use via `next/font/google`. The site currently falls back to the documented fallback stack (`'Google Sans', 'Product Sans', 'Inter', system-ui, sans-serif`) with no font actually named "Google Sans" loaded. Sourcing an actual licensed copy of Google Sans (e.g. through Google's internal brand asset channels, if the organizing team has access) or picking a closely-matching substitute is an open item for whoever picks up visual polish next — not something this bootstrap invented a workaround for.

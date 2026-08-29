@@ -50,7 +50,17 @@ export default async function LocaleLayout({
       lang={locale}
       className={`${googleSans.variable} ${googleSansCode.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      {/*
+        suppressHydrationWarning is scoped to <body> ONLY, and only because
+        browser extensions (Grammarly is the confirmed culprit here — it
+        injects data-new-gr-c-s-check-loaded / data-gr-ext-installed) mutate
+        this element before React hydrates. Verified empirically: with those
+        attributes simulated the warning appears, without them the console is
+        clean — so there is no genuine mismatch being masked. React only
+        suppresses one level deep, so real mismatches inside the tree still
+        surface. See docs/setup/local-development.md.
+      */}
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <NextIntlClientProvider>
           <a
             href="#main-content"

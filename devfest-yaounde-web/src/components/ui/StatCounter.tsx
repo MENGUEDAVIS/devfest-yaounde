@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 export interface StatCounterProps {
@@ -25,6 +26,7 @@ export function StatCounter({
   className = "",
 }: StatCounterProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const locale = useLocale();
   const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export function StatCounter({
     <div ref={ref} className={className}>
       {/* §7b: a big number IS the section's star element — size it like one */}
       <div className="font-sans text-display-hero font-bold leading-none text-black02 tabular-nums">
-        {displayValue.toLocaleString()}
+        {displayValue.toLocaleString(locale)}
         {suffix}
       </div>
       <div className="mt-4 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70">

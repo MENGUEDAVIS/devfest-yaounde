@@ -229,6 +229,64 @@
   animation-delay: calc(var(--word-index, 0) * 90ms + var(--word-base, 0ms));
 }
 
+/*
+ * Hero background layer — ambient life behind the scrim (PHASE6 §1.4).
+ * A very slow, very small Ken-Burns style drift on the photo layer: enough
+ * that the page feels alive on arrival, small enough that overlaid text
+ * never appears to swim. No gradients involved — this moves a flat image
+ * layer, the scrim above it stays put.
+ */
+@keyframes df-hero-bg-drift {
+  0% {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.14) translate3d(-1.2%, -1.6%, 0);
+  }
+  100% {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+}
+
+.anim-hero-bg {
+  animation: df-hero-bg-drift 28s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Hero photo tiles fanning into place behind the scrim */
+@keyframes df-tile-in {
+  0% {
+    opacity: 0;
+    transform: translateY(56px) rotate(var(--tile-rot, 0deg)) scale(0.86);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--tile-rot, 0deg)) scale(1);
+  }
+}
+
+.anim-tile-in {
+  animation: df-tile-in 900ms var(--ease-bouncy) both;
+  animation-delay: calc(var(--tile-index, 0) * 130ms + 500ms);
+}
+
+/* Scroll cue at the base of the full-page hero */
+@keyframes df-scroll-cue {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(9px);
+    opacity: 1;
+  }
+}
+
+.anim-scroll-cue {
+  animation: df-scroll-cue 2s ease-in-out infinite;
+}
+
 /* Nav settle-on-load — the bouncy arrival called for in DESIGN.md §7c */
 @keyframes df-nav-settle {
   0% {
@@ -417,6 +475,9 @@
   .anim-modal-pop,
   .anim-nav-settle,
   .anim-word-pop,
+  .anim-hero-bg,
+  .anim-tile-in,
+  .anim-scroll-cue,
   .logo-bracket-in-left,
   .logo-bracket-in-right,
   .logo-spin-left,
@@ -433,6 +494,7 @@
   /* Never leave content in a hidden/transformed state for these users */
   .anim-reveal,
   .anim-word-pop,
+  .anim-tile-in,
   .stage-photo,
   .is-entering .stage-photo,
   .is-leaving .stage-photo {
