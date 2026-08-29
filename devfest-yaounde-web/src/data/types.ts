@@ -46,6 +46,34 @@ export interface PastEditionPhoto {
   year?: number;
 }
 
+/**
+ * A schedule session. Shaped so the Home preview and the full /schedule
+ * route share one component and one record type (devfest-content-model).
+ */
+export type SessionKind = "talk" | "workshop" | "panel" | "break";
+
+export interface Session {
+  id: string;
+  /** "HH:mm" — local event time. */
+  time: string;
+  /** Minutes; drives the displayed duration. */
+  durationMin: number;
+  day: number;
+  kind: SessionKind;
+  title: LocalizedString;
+  description: LocalizedString;
+  track: LocalizedString;
+  room: LocalizedString;
+  /** Free-form tags rendered as Badges. */
+  tags: LocalizedString[];
+  /** e.g. "bring a laptop" — only rendered when present. */
+  bring?: LocalizedString;
+  /** e.g. "we provide the boards" — only rendered when present. */
+  provided?: LocalizedString;
+  /** Ids into speakers.json; empty for breaks. */
+  speakerIds: string[];
+}
+
 export interface FaqItem {
   id: string;
   category: "general" | "tickets" | "venue" | "shop" | "code-of-conduct";

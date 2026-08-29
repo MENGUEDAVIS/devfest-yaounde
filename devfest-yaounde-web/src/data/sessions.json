@@ -1,0 +1,174 @@
+[
+  {
+    "id": "s1-keynote",
+    "time": "09:30",
+    "durationMin": 45,
+    "day": 1,
+    "kind": "talk",
+    "title": {
+      "fr": "Titre de la keynote à venir",
+      "en": "Opening keynote title coming soon"
+    },
+    "description": {
+      "fr": "Espace réservé — la keynote d'ouverture donnera le ton de la journée. Le vrai titre et le vrai résumé arrivent une fois le programme bouclé.",
+      "en": "Placeholder — the opening keynote sets the tone for the day. Real title and abstract land once the programme is locked."
+    },
+    "track": { "fr": "Keynote", "en": "Keynote" },
+    "room": { "fr": "Grande salle", "en": "Main hall" },
+    "tags": [
+      { "fr": "Tous niveaux", "en": "All levels" },
+      { "fr": "Ouverture", "en": "Opening" }
+    ],
+    "speakerIds": ["jane-doe"]
+  },
+  {
+    "id": "s1-ai",
+    "time": "11:00",
+    "durationMin": 40,
+    "day": 1,
+    "kind": "talk",
+    "title": {
+      "fr": "Titre de session à venir",
+      "en": "Session title coming soon"
+    },
+    "description": {
+      "fr": "Espace réservé — une session sur la mise en production de modèles, avec de vrais compromis et de vraies pannes.",
+      "en": "Placeholder — a session on shipping models to production, with real tradeoffs and real failures."
+    },
+    "track": { "fr": "IA", "en": "AI" },
+    "room": { "fr": "Grande salle", "en": "Main hall" },
+    "tags": [
+      { "fr": "Intermédiaire", "en": "Intermediate" },
+      { "fr": "Démo live", "en": "Live demo" }
+    ],
+    "speakerIds": ["amara-nwosu"]
+  },
+  {
+    "id": "s1-workshop",
+    "time": "11:50",
+    "durationMin": 90,
+    "day": 1,
+    "kind": "workshop",
+    "title": {
+      "fr": "Atelier pratique — titre à venir",
+      "en": "Hands-on workshop — title coming soon"
+    },
+    "description": {
+      "fr": "Espace réservé — un atelier où l'on construit vraiment quelque chose ensemble, pas une démo qu'on regarde.",
+      "en": "Placeholder — a workshop where we actually build something together, not a demo you watch."
+    },
+    "track": { "fr": "Atelier", "en": "Workshop" },
+    "room": { "fr": "Labo", "en": "Lab" },
+    "tags": [
+      { "fr": "Places limitées", "en": "Limited seats" },
+      { "fr": "Pratique", "en": "Hands-on" }
+    ],
+    "bring": {
+      "fr": "Ton laptop, chargé, avec Node 20+ installé.",
+      "en": "Your laptop, charged, with Node 20+ installed."
+    },
+    "provided": {
+      "fr": "On fournit le wifi, les prises et le café.",
+      "en": "We provide wifi, power strips and coffee."
+    },
+    "speakerIds": ["kwame-asante"]
+  },
+  {
+    "id": "s1-lunch",
+    "time": "13:20",
+    "durationMin": 60,
+    "day": 1,
+    "kind": "break",
+    "title": {
+      "fr": "Pause déjeuner et papotage",
+      "en": "Lunch and hallway chat"
+    },
+    "description": {
+      "fr": "La partie où l'on rencontre des gens. Sérieusement — les meilleures conversations de la journée se passent ici.",
+      "en": "The bit where you meet people. Genuinely — the best conversations of the day happen here."
+    },
+    "track": { "fr": "Pause", "en": "Break" },
+    "room": { "fr": "Hall", "en": "Foyer" },
+    "tags": [{ "fr": "Repas inclus", "en": "Food included" }],
+    "speakerIds": []
+  },
+  {
+    "id": "s1-panel",
+    "time": "14:30",
+    "durationMin": 50,
+    "day": 1,
+    "kind": "panel",
+    "title": {
+      "fr": "Table ronde — sujet à venir",
+      "en": "Panel — topic coming soon"
+    },
+    "description": {
+      "fr": "Espace réservé — plusieurs praticiens, un sujet, des désaccords assumés. Questions du public bienvenues.",
+      "en": "Placeholder — several practitioners, one topic, genuine disagreement. Audience questions welcome."
+    },
+    "track": { "fr": "Communauté", "en": "Community" },
+    "room": { "fr": "Grande salle", "en": "Main hall" },
+    "tags": [{ "fr": "Questions du public", "en": "Audience Q&A" }],
+    "speakerIds": ["jane-doe", "yusuf-mbarga"]
+  },
+  {
+    "id": "s2-cloud",
+    "time": "10:00",
+    "durationMin": 40,
+    "day": 2,
+    "kind": "talk",
+    "title": {
+      "fr": "Encore un titre de session à venir",
+      "en": "Yet another session title coming soon"
+    },
+    "description": {
+      "fr": "Espace réservé — une session sur l'infrastructure qui survit au succès du produit.",
+      "en": "Placeholder — a session on infrastructure that survives the product actually succeeding."
+    },
+    "track": { "fr": "Cloud", "en": "Cloud" },
+    "room": { "fr": "Salle B", "en": "Room B" },
+    "tags": [{ "fr": "Avancé", "en": "Advanced" }],
+    "speakerIds": ["fatima-njoya"]
+  },
+  {
+    "id": "s2-web",
+    "time": "11:15",
+    "durationMin": 40,
+    "day": 2,
+    "kind": "talk",
+    "title": {
+      "fr": "Et un dernier pour la route",
+      "en": "And one more for the road"
+    },
+    "description": {
+      "fr": "Espace réservé — interfaces rapides et accessibles, sans excuses ni compromis.",
+      "en": "Placeholder — fast, accessible interfaces, with no excuses and no compromises."
+    },
+    "track": { "fr": "Web", "en": "Web" },
+    "room": { "fr": "Grande salle", "en": "Main hall" },
+    "tags": [
+      { "fr": "Accessibilité", "en": "Accessibility" },
+      { "fr": "Performance", "en": "Performance" }
+    ],
+    "speakerIds": ["yusuf-mbarga"]
+  },
+  {
+    "id": "s2-security",
+    "time": "14:00",
+    "durationMin": 45,
+    "day": 2,
+    "kind": "talk",
+    "title": {
+      "fr": "Titre de session sécurité à venir",
+      "en": "Security session title coming soon"
+    },
+    "description": {
+      "fr": "Espace réservé — casser des choses pour de bonnes raisons, et ce que ça apprend sur la construction.",
+      "en": "Placeholder — breaking things for good reasons, and what that teaches you about building them."
+    },
+    "track": { "fr": "Sécurité", "en": "Security" },
+    "room": { "fr": "Salle B", "en": "Room B" },
+    "tags": [{ "fr": "Intermédiaire", "en": "Intermediate" }],
+    "speakerIds": ["marcus-fotso"]
+  }
+]

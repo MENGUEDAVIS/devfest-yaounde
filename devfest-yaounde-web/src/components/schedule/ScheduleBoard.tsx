@@ -1,0 +1,245 @@
+"use client";
+
+import { ListBullets, SquaresFour } from "@phosphor-icons/react";
+import { useLocale, useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { Reveal } from "@/components/ui/Reveal";
+import { sessionIn, sessionStyle } from "@/lib/motion";
+import { SessionCard } from "./SessionCard";
+import type { Session } from "@/data/types";
+
+/** Slight per-card tilt so the timeline reads as pinned notes, not a table. */
+const CARD_TILT = [-0.8, 0.6, -0.5, 0.9, -0.7];
+
+export interface ScheduleBoardProps {
+  sessions: Session[];
+  /** Full route shows track/room filters; the Home preview keeps it simple. */
+  showFilters?: boolean;
+}
+
+/**
+ * The schedule board — day tabs, structured/list toggle, expandable sessions.
+ *
+ * Shared by the Home preview and the full `/schedule` route so there is one
+ * implementation of the toggle, the expand behaviour and the timeline
+ * treatment. `showFilters` is the only difference between the two surfaces.
+ *
+ * PAGES.md §3 accessibility is preserved: the list view is a genuinely plain
+ * semantic list (no tilts, no spine) and is a first-class option, not an
+ * afterthought; session kind always carries an icon + text label.
+ */
+export function ScheduleBoard({
+  sessions,
+  showFilters = false,
+}: ScheduleBoardProps) {
+  const t = useTranslations("home.schedule");
+  const locale = useLocale() as "fr" | "en";
+
+  const days = useMemo(
+    () => [...new Set(sessions.map((s) => s.day))].sort((a, b) => a - b),
+    [sessions],
+  );
+  const tracks = useMemo(
+    () => [...new Set(sessions.map((s) => s.track[locale]))].sort(),
+    [sessions, locale],
+  );
+  const rooms = useMemo(
+    () => [...new Set(sessions.map((s) => s.room[locale]))].sort(),
+    [sessions, locale],
+  );
+
+  const [activeDay, setActiveDay] = useState(days[0] ?? 1);
+  const [view, setView] = useState<"structured" | "list">("structured");
+  const [track, setTrack] = useState<string | null>(null);
+  const [room, setRoom] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const visible = sessions
+    .filter((s) => s.day === activeDay)
+    .filter((s) => !track || s.track[locale] === track)
+    .filter((s) => !room || s.room[locale] === room)
+    .sort((a, b) => a.time.localeCompare(b.time));
+
+  const chip = (active: boolean) =>
+    `rounded-pill border-2 border-black02 px-4 py-2 font-mono text-mono-tag font-bold uppercase tracking-wide transition-[transform,background-color] duration-200 ease-bouncy hover:-translate-y-0.5 motion-reduce:transform-none ${
+      active
+        ? "bg-yellow text-black02"
+        : "bg-transparent text-black02/70 hover:bg-yellow-pastel"
+    }`;
+
+  return (
+    <>
+      {/* Day tabs + view toggle */}
+      <Reveal>
+        <div className="flex flex-wrap items-center justify-between gap-6">
+          <div className="flex flex-wrap gap-3">
+            {days.map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => {
+                  setActiveDay(d);
+                  setOpenId(null);
+                }}
+                aria-pressed={d === activeDay}
+                className={`rounded-lg border-2 border-black02 px-6 py-3.5 font-sans text-body-l font-bold transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 motion-reduce:transform-none ${
+                  d === activeDay
+                    ? "bg-yellow text-black02 shadow-[0_5px_0_0_var(--color-black02)]"
+                    : "bg-transparent text-black02/70 hover:bg-yellow-pastel"
+                }`}
+              >
+                {t("day", { day: d })}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span
+              id="schedule-view-label"
+              className="hidden font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50 sm:inline"
+            >
+              {t("viewLabel")}
+            </span>
+            <div
+              role="group"
+              aria-labelledby="schedule-view-label"
+              className="flex overflow-hidden rounded-pill border-2 border-black02"
+            >
+              {(
+                [
+                  ["structured", SquaresFour, t("viewStructured")],
+                  ["list", ListBullets, t("viewList")],
+                ] as const
+              ).map(([key, Icon, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setView(key)}
+                  aria-pressed={view === key}
+                  className={`flex items-center gap-2 px-4 py-2.5 font-mono text-mono-tag font-bold uppercase tracking-wide transition-colors duration-200 ${
+                    view === key
+                      ? "bg-black02 text-offwhite"
+                      : "bg-transparent text-black02 hover:bg-yellow-pastel"
+                  }`}
+                >
+                  <Icon size={16} weight="bold" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Reveal>
+
+      {showFilters && (
+        <Reveal index={1}>
+          <div className="mt-8 flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
+                {t("track")}
+              </span>
+              <button
+                type="button"
+                onClick={() => setTrack(null)}
+                aria-pressed={track === null}
+                className={chip(track === null)}
+              >
+                {t("allTracks")}
+              </button>
+              {tracks.map((tr) => (
+                <button
+                  key={tr}
+                  type="button"
+                  onClick={() => setTrack(tr)}
+                  aria-pressed={track === tr}
+                  className={chip(track === tr)}
+                >
+                  {tr}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
+                {t("room")}
+              </span>
+              <button
+                type="button"
+                onClick={() => setRoom(null)}
+                aria-pressed={room === null}
+                className={chip(room === null)}
+              >
+                {t("allRooms")}
+              </button>
+              {rooms.map((rm) => (
+                <button
+                  key={rm}
+                  type="button"
+                  onClick={() => setRoom(rm)}
+                  aria-pressed={room === rm}
+                  className={chip(room === rm)}
+                >
+                  {rm}
+                </button>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      )}
+
+      {/* key remounts on day/view/filter change so the stagger replays */}
+      <div
+        key={`${activeDay}-${view}-${track ?? ""}-${room ?? ""}`}
+        className="mt-12"
+      >
+        {visible.length === 0 ? (
+          <p className="rounded-lg border-2 border-dashed border-black02/30 px-7 py-12 text-center text-body-l text-black02/70">
+            {t("empty")}
+          </p>
+        ) : view === "structured" ? (
+          <ol className="relative flex flex-col gap-6 border-l-4 border-dashed border-black02/25 pl-6 sm:pl-10">
+            {visible.map((s, i) => (
+              <li
+                key={s.id}
+                className={`${sessionIn} relative`}
+                style={sessionStyle(i)}
+              >
+                <span className="absolute -left-6 top-6 -translate-x-1/2 rounded-pill border-2 border-black02 bg-yellow px-3 py-1 font-mono text-mono-tag font-bold text-black02 sm:-left-10">
+                  {s.time}
+                </span>
+                <div className="ml-6 sm:ml-8">
+                  <SessionCard
+                    session={s}
+                    open={openId === s.id}
+                    onToggle={() => setOpenId(openId === s.id ? null : s.id)}
+                    variant="timeline"
+                    tilt={CARD_TILT[i % CARD_TILT.length]}
+                  />
+                </div>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <ul className="flex flex-col divide-y-2 divide-black02/10 overflow-hidden rounded-lg border-2 border-black02">
+            {visible.map((s, i) => (
+              <li key={s.id} className={sessionIn} style={sessionStyle(i)}>
+                <div className="flex items-start gap-4 bg-yellow-pastel">
+                  <span className="shrink-0 py-5 pl-6 font-mono text-mono-tag font-bold text-black02 sm:pl-7">
+                    {s.time}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <SessionCard
+                      session={s}
+                      open={openId === s.id}
+                      onToggle={() => setOpenId(openId === s.id ? null : s.id)}
+                      variant="list"
+                    />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </>
+  );
+}

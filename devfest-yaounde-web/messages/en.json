@@ -87,7 +87,19 @@
       "track": "Track",
       "room": "Room",
       "tbaTime": "Time TBA",
-      "dayTag": "D{day}"
+      "dayTag": "D{day}",
+      "bring": "Bring",
+      "provided": "We provide",
+      "duration": "{min} min",
+      "expand": "Show details",
+      "collapse": "Hide details",
+      "speakers": "Speakers",
+      "kindTalk": "Talk",
+      "kindWorkshop": "Workshop",
+      "kindPanel": "Panel",
+      "kindBreak": "Break",
+      "allTracks": "All",
+      "allRooms": "All"
     },
     "quotes": {
       "title": "What people are saying"

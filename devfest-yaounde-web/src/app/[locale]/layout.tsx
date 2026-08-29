@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { FloatingScrollbar } from "@/components/global/FloatingScrollbar";
 import { Footer } from "@/components/global/Footer";
 import { GlobalChrome } from "@/components/global/GlobalChrome";
+import { SmoothScrollProvider } from "@/components/global/SmoothScrollProvider";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -69,6 +70,7 @@ export default async function LocaleLayout({
           >
             {t("skipToContent")}
           </a>
+          <SmoothScrollProvider />
           <GlobalChrome />
           <FloatingScrollbar />
           {/*

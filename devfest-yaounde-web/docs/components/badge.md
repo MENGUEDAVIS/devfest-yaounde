@@ -6,11 +6,12 @@ Pill-radius, pastel-background + core-color-text tag, in Mono type. `DESIGN.md` 
 
 ## Props
 
-| Prop        | Type                                     | Default  |
-| ----------- | ---------------------------------------- | -------- |
-| `tone`      | `"blue" \| "green" \| "yellow" \| "red"` | `"blue"` |
-| `children`  | `ReactNode`                              | required |
-| `className` | `string`                                 | —        |
+| Prop        | Type                                     | Default   |
+| ----------- | ---------------------------------------- | --------- |
+| `tone`      | `"blue" \| "green" \| "yellow" \| "red"` | `"blue"`  |
+| `variant`   | `"solid" \| "outline"`                   | `"solid"` |
+| `children`  | `ReactNode`                              | required  |
+| `className` | `string`                                 | —         |
 
 Yellow uses `black02` text even though other tones use their own color — `DESIGN.md` §2.6 flags yellow/pastel combos as needing dark text for contrast.
 
@@ -27,3 +28,14 @@ Per `DESIGN.md` §2.6, a color-coded status must always carry a text label too �
 ## Built on
 
 Tailwind utility classes only, no other component dependency.
+
+## Which variant to use
+
+`solid` is the pastel-filled default. **Use `outline` whenever the badge sits
+on a coloured or pastel surface** — an Off White fill with a Black02 border,
+visible on any brand surface.
+
+This matters more than it sounds: the base theme is yellow-dominant, so a
+`tone="yellow"` solid badge (`bg-yellow-pastel`) on a Pastel Yellow section
+renders as invisible text. That was a real bug in the schedule session cards.
+If the badge and its surface could share a colour, reach for `outline`.

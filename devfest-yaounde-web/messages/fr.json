@@ -87,7 +87,19 @@
       "track": "Piste",
       "room": "Salle",
       "tbaTime": "Heure à venir",
-      "dayTag": "J{day}"
+      "dayTag": "J{day}",
+      "bring": "À apporter",
+      "provided": "On fournit",
+      "duration": "{min} min",
+      "expand": "Voir les détails",
+      "collapse": "Masquer les détails",
+      "speakers": "Intervenants",
+      "kindTalk": "Conférence",
+      "kindWorkshop": "Atelier",
+      "kindPanel": "Table ronde",
+      "kindBreak": "Pause",
+      "allTracks": "Toutes",
+      "allRooms": "Toutes"
     },
     "quotes": {
       "title": "Ce qu'on en dit"

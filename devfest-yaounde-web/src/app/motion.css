@@ -484,9 +484,28 @@
 .mask-line {
   display: block;
   overflow: hidden;
-  /* Room for descenders — overflow clips at the padding box, so without
-     this a 'y'/'g' would be shaved off mid-animation and at rest. */
-  padding-bottom: 0.12em;
+
+  /*
+   * The clip box must be TALLER THAN THE LINE BOX, or it shaves the glyphs.
+   *
+   * Headlines here run at line-height 0.88, which makes the line box
+   * *shorter* than the font's own glyph box (measured: 101px line box vs
+   * 144px glyph box at 115px font-size). `overflow: hidden` then clipped
+   * 22px off the top — taking the é accent and the tops of capitals — and
+   * ~7px off the bottom.
+   *
+   * Padding pushes the clip edges away from the glyphs; the matching
+   * NEGATIVE MARGIN cancels that padding for layout, so line spacing and
+   * the surrounding composition are completely unchanged. The rise
+   * animation still reads as "from behind a mask" because its travel
+   * (115% of the line) dwarfs this padding.
+   *
+   * Bottom also has to clear the stamp block's 8px offset shadow.
+   */
+  padding-top: 0.3em;
+  margin-top: -0.3em;
+  padding-bottom: 0.25em;
+  margin-bottom: -0.25em;
 }
 
 .mask-line > * {
