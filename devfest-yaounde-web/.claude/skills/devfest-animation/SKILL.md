@@ -14,7 +14,8 @@ No animation library (Framer Motion, GSAP, etc.) is installed. Everything below 
 ## Where the code lives
 
 - `src/app/motion.css` — the actual `@keyframes` and utility classes, imported into `src/app/globals.css`.
-- `src/lib/motion.ts` — named JS exports (`bouncyPop`, `fadeInUp`, `heroRise`, `shapeDrift`, `marqueeLoop`, `marqueeTrack`, `confettiPiece`, `modalBackdropIn`, `modalPopIn`, `navSettle`, `revealOnScroll`, plus `staggerStyle` / `heroDelayStyle` / `confettiPieceStyle`) so components import symbols instead of hardcoding class-name strings.
+- `src/lib/scroll-source.ts` — the single seam for "what drives page scroll". The floating scrollbar reads position through it; if the momentum-scroll ADR (`docs/decisions/0007-smooth-scroll.md`) is approved, only this file changes.
+- `src/lib/motion.ts` — named JS exports (`bouncyPop`, `fadeInUp`, `heroRise`, `shapeDrift`, `marqueeLoop`, `marqueeTrack`, `confettiPiece`, `modalBackdropIn`, `modalPopIn`, `navSettle`, `revealOnScroll`, `maskLine`, `stampIn`, `sessionIn`, `heroBgDrift`, `tileIn`, `scrollCue`, plus `staggerStyle` / `heroDelayStyle` / `lineStyle` / `stampStyle` / `sessionStyle` / `tileStyle` / `confettiPieceStyle`) so components import symbols instead of hardcoding class-name strings.
 - `src/components/ui/Reveal.tsx` — the scroll-reveal wrapper (see `docs/components/reveal.md`). Use this for section entrances rather than hand-rolling an IntersectionObserver.
 - `src/components/ui/ScrollStage.tsx` — scroll-position-linked choreography with **enter AND exit** motion plus parallax (see `docs/components/scroll-stage.md`). Use when a one-shot reveal isn't enough.
 
@@ -23,7 +24,9 @@ Additional presets: `wordPop` + `wordStyle(i, baseMs)` for kinetic per-word head
 ### Two rules that keep biting
 
 1. **Never put two transform-setting classes on the same element.** Parallax + stage choreography, or Reveal + spotlight, must live on separate nested elements — otherwise one silently overwrites the other.
-2. **`overflow-x: auto` forces `overflow-y` to compute as `auto` too.** A horizontal scroller therefore clips vertical hover lifts. Give the scroller generous vertical padding (and a negative margin to claw the spacing back) rather than expecting `overflow-y: visible` to work.
+2. **`overflow-x: auto`/`hidden` forces `overflow-y` to compute as `auto` too.** A horizontal track therefore clips vertical hover lifts and scaled/rotated cards. Give the clipping element generous vertical padding rather than expecting `overflow-y: visible` to work — there is no combination that clips one axis and lets the other overflow.
+3. **`.anim-word-pop` sets `display: inline-block`**, which beats a Tailwind `block` utility on the same element. Put line breaks on an outer wrapper span, not on the animated one.
+4. **Don't hardcode rem-based carousel steps.** Card widths and gaps usually change at a breakpoint, so a fixed step desyncs from the padding. Measure `offsetLeft`/`offsetWidth` from the DOM and translate in px instead.
 
 ## The easing tokens (from DESIGN.md §6.1, defined in `globals.css`'s `@theme` block)
 
@@ -64,6 +67,7 @@ import {
   bouncyPop, fadeInUp, heroRise, heroDelayStyle,
   shapeDrift, marqueeLoop, marqueeTrack,
   modalBackdropIn, modalPopIn,
+  maskLine, lineStyle, stampIn, stampStyle, sessionIn, sessionStyle,
 } from "@/lib/motion";
 import { Reveal } from "@/components/ui/Reveal";
 
@@ -88,6 +92,15 @@ import { Reveal } from "@/components/ui/Reveal";
 
 // Ambient drift for a big decorative hero shape
 <div aria-hidden className={shapeDrift} />
+
+// Masked line reveal — the bold hero entrance. Outer span clips, inner animates.
+<span className={maskLine}><span style={lineStyle(0, 260)}>DevFest</span></span>
+
+// Rubber-stamp entrance for a headline highlight block
+<span className={stampIn} style={stampStyle(760, -1.5)}>Yaoundé 2026</span>
+
+// Staggered schedule session cards
+<li className={sessionIn} style={sessionStyle(i, -0.8)}>…</li>
 
 // Modal backdrop fade + panel scale-in (ease-out, meso tier)
 <div className={modalBackdropIn}>...</div>

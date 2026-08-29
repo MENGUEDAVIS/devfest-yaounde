@@ -3,6 +3,7 @@ import { Google_Sans, Google_Sans_Code } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { FloatingScrollbar } from "@/components/global/FloatingScrollbar";
 import { Footer } from "@/components/global/Footer";
 import { GlobalChrome } from "@/components/global/GlobalChrome";
 import { routing } from "@/i18n/routing";
@@ -69,6 +70,7 @@ export default async function LocaleLayout({
             {t("skipToContent")}
           </a>
           <GlobalChrome />
+          <FloatingScrollbar />
           {/*
             The chrome is fixed-position, so page content needs its own top
             offset. Hero sections apply their own generous top padding

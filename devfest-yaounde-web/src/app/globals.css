@@ -124,26 +124,48 @@ body {
   color: var(--color-black02);
 }
 
-/* Scrollbar — Firefox */
-html {
+/*
+ * Scrollbar — PHASE7 §1b replaces the earlier themed native scrollbar with a
+ * FLOATING OVERLAY one (src/components/global/FloatingScrollbar.tsx), so
+ * content scrolls *behind* it instead of the page being inset by a native
+ * gutter. The native bar is therefore hidden on the root scroller only.
+ *
+ * Deliberately scoped to `html` rather than `*`: any inner scrollable region
+ * (a future overflow panel, a code block) keeps its normal, discoverable
+ * scrollbar. Hiding every scrollbar site-wide would be an accessibility
+ * regression.
+ *
+ * The overlay bar is a real control — draggable, click-to-jump, and it stays
+ * put for reduced-motion users. If JS never runs, `scrollbar-width: auto`
+ * below is restored by the component's absence, so scrolling is never
+ * un-navigable.
+ */
+html.has-overlay-scrollbar {
+  scrollbar-width: none; /* Firefox */
+}
+html.has-overlay-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Native scrollbar theming — the fallback when the overlay isn't active */
+html:not(.has-overlay-scrollbar) {
   scrollbar-color: var(--color-yellow) var(--color-yellow-pastel);
   scrollbar-width: auto;
 }
-
-/* Scrollbar — WebKit/Blink */
-::-webkit-scrollbar {
+html:not(.has-overlay-scrollbar)::-webkit-scrollbar {
   width: 14px;
   height: 14px;
 }
-::-webkit-scrollbar-track {
+html:not(.has-overlay-scrollbar)::-webkit-scrollbar-track {
   background: var(--color-yellow-pastel);
 }
-::-webkit-scrollbar-thumb {
+html:not(.has-overlay-scrollbar)::-webkit-scrollbar-thumb {
   background: var(--color-yellow);
   border: 3px solid var(--color-yellow-pastel);
   border-radius: var(--radius-pill);
 }
-::-webkit-scrollbar-thumb:hover {
+html:not(.has-overlay-scrollbar)::-webkit-scrollbar-thumb:hover {
   background: var(--color-yellow-halftone);
 }
 

@@ -20,7 +20,7 @@
     "dismiss": "Dismiss announcement"
   },
   "footer": {
-    "rsvpCta": "Be part of the story — RSVP now",
+    "rsvpCta": "Come build with us",
     "event": {
       "title": "Event",
       "schedule": "Schedule",
@@ -32,8 +32,7 @@
       "title": "Get Involved",
       "shop": "Shop",
       "dpGenerator": "DP Generator",
-      "community": "Join the Community",
-      "rsvp": "RSVP"
+      "community": "Join the Community"
     },
     "legal": {
       "title": "Legal",
@@ -54,14 +53,15 @@
       "venue": "Yaoundé, Cameroon",
       "ctaPrimary": "Grab your ticket",
       "ctaSecondary": "Check the swag",
-      "ctaTertiary": "or just RSVP on Bevy",
       "sponsorsLabel": "Powered by good people",
       "headlineLead": "DevFest",
       "headlineCity": "Yaoundé",
       "tagline": "One day. The whole community. A room full of people building wild things — and you, hopefully, in it.",
       "logoHint": "psst — click the logo",
       "scrollCue": "Scroll",
-      "photoCredit": "Scenes from past editions"
+      "photoCredit": "Scenes from past editions",
+      "dateLabel": "When",
+      "venueLabel": "Where"
     },
     "about": {
       "title": "What is DevFest Yaoundé?",
@@ -69,13 +69,25 @@
     },
     "speakers": {
       "title": "Meet this year's speakers",
-      "cta": "See the full lineup"
+      "cta": "See the full lineup",
+      "prev": "Previous speaker",
+      "next": "Next speaker",
+      "openDetail": "See details",
+      "closeDetail": "Close details",
+      "hint": "Tap a card for the full story"
     },
     "schedule": {
       "title": "What's on",
       "empty": "Full schedule's still cooking — check back soon 👀",
       "cta": "See the full schedule",
-      "day": "Day {day}"
+      "day": "Day {day}",
+      "viewStructured": "Timeline",
+      "viewList": "List",
+      "viewLabel": "How do you want it?",
+      "track": "Track",
+      "room": "Room",
+      "tbaTime": "Time TBA",
+      "dayTag": "D{day}"
     },
     "quotes": {
       "title": "What people are saying"

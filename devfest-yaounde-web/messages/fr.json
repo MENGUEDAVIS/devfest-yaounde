@@ -20,7 +20,7 @@
     "dismiss": "Fermer l'annonce"
   },
   "footer": {
-    "rsvpCta": "Faites partie de l'histoire — RSVP maintenant",
+    "rsvpCta": "Viens construire avec nous",
     "event": {
       "title": "Événement",
       "schedule": "Programme",
@@ -32,8 +32,7 @@
       "title": "S'impliquer",
       "shop": "Boutique",
       "dpGenerator": "Générateur de DP",
-      "community": "Rejoindre la communauté",
-      "rsvp": "RSVP"
+      "community": "Rejoindre la communauté"
     },
     "legal": {
       "title": "Légal",
@@ -54,14 +53,15 @@
       "venue": "Yaoundé, Cameroun",
       "ctaPrimary": "Prends ta place",
       "ctaSecondary": "Voir le swag",
-      "ctaTertiary": "ou juste RSVP sur Bevy",
       "sponsorsLabel": "Portés par des gens biens",
       "headlineLead": "DevFest",
       "headlineCity": "Yaoundé",
       "tagline": "Une journée. Toute la communauté. Une salle pleine de gens qui construisent des trucs fous — et toi, on espère, au milieu.",
       "logoHint": "psst — clique sur le logo",
       "scrollCue": "Défiler",
-      "photoCredit": "Scènes des éditions précédentes"
+      "photoCredit": "Scènes des éditions précédentes",
+      "dateLabel": "Quand",
+      "venueLabel": "Où"
     },
     "about": {
       "title": "C'est quoi, DevFest Yaoundé ?",
@@ -69,13 +69,25 @@
     },
     "speakers": {
       "title": "Découvrez nos intervenants",
-      "cta": "Voir tous les intervenants"
+      "cta": "Voir tous les intervenants",
+      "prev": "Intervenant précédent",
+      "next": "Intervenant suivant",
+      "openDetail": "Voir les détails",
+      "closeDetail": "Fermer les détails",
+      "hint": "Touche une carte pour tout savoir"
     },
     "schedule": {
       "title": "Au programme",
       "empty": "Le programme complet mijote encore — revenez bientôt 👀",
       "cta": "Voir le programme complet",
-      "day": "Jour {day}"
+      "day": "Jour {day}",
+      "viewStructured": "Timeline",
+      "viewList": "Liste",
+      "viewLabel": "Tu le veux comment ?",
+      "track": "Piste",
+      "room": "Salle",
+      "tbaTime": "Heure à venir",
+      "dayTag": "J{day}"
     },
     "quotes": {
       "title": "Ce qu'on en dit"

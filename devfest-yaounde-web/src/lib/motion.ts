@@ -34,6 +34,12 @@ export const heroBgDrift = "anim-hero-bg";
 export const tileIn = "anim-tile-in";
 /** Bobbing scroll cue at the base of the full-page hero. */
 export const scrollCue = "anim-scroll-cue";
+/** Masked line reveal — wrap each line: <span class={maskLine}><span>…</span></span> */
+export const maskLine = "mask-line";
+/** Rubber-stamp entrance for a headline highlight block. */
+export const stampIn = "anim-stamp";
+/** Staggered schedule session card entrance. */
+export const sessionIn = "anim-session-in";
 
 /**
  * Offset a staggered child. Used by both `revealOnScroll` (110ms steps) and
@@ -64,6 +70,30 @@ export function stagePhotoStyle(
   return {
     "--stagger-index": index,
     "--stage-rot": `${rotateDeg}deg`,
+  } as CSSProperties;
+}
+
+/** Stagger a `maskLine` line; `baseMs` offsets the whole group. */
+export function lineStyle(index: number, baseMs = 0): CSSProperties {
+  return {
+    "--line-index": index,
+    "--line-base": `${baseMs}ms`,
+  } as CSSProperties;
+}
+
+/** Delay + resting tilt for a `stampIn` highlight block. */
+export function stampStyle(delayMs: number, restDeg: number): CSSProperties {
+  return {
+    "--stamp-delay": `${delayMs}ms`,
+    "--stamp-rest": `${restDeg}deg`,
+  } as CSSProperties;
+}
+
+/** Stagger + resting tilt for a `sessionIn` schedule card. */
+export function sessionStyle(index: number, tiltDeg = 0): CSSProperties {
+  return {
+    "--session-index": index,
+    "--session-tilt": `${tiltDeg}deg`,
   } as CSSProperties;
 }
 

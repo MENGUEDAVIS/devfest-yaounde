@@ -35,3 +35,34 @@ The DevFest "><" mark lives in `public/logo/` (SVG plus the two bracket-half PNG
 ## Component reference
 
 If you do need a developer to change how a section looks (not just its content), each shared building block is documented under `docs/components/` — see that folder for `Button`, `Badge`, `SectionContainer`, `MorphedImageFrame`, `IconWrapper`, `StatCounter`, and `Modal`.
+
+## Phase 7 changes worth knowing
+
+**The RSVP-on-Bevy option is gone.** Getting a ticket is now the only path
+into the event — see `docs/decisions/0008-retire-bevy-rsvp.md`. The separate
+**"Join the Community"** link (footer + the community section) still points at
+Bevy and is unaffected; that's community-joining, not event-RSVP.
+
+**Hero date and venue** now live in a single compact "ticket stub" strip
+rather than two stacked pills. Editing them is unchanged — they're still
+`home.hero.dates` and `home.hero.venue` in `messages/fr.json` /
+`messages/en.json`, and both still need filling in once confirmed.
+
+**The speakers slider auto-advances.** It focuses each speaker for ~3.8s then
+moves on, pausing whenever someone hovers, tabs into it, or opens a card's
+detail panel — and it doesn't auto-advance at all for visitors who've asked
+for reduced motion. Which speakers appear is still controlled by
+`featured: true` in `src/data/speakers.json`. Social links in the detail panel
+render only for the networks a speaker actually has filled in, so a speaker
+with no socials simply shows none — no empty icons.
+
+**The schedule's sessions are still hardcoded placeholders** inside
+`src/components/home/ScheduleOverviewPreview.tsx` (times, tracks, rooms and
+titles are all invented structure, not confirmed facts). They're now shaped
+like real session records so the eventual `/schedule` route can supply real
+data without the component being rebuilt — but until then, editing the
+schedule means editing that file, not a JSON file.
+
+**A floating scrollbar** now overlays the right edge of the page instead of
+the browser's native one. If JavaScript fails to load, the normal themed
+native scrollbar comes back automatically.

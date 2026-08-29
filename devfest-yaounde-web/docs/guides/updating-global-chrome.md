@@ -34,3 +34,19 @@ Adding or removing an actual link (not just relabeling) requires a code change i
 ## The logo easter egg
 
 Clicking the "DevFest Yaoundé" wordmark 6 times quickly (within about 1.5 seconds) triggers a confetti burst. This is documented in `/EASTER-EGGS.md` — check there before adding a new easter egg so it doesn't collide with this one.
+
+## Phase 7: the footer changed shape
+
+The footer is now a **full-page closing moment** (about one screen tall) with
+a mixed layout: an oversized DevFest wordmark on one side, the three link
+groups on the other, then an invitation band with a ticket button, then the
+social icons and copyright line.
+
+The big community-photo block with the RSVP button on it **has been removed**
+— both because the photo/CTA block wasn't wanted, and because the RSVP action
+itself was retired (`docs/decisions/0008-retire-bevy-rsvp.md`). The footer's
+main button now goes to `/tickets`.
+
+Editing footer links and labels is unchanged: labels live under `footer.*` in
+`messages/fr.json` / `messages/en.json`, and the actual URLs (socials, Bevy,
+Privacy, Code of Conduct) are still all in `src/lib/site-config.ts`.

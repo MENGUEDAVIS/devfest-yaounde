@@ -1,5 +1,9 @@
 /* eslint-disable @next/next/no-img-element -- hero/sponsor imagery are content-driven URLs from JSON; next/image isn't wired for these yet */
-import { CaretDown } from "@phosphor-icons/react/dist/ssr";
+import {
+  CaretDown,
+  MapPin,
+  CalendarBlank,
+} from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { Button } from "@/components/ui/Button";
@@ -9,13 +13,15 @@ import {
   heroBgDrift,
   heroDelayStyle,
   heroRise,
+  lineStyle,
   marqueeLoop,
   marqueeTrack,
+  maskLine,
   scrollCue,
+  stampIn,
+  stampStyle,
   tileIn,
   tileStyle,
-  wordPop,
-  wordStyle,
 } from "@/lib/motion";
 import type { PastEditionPhoto, Sponsor } from "@/data/types";
 
@@ -26,29 +32,29 @@ const sponsorList = sponsors as Sponsor[];
 const TILE_ROTATION = [-7, 4, -3, 6, -5, 3];
 
 /**
- * Full-page vertical hero (PHASE6 §1).
+ * Full-page vertical hero — PHASE6 §1 structure, PHASE7 §2 refinement.
  *
- * Structure, bottom-to-top in z-order:
- *   1. Photo layer   — community collage, slowly drifting (ambient life)
- *   2. Flat scrim    — a solid Black02 haze plus a solid Pastel Yellow wash.
- *                      FLAT fills only, never a gradient (DESIGN.md §2.6);
- *                      this is what guarantees text legibility over busy
- *                      real photos.
- *   3. Content       — logo, kinetic headline, tagline, CTAs, stacked
- *                      VERTICALLY as the primary axis. No side-by-side
- *                      text|image split.
- *   4. Sponsor strip — anchored to the bottom of the same block so it stays
- *                      inside the first viewport (Phase 5 §3 still holds).
+ * The background layers are unchanged (approved in Phase 6): drifting photo
+ * collage, then two FLAT scrims (Black02 haze + Pastel Yellow wash) that
+ * guarantee legibility over busy real photos. Never a gradient (§2.6).
  *
- * `min-h-svh` (small-viewport height) rather than `vh`, so mobile browser
- * chrome can't push the sponsor strip out of the first screen.
+ * What changed in PHASE7 §2:
+ *  - The overlaid text was "plain". It now carries the §7b boldness: the
+ *    headline is a two-line masked reveal where the second line sits inside
+ *    a solid Yellow 600 stamp block, giving dramatic weight/colour contrast
+ *    without adding a new hue or a gradient. Solid fills keep the measured
+ *    contrast headroom intact.
+ *  - Entrance is a staged, masked line-rise (lines climb out from behind a
+ *    clip), not a gentle fade.
+ *  - "Too long" fixed by LAYERING rather than stacking: the date/venue moved
+ *    into a compact inline ticket stub (§3), the eyebrow now sits beside the
+ *    logo instead of under it, the scroll cue is absolutely positioned so it
+ *    costs no vertical row, and the RSVP tertiary link is gone (§4).
  */
 export async function Hero() {
   const t = await getTranslations("home.hero");
   const year = new Date().getFullYear();
 
-  const words = [t("headlineLead"), `${t("headlineCity")} ${year}`];
-  // Repeat the placeholder set so the collage fills wide viewports
   const tiles = [...photos, ...photos, ...photos, ...photos, ...photos].slice(
     0,
     18,
@@ -75,67 +81,84 @@ export async function Hero() {
         </div>
       </div>
 
-      {/*
-        ---- Layer 2: flat legibility scrim ----
-        Two stacked FLAT fills (no gradient): a Black02 haze to knock back
-        photo contrast, then a Pastel Yellow wash to pull it back onto the
-        brand base. Verified against a deliberately busy photograph.
-      */}
+      {/* ---- Layer 2: flat legibility scrim (unchanged, verified 8.7:1) ---- */}
       <div aria-hidden className="absolute inset-0 z-10 bg-black02/30" />
       <div aria-hidden className="absolute inset-0 z-10 bg-yellow-pastel/80" />
 
-      {/* ---- Layer 3: vertical content stack ---- */}
-      <div className="relative z-20 flex flex-1 flex-col items-center justify-center px-5 pb-4 pt-36 text-center sm:px-8 sm:pt-32">
+      {/* ---- Layer 3: content ---- */}
+      <div className="relative z-20 flex flex-1 flex-col items-center justify-center px-5 pb-6 pt-32 text-center sm:px-8 sm:pt-28">
+        {/* Logo + eyebrow on ONE row — was two stacked rows */}
         <div
-          className={`${heroRise} flex flex-col items-center gap-3 sm:gap-4`}
+          className={`${heroRise} flex items-center gap-3 sm:gap-4`}
           style={heroDelayStyle(0)}
         >
           <DevFestLogo
             animateIn
             interactive
             title="DevFest"
-            className="h-11 w-auto cursor-pointer sm:h-16 lg:h-20"
+            className="h-9 w-auto cursor-pointer sm:h-11"
           />
-          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70">
+          <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70">
             {t("eyebrow")}
-          </p>
+          </span>
         </div>
 
-        <h1 className="mt-4 font-sans text-display-hero font-bold leading-[0.92] text-black02">
-          {words.map((word, i) => (
-            // Outer span owns the line break; inner span owns the animation
-            // (.anim-word-pop forces display:inline-block, which would
-            // otherwise override a `block` utility on the same element).
-            <span key={word} className="block">
-              <span className={wordPop} style={wordStyle(i, 300)}>
-                {word}
+        {/*
+          Headline — the §7b bold moment. Line 1 plain, line 2 stamped into a
+          solid yellow block for dramatic contrast. Both rise out of masks.
+        */}
+        <h1 className="mt-5 font-sans text-display-hero font-bold leading-[0.88] tracking-tight text-black02 sm:mt-6">
+          <span className={maskLine}>
+            <span style={lineStyle(0, 260)}>{t("headlineLead")}</span>
+          </span>
+          <span className={maskLine}>
+            <span style={lineStyle(1, 260)}>
+              <span
+                className={`${stampIn} mt-1 inline-block rounded-lg border-4 border-black02 bg-yellow px-4 pb-1 pt-0.5 shadow-[0_8px_0_0_var(--color-black02)] sm:mt-2 sm:px-6`}
+                style={stampStyle(760, -1.5)}
+              >
+                {t("headlineCity")} {year}
               </span>
             </span>
-          ))}
+          </span>
         </h1>
 
         <p
-          className={`${heroRise} mt-4 max-w-2xl text-body-l sm:mt-5 text-black02/85`}
-          style={heroDelayStyle(660)}
+          className={`${heroRise} mt-7 max-w-xl text-body-l text-black02/85 sm:mt-8`}
+          style={heroDelayStyle(1000)}
         >
           {t("tagline")}
         </p>
 
+        {/*
+          §3 — date/venue as a compact single "ticket stub" strip: one row,
+          mono type, a perforated divider between the two halves. Replaces
+          the two space-hungry stacked pills.
+        */}
         <div
-          className={`${heroRise} mt-4 flex flex-wrap items-center justify-center gap-2.5 sm:mt-5 sm:gap-3`}
-          style={heroDelayStyle(760)}
+          className={`${heroRise} mt-6 flex items-stretch overflow-hidden rounded-pill border-2 border-black02 bg-offwhite font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 shadow-[0_4px_0_0_var(--color-black02)]`}
+          style={heroDelayStyle(1080)}
         >
-          <span className="rounded-pill border-2 border-black02 bg-offwhite px-4 py-1.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02">
+          <span className="flex items-center gap-2 px-4 py-2.5 sm:px-5">
+            <CalendarBlank size={16} weight="bold" aria-hidden />
+            <span className="sr-only">{t("dateLabel")}: </span>
             {t("dates")}
           </span>
-          <span className="rounded-pill border-2 border-black02 bg-offwhite px-4 py-1.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02">
+          {/* Perforation — dashed rule, the stub's tear line */}
+          <span
+            aria-hidden
+            className="w-0 self-stretch border-l-2 border-dashed border-black02"
+          />
+          <span className="flex items-center gap-2 px-4 py-2.5 sm:px-5">
+            <MapPin size={16} weight="bold" aria-hidden />
+            <span className="sr-only">{t("venueLabel")}: </span>
             {t("venue")}
           </span>
         </div>
 
         <div
-          className={`${heroRise} mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-6 sm:gap-4`}
-          style={heroDelayStyle(860)}
+          className={`${heroRise} mt-7 flex flex-wrap items-center justify-center gap-3 sm:gap-4`}
+          style={heroDelayStyle(1160)}
         >
           <Button tone="yellow" href="/tickets" size="lg">
             {t("ctaPrimary")}
@@ -144,35 +167,28 @@ export async function Hero() {
             {t("ctaSecondary")}
           </Button>
         </div>
-
-        <a
-          href="#"
-          className={`${heroRise} mt-3 font-sans text-body-m font-bold text-black02 underline sm:mt-4 decoration-2 underline-offset-4 transition-colors duration-200 hover:text-black02/60`}
-          style={heroDelayStyle(920)}
-        >
-          {t("ctaTertiary")}
-        </a>
-
-        <div
-          className={`${heroRise} mt-4 text-black02/50 sm:mt-6`}
-          style={heroDelayStyle(1100)}
-        >
-          <span className="sr-only">{t("scrollCue")}</span>
-          <CaretDown size={24} weight="bold" className={scrollCue} />
-        </div>
       </div>
 
-      {/* ---- Layer 4: sponsor strip, inside the first viewport ---- */}
+      {/* Scroll cue — absolutely positioned so it costs no vertical row */}
       <div
-        className={`${heroRise} relative z-20 shrink-0 border-t-2 border-black02 bg-offwhite py-4`}
-        style={heroDelayStyle(1000)}
+        className={`${heroRise} pointer-events-none absolute bottom-28 left-1/2 z-20 -translate-x-1/2 text-black02/45 sm:bottom-32`}
+        style={heroDelayStyle(1500)}
+      >
+        <span className="sr-only">{t("scrollCue")}</span>
+        <CaretDown size={24} weight="bold" className={scrollCue} />
+      </div>
+
+      {/* ---- Layer 4: sponsor strip, anchored inside the first viewport ---- */}
+      <div
+        className={`${heroRise} relative z-20 shrink-0 border-t-2 border-black02 bg-offwhite py-3.5`}
+        style={heroDelayStyle(1300)}
       >
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
             {t("sponsorsLabel")}
           </p>
         </div>
-        <div className={`${marqueeTrack} mt-3 overflow-hidden`}>
+        <div className={`${marqueeTrack} mt-2.5 overflow-hidden`}>
           <div className={`${marqueeLoop} flex w-max items-center gap-12`}>
             {[...sponsorList, ...sponsorList].map((sponsor, i) => (
               <img
@@ -180,7 +196,7 @@ export async function Hero() {
                 src={sponsor.logoUrl}
                 alt={sponsor.name}
                 aria-hidden={i >= sponsorList.length}
-                className="h-10 w-auto shrink-0 sm:h-12"
+                className="h-9 w-auto shrink-0 sm:h-11"
               />
             ))}
           </div>

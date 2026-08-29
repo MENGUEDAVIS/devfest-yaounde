@@ -6,17 +6,17 @@
 
 ## 0. Sitemap
 
-| Route           | Page                  | Notes                                                              |
-| --------------- | --------------------- | ------------------------------------------------------------------ |
-| `/`             | Home                  | Main scrolling landing                                             |
-| `/schedule`     | Schedule              | Full agenda, all days                                              |
-| `/speakers`     | Speakers              | Full grid, all speakers                                            |
-| `/faqs`         | FAQs                  | Grouped, searchable                                                |
-| `/team`         | Team                  | Organizers                                                         |
-| `/tickets`      | Tickets               | Buy / manage tickets (auth required to track)                      |
-| `/shop`         | Shop                  | Merch store, live year-round                                       |
-| `/dp-generator` | DP Generator          | Standalone, no login, can even live on a subdomain like Lagos does |
-| _(external)_    | GDG Bevy chapter page | RSVP source of truth; linked from Home hero, nav, and footer       |
+| Route           | Page                  | Notes                                                                                                                                                                       |
+| --------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`             | Home                  | Main scrolling landing                                                                                                                                                      |
+| `/schedule`     | Schedule              | Full agenda, all days                                                                                                                                                       |
+| `/speakers`     | Speakers              | Full grid, all speakers                                                                                                                                                     |
+| `/faqs`         | FAQs                  | Grouped, searchable                                                                                                                                                         |
+| `/team`         | Team                  | Organizers                                                                                                                                                                  |
+| `/tickets`      | Tickets               | Buy / manage tickets (auth required to track)                                                                                                                               |
+| `/shop`         | Shop                  | Merch store, live year-round                                                                                                                                                |
+| `/dp-generator` | DP Generator          | Standalone, no login, can even live on a subdomain like Lagos does                                                                                                          |
+| _(external)_    | GDG Bevy chapter page | ~~RSVP source of truth~~ — **superseded, see `docs/decisions/0008-retire-bevy-rsvp.md`**. Bevy is the _community home_ only now; the way into the event is the ticket flow. |
 
 Every route above exists in **both languages** (see §9 Localization) — e.g. `/fr/` and `/en/` prefixes, with a persistent switcher.
 
@@ -41,10 +41,10 @@ Every route above exists in **both languages** (see §9 Localization) — e.g. `
 
 ### 1.3 Footer (full, DevFest-Lagos-style)
 
-- **Top:** a wide community photo strip (real photos, maybe in a horizontal scroll or collage of morphed frames) with an overlaid CTA: _"Be part of the story — RSVP now"_ — links to Bevy.
+- **Top:** ~~a wide community photo strip with an overlaid _"Be part of the story — RSVP now"_ CTA linking to Bevy.~~ **Superseded twice:** the photo+CTA block was dropped entirely (PHASE7 §7) for a mixed-layout full-page composition, and the RSVP framing was retired (`docs/decisions/0008-retire-bevy-rsvp.md`) for a ticket CTA.
 - **Link groups**, clearly separated:
   - **Event**: Schedule, Speakers, Team, FAQs
-  - **Get Involved**: Shop, DP Generator, Join the Community (Bevy), RSVP
+  - **Get Involved**: Shop, DP Generator, Join the Community (Bevy) — _the RSVP item was removed, see `docs/decisions/0008-retire-bevy-rsvp.md`_
   - **Legal**: Privacy Policy, Community Guidelines/Code of Conduct
 - **Follow us:** social icons (X, Instagram, LinkedIn, YouTube, Facebook — whichever are active), Phosphor icons at 24px.
 - **Bottom line:** © [year] DevFest Yaoundé · GDG Yaoundé — small, quiet, Mono type.
@@ -60,7 +60,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
    - Big bold headline: event name + year (`display-xl`), city.
    - Dates + venue, clearly stated.
    - Background/foreground: a collage or auto-playing carousel of **last edition's photos**, masked into the morphed-shape frames from DESIGN.md §4.2.
-   - Primary CTA: **Get Tickets** → `/tickets`. Secondary: **Shop** → `/shop`. Tertiary/quiet link: **RSVP on GDG Bevy** (for people who just want the free listing).
+   - Primary CTA: **Get Tickets** → `/tickets`. Secondary: **Shop** → `/shop`. ~~Tertiary: RSVP on GDG Bevy~~ — removed, see `docs/decisions/0008-retire-bevy-rsvp.md`.
    - Sponsor/partner logo marquee (linear-eased, continuous scroll, like Lagos's) directly under the hero — bold and boastful, sponsors deserve prime real estate.
 
 2. **What is DevFest Yaoundé** (community + this year's direction)
