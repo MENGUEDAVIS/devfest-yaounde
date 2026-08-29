@@ -1,0 +1,94 @@
+[
+  {
+    "id": "organizer-1",
+    "name": "Placeholder Organizer",
+    "role": { "fr": "Organisateur principal", "en": "Lead Organizer" },
+    "oneLiner": {
+      "fr": "Espace réservé — dit oui aux idées trop ambitieuses, puis trouve comment les réaliser.",
+      "en": "Placeholder — says yes to over-ambitious ideas, then works out how to pull them off."
+    },
+    "photoUrl": "/placeholders/speaker-1.svg",
+    "social": { "linkedin": "#", "x": "#" }
+  },
+  {
+    "id": "organizer-2",
+    "name": "Placeholder Organizer",
+    "role": { "fr": "Design", "en": "Design" },
+    "oneLiner": {
+      "fr": "Espace réservé — remarque le pixel décalé avant toi, à chaque fois.",
+      "en": "Placeholder — spots the misaligned pixel before you do, every single time."
+    },
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "social": { "website": "#" }
+  },
+  {
+    "id": "organizer-3",
+    "name": "Placeholder Organizer",
+    "role": { "fr": "Logistique", "en": "Logistics" },
+    "oneLiner": {
+      "fr": "Espace réservé — garde le Wi-Fi (et l'ambiance) en état de marche.",
+      "en": "Placeholder — keeps the Wi-Fi (and the vibes) running."
+    },
+    "photoUrl": "/placeholders/speaker-3.svg",
+    "social": { "linkedin": "#" }
+  },
+  {
+    "id": "organizer-4",
+    "name": "Placeholder Organizer",
+    "role": { "fr": "DevRel & partenariats", "en": "DevRel & Partnerships" },
+    "oneLiner": {
+      "fr": "Espace réservé — connaît quelqu'un qui connaît quelqu'un, systématiquement.",
+      "en": "Placeholder — knows someone who knows someone, reliably."
+    },
+    "photoUrl": "/placeholders/speaker-4.svg",
+    "social": { "x": "#", "linkedin": "#" }
+  },
+  {
+    "id": "organizer-5",
+    "name": "Placeholder Organizer",
+    "role": { "fr": "Communauté", "en": "Community" },
+    "oneLiner": {
+      "fr": "Espace réservé — se souvient du prénom de tout le monde, sincèrement.",
+      "en": "Placeholder — genuinely remembers everyone's name."
+    },
+    "photoUrl": "/placeholders/speaker-5.svg",
+    "social": { "linkedin": "#" }
+  },
+  {
+    "id": "organizer-6",
+    "name": "Placeholder Organizer",
+    "role": { "fr": "Contenu & programme", "en": "Content & Programme" },
+    "oneLiner": {
+      "fr": "Espace réservé — a lu chaque proposition deux fois avant de trancher.",
+      "en": "Placeholder — read every single submission twice before deciding."
+    },
+    "photoUrl": "/placeholders/speaker-6.svg",
+    "social": { "x": "#" }
+  },
+  {
+    "id": "alumni-1",
+    "name": "Placeholder Alumni",
+    "role": { "fr": "Organisatrice principale", "en": "Lead Organizer" },
+    "oneLiner": {
+      "fr": "Espace réservé — a lancé tout ça et nous a montré comment faire.",
+      "en": "Placeholder — started all of this and showed the rest of us how."
+    },
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "social": { "linkedin": "#" },
+    "alumni": true,
+    "years": "2023"
+  },
+  {
+    "id": "alumni-2",
+    "name": "Placeholder Alumni",
+    "role": { "fr": "Logistique", "en": "Logistics" },
+    "oneLiner": {
+      "fr": "Espace réservé — n'a jamais laissé une session commencer en retard.",
+      "en": "Placeholder — never once let a session start late."
+    },
+    "photoUrl": "/placeholders/speaker-4.svg",
+    "social": {},
+    "alumni": true,
+    "years": "2023 · 2024"
+  }
+]

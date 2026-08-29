@@ -12,9 +12,28 @@ export interface Speaker {
   company: string;
   photoUrl: string;
   bio: LocalizedString;
+  /** Primary track — drives the /speakers filter. */
+  track: LocalizedString;
+  /** Event day they appear on — drives the /speakers filter. */
+  day: number;
   sessionIds: string[];
   social?: { x?: string; linkedin?: string; website?: string };
+  /** true = shown in the Home preview slider. */
   featured?: boolean;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: LocalizedString;
+  /** Personality-forward one-liner, not a formal bio (PAGES.md §6). */
+  oneLiner: LocalizedString;
+  photoUrl: string;
+  social?: { x?: string; linkedin?: string; website?: string };
+  /** true = rendered in the Alumni / Past Organizers section. */
+  alumni?: boolean;
+  /** Year(s) they organised — alumni only. */
+  years?: string;
 }
 
 export interface Sponsor {

@@ -124,19 +124,52 @@
   "pages": {
     "schedule": {
       "title": "Schedule",
-      "placeholder": "Schedule's still cooking — check back soon 👀"
+      "placeholder": "Schedule's still cooking — check back soon 👀",
+      "lead": "Two days, one room full of people who'd rather be here than anywhere else.",
+      "metaDesc": "The full DevFest Yaoundé schedule — talks, workshops, panels and breaks across both days.",
+      "addToCalendar": "Add to calendar",
+      "google": "Google Calendar",
+      "ics": "Apple / Outlook (.ics)"
     },
     "speakers": {
       "title": "Speakers",
-      "placeholder": "The speaker lineup is coming soon."
+      "placeholder": "The speaker lineup is coming soon.",
+      "lead": "The people bringing the talks, the workshops and the strong opinions.",
+      "metaDesc": "Meet the speakers of DevFest Yaoundé — talks, workshops and panels from practitioners across the community.",
+      "search": "Search by name",
+      "searchLabel": "Search speakers",
+      "allTracks": "All tracks",
+      "allDays": "All days",
+      "day": "Day {day}",
+      "results": "{count} speakers",
+      "noResults": "Nobody matches that — try a different search.",
+      "clear": "Clear filters",
+      "hint": "Tap a card for the full story"
     },
     "faqs": {
       "title": "FAQs",
-      "placeholder": "Frequently asked questions are coming soon."
+      "placeholder": "Frequently asked questions are coming soon.",
+      "lead": "The questions people actually ask. If yours isn't here, come find us.",
+      "metaDesc": "Frequently asked questions about DevFest Yaoundé — tickets, venue, swag and the code of conduct.",
+      "search": "Search questions",
+      "searchLabel": "Search the FAQ",
+      "noResults": "No questions match that — try fewer words.",
+      "catGeneral": "General",
+      "catTickets": "Tickets & Pricing",
+      "catVenue": "Venue & Logistics",
+      "catShop": "Shop & Swag",
+      "catCodeOfConduct": "Code of Conduct",
+      "seeTickets": "See tickets",
+      "readConduct": "Read the code of conduct"
     },
     "team": {
       "title": "Team",
-      "placeholder": "The team page is coming soon."
+      "placeholder": "The team page is coming soon.",
+      "lead": "The people who make this happen, mostly in evenings and weekends.",
+      "metaDesc": "The GDG Yaoundé organisers behind DevFest Yaoundé, and the alumni who built it before us.",
+      "alumniTitle": "Past organizers",
+      "alumniLead": "The people who ran the editions before this one. This community has history.",
+      "structureNote": "Organizers are shown as one group — the sub-team structure hasn't been confirmed yet."
     },
     "tickets": {
       "title": "Tickets",

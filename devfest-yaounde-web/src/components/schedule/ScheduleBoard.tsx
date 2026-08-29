@@ -15,6 +15,8 @@ export interface ScheduleBoardProps {
   sessions: Session[];
   /** Full route shows track/room filters; the Home preview keeps it simple. */
   showFilters?: boolean;
+  /** Full route offers add-to-calendar per session. */
+  showCalendar?: boolean;
 }
 
 /**
@@ -31,6 +33,7 @@ export interface ScheduleBoardProps {
 export function ScheduleBoard({
   sessions,
   showFilters = false,
+  showCalendar = false,
 }: ScheduleBoardProps) {
   const t = useTranslations("home.schedule");
   const locale = useLocale() as "fr" | "en";
@@ -213,6 +216,7 @@ export function ScheduleBoard({
                     onToggle={() => setOpenId(openId === s.id ? null : s.id)}
                     variant="timeline"
                     tilt={CARD_TILT[i % CARD_TILT.length]}
+                    showCalendar={showCalendar}
                   />
                 </div>
               </li>
@@ -232,6 +236,7 @@ export function ScheduleBoard({
                       open={openId === s.id}
                       onToggle={() => setOpenId(openId === s.id ? null : s.id)}
                       variant="list"
+                      showCalendar={showCalendar}
                     />
                   </div>
                 </div>

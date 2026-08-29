@@ -1,17 +1,11 @@
 "use client";
 
-import {
-  CaretLeft,
-  CaretRight,
-  GlobeSimple,
-  LinkedinLogo,
-  XLogo,
-} from "@phosphor-icons/react";
-import { useLocale, useTranslations } from "next-intl";
+import { CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 import { Reveal } from "@/components/ui/Reveal";
+import { SpeakerCard } from "@/components/speakers/SpeakerCard";
 import speakers from "@/data/speakers.json";
 import type { Speaker } from "@/data/types";
 
@@ -47,7 +41,6 @@ const AUTO_ADVANCE_MS = 3800;
  */
 export function SpeakerShowcase() {
   const t = useTranslations("home.speakers");
-  const locale = useLocale() as "fr" | "en";
 
   const [focused, setFocused] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -99,32 +92,6 @@ export function SpeakerShowcase() {
     }, AUTO_ADVANCE_MS);
     return () => clearInterval(id);
   }, [reduceMotion, paused, openId]);
-
-  function socialsFor(s: Speaker) {
-    const out: {
-      key: string;
-      href: string;
-      Icon: typeof XLogo;
-      label: string;
-    }[] = [];
-    if (s.social?.x)
-      out.push({ key: "x", href: s.social.x, Icon: XLogo, label: "X" });
-    if (s.social?.linkedin)
-      out.push({
-        key: "in",
-        href: s.social.linkedin,
-        Icon: LinkedinLogo,
-        label: "LinkedIn",
-      });
-    if (s.social?.website)
-      out.push({
-        key: "web",
-        href: s.social.website,
-        Icon: GlobeSimple,
-        label: "Website",
-      });
-    return out;
-  }
 
   return (
     <section className="overflow-hidden bg-yellow-pastel py-24 sm:py-32 lg:py-40">
@@ -179,86 +146,20 @@ export function SpeakerShowcase() {
           className="speaker-track flex w-max items-center gap-8 transition-transform duration-700 ease-out-devfest motion-reduce:transition-none sm:gap-10"
           style={{ transform: `translateX(${offset}px)` }}
         >
-          {featured.map((s, i) => {
-            const isFocused = i === focused;
-            const isOpen = openId === s.id;
-            const socials = socialsFor(s);
-            return (
-              <article
-                key={s.id}
-                className={`speaker-card relative w-72 shrink-0 sm:w-88 ${isFocused ? "is-focused" : ""} ${isOpen ? "is-open" : ""}`}
-                style={{
-                  ["--card-tilt" as string]: `${CARD_TILT[i % CARD_TILT.length]}deg`,
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFocused(i);
-                    setOpenId(isOpen ? null : s.id);
-                  }}
-                  aria-expanded={isOpen}
-                  aria-controls={`speaker-detail-${s.id}`}
-                  className="block w-full text-left"
-                >
-                  {/* The card's own image — the detail panel slides over THIS */}
-                  <div className="relative overflow-hidden rounded-lg border-2 border-black02 shadow-[0_6px_0_0_var(--color-black02)]">
-                    <MorphedImageFrame
-                      src={s.photoUrl}
-                      alt={s.name}
-                      aspectRatio="4/5"
-                      className="rounded-none border-0"
-                    />
-
-                    {/* Resting caption, hidden once the detail is up */}
-                    <div
-                      className={`absolute inset-x-0 bottom-0 bg-offwhite px-5 py-4 transition-opacity duration-200 ${isOpen ? "opacity-0" : "opacity-100"}`}
-                    >
-                      <p className="font-sans text-heading-m font-bold leading-tight text-black02">
-                        {s.name}
-                      </p>
-                      <p className="mt-1 truncate text-body-m text-black02/70">
-                        {s.role[locale]}
-                      </p>
-                    </div>
-
-                    {/* Swipe-up detail panel — transform-driven, stays mounted */}
-                    <div
-                      id={`speaker-detail-${s.id}`}
-                      inert={!isOpen}
-                      className="speaker-detail absolute inset-0 flex flex-col justify-end bg-black02/92 px-6 py-6 text-left"
-                    >
-                      <p className="font-sans text-heading-l font-bold leading-tight text-offwhite">
-                        {s.name}
-                      </p>
-                      <p className="mt-1.5 font-mono text-caption text-yellow">
-                        {s.role[locale]} · {s.company}
-                      </p>
-                      <p className="mt-4 text-body-m leading-relaxed text-offwhite/85">
-                        {s.bio[locale]}
-                      </p>
-                      {socials.length > 0 && (
-                        <div className="mt-5 flex gap-2.5">
-                          {socials.map(({ key, href, Icon, label }) => (
-                            <a
-                              key={key}
-                              href={href}
-                              aria-label={`${s.name} — ${label}`}
-                              tabIndex={isOpen ? undefined : -1}
-                              onClick={(e) => e.stopPropagation()}
-                              className="flex h-10 w-10 items-center justify-center rounded-pill border-2 border-offwhite/30 text-offwhite transition-[background-color,color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow hover:text-black02"
-                            >
-                              <Icon size={20} />
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              </article>
-            );
-          })}
+          {featured.map((s, i) => (
+            <SpeakerCard
+              key={s.id}
+              speaker={s}
+              open={openId === s.id}
+              onToggle={() => {
+                setFocused(i);
+                setOpenId(openId === s.id ? null : s.id);
+              }}
+              focused={i === focused}
+              tilt={CARD_TILT[i % CARD_TILT.length]}
+              className="w-72 shrink-0 sm:w-88"
+            />
+          ))}
         </div>
       </div>
 

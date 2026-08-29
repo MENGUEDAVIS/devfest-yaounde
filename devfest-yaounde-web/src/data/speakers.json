@@ -2,30 +2,52 @@
   {
     "id": "jane-doe",
     "name": "Jane Doe",
-    "role": { "fr": "Ingénieure principale", "en": "Staff Engineer" },
+    "role": {
+      "fr": "Ingénieure principale",
+      "en": "Staff Engineer"
+    },
     "company": "Acme Cloud",
     "photoUrl": "/placeholders/speaker-1.svg",
     "bio": {
       "fr": "Espace réservé — Jane construit des systèmes distribués depuis dix ans et adore expliquer les choses compliquées simplement.",
       "en": "Placeholder bio — Jane has been building distributed systems for a decade and loves explaining complicated things simply."
     },
-    "sessionIds": [],
-    "social": { "x": "#", "linkedin": "#" },
-    "featured": true
+    "sessionIds": ["s1-keynote", "s1-panel"],
+    "social": {
+      "x": "#",
+      "linkedin": "#"
+    },
+    "featured": true,
+    "track": {
+      "fr": "Keynote",
+      "en": "Keynote"
+    },
+    "day": 1
   },
   {
     "id": "kwame-asante",
     "name": "Kwame Asante",
-    "role": { "fr": "Développeur avocat", "en": "Developer Advocate" },
+    "role": {
+      "fr": "Développeur avocat",
+      "en": "Developer Advocate"
+    },
     "company": "Globex Systems",
     "photoUrl": "/placeholders/speaker-2.svg",
     "bio": {
       "fr": "Espace réservé — Kwame aide les communautés de développeurs à travers l'Afrique de l'Ouest à adopter le cloud natif.",
       "en": "Placeholder bio — Kwame helps developer communities across West Africa adopt cloud-native tooling."
     },
-    "sessionIds": [],
-    "social": { "linkedin": "#", "website": "#" },
-    "featured": true
+    "sessionIds": ["s1-workshop"],
+    "social": {
+      "linkedin": "#",
+      "website": "#"
+    },
+    "featured": true,
+    "track": {
+      "fr": "Atelier",
+      "en": "Workshop"
+    },
+    "day": 1
   },
   {
     "id": "amara-nwosu",
@@ -40,50 +62,282 @@
       "fr": "Espace réservé — Amara construit des modèles qui doivent fonctionner dans le monde réel, pas seulement dans un notebook.",
       "en": "Placeholder bio — Amara builds models that need to work in the real world, not just in a notebook."
     },
-    "sessionIds": [],
-    "social": { "x": "#" },
-    "featured": true
+    "sessionIds": ["s1-ai"],
+    "social": {
+      "x": "#"
+    },
+    "featured": true,
+    "track": {
+      "fr": "IA",
+      "en": "AI"
+    },
+    "day": 1
   },
   {
     "id": "yusuf-mbarga",
     "name": "Yusuf Mbarga",
-    "role": { "fr": "Responsable Frontend", "en": "Frontend Lead" },
+    "role": {
+      "fr": "Responsable Frontend",
+      "en": "Frontend Lead"
+    },
     "company": "Umbrella Devs",
     "photoUrl": "/placeholders/speaker-4.svg",
     "bio": {
       "fr": "Espace réservé — Yusuf pense que les interfaces rapides et accessibles ne sont pas négociables.",
       "en": "Placeholder bio — Yusuf believes fast, accessible interfaces aren't optional extras."
     },
-    "sessionIds": [],
-    "social": { "linkedin": "#" },
-    "featured": true
+    "sessionIds": ["s2-web", "s1-panel"],
+    "social": {
+      "linkedin": "#"
+    },
+    "featured": true,
+    "track": {
+      "fr": "Web",
+      "en": "Web"
+    },
+    "day": 2
   },
   {
     "id": "fatima-njoya",
     "name": "Fatima Njoya",
-    "role": { "fr": "Architecte Cloud", "en": "Cloud Architect" },
+    "role": {
+      "fr": "Architecte Cloud",
+      "en": "Cloud Architect"
+    },
     "company": "Soylent Tech",
     "photoUrl": "/placeholders/speaker-5.svg",
     "bio": {
       "fr": "Espace réservé — Fatima conçoit des infrastructures qui survivent au succès du produit.",
       "en": "Placeholder bio — Fatima designs infrastructure that survives the product actually succeeding."
     },
-    "sessionIds": [],
+    "sessionIds": ["s2-cloud"],
     "social": {},
-    "featured": false
+    "featured": false,
+    "track": {
+      "fr": "Cloud",
+      "en": "Cloud"
+    },
+    "day": 2
   },
   {
     "id": "marcus-fotso",
     "name": "Marcus Fotso",
-    "role": { "fr": "Ingénieur sécurité", "en": "Security Engineer" },
+    "role": {
+      "fr": "Ingénieur sécurité",
+      "en": "Security Engineer"
+    },
     "company": "Acme Cloud",
     "photoUrl": "/placeholders/speaker-6.svg",
     "bio": {
       "fr": "Espace réservé — Marcus casse des choses pour vivre, dans le bon sens du terme.",
       "en": "Placeholder bio — Marcus breaks things for a living, in the good way."
     },
+    "sessionIds": ["s2-security"],
+    "social": {
+      "x": "#",
+      "website": "#"
+    },
+    "featured": false,
+    "track": {
+      "fr": "Sécurité",
+      "en": "Security"
+    },
+    "day": 2
+  },
+  {
+    "id": "nadia-eboa",
+    "name": "Nadia Eboa",
+    "role": {
+      "fr": "Ingénieure produit",
+      "en": "Product Engineer"
+    },
+    "company": "Globex Systems",
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "bio": {
+      "fr": "Espace réservé — Nadia transforme des idées à moitié formées en choses sur lesquelles on peut cliquer.",
+      "en": "Placeholder bio — Nadia turns half-formed ideas into things people can actually click."
+    },
+    "track": {
+      "fr": "Web",
+      "en": "Web"
+    },
+    "day": 1,
     "sessionIds": [],
-    "social": { "x": "#", "website": "#" },
+    "social": {
+      "linkedin": "#"
+    },
+    "featured": false
+  },
+  {
+    "id": "thierry-nkomo",
+    "name": "Thierry Nkomo",
+    "role": {
+      "fr": "Ingénieur data",
+      "en": "Data Engineer"
+    },
+    "company": "Initech Labs",
+    "photoUrl": "/placeholders/speaker-3.svg",
+    "bio": {
+      "fr": "Espace réservé — Thierry déplace de grandes quantités de données sans en perdre une seule.",
+      "en": "Placeholder bio — Thierry moves large amounts of data around without losing any of it."
+    },
+    "track": {
+      "fr": "IA",
+      "en": "AI"
+    },
+    "day": 1,
+    "sessionIds": [],
+    "social": {
+      "x": "#",
+      "linkedin": "#"
+    },
+    "featured": false
+  },
+  {
+    "id": "laure-mbappe",
+    "name": "Laure Mbappé",
+    "role": {
+      "fr": "Responsable design",
+      "en": "Design Lead"
+    },
+    "company": "Umbrella Devs",
+    "photoUrl": "/placeholders/speaker-4.svg",
+    "bio": {
+      "fr": "Espace réservé — Laure a des avis tranchés sur les espacements, et elle a souvent raison.",
+      "en": "Placeholder bio — Laure has strong opinions about spacing and she is usually right."
+    },
+    "track": {
+      "fr": "Design",
+      "en": "Design"
+    },
+    "day": 1,
+    "sessionIds": [],
+    "social": {
+      "website": "#"
+    },
+    "featured": false
+  },
+  {
+    "id": "samuel-owona",
+    "name": "Samuel Owona",
+    "role": {
+      "fr": "Ingénieur mobile",
+      "en": "Mobile Engineer"
+    },
+    "company": "Soylent Tech",
+    "photoUrl": "/placeholders/speaker-5.svg",
+    "bio": {
+      "fr": "Espace réservé — Samuel livre des apps Android qui marchent sur les téléphones que les gens ont vraiment.",
+      "en": "Placeholder bio — Samuel ships Android apps that work on the phones people actually own."
+    },
+    "track": {
+      "fr": "Mobile",
+      "en": "Mobile"
+    },
+    "day": 2,
+    "sessionIds": [],
+    "social": {
+      "x": "#"
+    },
+    "featured": false
+  },
+  {
+    "id": "aisha-bello",
+    "name": "Aisha Bello",
+    "role": {
+      "fr": "DevRel",
+      "en": "DevRel"
+    },
+    "company": "Acme Cloud",
+    "photoUrl": "/placeholders/speaker-6.svg",
+    "bio": {
+      "fr": "Espace réservé — Aisha a expliqué le même concept de quarante façons et trouvé celle qui marche.",
+      "en": "Placeholder bio — Aisha has explained the same concept forty different ways and found the one that lands."
+    },
+    "track": {
+      "fr": "Communauté",
+      "en": "Community"
+    },
+    "day": 2,
+    "sessionIds": [],
+    "social": {
+      "x": "#",
+      "linkedin": "#",
+      "website": "#"
+    },
+    "featured": false
+  },
+  {
+    "id": "eric-tchoua",
+    "name": "Eric Tchoua",
+    "role": {
+      "fr": "Ingénieur plateforme",
+      "en": "Platform Engineer"
+    },
+    "company": "Globex Systems",
+    "photoUrl": "/placeholders/speaker-1.svg",
+    "bio": {
+      "fr": "Espace réservé — Eric est la raison pour laquelle les déploiements sont ennuyeux, ce qui est le plus beau compliment.",
+      "en": "Placeholder bio — Eric is the reason the deploys are boring, which is the highest compliment."
+    },
+    "track": {
+      "fr": "Cloud",
+      "en": "Cloud"
+    },
+    "day": 2,
+    "sessionIds": [],
+    "social": {
+      "linkedin": "#"
+    },
+    "featured": false
+  },
+  {
+    "id": "grace-fon",
+    "name": "Grace Fon",
+    "role": {
+      "fr": "Ingénieure accessibilité",
+      "en": "Accessibility Engineer"
+    },
+    "company": "Initech Labs",
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "bio": {
+      "fr": "Espace réservé — Grace trouvera le piège au clavier dans ton interface en moins d'une minute.",
+      "en": "Placeholder bio — Grace will find the keyboard trap in your interface in under a minute."
+    },
+    "track": {
+      "fr": "Web",
+      "en": "Web"
+    },
+    "day": 1,
+    "sessionIds": [],
+    "social": {
+      "x": "#",
+      "website": "#"
+    },
+    "featured": false
+  },
+  {
+    "id": "olivier-manga",
+    "name": "Olivier Manga",
+    "role": {
+      "fr": "Responsable ingénierie",
+      "en": "Engineering Manager"
+    },
+    "company": "Acme Cloud",
+    "photoUrl": "/placeholders/speaker-3.svg",
+    "bio": {
+      "fr": "Espace réservé — Olivier parle plus d'équipes que d'outils, et ses équipes livrent.",
+      "en": "Placeholder bio — Olivier talks about teams more than tools, and the teams keep shipping."
+    },
+    "track": {
+      "fr": "Communauté",
+      "en": "Community"
+    },
+    "day": 2,
+    "sessionIds": [],
+    "social": {
+      "linkedin": "#"
+    },
     "featured": false
   }
 ]

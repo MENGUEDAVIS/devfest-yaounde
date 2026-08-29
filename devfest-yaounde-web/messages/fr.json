@@ -124,19 +124,52 @@
   "pages": {
     "schedule": {
       "title": "Programme",
-      "placeholder": "Le programme mijote encore — revenez bientôt 👀"
+      "placeholder": "Le programme mijote encore — revenez bientôt 👀",
+      "lead": "Deux jours, une salle pleine de gens qui n'auraient voulu être nulle part ailleurs.",
+      "metaDesc": "Le programme complet de DevFest Yaoundé — conférences, ateliers, tables rondes et pauses sur les deux jours.",
+      "addToCalendar": "Ajouter au calendrier",
+      "google": "Google Agenda",
+      "ics": "Apple / Outlook (.ics)"
     },
     "speakers": {
       "title": "Intervenants",
-      "placeholder": "La liste des intervenants arrive bientôt."
+      "placeholder": "La liste des intervenants arrive bientôt.",
+      "lead": "Celles et ceux qui apportent les conférences, les ateliers et les avis tranchés.",
+      "metaDesc": "Découvrez les intervenants de DevFest Yaoundé — conférences, ateliers et tables rondes de praticiens de la communauté.",
+      "search": "Rechercher par nom",
+      "searchLabel": "Rechercher un intervenant",
+      "allTracks": "Toutes les pistes",
+      "allDays": "Tous les jours",
+      "day": "Jour {day}",
+      "results": "{count} intervenants",
+      "noResults": "Personne ne correspond — essaie une autre recherche.",
+      "clear": "Réinitialiser",
+      "hint": "Touche une carte pour tout savoir"
     },
     "faqs": {
       "title": "FAQ",
-      "placeholder": "Les questions fréquentes arrivent bientôt."
+      "placeholder": "Les questions fréquentes arrivent bientôt.",
+      "lead": "Les questions qu'on nous pose vraiment. Si la tienne n'y est pas, viens nous voir.",
+      "metaDesc": "Questions fréquentes sur DevFest Yaoundé — billets, lieu, swag et code de conduite.",
+      "search": "Rechercher une question",
+      "searchLabel": "Rechercher dans la FAQ",
+      "noResults": "Aucune question ne correspond — essaie moins de mots.",
+      "catGeneral": "Général",
+      "catTickets": "Billets & tarifs",
+      "catVenue": "Lieu & logistique",
+      "catShop": "Boutique & swag",
+      "catCodeOfConduct": "Code de conduite",
+      "seeTickets": "Voir les billets",
+      "readConduct": "Lire le code de conduite"
     },
     "team": {
       "title": "Équipe",
-      "placeholder": "La page de l'équipe arrive bientôt."
+      "placeholder": "La page de l'équipe arrive bientôt.",
+      "lead": "Les gens qui rendent tout ça possible, surtout le soir et le week-end.",
+      "metaDesc": "Les organisateurs GDG Yaoundé derrière DevFest Yaoundé, et les alumni qui l'ont construit avant nous.",
+      "alumniTitle": "Anciens organisateurs",
+      "alumniLead": "Celles et ceux qui ont mené les éditions précédentes. Cette communauté a une histoire.",
+      "structureNote": "Les organisateurs sont présentés en un seul groupe — la structure par sous-équipes n'est pas encore confirmée."
     },
     "tickets": {
       "title": "Billets",
