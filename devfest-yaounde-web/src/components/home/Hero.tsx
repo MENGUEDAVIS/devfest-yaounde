@@ -136,7 +136,7 @@ export async function Hero() {
           <span className={maskLine}>
             <span style={lineStyle(1, 260)}>
               <span
-                className={`${stampIn} inline-block rounded-lg border-4 border-black02 bg-primary px-4 pb-1 pt-0.5 shadow-[0_8px_0_0_var(--color-black02)] sm:px-6`}
+                className={`${stampIn} inline-block rounded-lg border-4 border-black02 bg-primary -mt-6 px-10! p-8 shadow-[0_8px_0_0_var(--color-black02)] sm:px-6`}
                 style={stampStyle(760, -1.5)}
               >
                 {t("headlineCity")} {year}
