@@ -1,0 +1,250 @@
+[
+  {
+    "id": "organizer-1",
+    "name": "Placeholder Organizer",
+    "role": {
+      "fr": "Organisateur principal",
+      "en": "Lead Organizer"
+    },
+    "oneLiner": {
+      "fr": "Espace réservé — dit oui aux idées trop ambitieuses, puis trouve comment les réaliser.",
+      "en": "Placeholder — says yes to over-ambitious ideas, then works out how to pull them off."
+    },
+    "photoUrl": "/placeholders/speaker-1.svg",
+    "social": {
+      "linkedin": "#",
+      "x": "#"
+    },
+    "contribution": {
+      "fr": "Organisation",
+      "en": "Organising"
+    },
+    "icebreakerQuestion": {
+      "fr": "Qu'est-ce qui te fait revenir chaque année ?",
+      "en": "What brings you back every year?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Voir quelqu'un repartir avec une idée qu'il n'avait pas en arrivant.",
+      "en": "Watching someone leave with an idea they didn't walk in with."
+    },
+    "funnyMoment": {
+      "fr": "A commandé 200 badges avec le mauvais millésime. On les a gardés.",
+      "en": "Ordered 200 badges with the wrong year on them. We kept them."
+    }
+  },
+  {
+    "id": "organizer-2",
+    "name": "Placeholder Organizer",
+    "role": {
+      "fr": "Design",
+      "en": "Design"
+    },
+    "oneLiner": {
+      "fr": "Espace réservé — remarque le pixel décalé avant toi, à chaque fois.",
+      "en": "Placeholder — spots the misaligned pixel before you do, every single time."
+    },
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "social": {
+      "website": "#"
+    },
+    "contribution": {
+      "fr": "Design",
+      "en": "Design"
+    },
+    "icebreakerQuestion": {
+      "fr": "Ton outil préféré ?",
+      "en": "Your favourite tool?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Du papier. Toujours du papier avant l'écran.",
+      "en": "Paper. Always paper before pixels."
+    },
+    "funnyMoment": {
+      "fr": "A refait le logo à 3h du matin. Personne n'a vu la différence.",
+      "en": "Redid the logo at 3am. Nobody spotted the difference."
+    }
+  },
+  {
+    "id": "organizer-3",
+    "name": "Placeholder Organizer",
+    "role": {
+      "fr": "Logistique",
+      "en": "Logistics"
+    },
+    "oneLiner": {
+      "fr": "Espace réservé — garde le Wi-Fi (et l'ambiance) en état de marche.",
+      "en": "Placeholder — keeps the Wi-Fi (and the vibes) running."
+    },
+    "photoUrl": "/placeholders/speaker-3.svg",
+    "social": {
+      "linkedin": "#"
+    },
+    "contribution": {
+      "fr": "Logistique",
+      "en": "Logistics"
+    },
+    "icebreakerQuestion": {
+      "fr": "Le secret d'un événement qui roule ?",
+      "en": "Secret to an event that runs smoothly?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Prévoir deux fois plus de rallonges que nécessaire.",
+      "en": "Bring twice as many extension cords as you think you need."
+    },
+    "funnyMoment": {
+      "fr": "A transporté un vidéoprojecteur en moto sous la pluie.",
+      "en": "Carried a projector across town on a motorbike, in the rain."
+    }
+  },
+  {
+    "id": "organizer-4",
+    "name": "Placeholder Organizer",
+    "role": {
+      "fr": "DevRel & partenariats",
+      "en": "DevRel & Partnerships"
+    },
+    "oneLiner": {
+      "fr": "Espace réservé — connaît quelqu'un qui connaît quelqu'un, systématiquement.",
+      "en": "Placeholder — knows someone who knows someone, reliably."
+    },
+    "photoUrl": "/placeholders/speaker-4.svg",
+    "social": {
+      "x": "#",
+      "linkedin": "#"
+    },
+    "contribution": {
+      "fr": "Partenariats",
+      "en": "Sponsoring"
+    },
+    "icebreakerQuestion": {
+      "fr": "Comment on convainc un sponsor ?",
+      "en": "How do you win a sponsor over?"
+    },
+    "icebreakerAnswer": {
+      "fr": "On lui montre la communauté, pas le pitch deck.",
+      "en": "Show them the community, not the pitch deck."
+    }
+  },
+  {
+    "id": "organizer-5",
+    "name": "Placeholder Organizer",
+    "role": {
+      "fr": "Communauté",
+      "en": "Community"
+    },
+    "oneLiner": {
+      "fr": "Espace réservé — se souvient du prénom de tout le monde, sincèrement.",
+      "en": "Placeholder — genuinely remembers everyone's name."
+    },
+    "photoUrl": "/placeholders/speaker-5.svg",
+    "social": {
+      "linkedin": "#"
+    },
+    "contribution": {
+      "fr": "Accueil",
+      "en": "Ushering"
+    },
+    "icebreakerQuestion": {
+      "fr": "Ce que tu dis à quelqu'un qui arrive seul ?",
+      "en": "What do you say to someone arriving alone?"
+    },
+    "icebreakerAnswer": {
+      "fr": "« Viens, je te présente quelqu'un. » Ça suffit presque toujours.",
+      "en": "'Come on, let me introduce you to someone.' That's usually all it takes."
+    },
+    "funnyMoment": {
+      "fr": "A accueilli un intervenant en pensant que c'était un participant perdu.",
+      "en": "Welcomed a speaker thinking they were a lost attendee."
+    }
+  },
+  {
+    "id": "organizer-6",
+    "name": "Placeholder Organizer",
+    "role": {
+      "fr": "Contenu & programme",
+      "en": "Content & Programme"
+    },
+    "oneLiner": {
+      "fr": "Espace réservé — a lu chaque proposition deux fois avant de trancher.",
+      "en": "Placeholder — read every single submission twice before deciding."
+    },
+    "photoUrl": "/placeholders/speaker-6.svg",
+    "social": {
+      "x": "#"
+    },
+    "contribution": {
+      "fr": "Programme",
+      "en": "Programme"
+    },
+    "icebreakerQuestion": {
+      "fr": "Comment choisir entre deux bonnes propositions ?",
+      "en": "How do you choose between two good talks?"
+    },
+    "icebreakerAnswer": {
+      "fr": "On garde celle qu'on ne peut entendre nulle part ailleurs.",
+      "en": "Keep the one you couldn't hear anywhere else."
+    }
+  },
+  {
+    "id": "alumni-1",
+    "name": "Placeholder Alumni",
+    "role": {
+      "fr": "Organisatrice principale",
+      "en": "Lead Organizer"
+    },
+    "oneLiner": {
+      "fr": "Espace réservé — a lancé tout ça et nous a montré comment faire.",
+      "en": "Placeholder — started all of this and showed the rest of us how."
+    },
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "social": {
+      "linkedin": "#"
+    },
+    "alumni": true,
+    "years": "2023",
+    "contribution": {
+      "fr": "Organisation",
+      "en": "Organising"
+    },
+    "icebreakerQuestion": {
+      "fr": "Un conseil pour l'équipe actuelle ?",
+      "en": "Any advice for the current team?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Déléguez plus tôt que vous ne le pensez nécessaire.",
+      "en": "Delegate earlier than you think you need to."
+    }
+  },
+  {
+    "id": "alumni-2",
+    "name": "Placeholder Alumni",
+    "role": {
+      "fr": "Logistique",
+      "en": "Logistics"
+    },
+    "oneLiner": {
+      "fr": "Espace réservé — n'a jamais laissé une session commencer en retard.",
+      "en": "Placeholder — never once let a session start late."
+    },
+    "photoUrl": "/placeholders/speaker-4.svg",
+    "social": {},
+    "alumni": true,
+    "years": "2023 · 2024",
+    "contribution": {
+      "fr": "Logistique",
+      "en": "Logistics"
+    },
+    "icebreakerQuestion": {
+      "fr": "Ton meilleur souvenir ?",
+      "en": "Your best memory?"
+    },
+    "icebreakerAnswer": {
+      "fr": "La salle qui applaudit une démo qui avait planté.",
+      "en": "The room applauding a demo that had just crashed."
+    },
+    "funnyMoment": {
+      "fr": "A gardé les clés de la salle pendant trois semaines après l'événement.",
+      "en": "Kept the venue keys for three weeks after the event."
+    }
+  }
+]

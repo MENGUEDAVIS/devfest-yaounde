@@ -1,0 +1,38 @@
+[
+  {
+    "id": "quote-1",
+    "text": {
+      "fr": "Espace réservé — Le meilleur événement tech auquel j'ai assisté à Yaoundé, sans hésiter.",
+      "en": "Placeholder quote — Hands down the best tech event I've been to in Yaoundé."
+    },
+    "author": "A. Kamga",
+    "role": {
+      "fr": "Participante, édition précédente",
+      "en": "Attendee, past edition"
+    }
+  },
+  {
+    "id": "quote-2",
+    "text": {
+      "fr": "Espace réservé — J'ai trouvé mon co-fondateur dans la file d'attente du café. Vrai témoignage à venir.",
+      "en": "Placeholder quote — I found my co-founder in the coffee line. Real testimonial coming soon."
+    },
+    "author": "R. Talla",
+    "role": {
+      "fr": "Participant, édition précédente",
+      "en": "Attendee, past edition"
+    }
+  },
+  {
+    "id": "quote-3",
+    "text": {
+      "fr": "Espace réservé — Une communauté qui donne vraiment envie de revenir chaque année.",
+      "en": "Placeholder quote — A community that genuinely makes you want to come back every year."
+    },
+    "author": "S. Biya",
+    "role": {
+      "fr": "Intervenante, édition précédente",
+      "en": "Speaker, past edition"
+    }
+  }
+]

@@ -1,0 +1,1377 @@
+/*
+ * Motion primitives for DESIGN.md §6. See .claude/skills/devfest-animation/SKILL.md
+ * for how to use these, and src/lib/motion.ts for the named JS exports.
+ *
+ * Every animation utility here disables itself under prefers-reduced-motion
+ * by default — that handling is NOT opt-in per component. If you add a new
+ * utility to this file, add it to the reduced-motion block at the bottom too.
+ *
+ * PERCEPTIBILITY (DESIGN.md §7c): motion here is deliberately tuned to be
+ * FELT, not homeopathic. Travel distances are large (40-64px, not 12px) and
+ * durations sit at the top of their tier. If a reviewer scrolls and "feels
+ * like everything is normal," this layer has failed.
+ */
+
+@keyframes df-bouncy-pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes df-fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero load sequence — macro tier, the page's opening statement */
+@keyframes df-hero-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(64px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes df-shape-drift {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(0, -24px) rotate(6deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+@keyframes df-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes df-modal-backdrop {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes df-modal-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes df-confetti-piece {
+  0% {
+    transform: translate(0, 0) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--confetti-x, 0), var(--confetti-y, 0)) scale(0.6)
+      rotate(var(--confetti-r, 45deg));
+    opacity: 0;
+  }
+}
+
+/*
+ * DevFest logo brackets — the two halves of the "><" mark animate as
+ * separate pieces. Entrance lives on an OUTER <g>; hover/easter-egg
+ * transforms live on an INNER <g>, so a `both`-filled entrance animation
+ * never fights the hover transition for the same transform property.
+ */
+@keyframes df-bracket-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-70px) rotate(-35deg) scale(0.8);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(6px) rotate(4deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes df-bracket-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(70px) rotate(35deg) scale(0.8);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-6px) rotate(-4deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0) scale(1);
+  }
+}
+
+/* Easter egg: brackets fling apart, spin, and snap back together */
+@keyframes df-bracket-spin-left {
+  0% {
+    transform: translateX(0) rotate(0);
+  }
+  35% {
+    transform: translateX(-38px) rotate(-180deg);
+  }
+  70% {
+    transform: translateX(8px) rotate(-350deg);
+  }
+  100% {
+    transform: translateX(0) rotate(-360deg);
+  }
+}
+
+@keyframes df-bracket-spin-right {
+  0% {
+    transform: translateX(0) rotate(0);
+  }
+  35% {
+    transform: translateX(38px) rotate(180deg);
+  }
+  70% {
+    transform: translateX(-8px) rotate(350deg);
+  }
+  100% {
+    transform: translateX(0) rotate(360deg);
+  }
+}
+
+.logo-piece {
+  /* SVG needs fill-box or rotation pivots around the viewBox origin */
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.logo-bracket-in-left {
+  animation: df-bracket-in-left 900ms var(--ease-bouncy) both;
+}
+.logo-bracket-in-right {
+  animation: df-bracket-in-right 900ms var(--ease-bouncy) both;
+}
+
+/* Inner layer: hover parting + easter-egg spin */
+.logo-hover-left,
+.logo-hover-right {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 350ms var(--ease-bouncy);
+}
+.logo-interactive:hover .logo-hover-left {
+  transform: translateX(-7px) rotate(-6deg);
+}
+.logo-interactive:hover .logo-hover-right {
+  transform: translateX(7px) rotate(6deg);
+}
+
+.logo-spin-left {
+  animation: df-bracket-spin-left 1100ms var(--ease-bouncy) both;
+}
+.logo-spin-right {
+  animation: df-bracket-spin-right 1100ms var(--ease-bouncy) both;
+}
+
+/* Kinetic headline words — festival energy through type, not more color */
+@keyframes df-word-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(48px) rotate(-4deg) scale(0.9);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-6px) rotate(1deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+.anim-word-pop {
+  display: inline-block;
+  animation: df-word-pop 800ms var(--ease-bouncy) both;
+  animation-delay: calc(var(--word-index, 0) * 90ms + var(--word-base, 0ms));
+}
+
+/*
+ * Hero background layer — ambient life behind the scrim (PHASE6 §1.4).
+ * A very slow, very small Ken-Burns style drift on the photo layer: enough
+ * that the page feels alive on arrival, small enough that overlaid text
+ * never appears to swim. No gradients involved — this moves a flat image
+ * layer, the scrim above it stays put.
+ */
+@keyframes df-hero-bg-drift {
+  0% {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.14) translate3d(-1.2%, -1.6%, 0);
+  }
+  100% {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+}
+
+.anim-hero-bg {
+  animation: df-hero-bg-drift 28s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Hero photo tiles fanning into place behind the scrim */
+@keyframes df-tile-in {
+  0% {
+    opacity: 0;
+    transform: translateY(56px) rotate(var(--tile-rot, 0deg)) scale(0.86);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--tile-rot, 0deg)) scale(1);
+  }
+}
+
+.anim-tile-in {
+  animation: df-tile-in 900ms var(--ease-bouncy) both;
+  animation-delay: calc(var(--tile-index, 0) * 130ms + 500ms);
+}
+
+/* Scroll cue at the base of the full-page hero */
+@keyframes df-scroll-cue {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(9px);
+    opacity: 1;
+  }
+}
+
+.anim-scroll-cue {
+  animation: df-scroll-cue 2s ease-in-out infinite;
+}
+
+/* Nav settle-on-load — the bouncy arrival called for in DESIGN.md §7c */
+@keyframes df-nav-settle {
+  0% {
+    opacity: 0;
+    transform: translateY(-120%);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(6%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Micro/meso tier — button press, badge reveal, add-to-cart, easter eggs */
+.anim-bouncy-pop {
+  animation: df-bouncy-pop 450ms var(--ease-bouncy) both;
+}
+
+/* Meso tier — card entrance, modal open */
+.anim-fade-in-up {
+  animation: df-fade-in-up 650ms var(--ease-out-devfest) both;
+}
+
+/* Macro tier — hero load sequence. Set --hero-delay per element to stagger. */
+.anim-hero-rise {
+  animation: df-hero-rise 900ms var(--ease-out-devfest) both;
+  animation-delay: var(--hero-delay, 0ms);
+}
+
+/* Ambient — big decorative shapes breathing slowly behind hero content */
+.anim-shape-drift {
+  animation: df-shape-drift 14s ease-in-out infinite;
+}
+
+/*
+ * Continuous/linear — sponsor logo marquees, ticker text.
+ *
+ * SEAMLESS LOOP (PHASE12 §2). The content is duplicated once and the track
+ * animates translateX(0) -> translateX(-50%), so the second copy lands
+ * exactly where the first began.
+ *
+ * THE OFF-BY-HALF-A-GAP BUG this fixes: with `gap` between flex items, a
+ * track of 2n items has only 2n-1 gaps — there is no gap after the last
+ * item. Half the track width is therefore
+ *   itemsWidth + (n - 0.5) * gap
+ * while the second copy actually starts at
+ *   itemsWidth + n * gap
+ * so -50% landed HALF A GAP short of the loop point and the row visibly
+ * jumped on every cycle.
+ *
+ * The fix is to carry the spacing as a right MARGIN on every item instead of
+ * a flex gap. Then each copy is exactly n * (item + gap) wide including its
+ * trailing space, half the track is exactly one copy, and the wrap is
+ * invisible. Do not put `gap` back on a marquee track.
+ */
+.anim-marquee {
+  --marquee-gap: 3rem;
+  animation: df-marquee 32s linear infinite;
+}
+.anim-marquee > * {
+  margin-right: var(--marquee-gap);
+}
+
+.anim-marquee-track:hover .anim-marquee {
+  animation-play-state: paused;
+}
+
+/* Easter-egg confetti piece — set --confetti-x/-y/-r per piece */
+.anim-confetti-piece {
+  animation: df-confetti-piece 900ms var(--ease-bouncy) both;
+}
+
+/* Modal — DESIGN.md §6.1 maps "modal open" to ease-out, meso tier */
+.anim-modal-backdrop {
+  animation: df-modal-backdrop 200ms var(--ease-out-devfest) both;
+}
+.anim-modal-pop {
+  animation: df-modal-pop 350ms var(--ease-out-devfest) both;
+}
+
+.anim-nav-settle {
+  animation: df-nav-settle 800ms var(--ease-bouncy) both;
+}
+
+/*
+ * Scroll reveal — driven by the <Reveal> component (src/components/ui/Reveal.tsx),
+ * which sets `data-visible` via IntersectionObserver when the element enters
+ * the viewport. Children stagger via --stagger-index.
+ */
+.anim-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 700ms var(--ease-out-devfest),
+    transform 700ms var(--ease-out-devfest);
+  transition-delay: calc(var(--stagger-index, 0) * 110ms);
+  will-change: opacity, transform;
+}
+
+/*
+ * Driven by a data attribute, not a class — React owns `className` on these
+ * nodes and would wipe an imperatively-added class on any prop change.
+ * See the comment in Reveal.tsx (PHASE11 §8).
+ */
+.anim-reveal[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/*
+ * Spotlight group (speaker preview) — hovering one card lifts it forward
+ * while its siblings recede. Driven purely by CSS sibling selectors off the
+ * container's :hover, so there's no JS hover state and no re-render churn.
+ *
+ * NOTE: the container must NOT clip (no overflow-hidden on an ancestor of
+ * the lifted card) or the lift gets cropped — that was a real bug. The
+ * horizontal scroller uses padding + `overflow-x: auto` with visible
+ * vertical overflow via `overflow-y: visible` and generous padding instead.
+ */
+.spotlight-item {
+  transition:
+    transform 400ms var(--ease-out-devfest),
+    opacity 400ms var(--ease-out-devfest),
+    filter 400ms var(--ease-out-devfest);
+}
+
+.spotlight-group:hover .spotlight-item {
+  opacity: 0.45;
+  transform: scale(0.94);
+  filter: saturate(0.5);
+}
+
+.spotlight-group:hover .spotlight-item:hover,
+.spotlight-group:focus-within .spotlight-item:focus-visible {
+  opacity: 1;
+  transform: scale(1.06) translateY(-14px);
+  filter: saturate(1);
+  z-index: 10;
+}
+
+/*
+ * Footer link spotlight (PHASE5 §9) — hovering one link dims its siblings
+ * within the SAME group only. Scoping comes for free from putting
+ * `.link-group` on each individual column rather than the footer as a
+ * whole. Opacity only: links must not move, or the pointer would chase
+ * them.
+ */
+.link-item {
+  transition: opacity 250ms var(--ease-out-devfest);
+}
+
+.link-group:hover .link-item {
+  opacity: 0.4;
+}
+
+.link-group:hover .link-item:hover,
+.link-group:focus-within .link-item:focus-visible {
+  opacity: 1;
+}
+
+/*
+ * Memory Lane scroll choreography — enter AND exit. The <ScrollStage>
+ * component writes --stage-progress (0 -> 1 across the section's travel
+ * through the viewport) and toggles is-entering / is-leaving, so photos
+ * assemble on the way in and disperse on the way out rather than doing a
+ * one-time reveal.
+ */
+.stage-photo {
+  transition:
+    transform 700ms var(--ease-out-devfest),
+    opacity 700ms var(--ease-out-devfest);
+  /* Resting (pre-entry) state: dropped, tilted further, slightly small */
+  transform: translateY(70px) rotate(calc(var(--stage-rot, 0deg) * 2.2))
+    scale(0.9);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* is-entering / is-leaving are set on the <ScrollStage> container */
+.is-entering .stage-photo {
+  transform: translateY(0) rotate(var(--stage-rot, 0deg)) scale(1);
+  opacity: 1;
+  transition-delay: calc(var(--stagger-index, 0) * 120ms);
+}
+
+.is-leaving .stage-photo {
+  transform: translateY(-56px) rotate(calc(var(--stage-rot, 0deg) * -1.6))
+    scale(0.94);
+  opacity: 0.25;
+  transition-delay: calc(var(--stagger-index, 0) * 60ms);
+}
+
+/*
+ * Parallax drift tied to scroll position. --stage-progress runs 0..1; the
+ * -0.5 recentres it so elements drift through zero at mid-viewport.
+ */
+.stage-parallax {
+  transform: translateY(
+    calc((var(--stage-progress, 0.5) - 0.5) * var(--parallax-depth, 60px) * -2)
+  );
+  will-change: transform;
+}
+
+/*
+ * BOLD HERO TEXT ENTRANCE (PHASE7 §2.2) — the headline should *arrive*, not
+ * fade. Each line sits in an overflow-hidden mask and rises from behind it
+ * with a slight rotation, staggered line by line. This is the page's
+ * signature entrance moment.
+ */
+@keyframes df-line-rise {
+  0% {
+    transform: translateY(115%) rotate(5deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) rotate(0);
+    opacity: 1;
+  }
+}
+
+.mask-line {
+  display: block;
+  overflow: hidden;
+
+  /*
+   * The clip box must be TALLER THAN THE LINE BOX, or it shaves the glyphs.
+   *
+   * Headlines here run at line-height 0.88, which makes the line box
+   * *shorter* than the font's own glyph box (measured: 101px line box vs
+   * 144px glyph box at 115px font-size). `overflow: hidden` then clipped
+   * 22px off the top — taking the é accent and the tops of capitals — and
+   * ~7px off the bottom.
+   *
+   * Padding pushes the clip edges away from the glyphs; the matching
+   * NEGATIVE MARGIN cancels that padding for layout, so line spacing and
+   * the surrounding composition are completely unchanged. The rise
+   * animation still reads as "from behind a mask" because its travel
+   * (115% of the line) dwarfs this padding.
+   *
+   * Bottom also has to clear the stamp block's 8px offset shadow.
+   *
+   * PHASE13 §3 widened the top allowance. The hero's stamped city block sits
+   * on a negative top margin (deliberately tucked under the line above) AND
+   * is rotated, so its bounding box reaches higher than the line box by both
+   * the margin and the rotation's corner lift. 0.3em was not enough: the
+   * stamp's top was cut off by up to 15px on mobile.
+   *
+   * The allowance is `em + rem` on purpose. The em term scales with the
+   * fluid display size; the constant rem term covers what does NOT scale —
+   * the largest tightening margin (-1.25rem), the 4px border and the 8px
+   * drop shadow — which is why an em-only value still clipped by a few px at
+   * mid widths. Both halves are cancelled by matching negative margins, so
+   * this remains layout-neutral.
+   */
+  padding-top: calc(0.3em + 2.5rem);
+  margin-top: calc(-0.3em - 2.5rem);
+  padding-bottom: calc(0.25em + 1rem);
+  margin-bottom: calc(-0.25em - 1rem);
+}
+
+.mask-line > * {
+  display: block;
+  animation: df-line-rise 950ms var(--ease-bouncy) both;
+  animation-delay: calc(var(--line-index, 0) * 140ms + var(--line-base, 0ms));
+}
+
+/* Highlight block behind a headline word — lands like a rubber stamp */
+@keyframes df-stamp-in {
+  0% {
+    transform: scale(1.4) rotate(-7deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(0.97) rotate(1.5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(var(--stamp-rest, -1.5deg));
+    opacity: 1;
+  }
+}
+
+.anim-stamp {
+  animation: df-stamp-in 780ms var(--ease-bouncy) both;
+  animation-delay: var(--stamp-delay, 0ms);
+}
+
+/*
+ * SPEAKER SLIDER (PHASE7 §5) — detail panel swipes up over the card's own
+ * image. Transform-driven so it composites on the GPU; the panel stays
+ * mounted (translated out of view) so its content is available to the
+ * accessibility tree only when open, gated by `inert` in the component.
+ */
+/*
+ * SLIDER presentation — the detail swipes up over the card's own image.
+ * 101% (not 100%) hides the panel's own border seam on fractional layouts.
+ */
+.speaker-card:not(.is-popover) .speaker-detail {
+  transform: translateY(101%);
+  transition: transform 520ms var(--ease-bouncy);
+}
+.speaker-card:not(.is-popover).is-open .speaker-detail {
+  transform: translateY(0);
+}
+
+/*
+ * SPOTLIGHT DIM — PHASE12 §7. When one card's popover is open, its siblings
+ * recede so the focused one is clearly the subject.
+ *
+ * Driven by a `data-card-open` attribute on the grid container rather than by
+ * sibling selectors, because the open card is nested inside a Reveal wrapper
+ * and `:has()` on every card would re-evaluate on each mutation. One
+ * attribute on the parent is a single class change.
+ *
+ * This is opacity, not motion, so it still applies under reduced motion —
+ * the user asked for a dim, and a dim is information, not decoration. Only
+ * the easing is dropped there.
+ */
+[data-card-grid][data-card-open="true"] .speaker-card:not(.is-open) {
+  opacity: 0.32;
+}
+[data-card-grid] .speaker-card {
+  transition: opacity 320ms var(--ease-out-devfest);
+}
+/* The open card must not dim its own popover along with it. */
+[data-card-grid][data-card-open="true"] .speaker-card.is-open {
+  opacity: 1;
+}
+
+/*
+ * GRID presentation — PHASE11 §8. The detail is a POPOVER beside the card.
+ *
+ * The card itself never changes size, so the grid does not reflow when one
+ * opens: no siblings jump, no scroll position shifts under the pointer.
+ * (PHASE10 expanded the card into a two-column span, which moved every card
+ * after it on every click.)
+ *
+ * The panel is one card wide and opens one gap to the side — right by
+ * default, left for cards in the last column, chosen by measurement at click
+ * time (src/lib/popover-anchor.ts). It is top-aligned with its card and grows
+ * downward over the row below, which is what an overlay is for.
+ */
+.speaker-card.is-popover {
+  /* Above sibling cards; below the fixed chrome (z-50) and drawer (z-100). */
+  z-index: 1;
+}
+.speaker-card.is-popover.is-open {
+  z-index: 30;
+}
+.speaker-card.is-popover .person-pop {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  /* Never taller than the viewport minus the fixed chrome, so a long bio
+     can still be read without the panel running off both ends of the screen.
+     This is the ONLY place a scrollbar can appear on a card, and only for
+     genuinely long content. */
+  max-height: calc(100svh - var(--chrome-h));
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.94);
+  transform-origin: left top;
+  /*
+   * PHASE13 §4: the CLOSE is now as considered as the open.
+   *
+   * It used to snap: `visibility` flipped after a 380ms delay while opacity
+   * and transform had already finished, so the panel effectively vanished.
+   * The exit now runs a real fade+scale on the same easing family as the
+   * entrance, slightly quicker (240/300ms vs 260/380ms) because an exit that
+   * matches an entrance exactly reads as sluggish — you have already decided
+   * to leave.
+   *
+   * `visibility` is delayed by exactly the longest exit duration so the panel
+   * stays hittable and painted for the whole animation, then leaves the
+   * accessibility tree.
+   */
+  transition:
+    opacity 240ms var(--ease-in-out-devfest),
+    transform 300ms var(--ease-in-out-devfest),
+    visibility 0s linear 300ms;
+}
+/* Opens to the right of the card (default). */
+.speaker-card.is-popover.is-open-right .person-pop {
+  left: calc(100% + 2rem);
+  transform-origin: left top;
+}
+/* Last column: opens to the left instead. */
+.speaker-card.is-popover.is-open-left .person-pop {
+  right: calc(100% + 2rem);
+  transform-origin: right top;
+}
+.speaker-card.is-popover.is-open .person-pop {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+  transition:
+    opacity 260ms var(--ease-out-devfest),
+    transform 380ms var(--ease-bouncy),
+    visibility 0s;
+}
+/*
+ * Below `sm` there is only one grid column, so there is no "beside" — the
+ * panel drops under its card at full width instead of being pushed off the
+ * side of a phone screen.
+ */
+@media (max-width: 639px) {
+  .speaker-card.is-popover .person-pop {
+    position: relative;
+    left: auto !important;
+    right: auto !important;
+    top: auto;
+    margin-top: 1rem;
+    transform-origin: center top;
+    max-height: none;
+  }
+}
+
+/*
+ * Slider spotlight: the focused card comes forward and tilts, its siblings
+ * recede and dim. Driven by a data attribute rather than :hover alone so
+ * the same treatment serves hover, keyboard focus AND auto-advance.
+ */
+.speaker-card {
+  transition:
+    transform 520ms var(--ease-out-devfest),
+    opacity 420ms var(--ease-out-devfest);
+}
+.speaker-track[data-spotlight="on"] .speaker-card {
+  opacity: 0.45;
+  transform: scale(0.9);
+}
+.speaker-track[data-spotlight="on"] .speaker-card.is-focused {
+  opacity: 1;
+  transform: scale(1.05) rotate(var(--card-tilt, -2deg));
+  z-index: 2;
+}
+
+/*
+ * VERTICAL CINEMA STAGE — PHASE10 §7 (src/components/people/PersonSlider.tsx)
+ *
+ * Every position is derived in CSS from --slide-h and --slide-gap, so the
+ * centred slide lands on the same centre line at any viewport width with no
+ * JS measurement and nothing to recompute on resize. JS only supplies two
+ * numbers: --i (the active index) and --drag (live drag offset in px).
+ *
+ * The stage is 1.62x a slide, which leaves ~0.31 of a slide visible above and
+ * below — enough to foreshadow the neighbours without competing with the
+ * one in the spotlight.
+ */
+/*
+ * The stage lives inside a TRUE FULL-SCREEN lockup — it covers the navbar
+ * too, and there is no panel around it. So it gets essentially the whole
+ * viewport, and the slide can finally be generous without negotiating with a
+ * heading, a filter row, a footer or a card.
+ *
+ * `--stage-h` IS SPELLED OUT IN LENGTHS, not `100%`, on purpose. The track's
+ * offset is a `translateY(calc(...))`, and a percentage there resolves
+ * against the TRANSFORMED ELEMENT's own height — not against the stage, as
+ * the expression reads. With `100%` the reel positioned itself ~96px off and
+ * the peek bands collapsed to nothing. Lengths remove the ambiguity.
+ *
+ * The subtractions mirror the takeover's own box — keep them in step with
+ * `Modal`'s takeover variant:
+ *   100svh     – the viewport, all of it (no chrome offset any more)
+ *   - 3rem     – the overlay's own padding (sm:p-6, top + bottom)
+ *   - 5rem     – the controls row beneath the stage
+ */
+.cinema-stage {
+  --stage-h: calc(100svh - 3rem - 5rem);
+  --slide-h: calc(var(--stage-h) * 0.88);
+  --slide-gap: 0.5rem;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+/*
+ * `height: 100%` keeps the track's own box equal to the stage, so the slides
+ * (sized from --slide-h) lay out against a definite height rather than
+ * against the sum of all fourteen of them.
+ */
+.cinema-track {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: var(--slide-gap);
+  /*
+   * Centre slide --i, then add the live drag.
+   *
+   * The offset is literally (stage - slide) / 2. It used to be a hardcoded
+   * `--slide-h * 0.31`, derived back when the stage was exactly 1.62 slides
+   * tall — that constant then silently outlived the ratio it came from
+   * through two rewrites, leaving the reel ~96px low and squeezing the peek
+   * bands to nothing. Deriving it from the two variables means it stays
+   * correct whatever ratio they take.
+   */
+  transform: translateY(
+    calc(
+      (var(--stage-h) - var(--slide-h)) / 2 - var(--i, 0) *
+        (var(--slide-h) + var(--slide-gap)) + var(--drag, 0) * 1px
+    )
+  );
+  transition: transform 620ms var(--ease-bouncy);
+  will-change: transform;
+}
+/* While the pointer is down the reel tracks the hand 1:1 — no easing lag. */
+.cinema-track.is-dragging {
+  transition: none;
+}
+/*
+ * PHASE13 §2: the active slide is inset horizontally so the slides above and
+ * below peek out at BOTH edges as well — the "there's more" cue now reads on
+ * two axes instead of one. The inactive slides stay full width, so what
+ * peeks past the active card's edges is the neighbouring card itself.
+ */
+.cinema-slide {
+  height: var(--slide-h);
+  flex: 0 0 auto;
+  opacity: 0.28;
+  transform: scale(0.86);
+  transform-origin: center;
+  transition:
+    opacity 520ms var(--ease-out-devfest),
+    transform 620ms var(--ease-bouncy);
+}
+/*
+ * The neighbours are readable-but-receding. Their scale is only slightly
+ * under 1 — and slightly ABOVE the active slide's 0.94 — which is what makes
+ * them peek past its left and right edges as well as above and below. A
+ * deeper scale-down pulled their top edge below the stage and the vertical
+ * peek disappeared entirely.
+ */
+.cinema-slide.is-adjacent {
+  opacity: 0.42;
+  transform: scale(0.97);
+}
+.cinema-slide.is-active {
+  opacity: 1;
+  /*
+   * Slightly inset so the neighbours show at the left/right edges too, plus
+   * a small alternating tilt (--slide-tilt, set per slide by the component)
+   * so consecutive slides don't land in exactly the same place. It is a
+   * third of the polaroid's tilt and in the OPPOSITE direction, so the card
+   * and the print inside it lean against each other rather than compounding
+   * into one exaggerated slant.
+   */
+  transform: scale(0.94) rotate(var(--slide-tilt, 0deg));
+}
+
+/*
+ * /faqs SCROLLSPY (PHASE10 §8). `data-active` is written directly by the
+ * IntersectionObserver, so the highlight never round-trips through React.
+ * The colour transition is what makes the handover between two groups read
+ * as a move rather than a blink.
+ */
+.faq-spy {
+  transition:
+    background-color 260ms var(--ease-out-devfest),
+    color 260ms var(--ease-out-devfest);
+}
+.faq-spy:hover {
+  background-color: var(--color-pastel);
+  color: var(--color-black02);
+}
+.faq-spy[data-active="true"] {
+  background-color: var(--color-primary);
+  color: var(--color-black02);
+}
+
+/*
+ * TEXT SCRAMBLE easter egg — PHASE11 §1, stripped bare in PHASE12 §4.
+ *
+ * NO AFFORDANCE, deliberately. The earlier version had a dotted underline
+ * that appeared on hover and a pointer cursor — which advertised the egg and
+ * made it a feature rather than a secret. It is meant to be found.
+ *
+ * So: no decoration, no colour change, no cursor change. The ONLY properties
+ * here are the ones that keep the headline's box from jittering while glyphs
+ * swap underneath it — proportional glyph widths would make the whole line
+ * shuffle left and right through the churn.
+ */
+.scramble {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  font-kerning: none;
+}
+/*
+ * The screen-reader copy must not join the visible text on copy/paste —
+ * without this, selecting the H1 yields the title twice ("DevFest DevFest
+ * Yaoundé 2026"). It stays in the a11y tree; it just stops being selectable.
+ */
+.scramble > .sr-only {
+  user-select: none;
+}
+
+/*
+ * Short viewports: the roomy detail is a fixed block of content while the
+ * stage scales with the screen, so on a 720-900px laptop it does not fit and
+ * would be CLIPPED by the slide (worse than the scrollbar it replaced).
+ * Tightening type and rhythm here closes the gap without shrinking the
+ * slider everywhere.
+ *
+ * (These tiers were accidentally deleted while reworking the scramble CSS in
+ * PHASE12 and restored after the slide overflow reappeared in testing — they
+ * are load-bearing, not cosmetic.)
+ */
+@media (max-height: 950px) {
+  /* Shorter screens hand more of the stage to the slide — the peek band is
+     a nicety, the content fitting is not. */
+  .cinema-stage {
+    --slide-h: calc(var(--stage-h) * 0.9);
+  }
+  .cinema-slide > div {
+    padding: 1.25rem;
+  }
+  .cinema-slide .polaroid {
+    height: 66%;
+  }
+  .cinema-slide .person-detail-roomy {
+    gap: 0.75rem;
+  }
+  .cinema-slide .person-detail-roomy .person-name {
+    font-size: var(--text-heading-l);
+  }
+  .cinema-slide .person-detail-roomy .person-bio {
+    font-size: var(--text-body-m);
+  }
+  .cinema-slide .person-detail-roomy .person-icebreaker {
+    padding-top: 0.75rem;
+  }
+}
+
+/*
+ * Very short viewports (720p laptops). Foreshadowing shrinks to a sliver so
+ * the slide can claim nearly the whole stage — losing a little depth cue is
+ * a far better trade than losing words off the bottom of the card.
+ */
+
+@media (max-height: 840px) {
+  /*
+   * On a short screen the vertical peek is given up entirely (slide = the
+   * whole stage) — a depth cue is worth less than the words fitting.
+   */
+  .cinema-stage {
+    --stage-h: calc(100svh - 2rem - 4.25rem);
+    --slide-h: var(--stage-h);
+  }
+  .cinema-slide > div {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+  .cinema-slide .person-detail-roomy {
+    gap: 0.4rem;
+  }
+  /* Slide padding tightens too — 32px a side is a lot of the 720p budget. */
+  .cinema-slide > div {
+    padding: 1.25rem;
+  }
+  .cinema-slide .person-detail-roomy .person-bio {
+    font-size: var(--text-caption);
+    line-height: 1.5;
+  }
+  .cinema-slide .person-detail-roomy .person-name {
+    font-size: var(--text-heading-m);
+  }
+  .cinema-slide .person-detail-roomy .person-icebreaker {
+    padding-top: 0.5rem;
+  }
+  /* The print steps back, giving the words the room on short screens. */
+  .cinema-slide .polaroid {
+    height: 60%;
+  }
+  /*
+   * Relaxed once the lockup went TRUE full screen: the stage grew from ~530
+   * to ~790px at 1080p, so the bio no longer has to drop to caption size to
+   * fit. Re-measured at every size before loosening — see the fit table in
+   * the phase notes.
+   */
+  .cinema-slide .person-detail-roomy .person-bio {
+    font-size: var(--text-body-m);
+    line-height: 1.5;
+  }
+}
+
+/*
+ * PHONE RULES COME LAST ON PURPOSE.
+ *
+ * A 640px-tall phone matches the height tiers above as well as these,
+ * and CSS resolves that tie by source order. The phone layout is a
+ * different composition entirely — vertical, avatar instead of a
+ * polaroid, controls overlaid — so it has to win. Ordered here rather
+ * than fought with specificity, which would have been invisible.
+ */
+
+/*
+ * Phones: the slide takes the whole stage (the controls are overlaid on it,
+ * not stacked under it) and the vertical layout means there is no polaroid
+ * to size. Width-based, not height-based, because a tall phone still needs
+ * this and a short laptop does not.
+ */
+@media (max-width: 767px) {
+  /*
+   * The polaroid is hidden here in CSS, not with a `hidden` utility on the
+   * element: `.polaroid` sets `display: flex`, which has the same specificity
+   * as Tailwind's `.hidden` and wins on source order — so the utility had no
+   * effect and the print rendered on top of the avatar, overflowing the
+   * slide. Hiding it from the same rule that shows it removes the conflict.
+   */
+  .cinema-slide .polaroid {
+    display: none;
+  }
+  .cinema-stage {
+    --stage-h: calc(100svh - 2rem);
+    --slide-h: calc(var(--stage-h) * 0.94);
+  }
+  .cinema-slide .person-detail-roomy {
+    gap: 0.75rem;
+  }
+  .cinema-slide .person-detail-roomy .person-name {
+    font-size: var(--text-heading-l);
+  }
+}
+
+/*
+ * Small phones (a 640px-tall screen is still common). The avatar shrinks and
+ * the rhythm tightens so the whole detail still fits without a scrollbar —
+ * the avatar exists to buy that room, so it is the first thing to give it
+ * back.
+ */
+@media (max-width: 767px) and (max-height: 720px) {
+  /* The slide claims the whole stage here — the controls float over it. */
+  .cinema-stage {
+    --slide-h: var(--stage-h);
+  }
+  .cinema-slide .slide-avatar {
+    height: 3.5rem;
+    width: 3.5rem;
+  }
+  .cinema-slide .person-detail-roomy {
+    gap: 0.5rem;
+  }
+  .cinema-slide .person-detail-roomy .person-name {
+    font-size: var(--text-heading-m);
+  }
+  .cinema-slide .person-detail-roomy .person-bio {
+    font-size: var(--text-body-m);
+  }
+  .cinema-slide .person-detail-roomy .person-icebreaker {
+    padding-top: 0.5rem;
+  }
+  .cinema-slide > div {
+    padding: 0.875rem;
+    gap: 0.625rem;
+  }
+}
+
+/*
+ * POLAROID photo frame — PHASE11 §5.1.
+ *
+ * Classic proportions: an even white border on three sides and a much
+ * thicker one below, where a real polaroid leaves room to write. The tilt
+ * alternates per slide (--polaroid-tilt, set by the component) so the reel
+ * reads as a stack of physical prints rather than a column of identical
+ * rectangles.
+ *
+ * The frame is detached from the slide's edges by the slide's own padding —
+ * a polaroid flush to a border stops reading as an object sitting on
+ * something and starts reading as a cropped image.
+ */
+.polaroid {
+  background: var(--color-offwhite);
+  /*
+   * Real polaroid proportions: an even border on three sides and a much
+   * deeper one below, where you'd write on the print. The earlier values
+   * were too tight to read as a polaroid at all — this is the whole reason
+   * the frame exists.
+   */
+  padding: 0.9rem 0.9rem 3.25rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 0 0 var(--color-black02);
+  transform: rotate(var(--polaroid-tilt, 2deg));
+  transition: transform 520ms var(--ease-bouncy);
+  /*
+   * HEIGHT-DRIVEN, not width-driven. The frame carries an inline
+   * aspect-ratio, so giving the print a definite height lets its width
+   * follow — which is what stops a wide column from forcing a tall photo
+   * that overflows the slide (measured at 665px inside a 487px slide before
+   * this). `fit-content` then shrinks the white border to the photo.
+   */
+  box-sizing: border-box;
+  /*
+   * Sizing history worth keeping: this filled the slide (PHASE11), was cut
+   * to 50% of the row height (PHASE12 §6), and now sits at 78% — generous
+   * inside the lockup's extra room, but deliberately NOT filling its column,
+   * so it still reads as a print placed on the slide rather than as the
+   * slide's background. This is the dial to turn if it wants to be bigger
+   * or smaller.
+   */
+  height: 72%;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  display: flex;
+  align-self: center;
+}
+.polaroid > * {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+}
+/* The focused print straightens slightly — a small "picked up" beat. */
+.cinema-slide.is-active .polaroid {
+  transform: rotate(calc(var(--polaroid-tilt, 2deg) * 0.45));
+}
+
+/* SCHEDULE (PHASE7 §6) — session cards fanning in on view change */
+@keyframes df-session-in {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) rotate(var(--session-tilt, 0deg)) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--session-tilt, 0deg)) scale(1);
+  }
+}
+
+.anim-session-in {
+  animation: df-session-in 560ms var(--ease-bouncy) both;
+  animation-delay: calc(var(--session-index, 0) * 90ms);
+}
+
+/* Mobile filter drawer rising from the bottom edge (PHASE9 §2.3) */
+@keyframes df-drawer-up {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.anim-drawer-up {
+  animation: df-drawer-up 380ms var(--ease-out-devfest) both;
+}
+
+/*
+ * ============================================================
+ * SIGNATURE MOMENTS — one per content page (PHASE9 §5).
+ * Each is small, on-brand, flat, and must not affect usability:
+ * they are all decoration layered on top of already-working UI.
+ * ============================================================
+ */
+
+/* /speakers — a marker stroke wipes in under the name on hover/focus, as if
+   someone is highlighting who to go see. A pseudo-element bar, NOT a
+   gradient of any kind (DESIGN.md §2.6) and no z-index games: it sits just
+   below the baseline rather than behind the glyphs. */
+.name-marker {
+  position: relative;
+  display: inline-block;
+}
+.name-marker::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.1em;
+  height: 0.26em;
+  border-radius: var(--radius-pill);
+  background: var(--color-halftone);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 420ms var(--ease-out-devfest);
+}
+/*
+ * PHASE10 §5: the marker no longer fires on speaker CARDS. With the card now
+ * expanding on click, a second hover animation on the name read as a link
+ * affordance the name doesn't have. `.name-marker` itself stays for prose
+ * emphasis; only the card-hover trigger is gone.
+ */
+
+/* /schedule — day buttons read as real folder tabs: the active one loses its
+   bottom edge and sits flush against the board below it. */
+.day-tab {
+  position: relative;
+  transition:
+    transform 220ms var(--ease-bouncy),
+    background-color 220ms var(--ease-out-devfest);
+}
+/*
+ * PHASE10 §3: fully rounded in EVERY state, including active. DESIGN.md §5.2
+ * forbids sharp corners anywhere, and the previous folder-tab treatment
+ * squared off the active tab's bottom corners to join it to the board.
+ * Active state is now carried by fill + a small lift, never by radius.
+ */
+.day-tab[aria-pressed="true"] {
+  transform: translateY(-1px);
+}
+
+/* /faqs — the toggle glyph flips from "?" to "!" when an answer opens */
+.faq-glyph {
+  display: grid;
+  place-items: center;
+  transition: transform 380ms var(--ease-bouncy);
+  transform-style: preserve-3d;
+}
+.faq-glyph > span {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  transition: opacity 200ms linear;
+}
+.faq-glyph > .faq-glyph-a {
+  opacity: 1;
+}
+.faq-glyph > .faq-glyph-b {
+  opacity: 0;
+  transform: rotateY(180deg);
+}
+.faq-open .faq-glyph {
+  transform: rotateY(180deg);
+}
+.faq-open .faq-glyph > .faq-glyph-a {
+  opacity: 0;
+}
+.faq-open .faq-glyph > .faq-glyph-b {
+  opacity: 1;
+}
+
+/* /team — the contribution chip lands like a rubber stamp on scroll-in */
+@keyframes df-contrib-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.5) rotate(-10deg);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(0.95) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-2deg);
+  }
+}
+.anim-contrib-stamp {
+  animation: df-contrib-stamp 620ms var(--ease-bouncy) both;
+  animation-delay: calc(var(--stamp-index, 0) * 70ms + 200ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-bouncy-pop,
+  .anim-fade-in-up,
+  .anim-hero-rise,
+  .anim-shape-drift,
+  .anim-marquee,
+  .anim-confetti-piece,
+  .anim-modal-backdrop,
+  .anim-modal-pop,
+  .anim-nav-settle,
+  .anim-word-pop,
+  .anim-stamp,
+  .anim-drawer-up,
+  .anim-contrib-stamp,
+  .faq-glyph,
+  .day-tab,
+  .anim-session-in,
+  .anim-hero-bg,
+  .anim-tile-in,
+  .anim-scroll-cue,
+  .logo-bracket-in-left,
+  .logo-bracket-in-right,
+  .logo-spin-left,
+  .logo-spin-right,
+  .logo-hover-left,
+  .logo-hover-right,
+  .spotlight-item,
+  .link-item,
+  .stage-photo {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Never leave content in a hidden/transformed state for these users */
+  .anim-reveal,
+  .anim-word-pop,
+  .anim-stamp,
+  .anim-contrib-stamp,
+  .anim-session-in,
+  .mask-line > *,
+  .anim-tile-in,
+  .stage-photo,
+  .is-entering .stage-photo,
+  .is-leaving .stage-photo {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /*
+   * Speaker slider: the detail panel still opens/closes, just instantly
+   * rather than sliding. The spotlight keeps its opacity dimming (conveys
+   * focus without moving anything) but drops scale/rotate. Auto-advance is
+   * disabled in the component, so nothing moves unasked.
+   */
+  .speaker-detail,
+  .speaker-card,
+  .speaker-card.is-popover .person-pop,
+  [data-card-grid] .speaker-card {
+    transition: none !important;
+  }
+  /*
+   * The popover still appears and disappears — it just cuts. `visibility`
+   * must not keep its delayed transition here or the panel would linger
+   * after closing.
+   */
+  .speaker-card.is-popover .person-pop {
+    transform: none !important;
+  }
+
+  /*
+   * Cinema stage: slides still change, they just snap. The scale/opacity
+   * depth cue is kept — it is what tells you which slide is the spotlight —
+   * but the neighbours are lifted out of the near-invisible range, since
+   * without motion there is no travel to make the stack legible.
+   */
+  .cinema-track,
+  .cinema-slide,
+  .polaroid {
+    transition: none !important;
+  }
+  .cinema-slide {
+    opacity: 0.5 !important;
+  }
+  .cinema-slide.is-active {
+    opacity: 1 !important;
+  }
+  .speaker-track[data-spotlight="on"] .speaker-card,
+  .speaker-track[data-spotlight="on"] .speaker-card.is-focused {
+    transform: none !important;
+  }
+  /*
+   * Soften the sibling dim for these users specifically. With auto-advance
+   * off they may sit on one card indefinitely, and 0.45 leaves neighbouring
+   * names hard to read; 0.72 still reads as de-emphasised.
+   */
+  .speaker-track[data-spotlight="on"] .speaker-card {
+    opacity: 0.72 !important;
+  }
+  .speaker-track[data-spotlight="on"] .speaker-card.is-focused {
+    opacity: 1 !important;
+  }
+
+  .faq-spy {
+    transition: none !important;
+  }
+
+  /* Signature moments: keep the end state, drop the motion */
+  .name-marker::after {
+    transition: none !important;
+  }
+  .speaker-card:hover .name-marker::after,
+  .speaker-card:focus-within .name-marker::after {
+    transform: scaleX(1);
+  }
+  .faq-glyph,
+  .faq-glyph > span {
+    transition: none !important;
+  }
+
+  /* Hover parting and spotlight recede are decorative — drop them entirely */
+  .logo-interactive:hover .logo-hover-left,
+  .logo-interactive:hover .logo-hover-right,
+  .spotlight-group:hover .spotlight-item,
+  .spotlight-group:hover .spotlight-item:hover,
+  .link-group:hover .link-item {
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+
+  /* Parallax is the most motion-sickness-prone effect here — fully off */
+  .stage-parallax {
+    transform: none !important;
+  }
+}

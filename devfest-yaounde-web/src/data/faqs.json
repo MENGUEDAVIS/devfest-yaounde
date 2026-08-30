@@ -1,0 +1,181 @@
+[
+  {
+    "id": "faq-ticket-required",
+    "category": "general",
+    "question": {
+      "fr": "Ai-je besoin d'un billet pour participer ?",
+      "en": "Do I need a ticket to attend?"
+    },
+    "answer": {
+      "fr": "Oui — même notre billet gratuit nécessite une réservation, pour qu'on puisse bien organiser la salle. Direction la page Billets pour récupérer le vôtre.",
+      "en": "Yes — even our free tier needs a ticket so we can plan the room properly. Head to the Tickets page to grab yours."
+    },
+    "cta": {
+      "label": {
+        "fr": "Prendre un billet",
+        "en": "Get a ticket"
+      },
+      "href": "/tickets"
+    }
+  },
+  {
+    "id": "faq-beginner-friendly",
+    "category": "general",
+    "question": {
+      "fr": "Est-ce adapté aux débutants ?",
+      "en": "Is this beginner-friendly?"
+    },
+    "answer": {
+      "fr": "Tout à fait. DevFest Yaoundé s'adresse à toute personne curieuse de construire des choses, pas seulement aux ingénieurs expérimentés — aucune expérience de conférence requise.",
+      "en": "Very. DevFest Yaoundé is for anyone curious about building things, not just senior engineers — no prior conference experience required."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir les speakers",
+        "en": "Meet the speakers"
+      },
+      "href": "/speakers"
+    }
+  },
+  {
+    "id": "faq-language",
+    "category": "general",
+    "question": {
+      "fr": "Les sessions sont-elles en français ou en anglais ?",
+      "en": "Are sessions in French or English?"
+    },
+    "answer": {
+      "fr": "Les deux. Chaque intervenant présente dans la langue où il est le plus à l'aise, et le programme indiquera la langue de chaque session.",
+      "en": "Both. Each speaker presents in whichever language they're most comfortable in, and the schedule will label the language per session."
+    }
+  },
+  {
+    "id": "faq-price",
+    "category": "tickets",
+    "question": {
+      "fr": "Combien coûte un billet ?",
+      "en": "How much is a ticket?"
+    },
+    "answer": {
+      "fr": "Les tarifs ne sont pas encore finalisés. Il y aura un palier gratuit et plusieurs paliers payants avec du swag — tout sera détaillé sur la page Billets.",
+      "en": "Pricing isn't finalised yet. There'll be a free tier plus a few paid tiers with swag — full details will land on the Tickets page."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir les tarifs",
+        "en": "See ticket tiers"
+      },
+      "href": "/tickets"
+    }
+  },
+  {
+    "id": "faq-refund",
+    "category": "tickets",
+    "question": {
+      "fr": "Puis-je me faire rembourser ou transférer mon billet ?",
+      "en": "Can I refund or transfer my ticket?"
+    },
+    "answer": {
+      "fr": "La politique sera publiée en même temps que la billetterie. En cas de doute, écris-nous — on est raisonnables.",
+      "en": "The policy goes up when ticket sales open. If you're stuck, message us — we're reasonable people."
+    }
+  },
+  {
+    "id": "faq-venue",
+    "category": "venue",
+    "question": {
+      "fr": "Où se déroule DevFest Yaoundé ?",
+      "en": "Where is DevFest Yaoundé held?"
+    },
+    "answer": {
+      "fr": "À Yaoundé — le lieu exact sera annoncé à l'approche de la date.",
+      "en": "In Yaoundé — exact venue details will be announced closer to the date."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir le programme",
+        "en": "See the schedule"
+      },
+      "href": "/schedule"
+    }
+  },
+  {
+    "id": "faq-food",
+    "category": "venue",
+    "question": {
+      "fr": "Y a-t-il de quoi manger sur place ?",
+      "en": "Is there food at the event?"
+    },
+    "answer": {
+      "fr": "Oui, le déjeuner est prévu. Préviens-nous de tes restrictions alimentaires au moment de la réservation.",
+      "en": "Yes, lunch is covered. Tell us about dietary needs when you book and we'll sort it."
+    }
+  },
+  {
+    "id": "faq-accessibility",
+    "category": "venue",
+    "question": {
+      "fr": "Le lieu est-il accessible ?",
+      "en": "Is the venue accessible?"
+    },
+    "answer": {
+      "fr": "C'est un critère dans notre choix de lieu. Si tu as un besoin d'accès précis, écris-nous — on préfère le savoir tôt.",
+      "en": "It's a factor in how we choose the venue. If you have a specific access need, tell us — earlier is easier."
+    }
+  },
+  {
+    "id": "faq-swag-ship",
+    "category": "shop",
+    "question": {
+      "fr": "Livrez-vous le swag ?",
+      "en": "Do you ship the swag?"
+    },
+    "answer": {
+      "fr": "La logistique de livraison n'est pas encore arrêtée. Le retrait sur place le jour J sera possible dans tous les cas.",
+      "en": "Shipping logistics aren't settled yet. Pickup at the venue on the day will always be an option."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir la boutique",
+        "en": "Browse the shop"
+      },
+      "href": "/shop"
+    }
+  },
+  {
+    "id": "faq-swag-after",
+    "category": "shop",
+    "question": {
+      "fr": "Puis-je acheter du swag après l'événement ?",
+      "en": "Can I buy swag after the event?"
+    },
+    "answer": {
+      "fr": "La boutique reste ouverte toute l'année, pas seulement pendant l'événement.",
+      "en": "The shop stays open year-round, not just during the event."
+    }
+  },
+  {
+    "id": "faq-conduct",
+    "category": "code-of-conduct",
+    "question": {
+      "fr": "Y a-t-il un code de conduite ?",
+      "en": "Is there a code of conduct?"
+    },
+    "answer": {
+      "fr": "Oui, et il s'applique à tout le monde — participants, intervenants, organisateurs, sponsors. Le lien est en bas de page.",
+      "en": "Yes, and it applies to everyone — attendees, speakers, organisers, sponsors. The link is in the footer."
+    }
+  },
+  {
+    "id": "faq-report",
+    "category": "code-of-conduct",
+    "question": {
+      "fr": "Comment signaler un problème pendant l'événement ?",
+      "en": "How do I report a problem during the event?"
+    },
+    "answer": {
+      "fr": "Trouve n'importe quel organisateur (on est identifiables) ou écris à l'adresse indiquée dans le code de conduite. On te prend au sérieux.",
+      "en": "Find any organiser (we're identifiable) or use the contact in the code of conduct. We take it seriously."
+    }
+  }
+]

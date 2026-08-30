@@ -1,0 +1,223 @@
+---
+name: devfest-content-model
+description: Use when creating or editing a page/route in the DevFest Yaoundé site, or when working with content data — speakers, schedule/sessions, ticket tiers, or shop products. Condensed sitemap, per-page content structure, and data shapes from docs/content/PAGES.md.
+---
+
+# DevFest Yaoundé Content Model
+
+Source of truth: `docs/content/PAGES.md`. Pairs with the `devfest-design-system` skill (how things look) and `devfest-i18n` skill (bilingual requirement — every route/content type below ships in both `/fr` and `/en`).
+
+## Sitemap
+
+| Route           | Page                                                                    | Auth                               |
+| --------------- | ----------------------------------------------------------------------- | ---------------------------------- |
+| `/`             | Home — single scrolling story, teasers only                             | public                             |
+| `/schedule`     | Full agenda, all days                                                   | public                             |
+| `/speakers`     | Full speaker grid                                                       | public                             |
+| `/faqs`         | Grouped, searchable FAQ                                                 | public                             |
+| `/team`         | Organizers                                                              | public                             |
+| `/tickets`      | Buy/manage tickets                                                      | auth required to track own tickets |
+| `/shop`         | Merch store, evergreen (live year-round, independent of ticket windows) | auth required to track own orders  |
+| `/dp-generator` | Standalone DP generator, no login, no dependency on rest of site's auth | public                             |
+| _(external)_    | GDG Bevy chapter page — RSVP source of truth                            | linked from Home hero, nav, footer |
+
+Every route exists under both `/fr/...` and `/en/...`.
+
+## Global chrome (present on every page)
+
+- **Navbar**: floating pill, fixed top with offset. Logo (left) — Schedule · Speakers · FAQs · Team (center) — Shop (secondary btn) + Get Tickets (primary btn) (right). Lang switcher near ticket button. Shrinks + gains blur/shadow on scroll. Mobile: hamburger → sheet.
+- **Announcement banner**: above navbar, dismissible (persisted), marquee-scrolls longer messages, visually attached to navbar. Time-sensitive use only.
+- **Footer**: community photo strip + "Be part of the story — RSVP now" (→ Bevy). Link groups: **Event** (Schedule/Speakers/Team/FAQs), **Get Involved** (Shop/DP Generator/Bevy/RSVP), **Legal** (Privacy/Code of Conduct). Social icons (Phosphor, 24px). Copyright line in mono. Can go full Black 02 dark.
+
+## Home page section order
+
+1. Hero — event name+year, city, dates/venue, morphed-frame photo collage/carousel, CTAs (Get Tickets primary / Shop secondary / RSVP Bevy tertiary), sponsor logo marquee.
+2. "What is DevFest Yaoundé" — warm community paragraph + this year's theme.
+3. Playful interstitial #1 — stat counter / animated quote, pure vibe, no dense info.
+4. Speaker Showcase preview — featured speakers only, opens shared speaker modal, "See full lineup" → `/speakers`.
+5. Schedule Overview preview — day tabs only + 2-3 highlight sessions/day, "See full schedule" → `/schedule`.
+6. Tracks (optional) — icon/illustration grid if the event has tracks.
+7. Playful interstitial #2 — rotating community quotes/tweets, speech-bubble cards.
+8. Memory Lane — past edition recap video + photo grid.
+9. Community CTA — GDG Yaoundé blurb + Join the Community → Bevy.
+10. FAQ preview — 3-4 inline questions, "More questions?" → `/faqs`.
+11. Footer.
+
+## Data shapes
+
+```ts
+interface Speaker {
+  id: string; // slug, e.g. "jane-doe" — used in /speakers?spk=jane-doe
+  name: string; // language-neutral
+  role: LocalizedString;
+  company: string; // language-neutral
+  photoUrl: string;
+  bio: LocalizedString;
+  track: LocalizedString; // drives the /speakers track filter
+  day: number; // drives the /speakers day filter
+  sessionIds: string[]; // links to Session.id
+  social?: { x?: string; linkedin?: string; website?: string }; // only rendered if provided
+  icebreakerQuestion: LocalizedString;
+  icebreakerAnswer: LocalizedString;
+  funnyMoment?: LocalizedString;
+  featured?: boolean; // true = appears in Home preview slider
+}
+
+// Actual shape as implemented (src/data/types.ts) — sessions carry a time of
+// day plus a duration, NOT a start/end date, because the event date is not
+// confirmed. See src/lib/calendar.ts (EVENT_BASE_DATE).
+interface Session {
+  id: string;
+  time: string; // "HH:mm" local event time
+  durationMin: number;
+  day: number; // 1-indexed event day
+  kind: "talk" | "workshop" | "panel" | "break"; // icon + text label, never colour alone
+  title: LocalizedString;
+  description: LocalizedString;
+  track: LocalizedString;
+  room: LocalizedString; // ALSO distinguishes parallel sessions — see below
+  tags: LocalizedString[];
+  bring?: LocalizedString; // e.g. "bring a laptop" — only rendered when present
+  provided?: LocalizedString;
+  speakerIds: string[];
+}
+
+// PARALLEL TRACKS have no field of their own. Two sessions with the same
+// `day` + `time` ARE a parallel slot, and `room` is what tells them apart.
+// The board groups by timeslot and renders concurrent sessions as side-by-side
+// columns (timeline) or a nested list (list view).
+//
+// So: to add a parallel session, give it the same day and time as an existing
+// one and a DIFFERENT room. Do NOT add a slotId — it would duplicate the
+// times it derives from, and the two could drift apart.
+
+interface TicketTier {
+  id: string; // e.g. "haikyu", "sonnet" — rendered in mono-tag style
+  name: string; // e.g. "HAIKYU" — language-neutral (proper noun tier name)
+  priceXAF: number; // 0 for free tier
+  description: LocalizedString;
+  perks: LocalizedString[]; // rendered with Phosphor check icons
+  includesApparel: boolean; // if true, collect T-shirt size in attendee details step
+  quantityAvailable?: number;
+}
+
+interface Product {
+  id: string;
+  name: LocalizedString;
+  description: LocalizedString;
+  priceXAF: number;
+  images: string[];
+  variants?: { size?: string[]; color?: string[] };
+  status: "pre-order" | "in-stock" | "venue-only" | "sold-out"; // always paired with a visible text label, never color alone
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
+  role: LocalizedString; // e.g. "Lead Organizer"
+  oneLiner: LocalizedString; // e.g. "Keeps the Wi-Fi (and the vibes) running."
+  // What they DO for the event: Organising / Design / Logistics / Sponsoring
+  // / Ushering / Programme. /team groups AND filters by this. There is NO
+  // subTeam field — a sub-team org chart was never confirmed and is not
+  // invented. See docs/decisions/0010-team-grouping.md.
+  contribution: LocalizedString;
+  photoUrl: string;
+  social?: { x?: string; linkedin?: string; website?: string };
+  icebreakerQuestion: LocalizedString;
+  icebreakerAnswer: LocalizedString;
+  funnyMoment?: LocalizedString;
+  alumni?: boolean; // true = renders in "Past Organizers" section (unfiltered)
+  years?: string; // alumni only, e.g. "2023 · 2024"
+}
+
+interface FaqItem {
+  id: string;
+  category: "general" | "tickets" | "venue" | "shop" | "code-of-conduct";
+  question: LocalizedString;
+  answer: LocalizedString;
+  // Optional call to action on the answer, rendered as a filled pill button.
+  // PER ITEM, not per category: the useful next step differs between two
+  // questions in the same category. Omit it when there is no real next step —
+  // an answer with no CTA renders no button, which is the common case.
+  // `href` goes through the locale-aware Link unless `external` is set.
+  // Rendered BLOCK-LEVEL, on its own line under the answer — never inline
+  // with the answer's last line, text links included.
+  cta?: {
+    label: LocalizedString;
+    href: string;
+    external?: boolean;
+  };
+}
+
+type LocalizedString = { fr: string; en: string };
+
+// --- Personality fields (Phase 9) ---
+// Speakers AND team members both carry these. They render through the shared
+// <PersonDetail>, so they look identical on the card swipe-up and in the
+// slider. Treat them as brand-voice warmth, not a spec table.
+interface PersonalityFields {
+  icebreakerQuestion: LocalizedString; // casual interview-style question
+  icebreakerAnswer: LocalizedString; // short answer — shown as a quote moment
+  funnyMoment?: LocalizedString; // OPTIONAL; omit rather than leave blank
+}
+
+// Team members additionally carry:
+//   contribution: LocalizedString
+// which is what /team groups AND filters by — NOT a sub-team org chart,
+// which was never confirmed. See docs/decisions/0010-team-grouping.md.
+
+// Home-page-specific shapes (added feat/home-page — Phase 3)
+interface Sponsor {
+  id: string;
+  name: string; // language-neutral
+  logoUrl: string;
+  tier?: "platinum" | "gold" | "silver" | "community";
+  websiteUrl?: string;
+}
+
+interface Stat {
+  id: string;
+  value: number;
+  suffix?: string; // e.g. "+"
+  label: LocalizedString;
+}
+
+interface Quote {
+  id: string;
+  text: LocalizedString;
+  author: string; // language-neutral name
+  role?: LocalizedString; // e.g. "Attendee, DevFest 2025"
+}
+
+interface PastEditionPhoto {
+  id: string;
+  imageUrl: string;
+  alt: LocalizedString;
+  year?: number;
+}
+```
+
+### Shared page patterns (Phase 9) — reuse, don't re-implement
+
+- **Filtering:** `FilterLayout` (sticky sidebar on desktop, focus-trapped bottom drawer on mobile) + `FilterGroup` (one labelled, optionally collapsible group per dimension). Used by `/speakers`, `/schedule` and `/team`. Any new filtered page uses these — do not write a fourth bespoke filter UI.
+- **People views:** `/speakers` and `/team` both offer grid ↔ slider via `ViewToggle`. The grid uses `SpeakerCard`/`TeamCard` (swipe-up detail); the slider uses `PersonSlider` (drag + touch + click + arrow keys, no carousel library). Both render `PersonDetail`, so the personality fields look the same everywhere.
+- **Filters apply to both views** and persist across the toggle, as does the focused person.
+
+All placeholder content for these (and `Speaker`) lives under `src/data/*.json` — see `docs/guides/updating-home-page.md` for which file maps to which visible section and what must be replaced before launch.
+
+## Page-specific structure notes
+
+- **Schedule**: day tabs (fully rounded in every state, including active) + view toggle (Structured/timeline = hero experience; Grid/List = first-class a11y citizen, not an afterthought). **Parallel tracks**: same day + time = one timeslot, rendered as side-by-side columns in the timeline and a nested list in list view. Filters by track/room. Session card: time, title, one-liner, speaker avatar+name (→ modal), track tag, room. Add-to-calendar per session. Empty state keeps brand voice ("Schedule's still cooking — check back soon").
+- **Speakers**: grid (morphed-frame photo, name, role+company, social icons) that keeps **4 columns** — the floating filter rail takes no width from it. Opening a card opens a **popover beside it** (accordion: one at a time; the grid never reflows). Search + track/day filter. The alternative view is a **vertical cinema slider** — polaroid photo with alternating tilt, full-viewport stage, no scrollbar at any size, momentum drag on mouse/pen. Deep-linkable via query param.
+- **Home speaker cards** show BASIC INFO ONLY (name, role, company, bio, socials). Pass `personality={false}` to `PersonDetail`/`SpeakerCard` there — the icebreaker and funny moment are `/speakers` material, not teaser material.
+- **Team grid** is FLAT — do not group it by contribution. Contribution stays a card detail and a filter option.
+- **FAQs**: accordions grouped by category (General / Tickets & Pricing / Venue & Logistics / Shop-Swag / Code of Conduct), live search filter, short conversational answers.
+- **Team**: grouped by sub-team if org chart supports it, else one grid. Optional Alumni/Past Organizers section lower on page.
+- **Tickets**: 5-step flow — (1) tier select + quantity, (2) per-attendee details (name/email/+size if apparel tier, "Ticket N of M" indicator), (3) optional discount code, (4) payment (Mobile Money lead, card secondary — provider TBD per `0003-payments-and-auth.md`), (5) confirmation (celebratory animation + email receipt + QR/badge code). Sticky order summary steps 1-4. Requires shared account for "My Tickets" dashboard.
+- **Shop**: evergreen product grid with status pills, product detail with variant/qty selection, checkout reuses Tickets' step pattern, image right-click/selection disabled (soft deterrent, not real protection — consider a watermark if stronger protection is needed later), "My Orders" in shared account dashboard.
+- **DP Generator**: no login, no shared design-system auth dependency. Flow: nickname → upload photo → pick branded background/frame (morphed-shape motif) → position/crop → download → share-to-socials (prefilled caption+hashtag, or copy-to-clipboard fallback). Canvas compositing only, no AI/Gemini integration.
+
+## Shared systems
+
+- **Auth**: one account shared between Tickets and Shop (`/account` with Tickets/Orders tabs). Provider not yet decided — see `docs/decisions/0003-payments-and-auth.md`. Home/Schedule/Speakers/FAQs/Team/DP Generator stay fully public.
+- Every content type above must exist in both languages before a feature is "done" — see `devfest-i18n` skill for exactly which fields are translatable vs. language-neutral.

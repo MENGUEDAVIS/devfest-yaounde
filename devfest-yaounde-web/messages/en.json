@@ -1,0 +1,226 @@
+{
+  "common": {
+    "close": "Close",
+    "filters": {
+      "title": "Filters",
+      "open": "Filters",
+      "close": "Close filters",
+      "clear": "Clear all",
+      "applied": "{count} active",
+      "done": "Show results",
+      "group": "Filter group"
+    },
+    "views": {
+      "label": "View",
+      "grid": "Grid",
+      "slider": "Slider",
+      "prev": "Previous",
+      "next": "Next",
+      "position": "{current} of {total}",
+      "dragHint": "Drag, swipe or use the arrows"
+    },
+    "person": {
+      "icebreaker": "Quick question",
+      "funny": "True story",
+      "contribution": "On the team"
+    },
+    "theme": {
+      "label": "Theme",
+      "blue": "Blue",
+      "red": "Red",
+      "yellow": "Yellow",
+      "green": "Green"
+    }
+  },
+  "nav": {
+    "schedule": "Schedule",
+    "speakers": "Speakers",
+    "faqs": "FAQs",
+    "team": "Team",
+    "shop": "Shop",
+    "tickets": "Get Tickets",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "switchToEnglish": "Switch to English",
+    "switchToFrench": "Switch to French",
+    "skipToContent": "Skip to content",
+    "home": "DevFest Yaoundé — home"
+  },
+  "announcement": {
+    "message": "🎟️ Early bird tickets end soon — grab yours before prices go up!",
+    "dismiss": "Dismiss announcement"
+  },
+  "footer": {
+    "rsvpCta": "Come build with us",
+    "event": {
+      "title": "Event",
+      "schedule": "Schedule",
+      "speakers": "Speakers",
+      "team": "Team",
+      "faqs": "FAQs"
+    },
+    "getInvolved": {
+      "title": "Get Involved",
+      "shop": "Shop",
+      "dpGenerator": "DP Generator",
+      "community": "Join the Community"
+    },
+    "legal": {
+      "title": "Legal",
+      "privacy": "Privacy Policy",
+      "codeOfConduct": "Code of Conduct"
+    },
+    "followUs": "Follow us",
+    "copyright": "DevFest Yaoundé · GDG Yaoundé",
+    "closingLine": "See you in Yaoundé",
+    "photoAlt": "The DevFest Yaoundé community at a past edition",
+    "ticketsCta": "Grab your ticket"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "GDG Yaoundé presents",
+      "headline": "DevFest Yaoundé {year}",
+      "dates": "Dates dropping soon",
+      "venue": "Yaoundé, Cameroon",
+      "ctaPrimary": "Grab your ticket",
+      "ctaSecondary": "Check the swag",
+      "sponsorsLabel": "Powered by good people",
+      "headlineLead": "DevFest",
+      "headlineCity": "Yaoundé",
+      "tagline": "One day. The whole community. A room full of people building wild things — and you, hopefully, in it.",
+      "logoHint": "psst — click the logo",
+      "scrollCue": "Scroll",
+      "photoCredit": "Scenes from past editions",
+      "dateLabel": "When",
+      "venueLabel": "Where"
+    },
+    "about": {
+      "title": "What is DevFest Yaoundé?",
+      "body": "DevFest is Google's global series of developer-led, community events — and DevFest Yaoundé is our local chapter's flagship gathering, run by GDG Yaoundé for the people building things in and around this city. Expect real talks from real practitioners, hallway conversations that turn into collaborations, and a room full of people who'd rather be here than anywhere else."
+    },
+    "speakers": {
+      "title": "Meet this year's speakers",
+      "cta": "See the full lineup",
+      "prev": "Previous speaker",
+      "next": "Next speaker",
+      "openDetail": "See details",
+      "closeDetail": "Close details",
+      "hint": "Tap a card for the full story"
+    },
+    "schedule": {
+      "title": "What's on",
+      "empty": "Full schedule's still cooking — check back soon 👀",
+      "cta": "See the full schedule",
+      "day": "Day {day}",
+      "viewStructured": "Timeline",
+      "viewList": "List",
+      "viewLabel": "How do you want it?",
+      "track": "Track",
+      "room": "Room",
+      "tbaTime": "Time TBA",
+      "dayTag": "D{day}",
+      "bring": "Bring",
+      "provided": "We provide",
+      "duration": "{min} min",
+      "expand": "Show details",
+      "collapse": "Hide details",
+      "speakers": "Speakers",
+      "kindTalk": "Talk",
+      "kindWorkshop": "Workshop",
+      "kindPanel": "Panel",
+      "kindBreak": "Break",
+      "allTracks": "All",
+      "allRooms": "All",
+      "parallel": "{count} sessions at the same time — pick one"
+    },
+    "quotes": {
+      "title": "What people are saying"
+    },
+    "memoryLane": {
+      "title": "Memory lane",
+      "body": "A few frames from past editions — proof this community has history, and it's only getting started.",
+      "recapCta": "Watch the recap"
+    },
+    "community": {
+      "title": "What is GDG Yaoundé up to?",
+      "body": "GDG Yaoundé keeps the community going all year, not just on event day — meetups, study jams, and a place to ask the questions you're too embarrassed to ask on Stack Overflow.",
+      "cta": "Join the Community",
+      "ticketsCta": "Grab a ticket"
+    },
+    "faq": {
+      "title": "Quick questions",
+      "cta": "More questions?",
+      "toggleHint": "Tap a question"
+    }
+  },
+  "pages": {
+    "schedule": {
+      "title": "Schedule",
+      "placeholder": "Schedule's still cooking — check back soon 👀",
+      "lead": "Two days, one room full of people who'd rather be here than anywhere else.",
+      "metaDesc": "The full DevFest Yaoundé schedule — talks, workshops, panels and breaks across both days.",
+      "addToCalendar": "Add to calendar",
+      "google": "Google Calendar",
+      "ics": "Apple / Outlook (.ics)"
+    },
+    "speakers": {
+      "title": "Speakers",
+      "placeholder": "The speaker lineup is coming soon.",
+      "lead": "The people bringing the talks, the workshops and the strong opinions.",
+      "metaDesc": "Meet the speakers of DevFest Yaoundé — talks, workshops and panels from practitioners across the community.",
+      "search": "Search by name",
+      "searchLabel": "Search speakers",
+      "allTracks": "All tracks",
+      "allDays": "All days",
+      "day": "Day {day}",
+      "results": "{count} speakers",
+      "noResults": "Nobody matches that — try a different search.",
+      "clear": "Clear filters",
+      "hint": "Tap a card for the full story",
+      "trackLabel": "Track",
+      "dayLabel": "Day"
+    },
+    "faqs": {
+      "title": "FAQs",
+      "placeholder": "Frequently asked questions are coming soon.",
+      "lead": "The questions people actually ask. If yours isn't here, come find us.",
+      "metaDesc": "Frequently asked questions about DevFest Yaoundé — tickets, venue, swag and the code of conduct.",
+      "search": "Search questions",
+      "searchLabel": "Search the FAQ",
+      "noResults": "No questions match that — try fewer words.",
+      "catGeneral": "General",
+      "catTickets": "Tickets & Pricing",
+      "catVenue": "Venue & Logistics",
+      "catShop": "Shop & Swag",
+      "catCodeOfConduct": "Code of Conduct",
+      "readConduct": "Read the code of conduct",
+      "jumpLabel": "Jump to"
+    },
+    "team": {
+      "title": "Team",
+      "placeholder": "The team page is coming soon.",
+      "lead": "The people who make this happen, mostly in evenings and weekends.",
+      "metaDesc": "The GDG Yaoundé organisers behind DevFest Yaoundé, and the alumni who built it before us.",
+      "alumniTitle": "Past organizers",
+      "alumniLead": "The people who ran the editions before this one. This community has history.",
+      "contribution": "Contribution",
+      "allContributions": "Everyone",
+      "groupBy": "Grouped by contribution",
+      "search": "Search by name",
+      "searchLabel": "Search the team",
+      "noResults": "Nobody matches that — try a different search."
+    },
+    "tickets": {
+      "title": "Tickets",
+      "placeholder": "Ticket sales aren't open yet — the payment provider hasn't been chosen."
+    },
+    "shop": {
+      "title": "Shop",
+      "placeholder": "The shop is coming soon."
+    },
+    "dpGenerator": {
+      "title": "DP Generator",
+      "placeholder": "The DP generator is coming soon."
+    }
+  }
+}

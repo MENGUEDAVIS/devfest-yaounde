@@ -1,0 +1,483 @@
+[
+  {
+    "id": "jane-doe",
+    "name": "Jane Doe",
+    "role": {
+      "fr": "Ingénieure principale",
+      "en": "Staff Engineer"
+    },
+    "company": "Acme Cloud",
+    "photoUrl": "/placeholders/speaker-1.svg",
+    "bio": {
+      "fr": "Espace réservé — Jane construit des systèmes distribués depuis dix ans et adore expliquer les choses compliquées simplement.",
+      "en": "Placeholder bio — Jane has been building distributed systems for a decade and loves explaining complicated things simply."
+    },
+    "sessionIds": ["s1-keynote", "s1-panel"],
+    "social": {
+      "x": "#",
+      "linkedin": "#"
+    },
+    "featured": true,
+    "track": {
+      "fr": "Keynote",
+      "en": "Keynote"
+    },
+    "day": 1,
+    "icebreakerQuestion": {
+      "fr": "Quelle citation te motive ?",
+      "en": "What's a quote that keeps you going?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Peu importe ta taille, dehors tu vois quand même le ciel.",
+      "en": "No matter how short you are, if you go out you still see the sky."
+    },
+    "funnyMoment": {
+      "fr": "A débogué toute une nuit un problème qui était un point-virgule.",
+      "en": "Once debugged all night and the problem was a semicolon."
+    }
+  },
+  {
+    "id": "kwame-asante",
+    "name": "Kwame Asante",
+    "role": {
+      "fr": "Développeur avocat",
+      "en": "Developer Advocate"
+    },
+    "company": "Globex Systems",
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "bio": {
+      "fr": "Espace réservé — Kwame aide les communautés de développeurs à travers l'Afrique de l'Ouest à adopter le cloud natif.",
+      "en": "Placeholder bio — Kwame helps developer communities across West Africa adopt cloud-native tooling."
+    },
+    "sessionIds": ["s1-workshop"],
+    "social": {
+      "linkedin": "#",
+      "website": "#"
+    },
+    "featured": true,
+    "track": {
+      "fr": "Atelier",
+      "en": "Workshop"
+    },
+    "day": 1,
+    "icebreakerQuestion": {
+      "fr": "Ton conseil à un dev qui débute ?",
+      "en": "Your advice to a dev just starting out?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Publie le truc moche. Tu le rendras beau après.",
+      "en": "Ship the ugly thing. You can make it pretty later."
+    },
+    "funnyMoment": {
+      "fr": "A fait une démo live avec zéro connexion. Ça s'est bien passé. Presque.",
+      "en": "Did a live demo with zero connectivity. It went fine. Nearly."
+    }
+  },
+  {
+    "id": "amara-nwosu",
+    "name": "Amara Nwosu",
+    "role": {
+      "fr": "Ingénieure en apprentissage automatique",
+      "en": "ML Engineer"
+    },
+    "company": "Initech Labs",
+    "photoUrl": "/placeholders/speaker-3.svg",
+    "bio": {
+      "fr": "Espace réservé — Amara construit des modèles qui doivent fonctionner dans le monde réel, pas seulement dans un notebook.",
+      "en": "Placeholder bio — Amara builds models that need to work in the real world, not just in a notebook."
+    },
+    "sessionIds": ["s1-ai"],
+    "social": {
+      "x": "#"
+    },
+    "featured": true,
+    "track": {
+      "fr": "IA",
+      "en": "AI"
+    },
+    "day": 1,
+    "icebreakerQuestion": {
+      "fr": "Qu'est-ce qui te fascine en ce moment ?",
+      "en": "What are you obsessed with right now?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Les modèles qui admettent qu'ils ne savent pas.",
+      "en": "Models that admit when they don't know something."
+    }
+  },
+  {
+    "id": "yusuf-mbarga",
+    "name": "Yusuf Mbarga",
+    "role": {
+      "fr": "Responsable Frontend",
+      "en": "Frontend Lead"
+    },
+    "company": "Umbrella Devs",
+    "photoUrl": "/placeholders/speaker-4.svg",
+    "bio": {
+      "fr": "Espace réservé — Yusuf pense que les interfaces rapides et accessibles ne sont pas négociables.",
+      "en": "Placeholder bio — Yusuf believes fast, accessible interfaces aren't optional extras."
+    },
+    "sessionIds": ["s2-web", "s1-panel"],
+    "social": {
+      "linkedin": "#"
+    },
+    "featured": true,
+    "track": {
+      "fr": "Web",
+      "en": "Web"
+    },
+    "day": 2,
+    "icebreakerQuestion": {
+      "fr": "Ton avis le plus tranché sur le web ?",
+      "en": "Your spiciest web opinion?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Si ça ne marche pas au clavier, ça ne marche pas.",
+      "en": "If it doesn't work with a keyboard, it doesn't work."
+    },
+    "funnyMoment": {
+      "fr": "A refait le CSS d'un site entier la veille du lancement.",
+      "en": "Rewrote an entire site's CSS the night before launch."
+    }
+  },
+  {
+    "id": "fatima-njoya",
+    "name": "Fatima Njoya",
+    "role": {
+      "fr": "Architecte Cloud",
+      "en": "Cloud Architect"
+    },
+    "company": "Soylent Tech",
+    "photoUrl": "/placeholders/speaker-5.svg",
+    "bio": {
+      "fr": "Espace réservé — Fatima conçoit des infrastructures qui survivent au succès du produit.",
+      "en": "Placeholder bio — Fatima designs infrastructure that survives the product actually succeeding."
+    },
+    "sessionIds": ["s2-cloud"],
+    "social": {},
+    "featured": false,
+    "track": {
+      "fr": "Cloud",
+      "en": "Cloud"
+    },
+    "day": 2,
+    "icebreakerQuestion": {
+      "fr": "Qu'est-ce qui rend une infra saine ?",
+      "en": "What makes infrastructure healthy?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Des déploiements ennuyeux. L'ennui, c'est la réussite.",
+      "en": "Boring deploys. Boring is the goal."
+    }
+  },
+  {
+    "id": "marcus-fotso",
+    "name": "Marcus Fotso",
+    "role": {
+      "fr": "Ingénieur sécurité",
+      "en": "Security Engineer"
+    },
+    "company": "Acme Cloud",
+    "photoUrl": "/placeholders/speaker-6.svg",
+    "bio": {
+      "fr": "Espace réservé — Marcus casse des choses pour vivre, dans le bon sens du terme.",
+      "en": "Placeholder bio — Marcus breaks things for a living, in the good way."
+    },
+    "sessionIds": ["s2-security"],
+    "social": {
+      "x": "#",
+      "website": "#"
+    },
+    "featured": false,
+    "track": {
+      "fr": "Sécurité",
+      "en": "Security"
+    },
+    "day": 2,
+    "icebreakerQuestion": {
+      "fr": "La chose la plus surprenante que tu aies cassée ?",
+      "en": "Most surprising thing you've broken?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Un formulaire de contact. Il en disait long.",
+      "en": "A contact form. It said a lot about the rest."
+    }
+  },
+  {
+    "id": "nadia-eboa",
+    "name": "Nadia Eboa",
+    "role": {
+      "fr": "Ingénieure produit",
+      "en": "Product Engineer"
+    },
+    "company": "Globex Systems",
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "bio": {
+      "fr": "Espace réservé — Nadia transforme des idées à moitié formées en choses sur lesquelles on peut cliquer.",
+      "en": "Placeholder bio — Nadia turns half-formed ideas into things people can actually click."
+    },
+    "track": {
+      "fr": "Web",
+      "en": "Web"
+    },
+    "day": 1,
+    "sessionIds": [],
+    "social": {
+      "linkedin": "#"
+    },
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Comment tu sais qu'une idée est bonne ?",
+      "en": "How do you know an idea is good?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Quand quelqu'un l'utilise sans qu'on lui explique.",
+      "en": "When someone uses it without being told how."
+    },
+    "funnyMoment": {
+      "fr": "A nommé une variable « temp » en 2019. Elle est toujours là.",
+      "en": "Named a variable 'temp' in 2019. It is still there."
+    }
+  },
+  {
+    "id": "thierry-nkomo",
+    "name": "Thierry Nkomo",
+    "role": {
+      "fr": "Ingénieur data",
+      "en": "Data Engineer"
+    },
+    "company": "Initech Labs",
+    "photoUrl": "/placeholders/speaker-3.svg",
+    "bio": {
+      "fr": "Espace réservé — Thierry déplace de grandes quantités de données sans en perdre une seule.",
+      "en": "Placeholder bio — Thierry moves large amounts of data around without losing any of it."
+    },
+    "track": {
+      "fr": "IA",
+      "en": "AI"
+    },
+    "day": 1,
+    "sessionIds": [],
+    "social": {
+      "x": "#",
+      "linkedin": "#"
+    },
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Ton rituel avant de coder ?",
+      "en": "Your pre-coding ritual?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Un café, puis relire le ticket. Dans cet ordre.",
+      "en": "Coffee, then re-read the ticket. In that order."
+    }
+  },
+  {
+    "id": "laure-mbappe",
+    "name": "Laure Mbappé",
+    "role": {
+      "fr": "Responsable design",
+      "en": "Design Lead"
+    },
+    "company": "Umbrella Devs",
+    "photoUrl": "/placeholders/speaker-4.svg",
+    "bio": {
+      "fr": "Espace réservé — Laure a des avis tranchés sur les espacements, et elle a souvent raison.",
+      "en": "Placeholder bio — Laure has strong opinions about spacing and she is usually right."
+    },
+    "track": {
+      "fr": "Design",
+      "en": "Design"
+    },
+    "day": 1,
+    "sessionIds": [],
+    "social": {
+      "website": "#"
+    },
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Une règle de design que tu ne casses jamais ?",
+      "en": "One design rule you never break?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Laisser respirer. Le vide fait partie du dessin.",
+      "en": "Leave room to breathe. Space is part of the design."
+    },
+    "funnyMoment": {
+      "fr": "A envoyé une maquette avec « Lorem ipsum » en titre principal.",
+      "en": "Shipped a mockup with 'Lorem ipsum' as the main headline."
+    }
+  },
+  {
+    "id": "samuel-owona",
+    "name": "Samuel Owona",
+    "role": {
+      "fr": "Ingénieur mobile",
+      "en": "Mobile Engineer"
+    },
+    "company": "Soylent Tech",
+    "photoUrl": "/placeholders/speaker-5.svg",
+    "bio": {
+      "fr": "Espace réservé — Samuel livre des apps Android qui marchent sur les téléphones que les gens ont vraiment.",
+      "en": "Placeholder bio — Samuel ships Android apps that work on the phones people actually own."
+    },
+    "track": {
+      "fr": "Mobile",
+      "en": "Mobile"
+    },
+    "day": 2,
+    "sessionIds": [],
+    "social": {
+      "x": "#"
+    },
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Le téléphone sur lequel tu testes toujours ?",
+      "en": "The phone you always test on?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Le plus vieux du bureau. Si ça passe là, ça passe partout.",
+      "en": "The oldest one in the office. If it works there, it works."
+    }
+  },
+  {
+    "id": "aisha-bello",
+    "name": "Aisha Bello",
+    "role": {
+      "fr": "DevRel",
+      "en": "DevRel"
+    },
+    "company": "Acme Cloud",
+    "photoUrl": "/placeholders/speaker-6.svg",
+    "bio": {
+      "fr": "Espace réservé — Aisha a expliqué le même concept de quarante façons et trouvé celle qui marche.",
+      "en": "Placeholder bio — Aisha has explained the same concept forty different ways and found the one that lands."
+    },
+    "track": {
+      "fr": "Communauté",
+      "en": "Community"
+    },
+    "day": 2,
+    "sessionIds": [],
+    "social": {
+      "x": "#",
+      "linkedin": "#",
+      "website": "#"
+    },
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Comment expliquer un truc compliqué ?",
+      "en": "How do you explain something complicated?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Trouve la version que tu aurais comprise à 15 ans.",
+      "en": "Find the version 15-year-old you would have understood."
+    },
+    "funnyMoment": {
+      "fr": "A expliqué les API à sa mère. Elle a posé une meilleure question.",
+      "en": "Explained APIs to my mum. She asked a better question than most."
+    }
+  },
+  {
+    "id": "eric-tchoua",
+    "name": "Eric Tchoua",
+    "role": {
+      "fr": "Ingénieur plateforme",
+      "en": "Platform Engineer"
+    },
+    "company": "Globex Systems",
+    "photoUrl": "/placeholders/speaker-1.svg",
+    "bio": {
+      "fr": "Espace réservé — Eric est la raison pour laquelle les déploiements sont ennuyeux, ce qui est le plus beau compliment.",
+      "en": "Placeholder bio — Eric is the reason the deploys are boring, which is the highest compliment."
+    },
+    "track": {
+      "fr": "Cloud",
+      "en": "Cloud"
+    },
+    "day": 2,
+    "sessionIds": [],
+    "social": {
+      "linkedin": "#"
+    },
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Ta définition d'une bonne journée ?",
+      "en": "Your definition of a good day?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Personne ne m'a écrit. Tout tournait.",
+      "en": "Nobody messaged me. Everything was running."
+    }
+  },
+  {
+    "id": "grace-fon",
+    "name": "Grace Fon",
+    "role": {
+      "fr": "Ingénieure accessibilité",
+      "en": "Accessibility Engineer"
+    },
+    "company": "Initech Labs",
+    "photoUrl": "/placeholders/speaker-2.svg",
+    "bio": {
+      "fr": "Espace réservé — Grace trouvera le piège au clavier dans ton interface en moins d'une minute.",
+      "en": "Placeholder bio — Grace will find the keyboard trap in your interface in under a minute."
+    },
+    "track": {
+      "fr": "Web",
+      "en": "Web"
+    },
+    "day": 1,
+    "sessionIds": [],
+    "social": {
+      "x": "#",
+      "website": "#"
+    },
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Le test d'accessibilité le plus rapide ?",
+      "en": "Fastest accessibility test?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Range la souris. Essaie de finir la tâche.",
+      "en": "Put the mouse away. Try to finish the task."
+    },
+    "funnyMoment": {
+      "fr": "A trouvé un piège au clavier sur son propre portfolio.",
+      "en": "Found a keyboard trap on my own portfolio."
+    }
+  },
+  {
+    "id": "olivier-manga",
+    "name": "Olivier Manga",
+    "role": {
+      "fr": "Responsable ingénierie",
+      "en": "Engineering Manager"
+    },
+    "company": "Acme Cloud",
+    "photoUrl": "/placeholders/speaker-3.svg",
+    "bio": {
+      "fr": "Espace réservé — Olivier parle plus d'équipes que d'outils, et ses équipes livrent.",
+      "en": "Placeholder bio — Olivier talks about teams more than tools, and the teams keep shipping."
+    },
+    "track": {
+      "fr": "Communauté",
+      "en": "Community"
+    },
+    "day": 2,
+    "sessionIds": [],
+    "social": {
+      "linkedin": "#"
+    },
+    "featured": false,
+    "icebreakerQuestion": {
+      "fr": "Ce qui fait vraiment livrer une équipe ?",
+      "en": "What actually makes a team ship?"
+    },
+    "icebreakerAnswer": {
+      "fr": "Se sentir en sécurité pour dire « je ne sais pas ».",
+      "en": "Feeling safe enough to say 'I don't know'."
+    }
+  }
+]
