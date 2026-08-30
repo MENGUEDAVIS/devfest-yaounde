@@ -183,7 +183,7 @@ export function SpeakerCard({
               alt=""
               shape="circle"
               aspectRatio="1/1"
-              className="h-14 w-14 shrink-0 border-2 border-black02"
+              className="h-20 w-20 shrink-0 border-2 border-black02"
             />
           }
           closeLabel={t("close")}

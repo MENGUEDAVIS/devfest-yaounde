@@ -211,7 +211,13 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
             writeUrl(next);
           }}
           emptyLabel={t("noResults")}
-          onClose={() => setView("grid")}
+          onClose={() => {
+            setView("grid");
+            // Dismissing the lockup also drops the focus, so you land on a
+            // clean grid rather than one card still singled out.
+            setFocusedId(null);
+            writeUrl(null);
+          }}
           title={t("title")}
           closeLabel={tf("close")}
         />
@@ -230,7 +236,7 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
         <div
           data-card-grid
           /* Dims the non-focused cards while one is open (PHASE12 §7). */
-          data-card-open={focusedId !== null}
+          data-card-open={view === "grid" && focusedId !== null}
           className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
           {visible.map((s, i) => (
@@ -246,7 +252,16 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
             >
               <SpeakerCard
                 speaker={s}
-                open={focusedId === s.id}
+                /*
+                 * Scoped to GRID view. `focusedId` does double duty — it is
+                 * the slider's index as well as the grid's open card — and
+                 * the grid stays mounted under the lockup. Without this,
+                 * advancing the slider opened the card underneath too: on
+                 * mobile that is a portalled bottom sheet at z-100, so it
+                 * landed on top of the lockup and looked exactly like having
+                 * tapped the card instead of the next button.
+                 */
+                open={view === "grid" && focusedId === s.id}
                 onToggle={(card) => toggleCard(s.id, card)}
                 onClose={closeCard}
                 tilt={TILT[i % TILT.length]}

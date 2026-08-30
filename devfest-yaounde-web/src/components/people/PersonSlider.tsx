@@ -156,7 +156,15 @@ export function PersonSlider({
   const safeIndex = Math.min(index, count - 1);
 
   function onPointerDown(e: React.PointerEvent) {
-    if (e.pointerType === "touch") return; // page scroll stays the page's
+    /*
+     * Touch drags now, where it used to bail out.
+     *
+     * The old rule existed because the slider was an in-page section: a
+     * vertical swipe inside it was how you scrolled the page, so claiming
+     * that gesture would have trapped anyone who scrolled onto it. In a
+     * full-screen lockup there IS no page scroll behind it — it is locked —
+     * so the gesture is unambiguously the reel's, on every input type.
+     */
     if ((e.target as Element).closest("a,button")) return;
     drag.current = {
       startY: e.clientY,
@@ -183,7 +191,17 @@ export function PersonSlider({
   function onPointerUp(e: React.PointerEvent) {
     const d = drag.current;
     if (!d) return;
-    const dy = e.clientY - d.startY;
+    /*
+     * The delta comes from the last POINTERMOVE, not from this event.
+     *
+     * Touch gestures here end in `pointercancel`, not `pointerup`, and a
+     * cancel carries `clientY: 0` — so reading the end event's coordinate
+     * made every touch drag compute a large NEGATIVE dy no matter which way
+     * the finger actually went, and the reel always advanced forwards.
+     * `lastY` is the last position we genuinely observed, which is correct
+     * for both endings.
+     */
+    const dy = d.lastY - d.startY;
     const speed = Math.abs(d.velocity);
     const el = e.currentTarget as Element;
     if (el.hasPointerCapture?.(d.pointerId)) {
@@ -234,7 +252,7 @@ export function PersonSlider({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         data-cursor="grab"
-        className="cinema-stage relative touch-pan-y select-none overflow-hidden rounded-lg"
+        className="cinema-stage relative touch-none select-none overflow-hidden rounded-lg"
         style={{ cursor: dragging ? "grabbing" : "grab" }}
       >
         <div

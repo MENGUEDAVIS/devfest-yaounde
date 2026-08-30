@@ -157,7 +157,12 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
           index={sliderIndex}
           onIndexChange={(i) => setFocusedId(visible[i]?.id ?? null)}
           emptyLabel={t("noResults")}
-          onClose={() => setView("grid")}
+          onClose={() => {
+            setView("grid");
+            // Dismissing the lockup also drops the focus, so you land on a
+            // clean grid rather than one card still singled out.
+            setFocusedId(null);
+          }}
           title={t("title")}
           closeLabel={tf("close")}
         />
@@ -172,7 +177,7 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
         <div
           data-card-grid
           /* Dims the non-focused cards while one is open (PHASE12 §7). */
-          data-card-open={focusedId !== null}
+          data-card-open={view === "grid" && focusedId !== null}
           className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 xl:grid-cols-3"
         >
           {visible.map((m, i) => (
@@ -185,7 +190,16 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
             >
               <TeamCard
                 member={m}
-                open={focusedId === m.id}
+                /*
+                 * Scoped to GRID view. `focusedId` does double duty — it is
+                 * the slider's index as well as the grid's open card — and
+                 * the grid stays mounted under the lockup. Without this,
+                 * advancing the slider opened the card underneath too: on
+                 * mobile that is a portalled bottom sheet at z-100, so it
+                 * landed on top of the lockup and looked exactly like having
+                 * tapped the card instead of the next button.
+                 */
+                open={view === "grid" && focusedId === m.id}
                 onToggle={(card) => toggleCard(m.id, card)}
                 onClose={() => setFocusedId(null)}
                 tilt={TILT[i % TILT.length]}
