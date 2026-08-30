@@ -79,8 +79,8 @@ export function SessionCard({
     <div
       className={
         isTimeline
-          ? "rounded-lg border-2 border-black02 bg-yellow-pastel shadow-[0_5px_0_0_var(--color-black02)] transition-transform duration-200 ease-out-devfest hover:-translate-y-1 motion-reduce:transform-none"
-          : "bg-yellow-pastel transition-colors duration-200 hover:bg-yellow/30"
+          ? "rounded-lg border-2 border-black02 bg-pastel shadow-[0_5px_0_0_var(--color-black02)] transition-transform duration-200 ease-out-devfest hover:-translate-y-1 motion-reduce:transform-none"
+          : "bg-pastel transition-colors duration-200 hover:bg-primary/30"
       }
       style={isTimeline && tilt ? { rotate: `${tilt}deg` } : undefined}
     >
@@ -124,7 +124,7 @@ export function SessionCard({
         <span
           aria-hidden
           className={`mt-1 shrink-0 rounded-pill border-2 border-black02 p-1.5 transition-transform duration-300 ease-bouncy motion-reduce:transition-none ${
-            open ? "rotate-180 bg-yellow" : "bg-transparent"
+            open ? "rotate-180 bg-primary" : "bg-transparent"
           }`}
         >
           <CaretDown size={18} weight="bold" />
@@ -150,7 +150,7 @@ export function SessionCard({
             {session.tags.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
                 {session.tags.map((tag) => (
-                  <Badge key={tag.en} tone="yellow" variant="outline">
+                  <Badge key={tag.en} tone="primary" variant="outline">
                     {tag[locale]}
                   </Badge>
                 ))}
@@ -192,7 +192,7 @@ export function SessionCard({
                     href={googleCalendarUrl(session, locale, EVENT_BASE_DATE)}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-pill border-2 border-black02 bg-offwhite px-3.5 py-1.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow"
+                    className="inline-flex items-center gap-1.5 rounded-pill border-2 border-black02 bg-offwhite px-3.5 py-1.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary"
                   >
                     <CalendarPlus size={14} weight="bold" aria-hidden />
                     {t("google")}
@@ -200,7 +200,7 @@ export function SessionCard({
                   <a
                     href={icsDataUrl(session, locale, EVENT_BASE_DATE)}
                     download={`${session.id}.ics`}
-                    className="inline-flex items-center gap-1.5 rounded-pill border-2 border-black02 bg-offwhite px-3.5 py-1.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow"
+                    className="inline-flex items-center gap-1.5 rounded-pill border-2 border-black02 bg-offwhite px-3.5 py-1.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary"
                   >
                     <CalendarPlus size={14} weight="bold" aria-hidden />
                     {t("ics")}
@@ -219,7 +219,7 @@ export function SessionCard({
                     <li key={s.id}>
                       <Link
                         href={{ pathname: "/speakers", query: { spk: s.id } }}
-                        className="inline-flex items-center rounded-pill border-2 border-black02 bg-offwhite px-3.5 py-1.5 text-body-m font-bold text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow"
+                        className="inline-flex items-center rounded-pill border-2 border-black02 bg-offwhite px-3.5 py-1.5 text-body-m font-bold text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary"
                       >
                         {s.name}
                       </Link>

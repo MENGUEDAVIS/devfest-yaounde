@@ -48,7 +48,7 @@ export function ViewToggle({
             className={`flex items-center gap-2 px-4 py-2.5 font-mono text-mono-tag font-bold uppercase tracking-wide transition-colors duration-200 ${
               view === key
                 ? "bg-black02 text-offwhite"
-                : "bg-transparent text-black02 hover:bg-yellow-pastel"
+                : "bg-transparent text-black02 hover:bg-pastel"
             }`}
           >
             <Icon size={16} weight="bold" />

@@ -91,7 +91,7 @@ export function PersonDetail({
   const roomy = size === "roomy";
 
   const nameCls = dark ? "text-offwhite" : "text-black02";
-  const metaCls = dark ? "text-yellow" : "text-black02/70";
+  const metaCls = dark ? "text-primary" : "text-black02/70";
   const bodyCls = dark ? "text-offwhite/85" : "text-black02/80";
   const labelCls = dark ? "text-offwhite/55" : "text-black02/50";
   const ruleCls = dark ? "border-offwhite/20" : "border-black02/15";
@@ -110,7 +110,7 @@ export function PersonDetail({
         </p>
         {person.contribution && (
           <div className="mt-3">
-            <Badge tone="yellow" variant={dark ? "solid" : "outline"}>
+            <Badge tone="primary" variant={dark ? "solid" : "outline"}>
               {person.contribution[locale]}
             </Badge>
           </div>
@@ -140,7 +140,7 @@ export function PersonDetail({
             size={roomy ? 28 : 22}
             weight="fill"
             aria-hidden
-            className={`shrink-0 ${dark ? "text-yellow" : "text-yellow"}`}
+            className={`shrink-0 ${dark ? "text-primary" : "text-primary"}`}
           />
           <p
             className={`font-sans font-bold leading-snug ${nameCls} ${roomy ? "text-heading-l" : "text-heading-m"}`}
@@ -155,14 +155,14 @@ export function PersonDetail({
           className={`flex items-start gap-2.5 rounded-lg border-2 px-4 py-3 ${
             dark
               ? "border-offwhite/25 bg-offwhite/5"
-              : "border-black02/20 bg-yellow-pastel"
+              : "border-black02/20 bg-pastel"
           }`}
         >
           <Sparkle
             size={18}
             weight="duotone"
             aria-hidden
-            className="mt-0.5 shrink-0 text-yellow"
+            className="mt-0.5 shrink-0 text-primary"
           />
           <div>
             <p
@@ -186,7 +186,7 @@ export function PersonDetail({
               aria-label={`${person.name} — ${label}`}
               tabIndex={interactive ? undefined : -1}
               onClick={(e) => e.stopPropagation()}
-              className={`flex h-10 w-10 items-center justify-center rounded-pill border-2 transition-[background-color,color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow hover:text-black02 motion-reduce:transform-none ${
+              className={`flex h-10 w-10 items-center justify-center rounded-pill border-2 transition-[background-color,color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary hover:text-black02 motion-reduce:transform-none ${
                 dark
                   ? "border-offwhite/30 text-offwhite"
                   : "border-black02 text-black02"

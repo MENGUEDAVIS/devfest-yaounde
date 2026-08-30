@@ -68,7 +68,7 @@ export function TeamCardStatic({
       <p className="mt-3 text-body-m text-black02/80">
         {member.oneLiner[locale]}
       </p>
-      <p className="mt-3 border-l-4 border-yellow pl-3 text-body-m italic text-black02/75">
+      <p className="mt-3 border-l-4 border-primary pl-3 text-body-m italic text-black02/75">
         {member.icebreakerAnswer[locale]}
       </p>
       {socials.length > 0 && (
@@ -78,7 +78,7 @@ export function TeamCardStatic({
               key={key}
               href={href}
               aria-label={`${member.name} — ${label}`}
-              className="flex h-10 w-10 items-center justify-center rounded-pill border-2 border-black02 text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow motion-reduce:transform-none"
+              className="flex h-10 w-10 items-center justify-center rounded-pill border-2 border-black02 text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary motion-reduce:transform-none"
             >
               <Icon size={20} />
             </a>

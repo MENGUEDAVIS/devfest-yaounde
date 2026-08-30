@@ -135,9 +135,15 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
                   {group}
                 </h2>
               </Reveal>
-              <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
+              {/* `items-start` keeps siblings at their natural height when
+                  one card expands (PHASE10 §5). */}
+              <div className="mt-6 grid grid-cols-1 items-start gap-8 sm:grid-cols-2 xl:grid-cols-3">
                 {people.map((m, i) => (
-                  <Reveal key={m.id} index={i % 3}>
+                  <Reveal
+                    key={m.id}
+                    index={i % 3}
+                    className={focusedId === m.id ? "sm:col-span-2" : ""}
+                  >
                     <TeamCard
                       member={m}
                       open={focusedId === m.id}
@@ -145,6 +151,7 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
                         setFocusedId(focusedId === m.id ? null : m.id)
                       }
                       tilt={TILT[i % TILT.length]}
+                      expandInPlace
                     />
                   </Reveal>
                 ))}

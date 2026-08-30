@@ -23,6 +23,13 @@
       "icebreaker": "Petite question",
       "funny": "Histoire vraie",
       "contribution": "Dans l'équipe"
+    },
+    "theme": {
+      "label": "Thème",
+      "blue": "Bleu",
+      "red": "Rouge",
+      "yellow": "Jaune",
+      "green": "Vert"
     }
   },
   "nav": {
@@ -36,7 +43,8 @@
     "closeMenu": "Fermer le menu",
     "switchToEnglish": "Passer en anglais",
     "switchToFrench": "Passer en français",
-    "skipToContent": "Aller au contenu"
+    "skipToContent": "Aller au contenu",
+    "home": "DevFest Yaoundé — accueil"
   },
   "announcement": {
     "message": "🎟️ Les billets early bird se terminent bientôt — réservez le vôtre avant l'augmentation des prix !",
@@ -84,7 +92,8 @@
       "scrollCue": "Défiler",
       "photoCredit": "Scènes des éditions précédentes",
       "dateLabel": "Quand",
-      "venueLabel": "Où"
+      "venueLabel": "Où",
+      "asciiExit": "Revenir à la normale"
     },
     "about": {
       "title": "C'est quoi, DevFest Yaoundé ?",
@@ -122,7 +131,8 @@
       "kindPanel": "Table ronde",
       "kindBreak": "Pause",
       "allTracks": "Toutes",
-      "allRooms": "Toutes"
+      "allRooms": "Toutes",
+      "parallel": "{count} sessions en parallèle — à toi de choisir"
     },
     "quotes": {
       "title": "Ce qu'on en dit"
@@ -184,8 +194,8 @@
       "catVenue": "Lieu & logistique",
       "catShop": "Boutique & swag",
       "catCodeOfConduct": "Code de conduite",
-      "seeTickets": "Voir les billets",
-      "readConduct": "Lire le code de conduite"
+      "readConduct": "Lire le code de conduite",
+      "jumpLabel": "Aller à"
     },
     "team": {
       "title": "Équipe",

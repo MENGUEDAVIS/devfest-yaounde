@@ -44,11 +44,25 @@ export function GlobalChrome() {
   const pillShape = !bannerOpen;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-3 sm:px-6 sm:pt-5">
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-3 sm:px-6 sm:pt-5">
       <div
+        /*
+         * PHASE10 §2 — the corners now BLEND to the pill instead of snapping.
+         *
+         * The old `rounded-pill` (999px) did animate, but a browser clamps a
+         * border-radius to half the box's height, and the collapsed unit is
+         * only ~78px tall. The specified value passed 39px within the first
+         * frame of a 500ms tween, so every frame after that rendered the same
+         * clamped 39px: a one-frame jump from 24px, i.e. a snap.
+         *
+         * Tweening to 2.5rem instead keeps the specified value in the range
+         * the box can actually render, so the whole 24px -> 40px ramp is
+         * visible. 40px still exceeds half the collapsed height, so the
+         * settled shape is a true pill — and if the nav ever gets taller,
+         * this degrades to a very rounded rectangle rather than breaking.
+         */
+        style={{ borderRadius: pillShape ? "2.5rem" : "1.5rem" }}
         className={`${navSettle} pointer-events-auto w-full max-w-5xl overflow-hidden border-2 border-black02 bg-offwhite transition-[border-radius,box-shadow,transform] duration-500 ease-bouncy ${
-          pillShape ? "rounded-pill" : "rounded-lg"
-        } ${
           scrolled
             ? "shadow-[0_6px_0_0_var(--color-black02)]"
             : "shadow-[0_3px_0_0_var(--color-black02)]"
@@ -70,6 +84,6 @@ export function GlobalChrome() {
 
         <Navbar compact={scrolled} />
       </div>
-    </div>
+    </header>
   );
 }

@@ -14,6 +14,11 @@ export interface FilterLayoutProps {
   /** How many filters are currently active — drives the mobile badge. */
   activeCount?: number;
   onClearAll?: () => void;
+  /**
+   * Heading for the rail and drawer. Defaults to "Filters"; /faqs overrides
+   * it because its rail is a search + jump nav, not a filter set.
+   */
+  title?: string;
   /** Optional controls pinned above the content, e.g. a view toggle. */
   toolbar?: ReactNode;
   children: ReactNode;
@@ -43,10 +48,12 @@ export function FilterLayout({
   filters,
   activeCount = 0,
   onClearAll,
+  title,
   toolbar,
   children,
 }: FilterLayoutProps) {
   const t = useTranslations("common.filters");
+  const heading = title ?? t("title");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
@@ -91,13 +98,33 @@ export function FilterLayout({
   }, [drawerOpen]);
 
   return (
-    <div className="lg:grid lg:grid-cols-[17rem_1fr] lg:gap-14">
-      {/* ---- Desktop: sticky sidebar ---- */}
-      <aside className="hidden lg:block">
-        <div className="sticky top-36 flex flex-col gap-5 rounded-lg border-2 border-black02 bg-offwhite p-6">
+    <>
+      {/* ---- Desktop: rail FLOATING in the margin, outside the flow ---- */}
+      {/*
+        Rail position, left to right: the viewport centre, minus half the
+        content column (38rem), minus a 1.5rem gutter, minus the rail's own
+        14rem width — so its right edge lands exactly one gutter clear of the
+        content, whatever the viewport.
+
+          left = 50vw - 38rem - 1.5rem - 14rem = 50vw - 53.5rem
+
+        That arithmetic also sets the breakpoint. The rail needs its own
+        1.5rem gutter from the screen edge too, so it only fits once
+        50vw - 53.5rem >= 1.5rem, i.e. from 110rem = 1760px up. Below that
+        there is genuinely no margin to float in — and since the content
+        column must NOT narrow to make room (that was the whole point of this
+        rework), narrower viewports get the drawer rather than a rail sitting
+        on top of the content.
+      */}
+      <aside
+        aria-label={heading}
+        className="pointer-events-none fixed left-[calc(50vw-53.5rem)] top-1/2 z-40 hidden w-56 -translate-y-1/2 min-[1760px]:block"
+        style={{ maxHeight: "calc(100svh - var(--chrome-h))" }}
+      >
+        <div className="pointer-events-auto flex max-h-[inherit] flex-col gap-5 overflow-y-auto rounded-lg border-2 border-black02 bg-offwhite p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-sans text-heading-m font-bold text-black02">
-              {t("title")}
+              {heading}
             </h2>
             {activeCount > 0 && onClearAll && (
               <button
@@ -113,34 +140,31 @@ export function FilterLayout({
         </div>
       </aside>
 
-      {/* ---- Main content column ---- */}
-      <div className="min-w-0">
-        <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-          {/* Mobile opener */}
-          <button
-            ref={openerRef}
-            type="button"
-            onClick={() => setDrawerOpen(true)}
-            aria-expanded={drawerOpen}
-            className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none lg:hidden"
-          >
-            <FunnelSimple size={18} weight="bold" aria-hidden />
-            {t("open")}
-            {activeCount > 0 && (
-              <span className="rounded-pill bg-yellow px-2 py-0.5 font-mono text-mono-tag">
-                {activeCount}
-              </span>
-            )}
-          </button>
-          {toolbar}
-        </div>
-
-        {children}
+      {/* ---- Main content: full width, centred, untouched by the rail ---- */}
+      <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
+        <button
+          ref={openerRef}
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          aria-expanded={drawerOpen}
+          className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none min-[1760px]:hidden"
+        >
+          <FunnelSimple size={18} weight="bold" aria-hidden />
+          {t("open")}
+          {activeCount > 0 && (
+            <span className="rounded-pill bg-primary px-2 py-0.5 font-mono text-mono-tag">
+              {activeCount}
+            </span>
+          )}
+        </button>
+        {toolbar}
       </div>
 
-      {/* ---- Mobile: bottom drawer ---- */}
+      {children}
+
+      {/* ---- Narrow viewports: bottom drawer ---- */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-100 lg:hidden">
+        <div className="fixed inset-0 z-100 min-[1760px]:hidden">
           <div
             aria-hidden
             onClick={() => setDrawerOpen(false)}
@@ -150,7 +174,7 @@ export function FilterLayout({
             ref={panelRef}
             role="dialog"
             aria-modal="true"
-            aria-label={t("title")}
+            aria-label={heading}
             onPointerDown={(e) => {
               dragStart.current = e.clientY;
             }}
@@ -173,13 +197,13 @@ export function FilterLayout({
             />
             <div className="mb-6 flex items-center justify-between gap-3">
               <h2 className="font-sans text-heading-l font-bold text-black02">
-                {t("title")}
+                {heading}
               </h2>
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
                 aria-label={t("close")}
-                className="rounded-pill border-2 border-black02 p-1.5 text-black02 transition-colors hover:bg-yellow"
+                className="rounded-pill border-2 border-black02 p-1.5 text-black02 transition-colors hover:bg-primary"
               >
                 <X size={20} weight="bold" />
               </button>
@@ -191,7 +215,7 @@ export function FilterLayout({
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="flex-1 rounded-pill border-2 border-black02 bg-yellow px-6 py-3 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)]"
+                className="flex-1 rounded-pill border-2 border-black02 bg-primary px-6 py-3 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)]"
               >
                 {t("done")}
               </button>
@@ -208,6 +232,6 @@ export function FilterLayout({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

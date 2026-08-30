@@ -58,7 +58,7 @@ export function QuotesInterstitial() {
             aria-label={`${i + 1}`}
             aria-current={i === index}
             className={`h-3.5 rounded-pill border-2 border-black02 transition-[width,background-color] duration-300 ease-bouncy ${
-              i === index ? "w-10 bg-yellow" : "w-3.5 bg-transparent"
+              i === index ? "w-10 bg-primary" : "w-3.5 bg-transparent"
             }`}
           />
         ))}

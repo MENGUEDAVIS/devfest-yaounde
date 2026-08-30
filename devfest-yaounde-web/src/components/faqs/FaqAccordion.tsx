@@ -1,14 +1,20 @@
 "use client";
 
+import { ArrowRight } from "@phosphor-icons/react";
 import { useLocale } from "next-intl";
 import type { ReactNode } from "react";
+import { Link } from "@/i18n/navigation";
 import type { FaqItem } from "@/data/types";
 
 export interface FaqAccordionProps {
   faq: FaqItem;
   open: boolean;
   onToggle: () => void;
-  /** Optional trailing content, e.g. a contextual link. */
+  /**
+   * Escape hatch for trailing content the CONTENT can't express — currently
+   * just the code-of-conduct link, whose URL lives in site-config because it
+   * is still an unconfirmed placeholder. Authored CTAs use `faq.cta`.
+   */
   children?: ReactNode;
 }
 
@@ -56,7 +62,7 @@ export function FaqAccordion({
         <span
           aria-hidden
           className={`faq-glyph h-9 w-9 shrink-0 rounded-pill border-2 border-black02 font-sans text-heading-m font-bold leading-none ${
-            open ? "bg-yellow text-black02" : "bg-transparent text-black02/70"
+            open ? "bg-primary text-black02" : "bg-transparent text-black02/70"
           }`}
         >
           <span className="faq-glyph-a">?</span>
@@ -76,6 +82,32 @@ export function FaqAccordion({
             className="px-6 pb-6 text-body-l text-black02/80 sm:px-7"
           >
             {faq.answer[locale]}
+
+            {/*
+              Optional CTA (PHASE10 §8) — rendered only when the item actually
+              carries one, so answers without a useful next step stay clean.
+              Internal hrefs go through the locale-aware Link so the CTA never
+              drops the visitor out of their language.
+            */}
+            {faq.cta &&
+              (faq.cta.external ? (
+                <a
+                  href={faq.cta.href}
+                  className="faq-cta mt-5 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
+                >
+                  {faq.cta.label[locale]}
+                  <ArrowRight size={16} weight="bold" aria-hidden />
+                </a>
+              ) : (
+                <Link
+                  href={faq.cta.href}
+                  className="faq-cta mt-5 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
+                >
+                  {faq.cta.label[locale]}
+                  <ArrowRight size={16} weight="bold" aria-hidden />
+                </Link>
+              ))}
+
             {children}
           </div>
         </div>

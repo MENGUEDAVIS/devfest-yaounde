@@ -16,7 +16,7 @@ export function LanguageSwitcher() {
       aria-label={
         nextLocale === "en" ? t("switchToEnglish") : t("switchToFrench")
       }
-      className="rounded-pill border-2 border-black02 px-3 py-1.5 font-mono text-caption font-bold text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow-halftone active:translate-y-0.5"
+      className="rounded-pill border-2 border-black02 px-3 py-1.5 font-mono text-caption font-bold text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-halftone active:translate-y-0.5"
     >
       {nextLocale.toUpperCase()}
     </Link>

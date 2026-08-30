@@ -9,6 +9,13 @@
     "answer": {
       "fr": "Oui — même notre billet gratuit nécessite une réservation, pour qu'on puisse bien organiser la salle. Direction la page Billets pour récupérer le vôtre.",
       "en": "Yes — even our free tier needs a ticket so we can plan the room properly. Head to the Tickets page to grab yours."
+    },
+    "cta": {
+      "label": {
+        "fr": "Prendre un billet",
+        "en": "Get a ticket"
+      },
+      "href": "/tickets"
     }
   },
   {
@@ -21,6 +28,13 @@
     "answer": {
       "fr": "Tout à fait. DevFest Yaoundé s'adresse à toute personne curieuse de construire des choses, pas seulement aux ingénieurs expérimentés — aucune expérience de conférence requise.",
       "en": "Very. DevFest Yaoundé is for anyone curious about building things, not just senior engineers — no prior conference experience required."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir les speakers",
+        "en": "Meet the speakers"
+      },
+      "href": "/speakers"
     }
   },
   {
@@ -45,6 +59,13 @@
     "answer": {
       "fr": "Les tarifs ne sont pas encore finalisés. Il y aura un palier gratuit et plusieurs paliers payants avec du swag — tout sera détaillé sur la page Billets.",
       "en": "Pricing isn't finalised yet. There'll be a free tier plus a few paid tiers with swag — full details will land on the Tickets page."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir les tarifs",
+        "en": "See ticket tiers"
+      },
+      "href": "/tickets"
     }
   },
   {
@@ -69,6 +90,13 @@
     "answer": {
       "fr": "À Yaoundé — le lieu exact sera annoncé à l'approche de la date.",
       "en": "In Yaoundé — exact venue details will be announced closer to the date."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir le programme",
+        "en": "See the schedule"
+      },
+      "href": "/schedule"
     }
   },
   {
@@ -105,6 +133,13 @@
     "answer": {
       "fr": "La logistique de livraison n'est pas encore arrêtée. Le retrait sur place le jour J sera possible dans tous les cas.",
       "en": "Shipping logistics aren't settled yet. Pickup at the venue on the day will always be an option."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir la boutique",
+        "en": "Browse the shop"
+      },
+      "href": "/shop"
     }
   },
   {

@@ -51,7 +51,7 @@ export function AnnouncementBanner({
       // dismiss button inside a zero-height box.
       aria-hidden={hidden}
       inert={hidden}
-      className="relative flex items-center gap-3 border-b-2 border-black02 bg-yellow px-4 py-2.5 text-black02"
+      className="relative flex items-center gap-3 border-b-2 border-black02 bg-primary px-4 py-2.5 text-black02"
     >
       {/* Hidden probe: natural single-copy width, never animated */}
       <span

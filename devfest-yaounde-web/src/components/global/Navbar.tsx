@@ -54,15 +54,23 @@ export function Navbar({ compact }: { compact: boolean }) {
       }`}
     >
       <div className="flex items-center justify-between gap-3">
-        <button
-          type="button"
+        {/*
+          PHASE10 §10: the logo is a real link home, which is where every
+          visitor expects a site logo to go — as a <button> it was a
+          dead end on every inner page. The confetti easter egg rides along
+          on the same click handler: repeated clicks still count, and on
+          the home page they navigate nowhere, so the egg is unaffected.
+        */}
+        <Link
+          href="/"
           onClick={handleLogoClick}
+          aria-label={t("home")}
           className="logo-interactive relative flex shrink-0 items-center gap-2.5 whitespace-nowrap font-sans text-heading-m font-bold text-black02 transition-transform duration-200 ease-bouncy hover:scale-105"
         >
           <DevFestLogo className="h-6 w-auto shrink-0" />
           DevFest Yaoundé
           {showConfetti && <ConfettiBurst />}
-        </button>
+        </Link>
 
         <div className="hidden min-w-0 items-center gap-4 lg:flex xl:gap-6">
           {NAV_LINKS.map((link) => {
@@ -71,7 +79,7 @@ export function Navbar({ compact }: { compact: boolean }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`relative whitespace-nowrap py-1 font-sans text-body-m font-bold transition-colors duration-200 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-1 after:origin-left after:rounded-pill after:bg-yellow after:transition-transform after:duration-300 after:ease-out-devfest hover:text-black02 ${
+                className={`relative whitespace-nowrap py-1 font-sans text-body-m font-bold transition-colors duration-200 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-1 after:origin-left after:rounded-pill after:bg-primary after:transition-transform after:duration-300 after:ease-out-devfest hover:text-black02 ${
                   isActive
                     ? "text-black02 after:scale-x-100"
                     : "text-black02/70 after:scale-x-0 hover:after:scale-x-100"
@@ -87,13 +95,13 @@ export function Navbar({ compact }: { compact: boolean }) {
           <LanguageSwitcher />
           <Link
             href="/shop"
-            className="whitespace-nowrap rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow-pastel active:translate-y-0.5"
+            className="whitespace-nowrap rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-pastel active:translate-y-0.5"
           >
             {t("shop")}
           </Link>
           <Link
             href="/tickets"
-            className="whitespace-nowrap rounded-pill border-2 border-black02 bg-yellow px-4 py-2 font-sans text-body-m font-bold text-black02 shadow-[0_3px_0_0_var(--color-black02)] transition-[transform,box-shadow,background-color] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow-halftone hover:shadow-[0_5px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none"
+            className="whitespace-nowrap rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02 shadow-[0_3px_0_0_var(--color-black02)] transition-[transform,box-shadow,background-color] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-halftone hover:shadow-[0_5px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none"
           >
             {t("tickets")}
           </Link>
@@ -127,7 +135,7 @@ export function Navbar({ compact }: { compact: boolean }) {
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
                 tabIndex={mobileOpen ? undefined : -1}
-                className="rounded-md px-2 py-2 font-sans text-body-l font-bold text-black02 transition-colors hover:bg-yellow-pastel"
+                className="rounded-md px-2 py-2 font-sans text-body-l font-bold text-black02 transition-colors hover:bg-pastel"
               >
                 {t(link.key)}
               </Link>
@@ -146,7 +154,7 @@ export function Navbar({ compact }: { compact: boolean }) {
                 href="/tickets"
                 onClick={() => setMobileOpen(false)}
                 tabIndex={mobileOpen ? undefined : -1}
-                className="rounded-pill border-2 border-black02 bg-yellow px-4 py-2 font-sans text-body-m font-bold text-black02"
+                className="rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02"
               >
                 {t("tickets")}
               </Link>

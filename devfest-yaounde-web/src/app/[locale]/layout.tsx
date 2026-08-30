@@ -8,6 +8,7 @@ import { Footer } from "@/components/global/Footer";
 import { GlobalChrome } from "@/components/global/GlobalChrome";
 import { SmoothScrollProvider } from "@/components/global/SmoothScrollProvider";
 import { routing } from "@/i18n/routing";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "../globals.css";
 
 const googleSans = Google_Sans({
@@ -51,7 +52,22 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       className={`${googleSans.variable} ${googleSansCode.variable} h-full antialiased`}
+      // The pre-paint script above sets data-theme here before hydration,
+      // so <html>'s attributes legitimately differ from the server render.
+      suppressHydrationWarning
     >
+      <head>
+        {/*
+          Applies the saved theme BEFORE first paint, so a visitor who chose
+          e.g. Blue never sees a flash of the default Yellow. Has to be a raw
+          inline script for that ordering — a client component would run
+          after hydration, far too late. Content is built from a fixed
+          allow-list in @/lib/theme, never from user input.
+        */}
+        <script
+          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
+        />
+      </head>
       {/*
         suppressHydrationWarning is scoped to <body> ONLY, and only because
         browser extensions (Grammarly is the confirmed culprit here — it

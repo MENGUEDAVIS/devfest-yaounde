@@ -28,12 +28,83 @@
   --color-black02: #1e1e1e;
 
   /*
-   * Base theme — DESIGN.md §2.5. Yellow leads everywhere; the page ground is
-   * the warm Pastel Yellow wash, NOT off-white. Blue/green/red are demoted to
-   * sparing semantic accents. Do not swap this to a per-page color (§2.7).
+   * Translucent variants. `scrollbar-color` takes plain colours only — it
+   * accepts no `/ alpha` shorthand and no Tailwind opacity utility — so the
+   * shared scrollbar language (§4) needs these as real tokens.
    */
-  --background: var(--color-yellow-pastel);
+  --color-black02-40: rgb(30 30 30 / 0.4);
+  --color-offwhite-45: rgb(240 240 240 / 0.45);
+
+  /*
+   * ========================================================================
+   * SWAPPABLE DOMINANT THEME — DESIGN.md §2.5
+   * ========================================================================
+   * ONE dominant family at a time. Yellow is the DEFAULT, not the only
+   * option: the footer switcher rewrites these three values to repaint the
+   * whole site (Blue / Red / Yellow / Green).
+   *
+   * Components must reference --color-primary / --color-halftone /
+   * --color-pastel (via the bg-primary / bg-halftone / bg-pastel utilities),
+   * NEVER a family hex or a bg-yellow-* class. A hardcoded family colour is
+   * a bug: the theme switch will visibly miss it.
+   *
+   * The per-family raw values above stay defined because the FIXED SEMANTIC
+   * tokens below need them, and because the switcher UI shows all four.
+   */
+  --color-primary: var(--color-yellow);
+  --color-halftone: var(--color-yellow-halftone);
+  --color-pastel: var(--color-yellow-pastel);
+
+  /*
+   * FIXED SEMANTIC STATUS TOKENS — deliberately NOT themed (§2.5).
+   * Green must keep meaning success/in-stock and red must keep meaning
+   * urgency/error, whichever family is dominant. If these followed the
+   * theme, a Red theme would make the whole site read as an error state and
+   * a Green theme would make everything look like a confirmation.
+   */
+  --color-success: var(--color-green);
+  --color-success-pastel: var(--color-green-pastel);
+  --color-danger: var(--color-red);
+  --color-danger-pastel: var(--color-red-pastel);
+
+  --background: var(--color-pastel);
   --foreground: var(--color-black02);
+
+  /*
+   * Vertical space the fixed navbar+banner chrome occupies, including its
+   * top offset. The floating filter rail subtracts this from its max height
+   * so it can never grow up behind the chrome (PHASE10 §1) — the old
+   * `sticky top-*` rail did exactly that.
+   */
+  --chrome-h: 12rem;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --chrome-h: 13rem;
+  }
+}
+
+/* Theme overrides — one attribute on <html> repaints the entire site. */
+:root[data-theme="blue"] {
+  --color-primary: var(--color-blue);
+  --color-halftone: var(--color-blue-halftone);
+  --color-pastel: var(--color-blue-pastel);
+}
+:root[data-theme="red"] {
+  --color-primary: var(--color-red);
+  --color-halftone: var(--color-red-halftone);
+  --color-pastel: var(--color-red-pastel);
+}
+:root[data-theme="yellow"] {
+  --color-primary: var(--color-yellow);
+  --color-halftone: var(--color-yellow-halftone);
+  --color-pastel: var(--color-yellow-pastel);
+}
+:root[data-theme="green"] {
+  --color-primary: var(--color-green);
+  --color-halftone: var(--color-green-halftone);
+  --color-pastel: var(--color-green-pastel);
 }
 
 @theme inline {
@@ -55,6 +126,17 @@
   --color-offwhite: var(--color-offwhite);
   --color-black02: var(--color-black02);
 
+  /* Themeable dominant family — what components should actually use */
+  --color-primary: var(--color-primary);
+  --color-halftone: var(--color-halftone);
+  --color-pastel: var(--color-pastel);
+
+  /* Fixed status colours — never themed */
+  --color-success: var(--color-success);
+  --color-success-pastel: var(--color-success-pastel);
+  --color-danger: var(--color-danger);
+  --color-danger-pastel: var(--color-danger-pastel);
+
   /*
    * Real families loaded via next/font/google in src/app/[locale]/layout.tsx
    * (CSS variables --font-google-sans / --font-google-sans-code), with the
@@ -70,18 +152,24 @@
   /*
    * Type scale — DESIGN.md §1.2, with §7b's boldness bar applied:
    * display-xl (72px) is the FLOOR, so the hero uses display-hero which
-   * scales fluidly to 120px on large screens. Tightened tracking keeps
-   * huge display type from feeling loose.
+   * scales fluidly to 120px on large screens.
+   *
+   * PHASE10 §10 tightened these further. Letter-spacing that reads as normal
+   * at 16px reads as loose at 120px — optically, tracking should shrink as
+   * size grows — and the display sizes were still carrying gaps wide enough
+   * to break a headline into separate letters instead of one word-shape.
+   * Note the utilities were ALSO removed at the call sites: `tracking-tight`
+   * is -0.025em, so it was overriding these tokens with a LOOSER value.
    */
   --text-display-hero: clamp(2.75rem, 8vw, 7.5rem); /* 44px → 120px */
   --text-display-hero--line-height: 0.95;
-  --text-display-hero--letter-spacing: -0.03em;
+  --text-display-hero--letter-spacing: -0.045em;
   --text-display-xl: clamp(2.75rem, 5.5vw, 4.5rem); /* 44px → 72px */
   --text-display-xl--line-height: 1.05;
-  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-xl--letter-spacing: -0.035em;
   --text-display-l: clamp(2.25rem, 4vw, 3rem); /* 36px → 48px */
   --text-display-l--line-height: 1.1;
-  --text-display-l--letter-spacing: -0.02em;
+  --text-display-l--letter-spacing: -0.03em;
   --text-heading-l: 32px;
   --text-heading-l--line-height: 1.2;
   --text-heading-m: 24px;
@@ -120,7 +208,7 @@ body {
 
 /* Text selection, yellow-family instead of the browser's default blue */
 ::selection {
-  background: var(--color-yellow-halftone);
+  background: var(--color-halftone);
   color: var(--color-black02);
 }
 
@@ -148,9 +236,55 @@ html.has-overlay-scrollbar::-webkit-scrollbar {
   height: 0;
 }
 
-/* Native scrollbar theming — the fallback when the overlay isn't active */
+/*
+ * ONE scrollbar language everywhere — PHASE10 §4.
+ *
+ * The root overlay bar (FloatingScrollbar) is a floating pill with a subtle
+ * border. Nested scroll areas — the filter rail, the mobile drawer, modals,
+ * the expanded person card — can't use that overlay (it tracks the document
+ * scroller), so they get the SAME look from native scrollbar styling:
+ * transparent track so the bar floats over content, pill thumb, subtle
+ * border. Applied to `*` rather than to opt-in classes, so a scroll area
+ * added later inherits the language instead of silently falling back to the
+ * OS default.
+ *
+ * `html` is exempted: the root scroller is either the overlay's (hidden) or
+ * the themed fallback below.
+ */
+*:not(html) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-black02-40) transparent;
+}
+*:not(html)::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*:not(html)::-webkit-scrollbar-track {
+  background: transparent;
+}
+*:not(html)::-webkit-scrollbar-thumb {
+  background-clip: content-box; /* keeps the inset so the pill reads as floating */
+  background-color: var(--color-black02-40);
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+}
+*:not(html)::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-black02);
+}
+/* On dark surfaces (the expanded person card) the same pill inverts. */
+.scroll-on-dark {
+  scrollbar-color: var(--color-offwhite-45) transparent;
+}
+.scroll-on-dark::-webkit-scrollbar-thumb {
+  background-color: var(--color-offwhite-45);
+}
+.scroll-on-dark::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-offwhite);
+}
+
+/* Native root scrollbar theming — the fallback when the overlay isn't active */
 html:not(.has-overlay-scrollbar) {
-  scrollbar-color: var(--color-yellow) var(--color-yellow-pastel);
+  scrollbar-color: var(--color-primary) var(--color-pastel);
   scrollbar-width: auto;
 }
 html:not(.has-overlay-scrollbar)::-webkit-scrollbar {
@@ -158,20 +292,20 @@ html:not(.has-overlay-scrollbar)::-webkit-scrollbar {
   height: 14px;
 }
 html:not(.has-overlay-scrollbar)::-webkit-scrollbar-track {
-  background: var(--color-yellow-pastel);
+  background: var(--color-pastel);
 }
 html:not(.has-overlay-scrollbar)::-webkit-scrollbar-thumb {
-  background: var(--color-yellow);
-  border: 3px solid var(--color-yellow-pastel);
+  background: var(--color-primary);
+  border: 3px solid var(--color-pastel);
   border-radius: var(--radius-pill);
 }
 html:not(.has-overlay-scrollbar)::-webkit-scrollbar-thumb:hover {
-  background: var(--color-yellow-halftone);
+  background: var(--color-halftone);
 }
 
 /* Focus ring, yellow-family and always visible for keyboard users */
 :focus-visible {
-  outline: 3px solid var(--color-yellow);
+  outline: 3px solid var(--color-primary);
   outline-offset: 3px;
   border-radius: var(--radius-sm);
 }

@@ -6,7 +6,7 @@ import { confettiPiece, confettiPieceStyle } from "@/lib/motion";
 const COLORS = [
   "bg-blue-halftone",
   "bg-green-halftone",
-  "bg-yellow-halftone",
+  "bg-halftone",
   "bg-red-halftone",
 ];
 

@@ -1,31 +1,32 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 
-export type ButtonTone = "yellow" | "black02" | "offwhite" | "blue" | "green";
+export type ButtonTone = "primary" | "black02" | "offwhite" | "blue" | "success";
 export type ButtonVariant = "primary" | "secondary";
 export type ButtonSize = "lg" | "md";
 export type ButtonRadius = "pill" | "lg";
 
 /**
- * Yellow is the default and the dominant brand tone (DESIGN.md §2.5).
- * Blue/green stay available for the sparing semantic cases only — don't
- * reach for them just to make a section look different.
+ * `primary` follows the ACTIVE THEME and is the default (DESIGN.md §2.5).
+ * `success` is a FIXED status colour, not themed. Blue stays available for
+ * the sparing semantic case only — don't reach for it to make a section
+ * look different.
  */
 const FILLED_CLASSES: Record<ButtonTone, string> = {
-  yellow: "bg-yellow text-black02 hover:bg-yellow-halftone",
+  primary: "bg-primary text-black02 hover:bg-halftone",
   black02: "bg-black02 text-offwhite hover:bg-black02/90",
-  offwhite: "bg-offwhite text-black02 hover:bg-yellow-halftone",
+  offwhite: "bg-offwhite text-black02 hover:bg-halftone",
   blue: "bg-blue text-offwhite hover:bg-blue-halftone hover:text-black02",
-  green: "bg-green text-offwhite hover:bg-green-halftone hover:text-black02",
+  success: "bg-success text-offwhite hover:bg-green-halftone hover:text-black02",
 };
 
 const OUTLINE_CLASSES: Record<ButtonTone, string> = {
-  yellow: "border-black02 text-black02 hover:bg-yellow",
+  primary: "border-black02 text-black02 hover:bg-primary",
   black02: "border-black02 text-black02 hover:bg-black02 hover:text-offwhite",
   offwhite:
     "border-offwhite text-offwhite hover:bg-offwhite hover:text-black02",
   blue: "border-blue text-blue hover:bg-blue hover:text-offwhite",
-  green: "border-green text-green hover:bg-green hover:text-offwhite",
+  success: "border-success text-success hover:bg-success hover:text-offwhite",
 };
 
 /** §7b: chunky. ~18-24px vertical, ~32-40px horizontal, 18px+ bold label. */
@@ -71,7 +72,7 @@ export type ButtonProps = ButtonAsLink | ButtonAsButton;
  * press, so the motion is actually felt (§7c).
  */
 export function Button({
-  tone = "yellow",
+  tone = "primary",
   variant = "primary",
   size = "lg",
   radius = "pill",

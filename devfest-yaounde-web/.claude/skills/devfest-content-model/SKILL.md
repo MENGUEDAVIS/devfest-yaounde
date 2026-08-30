@@ -75,12 +75,21 @@ interface Session {
   title: LocalizedString;
   description: LocalizedString;
   track: LocalizedString;
-  room: LocalizedString;
+  room: LocalizedString; // ALSO distinguishes parallel sessions — see below
   tags: LocalizedString[];
   bring?: LocalizedString; // e.g. "bring a laptop" — only rendered when present
   provided?: LocalizedString;
   speakerIds: string[];
 }
+
+// PARALLEL TRACKS have no field of their own. Two sessions with the same
+// `day` + `time` ARE a parallel slot, and `room` is what tells them apart.
+// The board groups by timeslot and renders concurrent sessions as side-by-side
+// columns (timeline) or a nested list (list view).
+//
+// So: to add a parallel session, give it the same day and time as an existing
+// one and a DIFFERENT room. Do NOT add a slotId — it would duplicate the
+// times it derives from, and the two could drift apart.
 
 interface TicketTier {
   id: string; // e.g. "haikyu", "sonnet" — rendered in mono-tag style
@@ -125,7 +134,17 @@ interface FaqItem {
   id: string;
   category: "general" | "tickets" | "venue" | "shop" | "code-of-conduct";
   question: LocalizedString;
-  answer: LocalizedString; // can contain links (e.g. pricing Q -> /tickets)
+  answer: LocalizedString;
+  // Optional call to action on the answer, rendered as a filled pill button.
+  // PER ITEM, not per category: the useful next step differs between two
+  // questions in the same category. Omit it when there is no real next step —
+  // an answer with no CTA renders no button, which is the common case.
+  // `href` goes through the locale-aware Link unless `external` is set.
+  cta?: {
+    label: LocalizedString;
+    href: string;
+    external?: boolean;
+  };
 }
 
 type LocalizedString = { fr: string; en: string };
@@ -186,8 +205,8 @@ All placeholder content for these (and `Speaker`) lives under `src/data/*.json` 
 
 ## Page-specific structure notes
 
-- **Schedule**: day tabs + view toggle (Structured/timeline = hero experience; Grid/List = first-class a11y citizen, not an afterthought). Filters by track/room. Session card: time, title, one-liner, speaker avatar+name (→ modal), track tag, room. Add-to-calendar per session. Empty state keeps brand voice ("Schedule's still cooking — check back soon").
-- **Speakers**: grid (morphed-frame photo, name, role+company, social icons), search + track/day filter, consistent card size regardless of bio length (bio lives in modal only). Modal shared with Home preview, deep-linkable via query param, opens with a shared-element "grow from card" transition.
+- **Schedule**: day tabs (fully rounded in every state, including active) + view toggle (Structured/timeline = hero experience; Grid/List = first-class a11y citizen, not an afterthought). **Parallel tracks**: same day + time = one timeslot, rendered as side-by-side columns in the timeline and a nested list in list view. Filters by track/room. Session card: time, title, one-liner, speaker avatar+name (→ modal), track tag, room. Add-to-calendar per session. Empty state keeps brand voice ("Schedule's still cooking — check back soon").
+- **Speakers**: grid (morphed-frame photo, name, role+company, social icons) that keeps **4 columns** — the floating filter rail takes no width from it. Opening a card **expands it in place** (widens to two columns, detail beside the photo) rather than inner-scrolling. Search + track/day filter. The alternative view is a **vertical cinema slider** (prev/next foreshadowed above/below, momentum drag on mouse/pen). Deep-linkable via query param.
 - **FAQs**: accordions grouped by category (General / Tickets & Pricing / Venue & Logistics / Shop-Swag / Code of Conduct), live search filter, short conversational answers.
 - **Team**: grouped by sub-team if org chart supports it, else one grid. Optional Alumni/Past Organizers section lower on page.
 - **Tickets**: 5-step flow — (1) tier select + quantity, (2) per-attendee details (name/email/+size if apparel tier, "Ticket N of M" indicator), (3) optional discount code, (4) payment (Mobile Money lead, card secondary — provider TBD per `0003-payments-and-auth.md`), (5) confirmation (celebratory animation + email receipt + QR/badge code). Sticky order summary steps 1-4. Requires shared account for "My Tickets" dashboard.

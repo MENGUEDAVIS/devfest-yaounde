@@ -94,7 +94,7 @@ export function SpeakerShowcase() {
   }, [reduceMotion, paused, openId]);
 
   return (
-    <section className="overflow-hidden bg-yellow-pastel py-24 sm:py-32 lg:py-40">
+    <section className="overflow-hidden bg-pastel py-24 sm:py-32 lg:py-40">
       {/* Heading stays within the normal page measure */}
       <div className="mx-auto max-w-6xl px-5 sm:px-8">
         <Reveal>
@@ -112,7 +112,7 @@ export function SpeakerShowcase() {
                 type="button"
                 onClick={() => go(-1)}
                 aria-label={t("prev")}
-                className="flex h-14 w-14 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow hover:shadow-[0_6px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none"
+                className="flex h-14 w-14 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary hover:shadow-[0_6px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none"
               >
                 <CaretLeft size={24} weight="bold" />
               </button>
@@ -120,7 +120,7 @@ export function SpeakerShowcase() {
                 type="button"
                 onClick={() => go(1)}
                 aria-label={t("next")}
-                className="flex h-14 w-14 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-yellow hover:shadow-[0_6px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none"
+                className="flex h-14 w-14 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary hover:shadow-[0_6px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none"
               >
                 <CaretRight size={24} weight="bold" />
               </button>

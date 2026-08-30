@@ -163,14 +163,26 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
           emptyLabel={t("noResults")}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
+        /*
+         * 4 columns at xl — the floating filter rail takes no width from the
+         * grid (PHASE10 §1). `items-start` matters: without it every card in
+         * a row stretches to match an expanded neighbour.
+         */
+        <div className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {visible.map((s, i) => (
-            <Reveal key={s.id} index={i % 3}>
+            <Reveal
+              key={s.id}
+              index={i % 3}
+              /* The Reveal IS the grid item, so the expanded card's column
+                 span has to live here, not on the card. */
+              className={focusedId === s.id ? "sm:col-span-2" : ""}
+            >
               <SpeakerCard
                 speaker={s}
                 open={focusedId === s.id}
                 onToggle={() => toggleCard(s.id)}
                 tilt={TILT[i % TILT.length]}
+                expandInPlace
               />
             </Reveal>
           ))}

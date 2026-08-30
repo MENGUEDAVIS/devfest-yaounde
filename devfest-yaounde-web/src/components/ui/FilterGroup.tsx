@@ -95,8 +95,8 @@ export function FilterGroup({
                   onClick={() => onSelect(opt.value)}
                   className={`rounded-pill border-2 border-black02 px-3.5 py-1.5 font-mono text-mono-tag font-bold uppercase tracking-wide transition-[transform,background-color] duration-200 ease-bouncy hover:-translate-y-0.5 motion-reduce:transform-none ${
                     active
-                      ? "bg-yellow text-black02"
-                      : "bg-transparent text-black02/70 hover:bg-yellow-pastel"
+                      ? "bg-primary text-black02"
+                      : "bg-transparent text-black02/70 hover:bg-pastel"
                   }`}
                 >
                   {opt.label}

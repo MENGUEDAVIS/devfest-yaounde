@@ -13,11 +13,23 @@
       "fr": "Espace réservé — la keynote d'ouverture donnera le ton de la journée. Le vrai titre et le vrai résumé arrivent une fois le programme bouclé.",
       "en": "Placeholder — the opening keynote sets the tone for the day. Real title and abstract land once the programme is locked."
     },
-    "track": { "fr": "Keynote", "en": "Keynote" },
-    "room": { "fr": "Grande salle", "en": "Main hall" },
+    "track": {
+      "fr": "Keynote",
+      "en": "Keynote"
+    },
+    "room": {
+      "fr": "Grande salle",
+      "en": "Main hall"
+    },
     "tags": [
-      { "fr": "Tous niveaux", "en": "All levels" },
-      { "fr": "Ouverture", "en": "Opening" }
+      {
+        "fr": "Tous niveaux",
+        "en": "All levels"
+      },
+      {
+        "fr": "Ouverture",
+        "en": "Opening"
+      }
     ],
     "speakerIds": ["jane-doe"]
   },
@@ -35,13 +47,55 @@
       "fr": "Espace réservé — une session sur la mise en production de modèles, avec de vrais compromis et de vraies pannes.",
       "en": "Placeholder — a session on shipping models to production, with real tradeoffs and real failures."
     },
-    "track": { "fr": "IA", "en": "AI" },
-    "room": { "fr": "Grande salle", "en": "Main hall" },
+    "track": {
+      "fr": "IA",
+      "en": "AI"
+    },
+    "room": {
+      "fr": "Grande salle",
+      "en": "Main hall"
+    },
     "tags": [
-      { "fr": "Intermédiaire", "en": "Intermediate" },
-      { "fr": "Démo live", "en": "Live demo" }
+      {
+        "fr": "Intermédiaire",
+        "en": "Intermediate"
+      },
+      {
+        "fr": "Démo live",
+        "en": "Live demo"
+      }
     ],
     "speakerIds": ["amara-nwosu"]
+  },
+  {
+    "id": "s1-mobile",
+    "time": "11:00",
+    "durationMin": 40,
+    "day": 1,
+    "kind": "talk",
+    "title": {
+      "fr": "Titre de session à venir",
+      "en": "Session title coming soon"
+    },
+    "description": {
+      "fr": "Espace réservé — session parallèle. Le vrai titre et le vrai résumé arrivent une fois le programme bouclé.",
+      "en": "Placeholder — parallel session. Real title and abstract land once the programme is locked."
+    },
+    "track": {
+      "fr": "Mobile",
+      "en": "Mobile"
+    },
+    "room": {
+      "fr": "Salle B",
+      "en": "Room B"
+    },
+    "tags": [
+      {
+        "fr": "Intermédiaire",
+        "en": "Intermediate"
+      }
+    ],
+    "speakerIds": ["john-doe"]
   },
   {
     "id": "s1-workshop",
@@ -57,11 +111,23 @@
       "fr": "Espace réservé — un atelier où l'on construit vraiment quelque chose ensemble, pas une démo qu'on regarde.",
       "en": "Placeholder — a workshop where we actually build something together, not a demo you watch."
     },
-    "track": { "fr": "Atelier", "en": "Workshop" },
-    "room": { "fr": "Labo", "en": "Lab" },
+    "track": {
+      "fr": "Atelier",
+      "en": "Workshop"
+    },
+    "room": {
+      "fr": "Labo",
+      "en": "Lab"
+    },
     "tags": [
-      { "fr": "Places limitées", "en": "Limited seats" },
-      { "fr": "Pratique", "en": "Hands-on" }
+      {
+        "fr": "Places limitées",
+        "en": "Limited seats"
+      },
+      {
+        "fr": "Pratique",
+        "en": "Hands-on"
+      }
     ],
     "bring": {
       "fr": "Ton laptop, chargé, avec Node 20+ installé.",
@@ -72,6 +138,36 @@
       "en": "We provide wifi, power strips and coffee."
     },
     "speakerIds": ["kwame-asante"]
+  },
+  {
+    "id": "s1-devops",
+    "time": "11:50",
+    "durationMin": 40,
+    "day": 1,
+    "kind": "talk",
+    "title": {
+      "fr": "Titre de session à venir",
+      "en": "Session title coming soon"
+    },
+    "description": {
+      "fr": "Espace réservé — session parallèle. Le vrai titre et le vrai résumé arrivent une fois le programme bouclé.",
+      "en": "Placeholder — parallel session. Real title and abstract land once the programme is locked."
+    },
+    "track": {
+      "fr": "Cloud",
+      "en": "Cloud"
+    },
+    "room": {
+      "fr": "Grande salle",
+      "en": "Main hall"
+    },
+    "tags": [
+      {
+        "fr": "Avancé",
+        "en": "Advanced"
+      }
+    ],
+    "speakerIds": []
   },
   {
     "id": "s1-lunch",
@@ -87,9 +183,20 @@
       "fr": "La partie où l'on rencontre des gens. Sérieusement — les meilleures conversations de la journée se passent ici.",
       "en": "The bit where you meet people. Genuinely — the best conversations of the day happen here."
     },
-    "track": { "fr": "Pause", "en": "Break" },
-    "room": { "fr": "Hall", "en": "Foyer" },
-    "tags": [{ "fr": "Repas inclus", "en": "Food included" }],
+    "track": {
+      "fr": "Pause",
+      "en": "Break"
+    },
+    "room": {
+      "fr": "Hall",
+      "en": "Foyer"
+    },
+    "tags": [
+      {
+        "fr": "Repas inclus",
+        "en": "Food included"
+      }
+    ],
     "speakerIds": []
   },
   {
@@ -106,10 +213,55 @@
       "fr": "Espace réservé — plusieurs praticiens, un sujet, des désaccords assumés. Questions du public bienvenues.",
       "en": "Placeholder — several practitioners, one topic, genuine disagreement. Audience questions welcome."
     },
-    "track": { "fr": "Communauté", "en": "Community" },
-    "room": { "fr": "Grande salle", "en": "Main hall" },
-    "tags": [{ "fr": "Questions du public", "en": "Audience Q&A" }],
+    "track": {
+      "fr": "Communauté",
+      "en": "Community"
+    },
+    "room": {
+      "fr": "Grande salle",
+      "en": "Main hall"
+    },
+    "tags": [
+      {
+        "fr": "Questions du public",
+        "en": "Audience Q&A"
+      }
+    ],
     "speakerIds": ["jane-doe", "yusuf-mbarga"]
+  },
+  {
+    "id": "s2-workshop",
+    "time": "10:00",
+    "durationMin": 90,
+    "day": 2,
+    "kind": "workshop",
+    "title": {
+      "fr": "Atelier pratique — titre à venir",
+      "en": "Hands-on workshop — title coming soon"
+    },
+    "description": {
+      "fr": "Espace réservé — session parallèle. Le vrai titre et le vrai résumé arrivent une fois le programme bouclé.",
+      "en": "Placeholder — parallel session. Real title and abstract land once the programme is locked."
+    },
+    "track": {
+      "fr": "Workshop",
+      "en": "Workshop"
+    },
+    "room": {
+      "fr": "Lab",
+      "en": "Lab"
+    },
+    "tags": [
+      {
+        "fr": "Places limitées",
+        "en": "Limited seats"
+      }
+    ],
+    "speakerIds": [],
+    "bring": {
+      "fr": "Apporte ton ordinateur portable",
+      "en": "Bring your laptop"
+    }
   },
   {
     "id": "s2-cloud",
@@ -125,9 +277,20 @@
       "fr": "Espace réservé — une session sur l'infrastructure qui survit au succès du produit.",
       "en": "Placeholder — a session on infrastructure that survives the product actually succeeding."
     },
-    "track": { "fr": "Cloud", "en": "Cloud" },
-    "room": { "fr": "Salle B", "en": "Room B" },
-    "tags": [{ "fr": "Avancé", "en": "Advanced" }],
+    "track": {
+      "fr": "Cloud",
+      "en": "Cloud"
+    },
+    "room": {
+      "fr": "Salle B",
+      "en": "Room B"
+    },
+    "tags": [
+      {
+        "fr": "Avancé",
+        "en": "Advanced"
+      }
+    ],
     "speakerIds": ["fatima-njoya"]
   },
   {
@@ -144,11 +307,23 @@
       "fr": "Espace réservé — interfaces rapides et accessibles, sans excuses ni compromis.",
       "en": "Placeholder — fast, accessible interfaces, with no excuses and no compromises."
     },
-    "track": { "fr": "Web", "en": "Web" },
-    "room": { "fr": "Grande salle", "en": "Main hall" },
+    "track": {
+      "fr": "Web",
+      "en": "Web"
+    },
+    "room": {
+      "fr": "Grande salle",
+      "en": "Main hall"
+    },
     "tags": [
-      { "fr": "Accessibilité", "en": "Accessibility" },
-      { "fr": "Performance", "en": "Performance" }
+      {
+        "fr": "Accessibilité",
+        "en": "Accessibility"
+      },
+      {
+        "fr": "Performance",
+        "en": "Performance"
+      }
     ],
     "speakerIds": ["yusuf-mbarga"]
   },
@@ -166,9 +341,20 @@
       "fr": "Espace réservé — casser des choses pour de bonnes raisons, et ce que ça apprend sur la construction.",
       "en": "Placeholder — breaking things for good reasons, and what that teaches you about building them."
     },
-    "track": { "fr": "Sécurité", "en": "Security" },
-    "room": { "fr": "Salle B", "en": "Room B" },
-    "tags": [{ "fr": "Intermédiaire", "en": "Intermediate" }],
+    "track": {
+      "fr": "Sécurité",
+      "en": "Security"
+    },
+    "room": {
+      "fr": "Salle B",
+      "en": "Room B"
+    },
+    "tags": [
+      {
+        "fr": "Intermédiaire",
+        "en": "Intermediate"
+      }
+    ],
     "speakerIds": ["marcus-fotso"]
   }
 ]

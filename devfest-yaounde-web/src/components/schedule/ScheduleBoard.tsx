@@ -65,6 +65,36 @@ export function ScheduleBoard({
     .filter((s) => !room || s.room[locale] === room)
     .sort((a, b) => a.time.localeCompare(b.time));
 
+  /**
+   * PARALLEL TRACKS — PHASE10 §6. Sessions that start at the same time on the
+   * same day run against each other, so the schedule groups by TIMESLOT and
+   * both views render a slot as a unit.
+   *
+   * No schema change was needed: `day + time` already identifies a slot and
+   * `room` already distinguishes the concurrent sessions within it. Adding a
+   * `slotId` would have been redundant data that could drift out of sync with
+   * the times it duplicates.
+   *
+   * A one-session slot renders exactly as before, so single-track days and
+   * the Home preview are unaffected.
+   */
+  const slots = useMemo(() => {
+    const byTime = new Map<string, Session[]>();
+    for (const s of visible) {
+      const bucket = byTime.get(s.time);
+      if (bucket) bucket.push(s);
+      else byTime.set(s.time, [s]);
+    }
+    // Concurrent sessions sort by room so a given room keeps the same column
+    // position down the day rather than hopping between slots.
+    for (const bucket of byTime.values()) {
+      bucket.sort((a, b) => a.room[locale].localeCompare(b.room[locale]));
+    }
+    return [...byTime.entries()];
+    // `visible` is derived fresh each render; the deps that actually change it
+    // are the day, the two filters and the locale.
+  }, [sessions, activeDay, track, room, locale]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const activeCount = (track ? 1 : 0) + (room ? 1 : 0);
 
   /**
@@ -115,8 +145,8 @@ export function ScheduleBoard({
                 aria-pressed={d === activeDay}
                 className={`day-tab rounded-lg border-2 border-black02 px-6 py-3.5 font-sans text-body-l font-bold hover:-translate-y-0.5 motion-reduce:transform-none ${
                   d === activeDay
-                    ? "bg-yellow text-black02 shadow-[0_5px_0_0_var(--color-black02)]"
-                    : "bg-transparent text-black02/70 hover:bg-yellow-pastel"
+                    ? "bg-primary text-black02 shadow-[0_5px_0_0_var(--color-black02)]"
+                    : "bg-transparent text-black02/70 hover:bg-pastel"
                 }`}
               >
                 {t("day", { day: d })}
@@ -150,7 +180,7 @@ export function ScheduleBoard({
                   className={`flex items-center gap-2 px-4 py-2.5 font-mono text-mono-tag font-bold uppercase tracking-wide transition-colors duration-200 ${
                     view === key
                       ? "bg-black02 text-offwhite"
-                      : "bg-transparent text-black02 hover:bg-yellow-pastel"
+                      : "bg-transparent text-black02 hover:bg-pastel"
                   }`}
                 >
                   <Icon size={16} weight="bold" />
@@ -173,44 +203,91 @@ export function ScheduleBoard({
           </p>
         ) : view === "structured" ? (
           <ol className="relative flex flex-col gap-6 border-l-4 border-dashed border-black02/25 pl-6 sm:pl-10">
-            {visible.map((s, i) => (
+            {slots.map(([time, group], i) => (
               <li
-                key={s.id}
+                key={time}
                 className={`${sessionIn} relative`}
                 style={sessionStyle(i)}
               >
-                <span className="absolute -left-6 top-6 -translate-x-1/2 rounded-pill border-2 border-black02 bg-yellow px-3 py-1 font-mono text-mono-tag font-bold text-black02 sm:-left-10">
-                  {s.time}
+                {/* One marker per TIMESLOT, not per session — concurrent
+                    sessions share a start time and stacking two identical
+                    markers would read as two different times. */}
+                <span className="absolute -left-6 top-6 -translate-x-1/2 rounded-pill border-2 border-black02 bg-primary px-3 py-1 font-mono text-mono-tag font-bold text-black02 sm:-left-10">
+                  {time}
                 </span>
                 <div className="ml-6 sm:ml-8">
-                  <SessionCard
-                    session={s}
-                    open={openId === s.id}
-                    onToggle={() => setOpenId(openId === s.id ? null : s.id)}
-                    variant="timeline"
-                    tilt={CARD_TILT[i % CARD_TILT.length]}
-                    showCalendar={showCalendar}
-                  />
+                  {group.length > 1 && (
+                    <p className="mb-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                      {t("parallel", { count: group.length })}
+                    </p>
+                  )}
+                  {/*
+                    Parallel sessions become side-by-side columns. They stay
+                    stacked below `md` — two of these cards side by side on a
+                    phone would be unreadable, and the room label on each card
+                    already says which is which.
+                  */}
+                  <div
+                    className={
+                      group.length > 1
+                        ? "grid grid-cols-1 items-start gap-5 md:grid-cols-2"
+                        : ""
+                    }
+                  >
+                    {group.map((s, j) => (
+                      <SessionCard
+                        key={s.id}
+                        session={s}
+                        open={openId === s.id}
+                        onToggle={() =>
+                          setOpenId(openId === s.id ? null : s.id)
+                        }
+                        variant="timeline"
+                        tilt={CARD_TILT[(i + j) % CARD_TILT.length]}
+                        showCalendar={showCalendar}
+                      />
+                    ))}
+                  </div>
                 </div>
               </li>
             ))}
           </ol>
         ) : (
+          /*
+            List view groups BY TIMESLOT (PHASE10 §6): a <ul> of slots, each
+            containing its own <ul> of concurrent sessions. That nesting is
+            the accessible statement of "these run at the same time" — a flat
+            list would say only "these come one after another", which is
+            wrong. Still a genuinely plain semantic list: no tilts, no spine.
+          */
           <ul className="flex flex-col divide-y-2 divide-black02/10 overflow-hidden rounded-lg border-2 border-black02">
-            {visible.map((s, i) => (
-              <li key={s.id} className={sessionIn} style={sessionStyle(i)}>
-                <div className="flex items-start gap-4 bg-yellow-pastel">
+            {slots.map(([time, group], i) => (
+              <li key={time} className={sessionIn} style={sessionStyle(i)}>
+                <div className="flex items-start gap-4 bg-pastel">
                   <span className="shrink-0 py-5 pl-6 font-mono text-mono-tag font-bold text-black02 sm:pl-7">
-                    {s.time}
+                    {time}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <SessionCard
-                      session={s}
-                      open={openId === s.id}
-                      onToggle={() => setOpenId(openId === s.id ? null : s.id)}
-                      variant="list"
-                      showCalendar={showCalendar}
-                    />
+                    {group.length > 1 && (
+                      <p className="pr-6 pt-5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                        {t("parallel", { count: group.length })}
+                      </p>
+                    )}
+                    <ul className="flex flex-col divide-y-2 divide-black02/10">
+                      {group.map((s) => (
+                        <li key={s.id}>
+                          <SessionCard
+                            session={s}
+                            open={openId === s.id}
+                            onToggle={() =>
+                              setOpenId(openId === s.id ? null : s.id)
+                            }
+                            variant="list"
+                            showCalendar={showCalendar}
+                          />
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </li>

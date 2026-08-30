@@ -125,6 +125,20 @@ For DevFest Yaoundé, the base theme is:
 
 > **This section overrides the earlier per-section color mapping idea.** Earlier drafts of this doc suggested giving each page its own core color (Event=Blue, Tickets=Yellow, etc.). That is explicitly **retired** — it produced exactly the "new color every section" problem we're avoiding. Instead: yellow leads everywhere; page-specific accents are a light touch on top of the yellow base, not a wholesale color swap per page.
 
+**The dominant color is SWAPPABLE — but only one at a time.**
+
+Yellow is the **default**, not the only option. The footer carries a theme switcher: four circles in the order **Blue, Red, Yellow, Green**, the active one ringed. Picking one repaints the entire site immediately, with no page reload, and the choice is remembered for that visitor.
+
+This does not weaken the rule above — it *is* the rule above, made adjustable. Whichever family is chosen, that family is dominant and the other three stay supporting. The site is never a rainbow; it is yellow-dominant, or blue-dominant, or red-dominant, or green-dominant.
+
+Implementation shape (the part that matters for design decisions):
+
+- Three semantic tokens carry the theme: **`--color-primary`** (the dominant fill), **`--color-halftone`** (its bright accent), **`--color-pastel`** (its section wash). Components reference these, never a family name.
+- **Success-green and error-red are SEPARATE FIXED tokens** (`--color-success`, `--color-danger`) that never follow the theme. Green must keep meaning "in stock / confirmed" and red must keep meaning "sold out / error" no matter which family is dominant — otherwise the Red theme would render the whole site as an error state and the Green theme would make everything look confirmed. Designing a state? Reach for `success`/`danger`, not "green"/"red".
+- **The brand logo is not themed.** The DevFest mark is Google's four-color asset and keeps its own colors under every theme. Photography is not re-themed either.
+
+See [ADR 0011](../decisions/0011-runtime-theming.md) and [the theming guide](../guides/theming.md).
+
 ### 2.6 Gradients — banned
 
 **No gradients. Anywhere.** No linear-gradient, no radial-gradient, no mesh gradients, no subtle two-stop "is that even a gradient" fills. Every colored surface is a **flat, solid fill** from the palette in §2.1–2.4. This matches Google's bold flat-shape language (Gemini shapes, Material) and keeps the brand crisp. If a design feels like it "needs" a gradient for depth, use a flat shape layered over another flat shape, or a subtle flat shadow — never a gradient.

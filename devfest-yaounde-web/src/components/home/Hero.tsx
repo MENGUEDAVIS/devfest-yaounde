@@ -6,6 +6,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
+import { AsciiHeadline } from "./AsciiHeadline";
 import { Button } from "@/components/ui/Button";
 import pastEditions from "@/data/past-editions.json";
 import sponsors from "@/data/sponsors.json";
@@ -61,7 +62,7 @@ export async function Hero() {
   );
 
   return (
-    <section className="relative flex min-h-svh flex-col overflow-hidden bg-yellow-pastel">
+    <section className="relative flex min-h-svh flex-col overflow-hidden bg-pastel">
       {/* ---- Layer 1: drifting community photo collage ---- */}
       <div aria-hidden className={`${heroBgDrift} absolute inset-0 z-0`}>
         <div className="grid h-full w-full grid-cols-3 grid-rows-6 gap-2.5 p-2.5 sm:grid-cols-4 sm:grid-rows-5 sm:gap-3 sm:p-3 lg:grid-cols-6 lg:grid-rows-3">
@@ -83,7 +84,7 @@ export async function Hero() {
 
       {/* ---- Layer 2: flat legibility scrim (unchanged, verified 8.7:1) ---- */}
       <div aria-hidden className="absolute inset-0 z-10 bg-black02/30" />
-      <div aria-hidden className="absolute inset-0 z-10 bg-yellow-pastel/80" />
+      <div aria-hidden className="absolute inset-0 z-10 bg-pastel/80" />
 
       {/* ---- Layer 3: content ---- */}
       <div className="relative z-20 flex flex-1 flex-col items-center justify-center px-5 pb-6 pt-32 text-center sm:px-8 sm:pt-28">
@@ -107,21 +108,28 @@ export async function Hero() {
           Headline — the §7b bold moment. Line 1 plain, line 2 stamped into a
           solid yellow block for dramatic contrast. Both rise out of masks.
         */}
-        <h1 className="mt-5 font-sans text-display-hero font-bold leading-[0.88] tracking-tight text-black02 sm:mt-6">
-          <span className={maskLine}>
-            <span style={lineStyle(0, 260)}>{t("headlineLead")}</span>
-          </span>
-          <span className={maskLine}>
-            <span style={lineStyle(1, 260)}>
-              <span
-                className={`${stampIn} mt-1 inline-block rounded-lg border-4 border-black02 bg-yellow px-4 pb-1 pt-0.5 shadow-[0_8px_0_0_var(--color-black02)] sm:mt-2 sm:px-6`}
-                style={stampStyle(760, -1.5)}
-              >
-                {t("headlineCity")} {year}
+        {/* Easter egg (PHASE10 §10): type `ascii`, hold the headline, or
+            arrive with #ascii, and this flips to ASCII art of itself. */}
+        <AsciiHeadline
+          text={`${t("headlineLead")} ${year}`}
+          label={t("headline", { year })}
+        >
+          <h1 className="mt-5 font-sans text-display-hero font-bold leading-[0.88] text-black02 sm:mt-6">
+            <span className={maskLine}>
+              <span style={lineStyle(0, 260)}>{t("headlineLead")}</span>
+            </span>
+            <span className={maskLine}>
+              <span style={lineStyle(1, 260)}>
+                <span
+                  className={`${stampIn} mt-1 inline-block rounded-lg border-4 border-black02 bg-primary px-4 pb-1 pt-0.5 shadow-[0_8px_0_0_var(--color-black02)] sm:mt-2 sm:px-6`}
+                  style={stampStyle(760, -1.5)}
+                >
+                  {t("headlineCity")} {year}
+                </span>
               </span>
             </span>
-          </span>
-        </h1>
+          </h1>
+        </AsciiHeadline>
 
         <p
           className={`${heroRise} mt-7 max-w-xl text-body-l text-black02/85 sm:mt-8`}
@@ -160,7 +168,7 @@ export async function Hero() {
           className={`${heroRise} mt-7 flex flex-wrap items-center justify-center gap-3 sm:gap-4`}
           style={heroDelayStyle(1160)}
         >
-          <Button tone="yellow" href="/tickets" size="lg">
+          <Button tone="primary" href="/tickets" size="lg">
             {t("ctaPrimary")}
           </Button>
           <Button tone="black02" variant="secondary" href="/shop" size="lg">

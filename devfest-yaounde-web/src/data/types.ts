@@ -117,4 +117,19 @@ export interface FaqItem {
   category: "general" | "tickets" | "venue" | "shop" | "code-of-conduct";
   question: LocalizedString;
   answer: LocalizedString;
+  /**
+   * Optional call to action on the answer (PHASE10 §8) — "See ticket tiers",
+   * "Read the code of conduct". Per-ITEM rather than per-category: the useful
+   * next step differs between two questions in the same category, and the
+   * old category-wide link appended "See tickets" to answers that had
+   * nothing to do with buying one.
+   *
+   * `href` is an internal route (passed to the locale-aware `Link`) unless
+   * `external` is set, in which case it is a plain absolute URL.
+   */
+  cta?: {
+    label: LocalizedString;
+    href: string;
+    external?: boolean;
+  };
 }

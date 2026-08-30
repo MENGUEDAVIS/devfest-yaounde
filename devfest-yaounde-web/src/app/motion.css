@@ -541,12 +541,66 @@
  * mounted (translated out of view) so its content is available to the
  * accessibility tree only when open, gated by `inert` in the component.
  */
-.speaker-detail {
+/*
+ * SLIDER presentation — the detail swipes up over the card's own image.
+ * 101% (not 100%) hides the panel's own border seam on fractional layouts.
+ */
+.speaker-card:not(.is-expandable) .speaker-detail {
   transform: translateY(101%);
   transition: transform 520ms var(--ease-bouncy);
 }
-.speaker-card.is-open .speaker-detail {
+.speaker-card:not(.is-expandable).is-open .speaker-detail {
   transform: translateY(0);
+}
+
+/*
+ * GRID presentation — PHASE10 §5: the card EXPANDS IN PLACE instead of
+ * inner-scrolling a cramped overlay. Closed, the detail column is collapsed
+ * with grid-template-rows 0fr (the only way to animate to content height
+ * without hardcoding one). Open, the card widens to two columns and the
+ * detail unfolds beside the photo at readable size.
+ *
+ * --detail-max is the height threshold: past it the detail scrolls rather
+ * than letting one long answer tower over the rest of the grid. It is a cap,
+ * not the default — the ordinary card now fits without scrolling at all.
+ */
+.speaker-card.is-expandable {
+  /*
+   * The height threshold. Measured against the real content: an ordinary
+   * card's detail is ~560px in the expanded column, so 40rem (640px) lets
+   * the everyday case open with NO inner scroll at all — which was the whole
+   * point of PHASE10 §5 — while still capping an unusually long bio so one
+   * card can't tower over the grid.
+   */
+  --detail-max: 40rem;
+  transition:
+    grid-column 0ms,
+    transform 420ms var(--ease-out-devfest);
+}
+.speaker-card.is-expandable .speaker-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  transition:
+    grid-template-rows 460ms var(--ease-out-devfest),
+    opacity 260ms var(--ease-out-devfest),
+    padding 460ms var(--ease-out-devfest);
+}
+.speaker-card.is-expandable .speaker-detail > * {
+  min-height: 0;
+  overflow: hidden;
+}
+.speaker-card.is-expandable.is-open .speaker-detail {
+  grid-template-rows: 1fr;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  opacity: 1;
+}
+/* Once open the panel is a real scroll container again, past the cap. */
+.speaker-card.is-expandable.is-open .speaker-detail > * {
+  overflow: visible;
 }
 
 /*
@@ -567,6 +621,99 @@
   opacity: 1;
   transform: scale(1.05) rotate(var(--card-tilt, -2deg));
   z-index: 2;
+}
+
+/*
+ * VERTICAL CINEMA STAGE — PHASE10 §7 (src/components/people/PersonSlider.tsx)
+ *
+ * Every position is derived in CSS from --slide-h and --slide-gap, so the
+ * centred slide lands on the same centre line at any viewport width with no
+ * JS measurement and nothing to recompute on resize. JS only supplies two
+ * numbers: --i (the active index) and --drag (live drag offset in px).
+ *
+ * The stage is 1.62x a slide, which leaves ~0.31 of a slide visible above and
+ * below — enough to foreshadow the neighbours without competing with the
+ * one in the spotlight.
+ */
+.cinema-stage {
+  --slide-h: clamp(20rem, 56svh, 30rem);
+  --slide-gap: 1.25rem;
+  height: calc(var(--slide-h) * 1.62);
+}
+.cinema-track {
+  display: flex;
+  flex-direction: column;
+  gap: var(--slide-gap);
+  /*
+   * Centre slide --i, then add the live drag. The 0.31 is (stage - slide) / 2
+   * expressed in slide heights: (1.62 - 1) / 2.
+   */
+  transform: translateY(
+    calc(
+      var(--slide-h) * 0.31 - var(--i, 0) *
+        (var(--slide-h) + var(--slide-gap)) + var(--drag, 0) * 1px
+    )
+  );
+  transition: transform 620ms var(--ease-bouncy);
+  will-change: transform;
+}
+/* While the pointer is down the reel tracks the hand 1:1 — no easing lag. */
+.cinema-track.is-dragging {
+  transition: none;
+}
+.cinema-slide {
+  height: var(--slide-h);
+  flex: 0 0 auto;
+  opacity: 0.28;
+  transform: scale(0.86);
+  transform-origin: center;
+  transition:
+    opacity 520ms var(--ease-out-devfest),
+    transform 620ms var(--ease-bouncy);
+}
+/* The neighbours are readable-but-receding; everything else stays back. */
+.cinema-slide.is-adjacent {
+  opacity: 0.42;
+  transform: scale(0.9);
+}
+.cinema-slide.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/*
+ * /faqs SCROLLSPY (PHASE10 §8). `data-active` is written directly by the
+ * IntersectionObserver, so the highlight never round-trips through React.
+ * The colour transition is what makes the handover between two groups read
+ * as a move rather than a blink.
+ */
+.faq-spy {
+  transition:
+    background-color 260ms var(--ease-out-devfest),
+    color 260ms var(--ease-out-devfest);
+}
+.faq-spy:hover {
+  background-color: var(--color-pastel);
+  color: var(--color-black02);
+}
+.faq-spy[data-active="true"] {
+  background-color: var(--color-primary);
+  color: var(--color-black02);
+}
+
+/* ASCII headline easter egg — PHASE10 §10 */
+.ascii-flip {
+  animation: df-ascii-in 320ms var(--ease-out-devfest) both;
+}
+@keyframes df-ascii-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* SCHEDULE (PHASE7 §6) — session cards fanning in on view change */
@@ -624,15 +771,17 @@
   bottom: -0.1em;
   height: 0.26em;
   border-radius: var(--radius-pill);
-  background: var(--color-yellow-halftone);
+  background: var(--color-halftone);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform 420ms var(--ease-out-devfest);
 }
-.speaker-card:hover .name-marker::after,
-.speaker-card:focus-within .name-marker::after {
-  transform: scaleX(1);
-}
+/*
+ * PHASE10 §5: the marker no longer fires on speaker CARDS. With the card now
+ * expanding on click, a second hover animation on the name read as a link
+ * affordance the name doesn't have. `.name-marker` itself stays for prose
+ * emphasis; only the card-hover trigger is gone.
+ */
 
 /* /schedule — day buttons read as real folder tabs: the active one loses its
    bottom edge and sits flush against the board below it. */
@@ -642,21 +791,14 @@
     transform 220ms var(--ease-bouncy),
     background-color 220ms var(--ease-out-devfest);
 }
+/*
+ * PHASE10 §3: fully rounded in EVERY state, including active. DESIGN.md §5.2
+ * forbids sharp corners anywhere, and the previous folder-tab treatment
+ * squared off the active tab's bottom corners to join it to the board.
+ * Active state is now carried by fill + a small lift, never by radius.
+ */
 .day-tab[aria-pressed="true"] {
-  transform: translateY(2px);
-  border-bottom-color: transparent;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-/* The little bridge that visually joins the active tab to the board */
-.day-tab[aria-pressed="true"]::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -4px;
-  height: 6px;
-  background: var(--color-yellow);
+  transform: translateY(-1px);
 }
 
 /* /faqs — the toggle glyph flips from "?" to "!" when an answer opens */
@@ -764,8 +906,26 @@
    * disabled in the component, so nothing moves unasked.
    */
   .speaker-detail,
-  .speaker-card {
+  .speaker-card,
+  .speaker-card.is-expandable .speaker-detail {
     transition: none !important;
+  }
+
+  /*
+   * Cinema stage: slides still change, they just snap. The scale/opacity
+   * depth cue is kept — it is what tells you which slide is the spotlight —
+   * but the neighbours are lifted out of the near-invisible range, since
+   * without motion there is no travel to make the stack legible.
+   */
+  .cinema-track,
+  .cinema-slide {
+    transition: none !important;
+  }
+  .cinema-slide {
+    opacity: 0.5 !important;
+  }
+  .cinema-slide.is-active {
+    opacity: 1 !important;
   }
   .speaker-track[data-spotlight="on"] .speaker-card,
   .speaker-track[data-spotlight="on"] .speaker-card.is-focused {
@@ -781,6 +941,15 @@
   }
   .speaker-track[data-spotlight="on"] .speaker-card.is-focused {
     opacity: 1 !important;
+  }
+
+  .faq-spy {
+    transition: none !important;
+  }
+
+  /* The egg still fires — it just cuts instead of fading in. */
+  .ascii-flip {
+    animation: none !important;
   }
 
   /* Signature moments: keep the end state, drop the motion */

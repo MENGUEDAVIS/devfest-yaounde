@@ -60,7 +60,7 @@ export function FaqPreview() {
                   </span>
                   <span
                     className={`shrink-0 rounded-pill border-2 border-black02 p-1.5 transition-transform duration-300 ease-bouncy ${
-                      isOpen ? "rotate-180 bg-yellow" : "bg-transparent"
+                      isOpen ? "rotate-180 bg-primary" : "bg-transparent"
                     }`}
                   >
                     <CaretDown size={20} weight="bold" />

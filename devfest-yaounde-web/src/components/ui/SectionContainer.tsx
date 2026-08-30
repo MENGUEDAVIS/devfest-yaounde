@@ -10,9 +10,9 @@ export type SectionBackground =
   "yellow-wash" | "offwhite" | "yellow" | "black02";
 
 const BACKGROUND_CLASSES: Record<SectionBackground, string> = {
-  "yellow-wash": "bg-yellow-pastel text-black02",
+  "yellow-wash": "bg-pastel text-black02",
   offwhite: "bg-offwhite text-black02",
-  yellow: "bg-yellow text-black02",
+  yellow: "bg-primary text-black02",
   black02: "bg-black02 text-offwhite",
 };
 

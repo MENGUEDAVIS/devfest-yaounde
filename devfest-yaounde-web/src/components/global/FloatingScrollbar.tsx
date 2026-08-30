@@ -140,7 +140,7 @@ export function FloatingScrollbar() {
         onPointerMove={handleThumbPointerMove}
         onPointerUp={handleThumbPointerUp}
         onPointerCancel={handleThumbPointerUp}
-        className="absolute inset-x-0 cursor-grab rounded-pill border-2 border-black02 bg-yellow transition-colors duration-200 hover:bg-yellow-halftone active:cursor-grabbing"
+        className="absolute inset-x-0 cursor-grab rounded-pill border-2 border-black02 bg-primary transition-colors duration-200 hover:bg-halftone active:cursor-grabbing"
         style={{ height: `${thumbPct}%`, top: `${offsetPct}%` }}
       />
     </div>

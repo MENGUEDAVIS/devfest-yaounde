@@ -23,6 +23,13 @@
       "icebreaker": "Quick question",
       "funny": "True story",
       "contribution": "On the team"
+    },
+    "theme": {
+      "label": "Theme",
+      "blue": "Blue",
+      "red": "Red",
+      "yellow": "Yellow",
+      "green": "Green"
     }
   },
   "nav": {
@@ -36,7 +43,8 @@
     "closeMenu": "Close menu",
     "switchToEnglish": "Switch to English",
     "switchToFrench": "Switch to French",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "home": "DevFest Yaoundé — home"
   },
   "announcement": {
     "message": "🎟️ Early bird tickets end soon — grab yours before prices go up!",
@@ -84,7 +92,8 @@
       "scrollCue": "Scroll",
       "photoCredit": "Scenes from past editions",
       "dateLabel": "When",
-      "venueLabel": "Where"
+      "venueLabel": "Where",
+      "asciiExit": "Back to normal"
     },
     "about": {
       "title": "What is DevFest Yaoundé?",
@@ -122,7 +131,8 @@
       "kindPanel": "Panel",
       "kindBreak": "Break",
       "allTracks": "All",
-      "allRooms": "All"
+      "allRooms": "All",
+      "parallel": "{count} sessions at the same time — pick one"
     },
     "quotes": {
       "title": "What people are saying"
@@ -184,8 +194,8 @@
       "catVenue": "Venue & Logistics",
       "catShop": "Shop & Swag",
       "catCodeOfConduct": "Code of Conduct",
-      "seeTickets": "See tickets",
-      "readConduct": "Read the code of conduct"
+      "readConduct": "Read the code of conduct",
+      "jumpLabel": "Jump to"
     },
     "team": {
       "title": "Team",
