@@ -23,13 +23,27 @@ export interface ModalProps {
   /**
    * `dialog` (default): a centred, max-width panel — the classic modal.
    *
-   * `takeover` (PHASE13 §2): a full-page locked surface that fills the
-   * viewport BELOW the fixed chrome, which stays visible on top. Used by the
-   * slider lockup. It sits at z-40 — under the chrome's z-50 — which is what
-   * keeps the navbar above it; the default dialog stays at z-100 and covers
-   * everything, as a dialog should.
+   * `takeover`: a TRUE full-screen surface. It covers the entire viewport
+   * including the navbar, and carries no panel chrome of its own — the
+   * content sits directly on a blurred scrim so nothing competes with it.
+   * Used by the slider lockup.
    */
   variant?: ModalVariant;
+  /**
+   * Takeover only: also request the browser's Fullscreen API on open and
+   * release it on close.
+   *
+   * This is best-effort by design. The request needs a live user activation
+   * and can be refused outright (an iframe without `allow="fullscreen"`, a
+   * browser policy, a user who said no), so a rejection is swallowed: the
+   * in-app overlay already covers the viewport, and the experience degrades
+   * to "full-screen within the tab" rather than breaking.
+   *
+   * Leaving fullscreen by any route the browser owns — Esc, F11, the OS —
+   * closes the overlay too, so the two can never disagree about what the
+   * user is looking at.
+   */
+  browserFullscreen?: boolean;
 }
 
 /**
@@ -58,6 +72,7 @@ export function Modal({
   className = "",
   closeLabel = "Close",
   variant = "dialog",
+  browserFullscreen = false,
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
@@ -107,6 +122,28 @@ export function Modal({
     };
   }, [open, onClose]);
 
+  // Browser fullscreen, kept in sync with the overlay in both directions.
+  useEffect(() => {
+    if (!open || !browserFullscreen) return;
+    const root = document.documentElement;
+
+    // Rejections are expected and harmless — see the prop's doc comment.
+    root.requestFullscreen?.({ navigationUI: "hide" }).catch(() => {});
+
+    function onFullscreenChange() {
+      // The user left fullscreen through the browser (Esc, F11, the OS).
+      // Close the overlay so the two never disagree.
+      if (!document.fullscreenElement) onClose();
+    }
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      if (document.fullscreenElement)
+        document.exitFullscreen?.().catch(() => {});
+    };
+  }, [open, browserFullscreen, onClose]);
+
   if (!open) return null;
 
   const takeover = variant === "takeover";
@@ -115,17 +152,25 @@ export function Modal({
     <div
       className={
         takeover
-          ? // Below the chrome's z-50, and starting below it, so the navbar
-            // stays visible and clickable above the lockup.
-            "fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-center px-4 pb-4 sm:px-6 sm:pb-6"
+          ? // Covers EVERYTHING, navbar included. z-100 clears the chrome
+            // (z-50) and the floating scrollbar (z-60); the custom cursor
+            // stays above at 9999, which is correct — it must never be
+            // occluded by what it is pointing at.
+            "fixed inset-0 z-100 flex items-stretch justify-center p-4 sm:p-6"
           : "fixed inset-0 z-100 flex items-center justify-center p-4"
       }
-      style={takeover ? { top: "var(--chrome-h)" } : undefined}
     >
       <div
         aria-hidden
         onClick={onClose}
-        className={`${modalBackdropIn} absolute inset-0 bg-black02/50`}
+        className={`${modalBackdropIn} absolute inset-0 ${
+          takeover
+            ? // Blur is what pulls focus onto the content: the page behind
+              // stays legible as context but stops competing for attention.
+              // A flat scrim over a blur — no gradient (DESIGN.md §2.6).
+              "bg-black02/80 backdrop-blur-md"
+            : "bg-black02/50"
+        }`}
       />
       <div
         ref={panelRef}
@@ -135,7 +180,10 @@ export function Modal({
         tabIndex={-1}
         className={
           takeover
-            ? `${modalPopIn} takeover-panel relative flex w-full max-w-7xl flex-col overflow-hidden rounded-lg border-2 border-black02 bg-offwhite p-5 shadow-[0_8px_0_0_var(--color-black02)] sm:p-7 ${className}`
+            ? // NO panel chrome — no card, no border, no background. The
+              // content sits straight on the blurred scrim and gets the
+              // whole screen, which is the point of a takeover.
+              `${modalPopIn} takeover-panel relative flex w-full max-w-[110rem] flex-col ${className}`
             : `${modalPopIn} relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-offwhite p-6 sm:p-8 ${className}`
         }
       >
@@ -145,7 +193,7 @@ export function Modal({
           aria-label={closeLabel}
           className={
             takeover
-              ? "absolute right-4 top-4 z-10 rounded-pill border-2 border-black02 bg-offwhite p-2 text-black02 transition-colors hover:bg-primary"
+              ? "absolute right-0 top-0 z-10 rounded-pill border-2 border-offwhite/40 bg-black02/60 p-2.5 text-offwhite transition-colors hover:border-offwhite hover:bg-offwhite hover:text-black02"
               : "absolute right-4 top-4 rounded-pill p-1.5 text-black02 transition-colors hover:bg-black02/10"
           }
         >

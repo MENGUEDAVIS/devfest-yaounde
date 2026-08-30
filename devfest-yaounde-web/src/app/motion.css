@@ -741,9 +741,10 @@
  * one in the spotlight.
  */
 /*
- * PHASE13 §2: the stage now lives inside a full-page LOCKUP, so it no longer
- * negotiates height with a page heading, a filter row or a footer. It simply
- * fills the takeover panel, and the slide can finally be generous.
+ * The stage lives inside a TRUE FULL-SCREEN lockup — it covers the navbar
+ * too, and there is no panel around it. So it gets essentially the whole
+ * viewport, and the slide can finally be generous without negotiating with a
+ * heading, a filter row, a footer or a card.
  *
  * `--stage-h` IS SPELLED OUT IN LENGTHS, not `100%`, on purpose. The track's
  * offset is a `translateY(calc(...))`, and a percentage there resolves
@@ -751,18 +752,15 @@
  * the expression reads. With `100%` the reel positioned itself ~96px off and
  * the peek bands collapsed to nothing. Lengths remove the ambiguity.
  *
- * The subtractions mirror the takeover's own box, so keep them in step with
- * `Modal`'s takeover variant if that changes:
- *   100svh                – the viewport
- *   - var(--chrome-h)     – the fixed navbar the lockup sits below
- *   - 1.5rem              – the panel's bottom offset (sm:pb-6)
- *   - 3.5rem              – the panel's own padding (sm:p-7, top + bottom)
- *   - 5rem                – the controls row beneath the stage
- * Verified against the measured stage height: 532px at a 900px viewport.
+ * The subtractions mirror the takeover's own box — keep them in step with
+ * `Modal`'s takeover variant:
+ *   100svh     – the viewport, all of it (no chrome offset any more)
+ *   - 3rem     – the overlay's own padding (sm:p-6, top + bottom)
+ *   - 5rem     – the controls row beneath the stage
  */
 .cinema-stage {
-  --stage-h: calc(100svh - var(--chrome-h) - 1.5rem - 3.5rem - 5rem);
-  --slide-h: calc(var(--stage-h) * 0.84);
+  --stage-h: calc(100svh - 3rem - 5rem);
+  --slide-h: calc(var(--stage-h) * 0.88);
   --slide-gap: 0.5rem;
   flex: 1 1 auto;
   min-height: 0;
@@ -923,22 +921,16 @@
  */
 @media (max-height: 840px) {
   /*
-   * On a short screen the fixed chrome already eats a third of the viewport,
-   * so the lockup claws space back everywhere it can: the panel's own
-   * padding halves, and the stage's reserve constants shrink to match. The
-   * vertical peek is given up entirely here (slide = the whole stage) —
-   * a depth cue is worth less than the words fitting.
+   * On a short screen the vertical peek is given up entirely (slide = the
+   * whole stage) — a depth cue is worth less than the words fitting.
    */
-  .takeover-panel {
-    padding: 0.875rem;
-  }
   .cinema-stage {
-    --stage-h: calc(100svh - var(--chrome-h) - 1rem - 1.75rem - 4.25rem);
+    --stage-h: calc(100svh - 2rem - 4.25rem);
     --slide-h: var(--stage-h);
   }
   .cinema-slide > div {
-    padding: 0.875rem;
-    gap: 1rem;
+    padding: 1.25rem;
+    gap: 1.25rem;
   }
   .cinema-slide .person-detail-roomy {
     gap: 0.4rem;
@@ -959,14 +951,17 @@
   }
   /* The print steps back, giving the words the room on short screens. */
   .cinema-slide .polaroid {
-    height: 52%;
+    height: 60%;
   }
+  /*
+   * Relaxed once the lockup went TRUE full screen: the stage grew from ~530
+   * to ~790px at 1080p, so the bio no longer has to drop to caption size to
+   * fit. Re-measured at every size before loosening — see the fit table in
+   * the phase notes.
+   */
   .cinema-slide .person-detail-roomy .person-bio {
-    font-size: var(--text-caption);
-    line-height: 1.45;
-  }
-  .cinema-slide .person-detail-roomy .person-icebreaker p {
-    font-size: var(--text-caption);
+    font-size: var(--text-body-m);
+    line-height: 1.5;
   }
 }
 

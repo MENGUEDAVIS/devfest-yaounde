@@ -139,8 +139,14 @@ export function PersonSlider({
 
   if (count === 0) {
     return (
-      <Modal open onClose={onClose} variant="takeover" closeLabel={closeLabel}>
-        <p className="m-auto rounded-lg border-2 border-dashed border-black02/30 px-7 py-16 text-center text-body-l text-black02/70">
+      <Modal
+        open
+        onClose={onClose}
+        variant="takeover"
+        browserFullscreen
+        closeLabel={closeLabel}
+      >
+        <p className="m-auto rounded-lg border-2 border-dashed border-offwhite/30 px-7 py-16 text-center text-body-l text-offwhite/75">
           {emptyLabel}
         </p>
       </Modal>
@@ -208,6 +214,7 @@ export function PersonSlider({
       open
       onClose={onClose}
       variant="takeover"
+      browserFullscreen
       labelledBy={headingId}
       closeLabel={closeLabel}
     >
@@ -268,7 +275,7 @@ export function PersonSlider({
                     overflow was silently clipped. A definite row is what
                     lets the print shrink to fit.
                   */}
-                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-black02 bg-black02 p-6 shadow-[0_8px_0_0_var(--color-black02)] sm:p-8 md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
+                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-offwhite/15 bg-black02 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.45)] sm:p-8 md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
                   {/* Polaroid: thick lower border, slight tilt, detached from
                       the slide's edges by the padding above (PHASE11 §5.1). */}
                   <div className="polaroid min-h-0">

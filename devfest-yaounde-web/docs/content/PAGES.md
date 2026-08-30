@@ -135,13 +135,15 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 >
 > Vertical drag is bound to **mouse and pen only**. On touch, a vertical gesture inside a tall stage is how you scroll the page, so claiming it would trap anyone who scrolled onto the slider; touch gets the buttons instead. Search and filters apply to both views and persist across the toggle, as does the focused speaker.
 >
-> **Phase 13 §2 — the slider is a FULL-PAGE LOCKED TAKEOVER.** Switching to slider view opens an in-app overlay (not the browser Fullscreen API) covering the viewport **except the navbar**, which stays visible above it. Background scroll is frozen and the exact position restored on close; the overlay is dismissible by close button, Escape or click-outside, and dismissing returns to grid view. The grid stays mounted underneath the whole time, so you come back to exactly the grid you left.
+> **The slider is a FULL-SCREEN LOCKED TAKEOVER.** Switching to slider view covers the **entire** viewport — navbar included — and also requests the browser's Fullscreen API. Background scroll is frozen and the exact position restored on close; the overlay is dismissible by close button, Escape or click-outside, and dismissing leaves fullscreen and returns to grid view. The grid stays mounted underneath the whole time, so you come back to exactly the grid you left.
+>
+> There is **no container around the slides** — they sit directly on a dark, blurred scrim, so the whole screen goes to the content. (Flat wash over a blur; still no gradient.)
 >
 > This exists to solve a recurring problem at the root: through Phases 10–12 the stage lived in a page section and had to negotiate height with a heading, a filter row and a footer, which produced a new cropping or sizing complaint every phase. The lockup removes the negotiation.
 >
 > It is built on the shared `Modal` shell's `takeover` variant, not a second overlay system — see [ADR 0012](../decisions/0012-overlay-reuse.md).
 >
-> **Composition:** the photo is a **polaroid** — thick lower border, tilted, alternating direction slide to slide — detached from the slide's edges, and sized generously but deliberately **not** filling its column. Prev/next slides **peek** past the active one on all four edges. The **counter and prev/next controls sit BELOW the slide** with **no chip or background behind the counter**. Every slide's content fits with **no scrollbar and no clipping at any screen size** (verified 1280×720 to 2560×1440; type, padding and the print all tighten on short viewports rather than the content being cut).
+> **Composition:** the slide fills roughly three quarters of the viewport height. The photo is a **polaroid** — thick lower border, tilted, alternating direction slide to slide — detached from the slide's edges, and sized generously but deliberately **not** filling its column. Prev/next slides **peek** past the active one on all four edges. The **counter and prev/next controls sit BELOW the slide** with **no chip or background behind the counter**. Every slide's content fits with **no scrollbar and no clipping at any screen size** (verified 1280×720 to 2560×1440; type, padding and the print all tighten on short viewports rather than the content being cut).
 >
 > **Desktop/tablet only.** The grid↔slider toggle is hidden below `md` entirely — see §4.1.
 >

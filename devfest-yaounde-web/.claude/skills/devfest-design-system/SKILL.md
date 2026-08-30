@@ -235,7 +235,7 @@ should be read aloud.
 
 ## Overlays: two shells, no third (ADR 0012)
 
-- **`Modal`** — `variant="dialog"` (centred panel) or `variant="takeover"` (full viewport below the navbar, z-40 so the chrome stays above). The slider lockup uses `takeover`.
+- **`Modal`** — `variant="dialog"` (centred panel) or `variant="takeover"` (TRUE full screen at z-100, above the chrome, no panel chrome of its own, content on a blurred scrim). Add `browserFullscreen` to also request the Fullscreen API — treat it as polish, never rely on it. The slider lockup uses both.
 - **`BottomSheet`** — the mobile filter drawer AND mobile card details.
 
 Both own their focus trap, Escape, scrim and scroll lock. Do not write a third

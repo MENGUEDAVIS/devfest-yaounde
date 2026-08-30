@@ -60,7 +60,7 @@ export function TeamCard({
       className={
         popover
           ? "person-pop scroll-on-dark rounded-lg border-2 border-black02 bg-black02 px-6 py-6 text-left shadow-[0_8px_0_0_var(--color-black02)]"
-          : "speaker-detail scroll-on-dark absolute inset-0 overflow-y-auto bg-black02/92 px-6 py-6 text-left"
+          : "speaker-detail scroll-on-dark absolute inset-0 flex flex-col justify-end overflow-y-auto bg-black02/92 px-6 py-6 text-left"
       }
     >
       {popover && (
