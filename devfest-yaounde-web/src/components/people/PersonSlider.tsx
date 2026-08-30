@@ -259,11 +259,15 @@ export function PersonSlider({
                   adjacent ? "is-adjacent" : ""
                 }`}
                 /* Alternating tilt on the polaroid, +/- by slide index —
-                   PHASE11 §5.1. Set here rather than in CSS :nth-child so it
-                   follows the PERSON, not their DOM position, and stays
-                   stable when a filter changes the list. */
+                   set here rather than in CSS :nth-child so it follows the
+                   PERSON, not their DOM position, and stays stable when a
+                   filter changes the list. */
                 style={{
-                  ["--polaroid-tilt" as string]: `${i % 2 === 0 ? 2 : -2}deg`,
+                  ["--polaroid-tilt" as string]: `${i % 2 === 0 ? 2.5 : -2.5}deg`,
+                  // Counter-tilt: the card leans one way, the print inside it
+                  // the other, so they read as two objects rather than one
+                  // steeply slanted block.
+                  ["--slide-tilt" as string]: `${i % 2 === 0 ? -0.8 : 0.8}deg`,
                 }}
               >
                 {/*
@@ -276,8 +280,21 @@ export function PersonSlider({
                     lets the print shrink to fit.
                   */}
                 <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-offwhite/15 bg-black02 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.45)] sm:p-8 md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
-                  {/* Polaroid: thick lower border, slight tilt, detached from
-                      the slide's edges by the padding above (PHASE11 §5.1). */}
+                  {/* Mobile: a circle avatar. It costs a fraction of the
+                      height a polaroid does, which is what leaves room for
+                      the whole detail to fit on a phone. */}
+                  <MorphedImageFrame
+                    src={person.photoUrl}
+                    alt={active ? person.name : ""}
+                    shape="circle"
+                    aspectRatio="1/1"
+                    className="slide-avatar mx-auto h-24 w-24 shrink-0 border-2 border-offwhite/30 sm:h-28 sm:w-28 md:hidden"
+                  />
+
+                  {/* Desktop: the polaroid — thick lower border, slight tilt,
+                      detached from the slide's edges by the padding. Hidden
+                      below `md` from motion.css, not with a utility here —
+                      see the note on that rule. */}
                   <div className="polaroid min-h-0">
                     <MorphedImageFrame
                       src={person.photoUrl}
@@ -311,7 +328,12 @@ export function PersonSlider({
         `shrink-0` keeps them at their natural height so the flex stage above
         absorbs all the remaining space rather than squeezing this row.
       */}
-      <div className="mt-5 flex shrink-0 items-center justify-between gap-4">
+      {/*
+        Desktop: a control row under the stage. Mobile: the same controls
+        overlaid at the bottom-right of the screen (see the block below), so
+        the slide keeps the full height on a phone.
+      */}
+      <div className="mt-5 hidden shrink-0 items-center justify-between gap-4 md:flex">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -333,19 +355,53 @@ export function PersonSlider({
           </button>
         </div>
 
-        {/* No chip/pill background — the counter sits cleanly on the page
-              ground (PHASE12 §6). */}
+        {/* No chip or background behind the counter. It sits on the dark
+            scrim now, so the type is OFF WHITE — it was still black02 from
+            when this lived on an off-white panel, which made it invisible. */}
         <div className="text-right">
           <p
             aria-live="polite"
-            className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02"
+            className="font-mono text-mono-tag font-bold uppercase tracking-wide text-offwhite"
           >
             {t("position", { current: safeIndex + 1, total: count })}
           </p>
-          <p className="mt-0.5 hidden font-mono text-caption text-black02/50 sm:block">
+          <p className="mt-0.5 hidden font-mono text-caption text-offwhite/55 sm:block">
             {t("dragHint")}
           </p>
         </div>
+      </div>
+
+      {/*
+        MOBILE controls — overlaid at the bottom right of the screen, over the
+        slide, with the counter beside them. Stacking them under the stage on
+        a phone would cost the slide the very height the full-screen lockup
+        exists to give it.
+      */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-end gap-3 md:hidden">
+        <p
+          aria-live="polite"
+          className="font-mono text-mono-tag font-bold uppercase tracking-wide text-offwhite"
+        >
+          {t("position", { current: safeIndex + 1, total: count })}
+        </p>
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          disabled={safeIndex === 0}
+          aria-label={t("prev")}
+          className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none disabled:opacity-35"
+        >
+          <CaretUp size={20} weight="bold" />
+        </button>
+        <button
+          type="button"
+          onClick={() => go(1)}
+          disabled={safeIndex === count - 1}
+          aria-label={t("next")}
+          className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none disabled:opacity-35"
+        >
+          <CaretDown size={20} weight="bold" />
+        </button>
       </div>
     </Modal>
   );

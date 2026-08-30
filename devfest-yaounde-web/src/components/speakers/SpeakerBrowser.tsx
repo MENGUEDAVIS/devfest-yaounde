@@ -110,6 +110,13 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
     }
     function onPointerDown(e: PointerEvent) {
       const target = e.target as Element;
+      /*
+       * The mobile detail sheet is PORTALLED to <body>, so it is not inside
+       * `.speaker-card.is-open` — without the second test, every touch
+       * *inside* the sheet counted as an outside click and dismissed it the
+       * moment it opened. The sheet handles its own scrim tap and Escape.
+       */
+      if (target.closest('[role="dialog"]')) return;
       if (!target.closest(".speaker-card.is-open")) closeCard();
     }
     document.addEventListener("keydown", onKeyDown);

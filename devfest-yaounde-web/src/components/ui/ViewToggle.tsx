@@ -24,12 +24,13 @@ export function ViewToggle({
   const labelId = useId();
 
   /*
-   * PHASE13 §5: hidden entirely below `md`. The slider is a full-page lockup
-   * (PHASE13 §2) and is a desktop/tablet experience — offering a toggle to a
-   * view mobile never gets would be a dead control.
+   * Available on mobile again. It was hidden below `md` while the slider was
+   * an in-page section that had no room there — but the slider is now a
+   * full-screen lockup, which is if anything a BETTER fit for a phone than
+   * for a desktop: it owns the whole screen either way.
    */
   return (
-    <div className="hidden items-center gap-3 md:flex">
+    <div className="flex items-center gap-3">
       <span
         id={labelId}
         className="hidden font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50 sm:inline"

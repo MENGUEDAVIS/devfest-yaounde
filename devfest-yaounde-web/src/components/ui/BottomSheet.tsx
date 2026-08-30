@@ -15,8 +15,17 @@ const SWIPE_DISMISS_PX = 70;
 export interface BottomSheetProps {
   open: boolean;
   onClose: () => void;
-  /** Accessible name, and the visible heading unless `hideTitle` is set. */
+  /** Accessible name for the dialog. Always used by assistive tech. */
   title: string;
+  /**
+   * Optional visual to show in the header INSTEAD of the title text.
+   *
+   * Card details use this for a circle avatar: the body already leads with
+   * the person's name, so printing it in the header too said it twice. The
+   * avatar identifies whose sheet this is without the repetition, and
+   * `title` still carries the name to screen readers.
+   */
+  titleVisual?: ReactNode;
   closeLabel: string;
   /** Rendered under the heading. */
   children: ReactNode;
@@ -48,6 +57,7 @@ export function BottomSheet({
   open,
   onClose,
   title,
+  titleVisual,
   closeLabel,
   children,
   footer,
@@ -100,7 +110,9 @@ export function BottomSheet({
       <div
         aria-hidden
         onClick={onClose}
-        className="anim-modal-backdrop absolute inset-0 bg-black02/50"
+        // Blurred scrim, matching the full-screen lockup: the page behind
+        // stays as context but stops competing with the sheet.
+        className="anim-modal-backdrop absolute inset-0 bg-black02/60 backdrop-blur-sm"
       />
       <div
         ref={panelRef}
@@ -127,9 +139,11 @@ export function BottomSheet({
           className="mx-auto mb-5 h-1.5 w-12 shrink-0 rounded-pill bg-black02/25"
         />
         <div className="mb-6 flex shrink-0 items-center justify-between gap-3">
-          <h2 className="font-sans text-heading-l font-bold text-black02">
-            {title}
-          </h2>
+          {titleVisual ?? (
+            <h2 className="font-sans text-heading-l font-bold text-black02">
+              {title}
+            </h2>
+          )}
           <button
             type="button"
             onClick={onClose}

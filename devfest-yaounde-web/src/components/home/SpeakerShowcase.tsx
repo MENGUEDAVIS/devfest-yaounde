@@ -16,6 +16,8 @@ const CARD_TILT = [-2.5, 2, -1.5, 2.5];
 
 /** Past this much horizontal drag, releasing moves to the next card. */
 const DRAG_COMMIT_PX = 60;
+/** Movement under this is a tap, not a drag — fingers are never perfectly still. */
+const CLICK_SLOP_PX = 8;
 
 const AUTO_ADVANCE_MS = 3800;
 
@@ -96,14 +98,53 @@ export function SpeakerShowcase() {
    * only claim the horizontal axis, which is the one the track uses.
    */
   const drag = useRef<{ startX: number; pointerId: number } | null>(null);
+  /** Set once a press has travelled far enough to be a drag, not a click. */
+  const movedRef = useRef(false);
   const [dragging, setDragging] = useState(false);
 
+  /*
+   * Drag starts on the CARD too, not just in the gaps between cards.
+   *
+   * This is why dragging never worked here: every card is a <button>, so the
+   * old `closest("a,button")` guard matched on essentially every press and
+   * bailed out before a drag could begin. Instead of refusing to start, the
+   * press is tracked and a real drag SUPPRESSES the click that follows (see
+   * onClickCapture) — so dragging moves the reel and tapping still opens a
+   * card, which is what both gestures should do.
+   */
   function onPointerDown(e: React.PointerEvent) {
-    // Let clicks on the card itself (opening a detail) work normally.
-    if ((e.target as Element).closest("a,button")) return;
     drag.current = { startX: e.clientX, pointerId: e.pointerId };
+    movedRef.current = false;
     setDragging(true);
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    // NB: the pointer is deliberately NOT captured here — see onPointerMove.
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    const d = drag.current;
+    if (!d) return;
+    if (Math.abs(e.clientX - d.startX) <= CLICK_SLOP_PX) return;
+
+    /*
+     * Capture the pointer only once this is definitely a DRAG.
+     *
+     * Capturing on pointerdown broke every tap: with a capture active at
+     * pointerup the browser retargets the resulting click to the capturing
+     * element, so the click never reached the card's own button and cards
+     * stopped opening. Capturing late keeps taps intact and still gives the
+     * drag reliable tracking once it has started.
+     */
+    if (!movedRef.current) {
+      movedRef.current = true;
+      (e.currentTarget as Element).setPointerCapture(d.pointerId);
+    }
+  }
+
+  /** Swallow the click a drag would otherwise fire on the card underneath. */
+  function onClickCapture(e: React.MouseEvent) {
+    if (!movedRef.current) return;
+    movedRef.current = false;
+    e.preventDefault();
+    e.stopPropagation();
   }
 
   function onPointerUp(e: React.PointerEvent) {
@@ -177,8 +218,10 @@ export function SpeakerShowcase() {
         onFocusCapture={() => setPaused(true)}
         onBlurCapture={() => setPaused(false)}
         onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onClickCapture={onClickCapture}
       >
         <div
           ref={trackRef}

@@ -827,8 +827,15 @@
 }
 .cinema-slide.is-active {
   opacity: 1;
-  /* Slightly inset so the neighbours show at the left/right edges too. */
-  transform: scale(0.94);
+  /*
+   * Slightly inset so the neighbours show at the left/right edges too, plus
+   * a small alternating tilt (--slide-tilt, set per slide by the component)
+   * so consecutive slides don't land in exactly the same place. It is a
+   * third of the polaroid's tilt and in the OPPOSITE direction, so the card
+   * and the print inside it lean against each other rather than compounding
+   * into one exaggerated slant.
+   */
+  transform: scale(0.94) rotate(var(--slide-tilt, 0deg));
 }
 
 /*
@@ -919,6 +926,7 @@
  * the slide can claim nearly the whole stage — losing a little depth cue is
  * a far better trade than losing words off the bottom of the card.
  */
+
 @media (max-height: 840px) {
   /*
    * On a short screen the vertical peek is given up entirely (slide = the
@@ -966,6 +974,78 @@
 }
 
 /*
+ * PHONE RULES COME LAST ON PURPOSE.
+ *
+ * A 640px-tall phone matches the height tiers above as well as these,
+ * and CSS resolves that tie by source order. The phone layout is a
+ * different composition entirely — vertical, avatar instead of a
+ * polaroid, controls overlaid — so it has to win. Ordered here rather
+ * than fought with specificity, which would have been invisible.
+ */
+
+/*
+ * Phones: the slide takes the whole stage (the controls are overlaid on it,
+ * not stacked under it) and the vertical layout means there is no polaroid
+ * to size. Width-based, not height-based, because a tall phone still needs
+ * this and a short laptop does not.
+ */
+@media (max-width: 767px) {
+  /*
+   * The polaroid is hidden here in CSS, not with a `hidden` utility on the
+   * element: `.polaroid` sets `display: flex`, which has the same specificity
+   * as Tailwind's `.hidden` and wins on source order — so the utility had no
+   * effect and the print rendered on top of the avatar, overflowing the
+   * slide. Hiding it from the same rule that shows it removes the conflict.
+   */
+  .cinema-slide .polaroid {
+    display: none;
+  }
+  .cinema-stage {
+    --stage-h: calc(100svh - 2rem);
+    --slide-h: calc(var(--stage-h) * 0.94);
+  }
+  .cinema-slide .person-detail-roomy {
+    gap: 0.75rem;
+  }
+  .cinema-slide .person-detail-roomy .person-name {
+    font-size: var(--text-heading-l);
+  }
+}
+
+/*
+ * Small phones (a 640px-tall screen is still common). The avatar shrinks and
+ * the rhythm tightens so the whole detail still fits without a scrollbar —
+ * the avatar exists to buy that room, so it is the first thing to give it
+ * back.
+ */
+@media (max-width: 767px) and (max-height: 720px) {
+  /* The slide claims the whole stage here — the controls float over it. */
+  .cinema-stage {
+    --slide-h: var(--stage-h);
+  }
+  .cinema-slide .slide-avatar {
+    height: 3.5rem;
+    width: 3.5rem;
+  }
+  .cinema-slide .person-detail-roomy {
+    gap: 0.5rem;
+  }
+  .cinema-slide .person-detail-roomy .person-name {
+    font-size: var(--text-heading-m);
+  }
+  .cinema-slide .person-detail-roomy .person-bio {
+    font-size: var(--text-body-m);
+  }
+  .cinema-slide .person-detail-roomy .person-icebreaker {
+    padding-top: 0.5rem;
+  }
+  .cinema-slide > div {
+    padding: 0.875rem;
+    gap: 0.625rem;
+  }
+}
+
+/*
  * POLAROID photo frame — PHASE11 §5.1.
  *
  * Classic proportions: an even white border on three sides and a much
@@ -980,9 +1060,13 @@
  */
 .polaroid {
   background: var(--color-offwhite);
-  /* Border scales down with the print so it still reads as a polaroid
-     rather than as a thick frame around a stamp. */
-  padding: 0.5rem 0.5rem 1.75rem;
+  /*
+   * Real polaroid proportions: an even border on three sides and a much
+   * deeper one below, where you'd write on the print. The earlier values
+   * were too tight to read as a polaroid at all — this is the whole reason
+   * the frame exists.
+   */
+  padding: 0.9rem 0.9rem 3.25rem;
   border: 2px solid var(--color-black02);
   border-radius: var(--radius-sm);
   box-shadow: 0 6px 0 0 var(--color-black02);

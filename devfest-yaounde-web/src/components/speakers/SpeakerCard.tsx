@@ -174,6 +174,18 @@ export function SpeakerCard({
           open={open}
           onClose={() => (onClose ? onClose() : onToggle(null))}
           title={speaker.name}
+          /* A circle avatar stands in for the header's name text — the
+             detail body already opens with the name, and printing it twice
+             read as a mistake. */
+          titleVisual={
+            <MorphedImageFrame
+              src={speaker.photoUrl}
+              alt=""
+              shape="circle"
+              aspectRatio="1/1"
+              className="h-14 w-14 shrink-0 border-2 border-black02"
+            />
+          }
           closeLabel={t("close")}
         >
           {body}

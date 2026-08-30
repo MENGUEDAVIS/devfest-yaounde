@@ -145,7 +145,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 >
 > **Composition:** the slide fills roughly three quarters of the viewport height. The photo is a **polaroid** — thick lower border, tilted, alternating direction slide to slide — detached from the slide's edges, and sized generously but deliberately **not** filling its column. Prev/next slides **peek** past the active one on all four edges. The **counter and prev/next controls sit BELOW the slide** with **no chip or background behind the counter**. Every slide's content fits with **no scrollbar and no clipping at any screen size** (verified 1280×720 to 2560×1440; type, padding and the print all tighten on short viewports rather than the content being cut).
 >
-> **Desktop/tablet only.** The grid↔slider toggle is hidden below `md` entirely — see §4.1.
+> **Available on mobile too.** It was desktop-only while the slider was an in-page section with no room on a phone; as a full-screen lockup it fits a phone at least as well as a desktop. The mobile composition is different, not a squeeze: a **single vertical column**, a **circle avatar** instead of the polaroid (it costs a fraction of the height, which is what leaves room for the whole detail), and the **controls overlaid at the bottom-right** with the counter beside them rather than stacked under the stage. Verified with no scrollbars from 360×640 up.
 >
 > Search and filters live in a **floating rail** on wide desktops and a **bottom drawer** everywhere else, grouped under labelled headings — one shared pattern across `/speakers`, `/schedule`, `/team` and `/faqs` (`FilterLayout` + `FilterGroup`).
 >
@@ -168,7 +168,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 - **Accordion: one card open at a time.** Opening another closes the previous one. Escape, a click outside, or the panel's own close button dismiss it.
 - **The other cards dim while one is open** (Phase 12 §7), so the focused card is spotlit. It is opacity, not motion, so it still applies under reduced motion — only the easing is dropped.
 - The popover's **close is animated**, symmetric with its open (Phase 13 §4) — it used to vanish instantly.
-- **On mobile there is no popover and no slider.** The view toggle is hidden below `md`, and tapping a card opens its detail in the **shared bottom sheet** — the same component as the filter drawer, so mobile has one sheet interaction rather than two (Phase 13 §5, [ADR 0012](../decisions/0012-overlay-reuse.md)).
+- **On mobile there is no side popover.** Tapping a card opens its detail in the **shared bottom sheet** — the same component as the filter drawer, so mobile has one sheet interaction rather than two ([ADR 0012](../decisions/0012-overlay-reuse.md)). The sheet has a blurred scrim, locks background scroll, and dismisses on tap-outside, Escape or swipe-down. Its header shows a **circle avatar rather than the name**, because the detail body already opens with the name.
 - The grid is deliberately **plain** — it is the scannable view. The cinematic presentation is the slider.
 - No hover underline on speaker names: with the card expanding on click, an extra hover animation on the name read as a link affordance the name doesn't have.
 

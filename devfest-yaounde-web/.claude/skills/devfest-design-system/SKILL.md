@@ -245,7 +245,18 @@ locks `<html>`, and both were verified to leak.
 
 ## Mobile rules
 
-- No slider, anywhere — the view toggle is hidden below `md`.
 - Card details open in `BottomSheet`, not a side popover.
+- The slider IS available on mobile (it is a full-screen lockup), but with a
+  different composition: one vertical column, circle avatar instead of the
+  polaroid, controls overlaid bottom-right.
 - Check `useMediaQuery(MOBILE_QUERY)` rather than inventing another breakpoint
   constant. Its server snapshot is `false`, so desktop is the SSR shape.
+
+## Two CSS traps this codebase has already hit
+
+1. **`.polaroid { display: flex }` beats Tailwind's `hidden`** — same
+   specificity, and motion.css wins on source order. Hide such elements from
+   the same stylesheet that shows them, not with a utility.
+2. **Phone media blocks must come LAST in motion.css.** A 640px-tall phone
+   matches the `max-height` slider tiers too, and source order breaks the tie.
+   The phone layout is a different composition, so it has to win.

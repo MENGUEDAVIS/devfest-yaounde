@@ -79,6 +79,31 @@ export function Modal({
   const generatedId = useId();
   const titleId = labelledBy ?? generatedId;
 
+  /*
+   * The latest onClose, held in a ref so the effects below do NOT depend on
+   * its identity.
+   *
+   * This was a real bug, not a micro-optimisation. Callers pass an inline
+   * arrow (`onClose={() => setView("grid")}`), which is a new function on
+   * every render. With `onClose` in the dependency array, every slide change
+   * tore the effects down and rebuilt them — which called `exitFullscreen()`
+   * in cleanup and then re-requested fullscreen with no user activation left
+   * to spend, so the request was refused. Worse, the exit's async
+   * `fullscreenchange` could land after the new listener attached, which read
+   * as "the user left fullscreen" and closed the slider outright. Pressing
+   * next dropped you back to the grid.
+   *
+   * A ref fixes it here rather than requiring every caller to remember
+   * useCallback.
+   */
+  const onCloseRef = useRef(onClose);
+  // Synced in an effect, not during render — writing a ref while rendering is
+  // exactly what `react-hooks/refs` forbids, and it would tear under
+  // concurrent rendering.
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
   useEffect(() => {
     if (!open) return;
 
@@ -95,7 +120,7 @@ export function Modal({
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab" || !panel) return;
@@ -120,7 +145,7 @@ export function Modal({
       releaseScroll();
       previousActiveElement.current?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   // Browser fullscreen, kept in sync with the overlay in both directions.
   useEffect(() => {
@@ -133,7 +158,7 @@ export function Modal({
     function onFullscreenChange() {
       // The user left fullscreen through the browser (Esc, F11, the OS).
       // Close the overlay so the two never disagree.
-      if (!document.fullscreenElement) onClose();
+      if (!document.fullscreenElement) onCloseRef.current();
     }
     document.addEventListener("fullscreenchange", onFullscreenChange);
 
@@ -142,7 +167,7 @@ export function Modal({
       if (document.fullscreenElement)
         document.exitFullscreen?.().catch(() => {});
     };
-  }, [open, browserFullscreen, onClose]);
+  }, [open, browserFullscreen]);
 
   if (!open) return null;
 
