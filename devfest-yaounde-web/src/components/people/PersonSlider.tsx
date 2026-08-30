@@ -2,9 +2,9 @@
 
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { Modal } from "@/components/ui/Modal";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
-import { scrollToY } from "@/lib/scroll-source";
 import { PersonDetail, type PersonLike } from "./PersonDetail";
 
 /** Past this much vertical drag, releasing commits to the next slide. */
@@ -26,17 +26,31 @@ export interface PersonSliderProps {
   index: number;
   onIndexChange: (next: number) => void;
   emptyLabel: string;
+  /** Dismiss the lockup — returns the page to grid view. */
+  onClose: () => void;
+  /** Accessible name + close-button label for the takeover. */
+  title: string;
+  closeLabel: string;
 }
 
 /**
- * VERTICAL CINEMA STAGE — PHASE10 §7.
+ * VERTICAL CINEMA STAGE — PHASE10 §7, moved into a full-page LOCKUP in
+ * PHASE13 §2.
  *
- * The previous slider was a horizontal row with two thin edge slivers. This
- * is a vertical reel: one person centred on the stage at full size, with the
- * previous slide foreshadowed ABOVE and the next BELOW, both scaled back and
- * dimmed so the stack reads as depth rather than as three equal cards. The
- * grid stays deliberately plain by contrast — the slider is the cinematic
- * presentation of the same people, not a second grid.
+ * A vertical reel: one person centred at full size, the previous slide
+ * foreshadowed ABOVE and the next BELOW, both scaled back and dimmed so the
+ * stack reads as depth rather than as three equal cards. The grid stays
+ * deliberately plain by contrast — the slider is the cinematic presentation
+ * of the same people, not a second grid.
+ *
+ * WHY THE LOCKUP. Through PHASE10-12 this lived inside a page section, and
+ * every phase produced another sizing complaint: content cropped, then a
+ * scrollbar, then type tiers to make it fit, then a photo too big, then too
+ * small. The root cause was that the stage had to negotiate for height with
+ * a page heading, a filter row and a footer. Rendering it as a locked
+ * takeover removes the negotiation: the stage owns the viewport below the
+ * navbar, so there is finally enough room to size the slide generously and
+ * have the content simply fit.
  *
  * ALIGNMENT is the fix that mattered. Positions are computed in CSS from
  * `--slide-h` and `--slide-gap` (see `.cinema-track` in motion.css) rather
@@ -66,8 +80,12 @@ export function PersonSlider({
   index,
   onIndexChange,
   emptyLabel,
+  onClose,
+  title,
+  closeLabel,
 }: PersonSliderProps) {
   const t = useTranslations("common.views");
+  const headingId = useId();
   const [dragPx, setDragPx] = useState(0);
   // Dragging affects rendered output (the cursor), so it's state, not a ref —
   // refs must never be read during render.
@@ -95,31 +113,6 @@ export function PersonSlider({
     [goTo, index],
   );
 
-  /*
-   * The stage is a full viewport tall (PHASE11 §5.2), so if it mounts below
-   * a page heading its lower half — including the overlaid controls — starts
-   * off screen. This component only mounts when someone deliberately
-   * switches to the slider view, so bringing the stage under the chrome is
-   * exactly what they asked for.
-   *
-   * Runs once on mount, and honours reduced motion by jumping instead of
-   * animating.
-   */
-  useEffect(() => {
-    const node = stageRef.current;
-    if (!node) return;
-    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)")
-      .matches;
-    const chrome = parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue("--chrome-h"),
-    );
-    const offset = Number.isFinite(chrome) ? chrome * 16 : 208;
-    scrollToY(
-      node.getBoundingClientRect().top + window.scrollY - offset + 24,
-      smooth,
-    );
-  }, []);
-
   // Arrow keys when the stage has focus. Up/Down are the primary axis now;
   // Left/Right stay bound so muscle memory from the old slider still works.
   useEffect(() => {
@@ -146,9 +139,11 @@ export function PersonSlider({
 
   if (count === 0) {
     return (
-      <p className="rounded-lg border-2 border-dashed border-black02/30 px-7 py-16 text-center text-body-l text-black02/70">
-        {emptyLabel}
-      </p>
+      <Modal open onClose={onClose} variant="takeover" closeLabel={closeLabel}>
+        <p className="m-auto rounded-lg border-2 border-dashed border-black02/30 px-7 py-16 text-center text-body-l text-black02/70">
+          {emptyLabel}
+        </p>
+      </Modal>
     );
   }
 
@@ -209,7 +204,18 @@ export function PersonSlider({
   }
 
   return (
-    <div>
+    <Modal
+      open
+      onClose={onClose}
+      variant="takeover"
+      labelledBy={headingId}
+      closeLabel={closeLabel}
+    >
+      {/* Names the dialog without adding a visible heading that would eat
+          the height the lockup exists to give back to the slide. */}
+      <h2 id={headingId} className="sr-only">
+        {title}
+      </h2>
       <div
         ref={stageRef}
         tabIndex={0}
@@ -262,7 +268,7 @@ export function PersonSlider({
                     overflow was silently clipped. A definite row is what
                     lets the print shrink to fit.
                   */}
-                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-black02 bg-black02 p-6 shadow-[0_8px_0_0_var(--color-black02)] sm:p-8 md:grid-cols-[minmax(0,0.6fr)_minmax(0,1.4fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
+                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-black02 bg-black02 p-6 shadow-[0_8px_0_0_var(--color-black02)] sm:p-8 md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
                   {/* Polaroid: thick lower border, slight tilt, detached from
                       the slide's edges by the padding above (PHASE11 §5.1). */}
                   <div className="polaroid min-h-0">
@@ -294,13 +300,11 @@ export function PersonSlider({
       </div>
 
       {/*
-        PHASE12 §6: controls sit BELOW the slide again, not overlaid on it.
-        They were overlaid in PHASE11 only because the stage was a full
-        viewport tall and a row underneath would have fallen below the fold.
-        The stage is shorter now (and the polaroid much smaller), so there is
-        room for them in the open — where they don't cover any of the slide.
+        Controls sit BELOW the slide, not overlaid on it (PHASE12 §6), and
+        `shrink-0` keeps them at their natural height so the flex stage above
+        absorbs all the remaining space rather than squeezing this row.
       */}
-      <div className="mt-6 flex items-center justify-between gap-4">
+      <div className="mt-5 flex shrink-0 items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -336,6 +340,6 @@ export function PersonSlider({
           </p>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

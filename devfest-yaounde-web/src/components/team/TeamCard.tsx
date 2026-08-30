@@ -4,6 +4,8 @@ import { X } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { PersonDetail } from "@/components/people/PersonDetail";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { MOBILE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 import type { PopoverSide } from "@/lib/popover-anchor";
 import type { TeamMember } from "@/data/types";
@@ -39,6 +41,17 @@ export function TeamCard({
 }: TeamCardProps) {
   const locale = useLocale() as "fr" | "en";
   const t = useTranslations("common.filters");
+  /* Mobile gets the shared bottom sheet — see the note on SpeakerCard. */
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+  const sheetMode = popover && isMobile;
+
+  const body = (
+    <PersonDetail
+      person={member}
+      tone={sheetMode ? "light" : "dark"}
+      interactive={open}
+    />
+  );
 
   const detail = (
     <div
@@ -62,7 +75,7 @@ export function TeamCard({
           <X size={16} weight="bold" />
         </button>
       )}
-      <PersonDetail person={member} tone="dark" interactive={open} />
+      {body}
     </div>
   );
 
@@ -110,11 +123,25 @@ export function TeamCard({
             </div>
           </div>
 
+          {/* Slider: inside the frame, which clips the closed panel. */}
           {!popover && detail}
         </div>
       </button>
 
-      {popover && detail}
+      {/* Grid, desktop: a popover outside the frame, so it can escape it. */}
+      {popover && !isMobile && detail}
+
+      {/* Grid, mobile: the shared bottom sheet. */}
+      {sheetMode && (
+        <BottomSheet
+          open={open}
+          onClose={() => (onClose ? onClose() : onToggle(null))}
+          title={member.name}
+          closeLabel={t("close")}
+        >
+          {body}
+        </BottomSheet>
+      )}
     </article>
   );
 }

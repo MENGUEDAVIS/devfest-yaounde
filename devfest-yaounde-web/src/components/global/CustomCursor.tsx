@@ -177,13 +177,13 @@ export function CustomCursor() {
           it into a solid shape. Unicolor, and `currentColor` is what lets the
           theme's contrast colour drive it from CSS alone.
         */}
-        <svg viewBox="0 0 32 32" aria-hidden>
+        <svg viewBox="0 0 28 28" aria-hidden>
           <path
             className="cursor-arrow"
-            d="M9 5.5 L24.5 16.2 L17.2 17.6 L14.2 24.6 Z"
+            d="M 9 5.5 L 25.6 12.6 L 19.83 14.34 Q 16.3 15.4 14.36 18.55 L 11.2 23.7 Z"
             fill="currentColor"
             stroke="currentColor"
-            strokeWidth="4.2"
+            strokeWidth="8"
             strokeLinejoin="round"
             strokeLinecap="round"
           />

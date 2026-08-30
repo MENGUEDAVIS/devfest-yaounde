@@ -79,6 +79,7 @@ export function Navbar({ compact }: { compact: boolean }) {
               <Link
                 key={link.href}
                 href={link.href}
+                aria-current={isActive ? "page" : undefined}
                 className={`relative whitespace-nowrap py-1 font-sans text-body-m font-bold transition-colors duration-200 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-1 after:origin-left after:rounded-pill after:bg-primary after:transition-transform after:duration-300 after:ease-out-devfest hover:text-black02 ${
                   isActive
                     ? "text-black02 after:scale-x-100"
@@ -129,17 +130,34 @@ export function Navbar({ compact }: { compact: boolean }) {
       >
         <div className="min-h-0 overflow-hidden">
           <div className="mt-4 flex flex-col gap-1 border-t-2 border-black02/10 pt-4">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                tabIndex={mobileOpen ? undefined : -1}
-                className="rounded-md px-2 py-2 font-sans text-body-l font-bold text-black02 transition-colors hover:bg-pastel"
-              >
-                {t(link.key)}
-              </Link>
-            ))}
+            {/*
+              PHASE13 §7: the mobile menu now shows which page you are on.
+              It uses the FILL treatment (like the schedule's day toggles)
+              rather than the desktop nav's underline — an underline reads as
+              a link decoration in a stacked list, while a filled row reads
+              as "you are here" at a glance. `aria-current="page"` carries
+              the same information to assistive tech, which the desktop nav
+              was also missing.
+            */}
+            {NAV_LINKS.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  tabIndex={mobileOpen ? undefined : -1}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`rounded-md px-3 py-2 font-sans text-body-l font-bold transition-colors duration-200 ${
+                    isActive
+                      ? "border-2 border-black02 bg-primary text-black02"
+                      : "border-2 border-transparent text-black02/75 hover:bg-pastel hover:text-black02"
+                  }`}
+                >
+                  {t(link.key)}
+                </Link>
+              );
+            })}
             <div className="mt-3 flex flex-wrap items-center gap-2.5">
               <LanguageSwitcher />
               <Link

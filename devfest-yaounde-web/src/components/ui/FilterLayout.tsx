@@ -1,12 +1,10 @@
 "use client";
 
-import { FunnelSimple, X } from "@phosphor-icons/react";
+import { FunnelSimple } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+import { BottomSheet } from "./BottomSheet";
 
 export interface FilterLayoutProps {
   /** The filter groups (and search) — rendered in the sidebar and the drawer. */
@@ -35,10 +33,11 @@ export interface FilterLayoutProps {
  * is sticky within this section, so it stays put while you read but stops at
  * the section's end rather than covering the footer (PHASE11 §3).
  *
- * Narrower: the rail collapses into a bottom drawer opened by a Filters
- * button, which keeps vertical space for content. The drawer is focus
- * trapped, closes on Escape / scrim tap / close button / swipe-down, and
- * locks body scroll while open.
+ * Narrower: the rail collapses into the shared `BottomSheet` (PHASE13 §5),
+ * opened by a Filters button, which keeps vertical space for content. That
+ * component owns the focus trap, Escape / scrim / swipe-down dismissal and
+ * the scroll lock — the same sheet mobile card details use, so there is one
+ * implementation rather than two.
  *
  * The `filters` node is rendered in both the rail and the drawer, but
  * never both *visible*: the rail is hidden below 1760px and the drawer is
@@ -59,47 +58,7 @@ export function FilterLayout({
   const t = useTranslations("common.filters");
   const heading = title ?? t("title");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
-  const dragStart = useRef<number | null>(null);
-
-  // Focus trap + Escape + scroll lock while the drawer is open
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const panel = panelRef.current;
-    // Snapshot the opener now: by cleanup time the ref may point elsewhere,
-    // and we want to restore focus to the button that actually opened this.
-    const opener = openerRef.current;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    panel?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
-
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setDrawerOpen(false);
-        return;
-      }
-      if (e.key !== "Tab" || !panel) return;
-      const items = panel.querySelectorAll<HTMLElement>(FOCUSABLE);
-      if (items.length === 0) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    }
-
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
-      opener?.focus();
-    };
-  }, [drawerOpen]);
 
   return (
     <div className="filter-section relative">
@@ -174,76 +133,35 @@ export function FilterLayout({
 
       {children}
 
-      {/* ---- Narrow viewports: bottom drawer ---- */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-100 min-[1760px]:hidden">
-          <div
-            aria-hidden
-            onClick={() => setDrawerOpen(false)}
-            className="anim-modal-backdrop absolute inset-0 bg-black02/50"
-          />
-          <div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label={heading}
-            onPointerDown={(e) => {
-              dragStart.current = e.clientY;
-            }}
-            onPointerUp={(e) => {
-              // Swipe down to dismiss
-              if (
-                dragStart.current !== null &&
-                e.clientY - dragStart.current > 70
-              ) {
-                setDrawerOpen(false);
-              }
-              dragStart.current = null;
-            }}
-            className="anim-drawer-up absolute inset-x-0 bottom-0 max-h-[82svh] overflow-y-auto rounded-t-lg border-t-4 border-black02 bg-offwhite px-6 pb-8 pt-4"
-          >
-            {/* Grab handle — also the swipe affordance */}
-            <div
-              aria-hidden
-              className="mx-auto mb-5 h-1.5 w-12 rounded-pill bg-black02/25"
-            />
-            <div className="mb-6 flex items-center justify-between gap-3">
-              <h2 className="font-sans text-heading-l font-bold text-black02">
-                {heading}
-              </h2>
+      {/* ---- Narrow viewports: the SHARED bottom sheet ---- */}
+      <BottomSheet
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={heading}
+        closeLabel={t("close")}
+        footer={
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              className="flex-1 rounded-pill border-2 border-black02 bg-primary px-6 py-3 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)]"
+            >
+              {t("done")}
+            </button>
+            {activeCount > 0 && onClearAll && (
               <button
                 type="button"
-                onClick={() => setDrawerOpen(false)}
-                aria-label={t("close")}
-                className="rounded-pill border-2 border-black02 p-1.5 text-black02 transition-colors hover:bg-primary"
+                onClick={onClearAll}
+                className="rounded-pill border-2 border-black02 px-5 py-3 font-sans text-body-m font-bold text-black02"
               >
-                <X size={20} weight="bold" />
+                {t("clear")}
               </button>
-            </div>
-
-            <div className="flex flex-col gap-5">{filters}</div>
-
-            <div className="mt-8 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setDrawerOpen(false)}
-                className="flex-1 rounded-pill border-2 border-black02 bg-primary px-6 py-3 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)]"
-              >
-                {t("done")}
-              </button>
-              {activeCount > 0 && onClearAll && (
-                <button
-                  type="button"
-                  onClick={onClearAll}
-                  className="rounded-pill border-2 border-black02 px-5 py-3 font-sans text-body-m font-bold text-black02"
-                >
-                  {t("clear")}
-                </button>
-              )}
-            </div>
+            )}
           </div>
-        </div>
-      )}
+        }
+      >
+        <div className="flex flex-col gap-5">{filters}</div>
+      </BottomSheet>
     </div>
   );
 }

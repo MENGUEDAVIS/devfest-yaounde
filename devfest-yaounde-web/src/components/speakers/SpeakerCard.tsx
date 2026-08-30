@@ -3,6 +3,8 @@
 import { X } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { PersonDetail } from "@/components/people/PersonDetail";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { MOBILE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 import type { PopoverSide } from "@/lib/popover-anchor";
 import type { Speaker } from "@/data/types";
@@ -68,6 +70,23 @@ export function SpeakerCard({
 }: SpeakerCardProps) {
   const locale = useLocale() as "fr" | "en";
   const t = useTranslations("common.filters");
+  /*
+   * PHASE13 §5: on mobile the detail opens in the SHARED bottom sheet
+   * instead of a side popover. There is no room beside a card on a phone,
+   * and the sheet is the pattern this site already uses for filters — so
+   * mobile gets one familiar interaction rather than two.
+   */
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+  const sheetMode = popover && isMobile;
+
+  const body = (
+    <PersonDetail
+      person={speaker}
+      tone={sheetMode ? "light" : "dark"}
+      interactive={open}
+      personality={personality}
+    />
+  );
 
   const detail = (
     <div
@@ -91,12 +110,7 @@ export function SpeakerCard({
           <X size={16} weight="bold" />
         </button>
       )}
-      <PersonDetail
-        person={speaker}
-        tone="dark"
-        interactive={open}
-        personality={personality}
-      />
+      {body}
     </div>
   );
 
@@ -145,8 +159,20 @@ export function SpeakerCard({
         </div>
       </button>
 
-      {/* Grid: outside the frame, so the popover can escape it. */}
-      {popover && detail}
+      {/* Grid, desktop: a popover outside the frame, so it can escape it. */}
+      {popover && !isMobile && detail}
+
+      {/* Grid, mobile: the shared bottom sheet. */}
+      {sheetMode && (
+        <BottomSheet
+          open={open}
+          onClose={() => (onClose ? onClose() : onToggle(null))}
+          title={speaker.name}
+          closeLabel={t("close")}
+        >
+          {body}
+        </BottomSheet>
+      )}
     </article>
   );
 }

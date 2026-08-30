@@ -356,6 +356,14 @@ html.has-custom-cursor textarea {
   position: fixed;
   inset: 0;
   z-index: 9999;
+  /*
+   * Belt and braces for PHASE13 §1: until the first real pointer coordinate
+   * arrives, `data-visible` is unset and the layer is not painted at all.
+   * The -100px fallbacks below would already park it off-screen, but
+   * `visibility: hidden` means no future positioning mistake can flash a
+   * cursor at a default coordinate before the pointer is known.
+   */
+  visibility: hidden;
   /* Never intercept a click. The cursor is decoration painted over the page;
      if it could be hit-tested it would break every interaction under it. */
   pointer-events: none;
@@ -364,6 +372,7 @@ html.has-custom-cursor textarea {
 }
 .cursor-layer[data-visible="true"] {
   opacity: 1;
+  visibility: visible;
 }
 /* Only painted when the component decided it should run. */
 html:not(.has-custom-cursor) .cursor-layer {
@@ -381,9 +390,9 @@ html:not(.has-custom-cursor) .cursor-layer {
 /* Pinned to the TRUE pointer position — no easing, so clicks land where the
    visible cursor is. */
 .cursor-dot {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
+  width: 16px;
+  height: 16px;
+  margin: -10px 0 0 -10px;
   border-radius: var(--radius-pill);
   background: var(--color-black02);
   transform: translate3d(var(--cursor-x, -100px), var(--cursor-y, -100px), 0);
@@ -434,9 +443,21 @@ html:not(.has-custom-cursor) .cursor-layer {
 .cursor-layer[data-state="interactive"] .cursor-arrow {
   opacity: 0.35;
 }
+/*
+ * Scale is a VARIABLE, never a `transform` of its own.
+ *
+ * PHASE13 §1 bug: this rule used to be `transform: scale(1)`, which is a
+ * shorthand — it replaced the whole transform and threw away the
+ * `translate3d(var(--ring-x), var(--ring-y))` that positions the halo. The
+ * result was that hovering any link snapped the ring to (0, 0), the
+ * top-left corner of the screen. Measured at 372px from the pointer.
+ *
+ * Any future state that wants to resize the halo must set --halo-scale, not
+ * `transform`.
+ */
 .cursor-layer[data-state="interactive"] .cursor-halo {
   opacity: 1;
-  transform: scale(1);
+  --halo-scale: 1;
 }
 .cursor-layer[data-state="interactive"] .cursor-dot {
   opacity: 0;
@@ -454,7 +475,7 @@ html:not(.has-custom-cursor) .cursor-layer {
   border-radius: var(--radius-pill);
   opacity: 0;
   transform: translate3d(var(--ring-x, -100px), var(--ring-y, -100px), 0)
-    scale(0.6);
+    scale(var(--halo-scale, 0.6));
   transition:
     opacity 220ms var(--ease-out-devfest),
     transform 320ms var(--ease-bouncy);

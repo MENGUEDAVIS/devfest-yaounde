@@ -29,6 +29,7 @@ const TILT = [-2, 1.5, -1, 2];
  */
 export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
   const t = useTranslations("pages.speakers");
+  const tf = useTranslations("common.filters");
   const locale = useLocale() as "fr" | "en";
   const searchParams = useSearchParams();
 
@@ -187,11 +188,13 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
         {t("results", { count: visible.length })}
       </p>
 
-      {visible.length === 0 ? (
-        <p className="rounded-lg border-2 border-dashed border-black02/30 px-7 py-16 text-center text-body-l text-black02/70">
-          {t("noResults")}
-        </p>
-      ) : view === "slider" ? (
+      {/*
+        PHASE13 §2: the slider is a LOCKED TAKEOVER over the grid, not an
+        alternative to it. The grid stays mounted underneath, so dismissing
+        the lockup returns to exactly the grid you left — same scroll
+        position, same filters, no remount.
+      */}
+      {view === "slider" && (
         <PersonSlider
           people={visible}
           index={sliderIndex}
@@ -201,7 +204,16 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
             writeUrl(next);
           }}
           emptyLabel={t("noResults")}
+          onClose={() => setView("grid")}
+          title={t("title")}
+          closeLabel={tf("close")}
         />
+      )}
+
+      {visible.length === 0 ? (
+        <p className="rounded-lg border-2 border-dashed border-black02/30 px-7 py-16 text-center text-body-l text-black02/70">
+          {t("noResults")}
+        </p>
       ) : (
         /*
          * 4 columns at xl — the floating filter rail takes no width from the

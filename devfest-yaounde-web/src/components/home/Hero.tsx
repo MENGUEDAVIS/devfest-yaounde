@@ -94,7 +94,13 @@ export async function Hero() {
         The large `pt` is unchanged in intent — it still clears the fixed
         chrome — it just no longer doubles as the block's only padding.
       */}
-      <div className="relative z-20 flex flex-1 flex-col items-center justify-center px-7 pb-14 pt-36 text-center sm:px-10 sm:pb-16 sm:pt-32">
+      {/*
+        Block padding, weighted vertical over horizontal (PHASE11 §6) but now
+        RESPONSIVE (PHASE13 §3): 144px of top padding is a lot of a 640px
+        phone screen. It scales from snug on mobile up to the original
+        desktop values.
+      */}
+      <div className="relative z-20 flex flex-1 flex-col items-center justify-center px-5 pb-10 pt-28 text-center sm:px-8 sm:pb-14 sm:pt-32 lg:px-10 lg:pb-16 lg:pt-36">
         {/* Logo + eyebrow on ONE row — was two stacked rows */}
         <div
           className={`${heroRise} flex items-center gap-3 sm:gap-4`}
@@ -136,7 +142,20 @@ export async function Hero() {
           <span className={maskLine}>
             <span style={lineStyle(1, 260)}>
               <span
-                className={`${stampIn} inline-block rounded-lg border-4 border-black02 bg-primary -mt-6 px-10! p-8 shadow-[0_8px_0_0_var(--color-black02)] sm:px-6`}
+                /*
+                  PHASE13 §3. The previous values (`-mt-6 px-10! p-8`) were a
+                  desktop-only edit that mobile inherited wholesale:
+                    - `px-10!` used `!important`, so it BEAT the `sm:` variant
+                      and forced 40px of horizontal padding at every width.
+                    - `p-8` added 32px vertically, and with `-mt-6` pulling
+                      the block up, the stamp's top was clipped by 15px by the
+                      mask-line's `overflow: hidden` (measured on 360x640,
+                      390x844 and 640x360).
+                  Now the padding and the tightening negative margin both
+                  scale with the breakpoint: snug on a phone, and the full
+                  desktop tightening from `sm` up.
+                */
+                className={`${stampIn} -mt-1.5 inline-block rounded-lg border-4 border-black02 bg-primary px-4 py-2 shadow-[0_8px_0_0_var(--color-black02)] sm:-mt-3 sm:px-7 sm:py-4 lg:-mt-5 lg:px-10 lg:py-6`}
                 style={stampStyle(760, -1.5)}
               >
                 {t("headlineCity")} {year}

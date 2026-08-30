@@ -530,11 +530,24 @@
    * (115% of the line) dwarfs this padding.
    *
    * Bottom also has to clear the stamp block's 8px offset shadow.
+   *
+   * PHASE13 §3 widened the top allowance. The hero's stamped city block sits
+   * on a negative top margin (deliberately tucked under the line above) AND
+   * is rotated, so its bounding box reaches higher than the line box by both
+   * the margin and the rotation's corner lift. 0.3em was not enough: the
+   * stamp's top was cut off by up to 15px on mobile.
+   *
+   * The allowance is `em + rem` on purpose. The em term scales with the
+   * fluid display size; the constant rem term covers what does NOT scale —
+   * the largest tightening margin (-1.25rem), the 4px border and the 8px
+   * drop shadow — which is why an em-only value still clipped by a few px at
+   * mid widths. Both halves are cancelled by matching negative margins, so
+   * this remains layout-neutral.
    */
-  padding-top: 0.3em;
-  margin-top: -0.3em;
-  padding-bottom: 0.25em;
-  margin-bottom: -0.25em;
+  padding-top: calc(0.3em + 2.5rem);
+  margin-top: calc(-0.3em - 2.5rem);
+  padding-bottom: calc(0.25em + 1rem);
+  margin-bottom: calc(-0.25em - 1rem);
 }
 
 .mask-line > * {
@@ -640,10 +653,24 @@
   visibility: hidden;
   transform: scale(0.94);
   transform-origin: left top;
+  /*
+   * PHASE13 §4: the CLOSE is now as considered as the open.
+   *
+   * It used to snap: `visibility` flipped after a 380ms delay while opacity
+   * and transform had already finished, so the panel effectively vanished.
+   * The exit now runs a real fade+scale on the same easing family as the
+   * entrance, slightly quicker (240/300ms vs 260/380ms) because an exit that
+   * matches an entrance exactly reads as sluggish — you have already decided
+   * to leave.
+   *
+   * `visibility` is delayed by exactly the longest exit duration so the panel
+   * stays hittable and painted for the whole animation, then leaves the
+   * accessibility tree.
+   */
   transition:
-    opacity 260ms var(--ease-out-devfest),
-    transform 380ms var(--ease-bouncy),
-    visibility 0s linear 380ms;
+    opacity 240ms var(--ease-in-out-devfest),
+    transform 300ms var(--ease-in-out-devfest),
+    visibility 0s linear 300ms;
 }
 /* Opens to the right of the card (default). */
 .speaker-card.is-popover.is-open-right .person-pop {
@@ -714,34 +741,55 @@
  * one in the spotlight.
  */
 /*
- * The stage is sized from the viewport rather than clamped to a fixed rem
- * range (PHASE11 §5.2) — that is what removed the slide's scrollbar: a fixed
- * 30rem ceiling meant a roomy PersonDetail simply did not fit at any screen
- * size. The slide grows with the screen instead.
+ * PHASE13 §2: the stage now lives inside a full-page LOCKUP, so it no longer
+ * negotiates height with a page heading, a filter row or a footer. It simply
+ * fills the takeover panel, and the slide can finally be generous.
  *
- * PHASE12 §6 pulls it back from FULL viewport height: `- 6rem` reserves room
- * for the controls row (a 56px button plus its 24px margin), which now sits
- * BELOW the stage rather than overlaid on it, so both stay on screen
- * together.
+ * `--stage-h` IS SPELLED OUT IN LENGTHS, not `100%`, on purpose. The track's
+ * offset is a `translateY(calc(...))`, and a percentage there resolves
+ * against the TRANSFORMED ELEMENT's own height — not against the stage, as
+ * the expression reads. With `100%` the reel positioned itself ~96px off and
+ * the peek bands collapsed to nothing. Lengths remove the ambiguity.
+ *
+ * The subtractions mirror the takeover's own box, so keep them in step with
+ * `Modal`'s takeover variant if that changes:
+ *   100svh                – the viewport
+ *   - var(--chrome-h)     – the fixed navbar the lockup sits below
+ *   - 1.5rem              – the panel's bottom offset (sm:pb-6)
+ *   - 3.5rem              – the panel's own padding (sm:p-7, top + bottom)
+ *   - 5rem                – the controls row beneath the stage
+ * Verified against the measured stage height: 532px at a 900px viewport.
  */
 .cinema-stage {
-  --stage-h: calc(100svh - var(--chrome-h) - 6rem);
-  --slide-h: calc(var(--stage-h) / 1.18);
-  --slide-gap: 1.25rem;
-  height: var(--stage-h);
-  min-height: 26rem;
+  --stage-h: calc(100svh - var(--chrome-h) - 1.5rem - 3.5rem - 5rem);
+  --slide-h: calc(var(--stage-h) * 0.84);
+  --slide-gap: 0.5rem;
+  flex: 1 1 auto;
+  min-height: 0;
 }
+/*
+ * `height: 100%` keeps the track's own box equal to the stage, so the slides
+ * (sized from --slide-h) lay out against a definite height rather than
+ * against the sum of all fourteen of them.
+ */
 .cinema-track {
   display: flex;
   flex-direction: column;
+  height: 100%;
   gap: var(--slide-gap);
   /*
-   * Centre slide --i, then add the live drag. The 0.31 is (stage - slide) / 2
-   * expressed in slide heights: (1.62 - 1) / 2.
+   * Centre slide --i, then add the live drag.
+   *
+   * The offset is literally (stage - slide) / 2. It used to be a hardcoded
+   * `--slide-h * 0.31`, derived back when the stage was exactly 1.62 slides
+   * tall — that constant then silently outlived the ratio it came from
+   * through two rewrites, leaving the reel ~96px low and squeezing the peek
+   * bands to nothing. Deriving it from the two variables means it stays
+   * correct whatever ratio they take.
    */
   transform: translateY(
     calc(
-      var(--slide-h) * 0.31 - var(--i, 0) *
+      (var(--stage-h) - var(--slide-h)) / 2 - var(--i, 0) *
         (var(--slide-h) + var(--slide-gap)) + var(--drag, 0) * 1px
     )
   );
@@ -752,6 +800,12 @@
 .cinema-track.is-dragging {
   transition: none;
 }
+/*
+ * PHASE13 §2: the active slide is inset horizontally so the slides above and
+ * below peek out at BOTH edges as well — the "there's more" cue now reads on
+ * two axes instead of one. The inactive slides stay full width, so what
+ * peeks past the active card's edges is the neighbouring card itself.
+ */
 .cinema-slide {
   height: var(--slide-h);
   flex: 0 0 auto;
@@ -762,14 +816,21 @@
     opacity 520ms var(--ease-out-devfest),
     transform 620ms var(--ease-bouncy);
 }
-/* The neighbours are readable-but-receding; everything else stays back. */
+/*
+ * The neighbours are readable-but-receding. Their scale is only slightly
+ * under 1 — and slightly ABOVE the active slide's 0.94 — which is what makes
+ * them peek past its left and right edges as well as above and below. A
+ * deeper scale-down pulled their top edge below the stage and the vertical
+ * peek disappeared entirely.
+ */
 .cinema-slide.is-adjacent {
   opacity: 0.42;
-  transform: scale(0.9);
+  transform: scale(0.97);
 }
 .cinema-slide.is-active {
   opacity: 1;
-  transform: scale(1);
+  /* Slightly inset so the neighbours show at the left/right edges too. */
+  transform: scale(0.94);
 }
 
 /*
@@ -830,6 +891,17 @@
  * are load-bearing, not cosmetic.)
  */
 @media (max-height: 950px) {
+  /* Shorter screens hand more of the stage to the slide — the peek band is
+     a nicety, the content fitting is not. */
+  .cinema-stage {
+    --slide-h: calc(var(--stage-h) * 0.9);
+  }
+  .cinema-slide > div {
+    padding: 1.25rem;
+  }
+  .cinema-slide .polaroid {
+    height: 66%;
+  }
   .cinema-slide .person-detail-roomy {
     gap: 0.75rem;
   }
@@ -850,8 +922,23 @@
  * a far better trade than losing words off the bottom of the card.
  */
 @media (max-height: 840px) {
+  /*
+   * On a short screen the fixed chrome already eats a third of the viewport,
+   * so the lockup claws space back everywhere it can: the panel's own
+   * padding halves, and the stage's reserve constants shrink to match. The
+   * vertical peek is given up entirely here (slide = the whole stage) —
+   * a depth cue is worth less than the words fitting.
+   */
+  .takeover-panel {
+    padding: 0.875rem;
+  }
   .cinema-stage {
-    --slide-h: calc(var(--stage-h) / 1.03);
+    --stage-h: calc(100svh - var(--chrome-h) - 1rem - 1.75rem - 4.25rem);
+    --slide-h: var(--stage-h);
+  }
+  .cinema-slide > div {
+    padding: 0.875rem;
+    gap: 1rem;
   }
   .cinema-slide .person-detail-roomy {
     gap: 0.4rem;
@@ -870,9 +957,16 @@
   .cinema-slide .person-detail-roomy .person-icebreaker {
     padding-top: 0.5rem;
   }
-  /* The print steps back further still, giving the words the room. */
+  /* The print steps back, giving the words the room on short screens. */
   .cinema-slide .polaroid {
-    height: 42%;
+    height: 52%;
+  }
+  .cinema-slide .person-detail-roomy .person-bio {
+    font-size: var(--text-caption);
+    line-height: 1.45;
+  }
+  .cinema-slide .person-detail-roomy .person-icebreaker p {
+    font-size: var(--text-caption);
   }
 }
 
@@ -908,12 +1002,14 @@
    */
   box-sizing: border-box;
   /*
-   * PHASE12 §6: markedly smaller. 50% of the row height is a QUARTER of the
-   * old footprint (area scales with the square), which is the ~75% reduction
-   * asked for. The print is now an object sitting on the slide rather than
-   * the thing that fills it.
+   * Sizing history worth keeping: this filled the slide (PHASE11), was cut
+   * to 50% of the row height (PHASE12 §6), and now sits at 78% — generous
+   * inside the lockup's extra room, but deliberately NOT filling its column,
+   * so it still reads as a print placed on the slide rather than as the
+   * slide's background. This is the dial to turn if it wants to be bigger
+   * or smaller.
    */
-  height: 50%;
+  height: 72%;
   width: fit-content;
   max-width: 100%;
   margin-inline: auto;

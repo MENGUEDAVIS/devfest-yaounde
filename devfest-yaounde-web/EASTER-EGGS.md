@@ -23,7 +23,7 @@ Format: one entry per egg — what it is, where it lives, how to trigger it, and
 ## Page-title text-scramble (decode)
 
 - **What**: clicking a page's top title makes each character churn through random ASCII-ish glyphs and then resolve, left to right, back to the real text.
-- **Where**: `src/components/ui/ScrambleText.tsx`, with `.scramble` in `src/app/motion.css`. Wired into **every page's H1** — the Home hero's "DevFest" line and the `/speakers`, `/team`, `/schedule`, `/faqs`, `/tickets`, `/shop` and `/dp-generator` titles. Exactly one per page.
+- **Where**: `src/components/ui/ScrambleText.tsx`, with `.scramble` in `src/app/motion.css`. Wired into **every page's H1** — the Home hero's "DevFest" line and the `/speakers`, `/team`, `/schedule`, `/faqs`, `/tickets`, `/shop` and `/dp-generator` titles — and, since PHASE13 §6, **the footer wordmark** (its two halves scramble independently, so "DevFest" and "Yaoundé" decode separately and each keeps its own colour).
 - **How to trigger**: **click the page title.** That is the only trigger.
 - **Added**: PHASE11 §1. Substantially reworked in PHASE12 §4.
 - **Notes** — PHASE12 made it a genuinely HIDDEN egg, which changed four things:
@@ -31,7 +31,7 @@ Format: one entry per egg — what it is, where it lives, how to trigger it, and
   - **No affordance at all.** The dotted underline is gone and the cursor does **not** change over the title. The earlier version advertised itself, which made it a feature rather than a secret. Do not add a hover hint back.
   - **Never on page load.** The title always renders normally first.
   - **Much slower.** The first version resolved in ~9 frames, which read as a blink. It now holds each glyph for several frames and staggers the characters, so the decode is watchable — roughly a second and a half for a short title.
-  - Scope is the **top H1 only**, never sub-headings.
+  - Scope is the **top H1 only** (plus the footer wordmark), never sub-headings.
   - It animates the REAL DOM text, so accented characters resolve correctly — "Yaoundé" comes back as "Yaoundé". This is why it replaced the earlier ASCII-art banner egg (PHASE10 §10), which needed a bitmap block font with no accented glyphs and so could only have misspelled the city or left a hole.
   - The mid-scramble string is nonsense, so it never reaches assistive tech: the real text stays in an `sr-only` span and the animating span is `aria-hidden`. That copy is `user-select: none` so selecting the heading doesn't yield the title twice.
   - Under `prefers-reduced-motion` clicking does nothing at all.

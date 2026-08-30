@@ -10,6 +10,7 @@ import { getTranslations } from "next-intl/server";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
+import { ScrambleText } from "@/components/ui/ScrambleText";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { Link } from "@/i18n/navigation";
 import {
@@ -70,9 +71,15 @@ export async function Footer() {
           <Reveal>
             <div>
               <DevFestLogo className="h-12 w-auto sm:h-14" title="DevFest" />
+              {/* PHASE13 §6: the footer wordmark carries the same
+                  click-only scramble as the page titles. Both halves get
+                  their own, so "Yaoundé" decodes independently of "DevFest"
+                  and each keeps its own colour. */}
               <p className="mt-7 font-sans text-display-hero font-bold leading-[0.86] text-offwhite">
-                DevFest
-                <span className="block text-primary">Yaoundé</span>
+                <ScrambleText text="DevFest" />
+                <span className="block text-primary">
+                  <ScrambleText text="Yaoundé" />
+                </span>
               </p>
             </div>
           </Reveal>

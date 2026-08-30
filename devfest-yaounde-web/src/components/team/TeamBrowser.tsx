@@ -35,6 +35,7 @@ const TILT = [-2, 1.5, -1, 2];
  */
 export function TeamBrowser({ members }: { members: TeamMember[] }) {
   const t = useTranslations("pages.team");
+  const tf = useTranslations("common.filters");
   const locale = useLocale() as "fr" | "en";
 
   const [view, setView] = useState<PersonView>("grid");
@@ -138,17 +139,27 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
         {t("groupBy")}
       </p>
 
-      {visible.length === 0 ? (
-        <p className="rounded-lg border-2 border-dashed border-black02/30 px-7 py-16 text-center text-body-l text-black02/70">
-          {t("noResults")}
-        </p>
-      ) : view === "slider" ? (
+      {/*
+        PHASE13 §2: the slider is a LOCKED TAKEOVER over the grid, not an
+        alternative to it — the grid stays mounted underneath so dismissing
+        returns to exactly the grid you left.
+      */}
+      {view === "slider" && (
         <PersonSlider
           people={visible}
           index={sliderIndex}
           onIndexChange={(i) => setFocusedId(visible[i]?.id ?? null)}
           emptyLabel={t("noResults")}
+          onClose={() => setView("grid")}
+          title={t("title")}
+          closeLabel={tf("close")}
         />
+      )}
+
+      {visible.length === 0 ? (
+        <p className="rounded-lg border-2 border-dashed border-black02/30 px-7 py-16 text-center text-body-l text-black02/70">
+          {t("noResults")}
+        </p>
       ) : (
         /* Flat grid — no contribution grouping (PHASE11 §10). */
         <div

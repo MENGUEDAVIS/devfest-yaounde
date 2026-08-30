@@ -29,7 +29,7 @@ Every route above exists in **both languages** (see §9 Localization) — e.g. `
 - **Floating**, pill-shaped, fixed at top with a small offset from the viewport edge (not flush) — this alone makes it feel less "default template."
 - Layout: **Logo** (far left) — **Schedule · Speakers · FAQs · Team** (center) — **Shop** (secondary button, outline style) + **Get Tickets** (primary button, filled, core color) (far right). Language switcher (EN/FR toggle) sits just before or after the ticket button, small and unobtrusive.
 - On scroll: navbar shrinks slightly and gains a soft shadow/blur background (glass effect) — a small, satisfying micro-animation (ease-out, ~200ms).
-- Mobile: collapses into a hamburger; the floating pill can morph into a rounded sheet that slides down — this transition is itself a fun **macro** animation moment (bouncy easing).
+- Mobile: collapses into a hamburger; the floating pill can morph into a rounded sheet that slides down — this transition is itself a fun **macro** animation moment (bouncy easing). The **current page is marked** in the mobile menu with a filled row (the day-toggle treatment) plus `aria-current="page"` (Phase 13 §7) — the desktop row marks it with its underline.
 - **Easter egg idea:** clicking the logo rapidly (5–7 times) triggers a burst of halftone confetti shapes across the navbar, or briefly morphs the logo into a goofy alternate version for a second. Log this (and future ones) in `/EASTER-EGGS.md` per DESIGN.md §6.3.
 
 ### 1.2 Announcement Banner
@@ -48,6 +48,7 @@ Every route above exists in **both languages** (see §9 Localization) — e.g. `
   - **Legal**: Privacy Policy, Community Guidelines/Code of Conduct
 - **Follow us:** social icons (X, Instagram, LinkedIn, YouTube, Facebook, WhatsApp — whichever are active), Phosphor icons at 24px, each in the same circular treatment. WhatsApp added in Phase 11 §11.
 - **Theme switcher:** four circles — Blue, Red, Yellow, Green — repainting the site live (DESIGN.md §2.5, ADR 0011).
+- **The wordmark carries the click-scramble easter egg** (Phase 13 §6) — see `/EASTER-EGGS.md`.
 - **Bottom line:** © [year] DevFest Yaoundé · GDG Yaoundé — small, quiet, Mono type.
 - Background: can be the one place on the site that goes full Black 02 dark, for contrast and a strong "closing" feeling to the scroll.
 
@@ -134,9 +135,15 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 >
 > Vertical drag is bound to **mouse and pen only**. On touch, a vertical gesture inside a tall stage is how you scroll the page, so claiming it would trap anyone who scrolled onto the slider; touch gets the buttons instead. Search and filters apply to both views and persist across the toggle, as does the focused speaker.
 >
-> **Composition (Phase 11 §5, refined in Phase 12 §6):** the photo is a **polaroid** — thick lower border, tilted, alternating direction slide to slide — detached from the slide's edges rather than flush to them, and **markedly smaller** since Phase 12 (half the linear size, so a quarter of the footprint: an object sitting on the slide rather than the thing that fills it). The slide's text column takes the space it gives up.
+> **Phase 13 §2 — the slider is a FULL-PAGE LOCKED TAKEOVER.** Switching to slider view opens an in-app overlay (not the browser Fullscreen API) covering the viewport **except the navbar**, which stays visible above it. Background scroll is frozen and the exact position restored on close; the overlay is dismissible by close button, Escape or click-outside, and dismissing returns to grid view. The grid stays mounted underneath the whole time, so you come back to exactly the grid you left.
 >
-> The stage is sized from the viewport but **not** full height — it reserves room for the **prev/next controls and the slide counter, which sit BELOW the slide**, not overlaid on it, with **no chip or background behind the counter**. Every slide's content fits with **no scrollbar and no clipping at any screen size** (verified 1280×720 to 2560×1440; type tightens on short viewports rather than the content being cut).
+> This exists to solve a recurring problem at the root: through Phases 10–12 the stage lived in a page section and had to negotiate height with a heading, a filter row and a footer, which produced a new cropping or sizing complaint every phase. The lockup removes the negotiation.
+>
+> It is built on the shared `Modal` shell's `takeover` variant, not a second overlay system — see [ADR 0012](../decisions/0012-overlay-reuse.md).
+>
+> **Composition:** the photo is a **polaroid** — thick lower border, tilted, alternating direction slide to slide — detached from the slide's edges, and sized generously but deliberately **not** filling its column. Prev/next slides **peek** past the active one on all four edges. The **counter and prev/next controls sit BELOW the slide** with **no chip or background behind the counter**. Every slide's content fits with **no scrollbar and no clipping at any screen size** (verified 1280×720 to 2560×1440; type, padding and the print all tighten on short viewports rather than the content being cut).
+>
+> **Desktop/tablet only.** The grid↔slider toggle is hidden below `md` entirely — see §4.1.
 >
 > Search and filters live in a **floating rail** on wide desktops and a **bottom drawer** everywhere else, grouped under labelled headings — one shared pattern across `/speakers`, `/schedule`, `/team` and `/faqs` (`FilterLayout` + `FilterGroup`).
 >
@@ -158,6 +165,8 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 - **Opening a card opens a POPOVER beside it** (Phase 11 §8, replacing Phase 10's in-place expansion): the card itself never changes size, so the grid does not reflow — no sibling jumps, no scroll position shifting under the pointer. The panel is one card wide, opens to the right, and flips to the left for cards in the last column so it always stays inside the grid.
 - **Accordion: one card open at a time.** Opening another closes the previous one. Escape, a click outside, or the panel's own close button dismiss it.
 - **The other cards dim while one is open** (Phase 12 §7), so the focused card is spotlit. It is opacity, not motion, so it still applies under reduced motion — only the easing is dropped.
+- The popover's **close is animated**, symmetric with its open (Phase 13 §4) — it used to vanish instantly.
+- **On mobile there is no popover and no slider.** The view toggle is hidden below `md`, and tapping a card opens its detail in the **shared bottom sheet** — the same component as the filter drawer, so mobile has one sheet interaction rather than two (Phase 13 §5, [ADR 0012](../decisions/0012-overlay-reuse.md)).
 - The grid is deliberately **plain** — it is the scannable view. The cinematic presentation is the slider.
 - No hover underline on speaker names: with the card expanding on click, an extra hover animation on the name read as a link affordance the name doesn't have.
 

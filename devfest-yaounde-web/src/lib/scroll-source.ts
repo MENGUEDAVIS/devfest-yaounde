@@ -106,3 +106,60 @@ export function scrollToY(y: number, smooth: boolean) {
   }
   window.scrollTo({ top: y, behavior: smooth ? "smooth" : "auto" });
 }
+
+/**
+ * Freeze the page behind an overlay, and restore it exactly on release.
+ *
+ * Lives here rather than in the overlay component because this is the single
+ * seam that knows which driver is active. `overflow: hidden` alone does NOT
+ * stop Lenis — it runs its own rAF loop against the real document, so the
+ * background would still glide under a "locked" overlay. Lenis has to be
+ * told to stop, and only this module holds the instance.
+ *
+ * Returns the release function. Calling it twice is safe.
+ *
+ * Scroll position: `overflow: hidden` on <body> preserves it (unlike the
+ * `position: fixed` technique, which collapses the page to the top and needs
+ * the offset re-applied). The Y is still captured and re-applied on release
+ * as a belt-and-braces: Lenis restarting can otherwise resume from its own
+ * internal target rather than where the user actually was.
+ */
+export function lockScroll(): () => void {
+  if (typeof document === "undefined") return () => {};
+
+  const y = window.scrollY;
+  const previousOverflow = document.body.style.overflow;
+  const previousRootOverflow = document.documentElement.style.overflow;
+  const previousPaddingRight = document.body.style.paddingRight;
+
+  // The overlay scrollbar is a floating element, not a native gutter, so
+  // there is normally nothing to compensate for — but if the native bar is
+  // in play (no JS overlay, or a browser that ignores it) hiding overflow
+  // would otherwise shift the whole page sideways.
+  const gutter = window.innerWidth - document.documentElement.clientWidth;
+  if (gutter > 0) {
+    document.body.style.paddingRight = `${gutter}px`;
+  }
+  document.body.style.overflow = "hidden";
+  /*
+   * <html> too, not just <body>. The document element is the scrolling
+   * element here, so `overflow: hidden` on the body alone leaves the page
+   * scrollable — verified: the background still moved 400px under a
+   * "locked" overlay.
+   */
+  document.documentElement.style.overflow = "hidden";
+  activeLenis?.stop();
+
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    document.body.style.overflow = previousOverflow;
+    document.documentElement.style.overflow = previousRootOverflow;
+    document.body.style.paddingRight = previousPaddingRight;
+    activeLenis?.start();
+    // `instant` so releasing never animates the page back into place.
+    if (activeLenis) activeLenis.scrollTo(y, { immediate: true });
+    else window.scrollTo({ top: y, behavior: "auto" });
+  };
+}

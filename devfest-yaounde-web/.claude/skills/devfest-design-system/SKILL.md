@@ -231,3 +231,21 @@ be no default-looking scrollbar anywhere on the site.
 effect. Use it sparingly — varied across pages, not on every heading. It keeps
 the real text in an `sr-only` span; never pass it text that differs from what
 should be read aloud.
+
+
+## Overlays: two shells, no third (ADR 0012)
+
+- **`Modal`** — `variant="dialog"` (centred panel) or `variant="takeover"` (full viewport below the navbar, z-40 so the chrome stays above). The slider lockup uses `takeover`.
+- **`BottomSheet`** — the mobile filter drawer AND mobile card details.
+
+Both own their focus trap, Escape, scrim and scroll lock. Do not write a third
+overlay; extend one of these. Scroll locking must go through `lockScroll()` in
+`src/lib/scroll-source.ts` — `overflow: hidden` alone neither stops Lenis nor
+locks `<html>`, and both were verified to leak.
+
+## Mobile rules
+
+- No slider, anywhere — the view toggle is hidden below `md`.
+- Card details open in `BottomSheet`, not a side popover.
+- Check `useMediaQuery(MOBILE_QUERY)` rather than inventing another breakpoint
+  constant. Its server snapshot is `false`, so desktop is the SSR shape.
