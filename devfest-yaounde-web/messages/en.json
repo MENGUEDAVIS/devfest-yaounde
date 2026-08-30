@@ -92,8 +92,7 @@
       "scrollCue": "Scroll",
       "photoCredit": "Scenes from past editions",
       "dateLabel": "When",
-      "venueLabel": "Where",
-      "asciiExit": "Back to normal"
+      "venueLabel": "Where"
     },
     "about": {
       "title": "What is DevFest Yaoundé?",

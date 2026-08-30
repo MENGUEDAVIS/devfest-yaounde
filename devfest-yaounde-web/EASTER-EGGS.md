@@ -20,17 +20,28 @@ Format: one entry per egg — what it is, where it lives, how to trigger it, and
 - **Added**: `feat/home-polish`, per PHASE5 §1.
 - **Note**: the navbar's smaller copy of the mark is intentionally _not_ click-spinnable — that button already owns the confetti easter egg above, and stacking two behaviours on one control would make both feel accidental.
 
-## ASCII headline
+## Headline text-scramble (decode)
 
-- **What**: the Home hero headline flips into an ASCII-art rendering of itself — block letters spelling "DEVFEST 2026" — and flips back.
-- **Where**: `src/components/home/AsciiHeadline.tsx` (triggers + state) with the 5-row block font in `src/lib/ascii.ts` and the `df-ascii-in` keyframe in `src/app/motion.css`. Wired in `src/components/home/Hero.tsx`.
-- **How to trigger — three different ways, on purpose**, so it's findable by more than one kind of person:
-  1. Type `ascii` anywhere on the page (the classic).
-  2. Press and hold the headline for ~700ms — the touch route, where there is no keyboard and no hover.
-  3. Load `/#ascii` — so it can be shared as a link.
-  Escape, the "Back to normal" button, or repeating a trigger flips it back.
-- **Added**: PHASE10 §10.
+- **What**: hovering certain H-level headlines makes each character churn through random ASCII-ish glyphs and then resolve, left to right, back to the real text.
+- **Where**: `src/components/ui/ScrambleText.tsx`, with `.scramble` in `src/app/motion.css`. Wired into the Home hero's "DevFest" line and the `/speakers` and `/team` page H1s.
+- **How to trigger**: hover (or keyboard-focus) a headline that carries it. Click also fires it, which is how it stays reachable on touch, where there is no hover.
+- **Added**: PHASE11 §1.
 - **Notes**:
-  - The banner spells `DevFest <year>`, not the full headline: the block font has no accented glyphs, and banner-ing "Yaoundé" would either misspell the city or leave a hole. The real headline stays in the DOM as an `sr-only` `<h1>` while flipped, so the page's heading never becomes a wall of block characters for a screen reader.
-  - The typed trigger ignores keystrokes while a form field is focused — searching the FAQ for a word containing "ascii" shouldn't set off a headline easter egg.
-  - Under `prefers-reduced-motion` the egg still fires; it just cuts instead of fading in.
+  - **Not every headline has it.** `/schedule` and `/faqs` are deliberately plain, so the effect reads as a find rather than a site-wide tic.
+  - It animates the REAL DOM text, so accented characters resolve correctly — "Yaoundé" comes back as "Yaoundé". This is why it replaced the earlier ASCII-art banner egg (PHASE10 §10), which needed a bitmap block font with no accented glyphs and so could only have misspelled the city or left a hole.
+  - The affordance is deliberate: a dotted underline in the theme colour appears on hover. An egg nobody can find isn't delight, it's dead code.
+  - The mid-scramble string is nonsense, so it never reaches assistive tech: the real text stays in an `sr-only` span and the animating span is `aria-hidden`.
+  - Under `prefers-reduced-motion` the scramble never starts — the headline just sits there.
+  - **Supersedes** the ASCII-art banner egg, which is removed. `src/lib/ascii.ts` and `AsciiHeadline.tsx` are gone; don't reintroduce them.
+
+## Bracket cursor
+
+- **What**: on desktop, the pointer becomes a small solid dot with a larger angled-bracket ring (the logo's `><` motif) chasing it. Over anything clickable the ring grows and the brackets open out to frame the target; pressing squeezes it.
+- **Where**: `src/components/global/CustomCursor.tsx` + the `.cursor-*` block in `src/app/globals.css`. Mounted once in `src/app/[locale]/layout.tsx`.
+- **How to trigger**: just use a mouse on desktop. It recolours with the footer theme switcher.
+- **Added**: PHASE11 §2.
+- **Notes** — this one is a hazard if handled carelessly, so the guards are the point:
+  - It does not run at all on coarse pointers, without hover, or under `prefers-reduced-motion`. Both media queries are watched live, so plugging in a mouse or toggling the OS motion setting takes effect without a reload.
+  - The native cursor is hidden ONLY by a class the component adds after those checks pass. If the script never runs, the cursor is simply never hidden — the failure mode is "no custom cursor", never "no cursor".
+  - The dot sits at the TRUE pointer position with no easing; only the ring lags. A lagging cursor would make every click feel a few pixels off.
+  - Text inputs keep their native I-beam, and the whole layer is `pointer-events: none` so it can never swallow a click.

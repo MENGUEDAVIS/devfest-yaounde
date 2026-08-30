@@ -46,13 +46,18 @@ Every route above exists in **both languages** (see §9 Localization) — e.g. `
   - **Event**: Schedule, Speakers, Team, FAQs
   - **Get Involved**: Shop, DP Generator, Join the Community (Bevy) — _the RSVP item was removed, see `docs/decisions/0008-retire-bevy-rsvp.md`_
   - **Legal**: Privacy Policy, Community Guidelines/Code of Conduct
-- **Follow us:** social icons (X, Instagram, LinkedIn, YouTube, Facebook — whichever are active), Phosphor icons at 24px.
+- **Follow us:** social icons (X, Instagram, LinkedIn, YouTube, Facebook, WhatsApp — whichever are active), Phosphor icons at 24px, each in the same circular treatment. WhatsApp added in Phase 11 §11.
+- **Theme switcher:** four circles — Blue, Red, Yellow, Green — repainting the site live (DESIGN.md §2.5, ADR 0011).
 - **Bottom line:** © [year] DevFest Yaoundé · GDG Yaoundé — small, quiet, Mono type.
 - Background: can be the one place on the site that goes full Black 02 dark, for contrast and a strong "closing" feeling to the scroll.
 
 ---
 
 ## 2. Home Page (`/`)
+
+> **Updated in Phase 11.** The home speaker cards show **basic info only** — name, role, company, short bio, socials. The icebreaker Q&A and the funny moment are deliberately NOT here: home is a teaser, and stacking all three made the preview card cluttered and forced it to scroll. The full personality lives on `/speakers`, where someone has actually asked for it. The home speaker slider also supports **drag/swipe**, matching the page slider's input handling.
+>
+> Hero spacing: the text block carries more padding, weighted vertical over horizontal, and the gap between the "DevFest" line and the stamped "Yaoundé ####" block below it is tightened so they nearly touch.
 
 The home page is a **single scrolling story** — teasers everywhere, full detail lives on dedicated pages.
 
@@ -125,13 +130,17 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 > **Updated in Phase 9, reworked in Phase 10.** `/speakers` offers **two views** — the grid below, and a **Slider view**. The slider is a **vertical cinema stage**: one person centred at full size, with the previous slide foreshadowed **above** and the next **below**, both scaled back and dimmed so the stack reads as depth. Drag has **momentum** — a slow drag past the threshold advances one slide, a flick carries two or three and decelerates into place. Buttons, arrow keys and Home/End all work; the index clamps at both ends rather than wrapping.
 >
-> Vertical drag is bound to **mouse and pen only**. On touch, a vertical gesture inside a tall stage is how you scroll the page, so claiming it would trap anyone who scrolled onto the slider; touch gets the buttons and tappable foreshadowed slides instead. Search and filters apply to both views and persist across the toggle, as does the focused speaker.
+> Vertical drag is bound to **mouse and pen only**. On touch, a vertical gesture inside a tall stage is how you scroll the page, so claiming it would trap anyone who scrolled onto the slider; touch gets the buttons instead. Search and filters apply to both views and persist across the toggle, as does the focused speaker.
+>
+> **Phase 11 §5 composition:** the photo is a **polaroid** — thick lower border, tilted, and alternating direction slide to slide — detached from the slide's edges rather than flush to them. The stage is a **full viewport height** so every slide's content fits with **no scrollbar and no clipping at any screen size** (verified from 1280×720 up to 2560×1440; type tightens on short viewports rather than the content being cut). Because the stage is full height, the prev/next controls are **overlaid on the stage**, not placed below it where they would fall off screen, and switching to the slider scrolls the stage under the navbar.
 >
 > Search and filters live in a **floating rail** on wide desktops and a **bottom drawer** everywhere else, grouped under labelled headings — one shared pattern across `/speakers`, `/schedule`, `/team` and `/faqs` (`FilterLayout` + `FilterGroup`).
 >
 > **Updated in Phase 10 — the rail takes no width from the content.** The main column stays exactly as wide and as centred as it would be with no filters at all; the rail floats in the leftover margin whitespace beside it (reference: fonts.google.com), vertically centred in the viewport and clear of the fixed navbar. The speakers grid therefore keeps its **4 columns** — it loses no column to the filters.
 >
 > The consequence worth knowing: the rail only appears from **1760px** up, because that is the width at which margin whitespace actually exists (`50vw − half the content column − a gutter − the rail's own width`). Below it, the drawer. Narrowing the content to make the rail fit at more widths is exactly what this rework removed.
+>
+> **Updated in Phase 11 §3 — the rail is sticky within its SECTION, not fixed to the viewport.** It used to be `position: fixed`, so it never yielded to anything: at the end of `/schedule` it sat on top of the footer. Now it sticks inside its own section and the following content pushes it up. It stays on screen for as long as the content it filters is on screen.
 >
 > Speakers also carry `icebreakerQuestion`, `icebreakerAnswer` and an optional `funnyMoment`, surfaced in the detail reveal as a warm quote moment rather than a data row.
 
@@ -140,7 +149,8 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 - All speakers, photo in morphed frame, name, role + company, small social icons.
 - Search bar + filter by track/day.
 - Consistent card sizing regardless of bio length while closed.
-- **Opening a card EXPANDS IT IN PLACE** (Phase 10): the card widens to two grid columns and the detail unfolds beside the photo, rather than swiping a cramped, inner-scrolling panel over a fixed-size card. A max height threshold caps an unusually long bio so one card can't tower over the grid — but the everyday card now opens with no inner scroll at all.
+- **Opening a card opens a POPOVER beside it** (Phase 11 §8, replacing Phase 10's in-place expansion): the card itself never changes size, so the grid does not reflow — no sibling jumps, no scroll position shifting under the pointer. The panel is one card wide, opens to the right, and flips to the left for cards in the last column so it always stays inside the grid.
+- **Accordion: one card open at a time.** Opening another closes the previous one. Escape, a click outside, or the panel's own close button dismiss it.
 - The grid is deliberately **plain** — it is the scannable view. The cinematic presentation is the slider.
 - No hover underline on speaker names: with the card expanding on click, an extra hover animation on the name read as a link affordance the name doesn't have.
 
@@ -159,13 +169,16 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 - Grouped accordions by category: **General**, **Tickets & Pricing**, **Venue & Logistics**, **Shop/Swag**, **Code of Conduct**.
 - Search filters questions and answers live as you type; empty categories drop out entirely.
 - **Each answer may carry an optional CTA** — `cta: { label, href, external? }` on the FAQ item. It is per-item, not per-category: the useful next step differs between two questions in the same category, and the old category-wide link appended "See tickets" to answers that had nothing to do with buying one. Items without a real next step render no button.
+- The CTA is **block-level, on its own line below the answer** (Phase 11 §9) — never inline with the last line of the answer text, and that applies to plain text links too.
 - Keep answers short and conversational — this is a good place to let the playful voice show even while being genuinely useful.
 
 ---
 
 ## 6. Team Page (`/team`)
 
-> **Updated in Phase 9.** The team is grouped and filtered by a **`contribution`** field (Organising, Design, Logistics, Sponsoring, Ushering, Programme) rather than a sub-team org chart, which was never confirmed — see `docs/decisions/0010-team-grouping.md`. `/team` has the same **grid ↔ slider** views and the same floating-rail/bottom-drawer filter pattern as `/speakers` — including Phase 10's expand-in-place cards and vertical cinema slider. It would be a divergent fork for the team grid to keep inner-scrolling while the speaker grid expands. Team members carry `contribution`, `icebreakerQuestion`, `icebreakerAnswer` and an optional `funnyMoment`. Alumni sit outside the filtered set in their own section.
+> **Updated in Phase 9.** The team is grouped and filtered by a **`contribution`** field (Organising, Design, Logistics, Sponsoring, Ushering, Programme) rather than a sub-team org chart, which was never confirmed — see `docs/decisions/0010-team-grouping.md`. `/team` has the same **grid ↔ slider** views and the same floating-rail/bottom-drawer filter pattern as `/speakers` — including Phase 11's popover cards and the vertical cinema slider. It would be a divergent fork for the team grid to reflow while the speaker grid holds still.
+
+> **Updated in Phase 11 §10:** the grid is **flat, ungrouped**, in any order. Grouping the grid by contribution produced mostly one-person sections, each costing a heading and a band of whitespace to say what the card underneath already said. Contribution is still stamped on every card and is still the filter axis — only the visual grouping is gone. Team members carry `contribution`, `icebreakerQuestion`, `icebreakerAnswer` and an optional `funnyMoment`. Alumni sit outside the filtered set in their own section.
 
 - Organizer photos (morphed frames), name, role/title (Lead Organizer, Design, Logistics, DevRel/Partnerships, Community, etc.) — grouped by sub-team if the org chart supports it, otherwise one grid.
 - Short, personality-forward one-liners rather than formal bios — e.g. "Keeps the Wi-Fi (and the vibes) running."

@@ -3,6 +3,7 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { TeamCardStatic } from "@/components/team/TeamCardStatic";
 import { TeamBrowser } from "@/components/team/TeamBrowser";
 import { Reveal } from "@/components/ui/Reveal";
+import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import team from "@/data/team.json";
 import type { TeamMember } from "@/data/types";
@@ -54,8 +55,11 @@ export default async function TeamPage({
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
       <SectionContainer background="yellow-wash" maxWidth="7xl">
+        {/* Scramble egg (PHASE11 §1) — deliberately NOT on every page
+            headline; /schedule and /faqs stay plain so this reads as a find
+            rather than a site-wide tic. */}
         <h1 className="font-sans text-display-hero font-bold leading-[0.9] text-black02">
-          {t("title")}
+          <ScrambleText text={t("title")} triggerOnClick />
         </h1>
         <p className="mt-6 max-w-2xl text-body-l text-black02/80">
           {t("lead")}

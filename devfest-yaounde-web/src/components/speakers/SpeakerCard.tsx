@@ -1,25 +1,35 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { X } from "@phosphor-icons/react";
+import { useLocale, useTranslations } from "next-intl";
 import { PersonDetail } from "@/components/people/PersonDetail";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
+import type { PopoverSide } from "@/lib/popover-anchor";
 import type { Speaker } from "@/data/types";
 
 export interface SpeakerCardProps {
   speaker: Speaker;
   open: boolean;
-  onToggle: () => void;
+  /**
+   * Receives the card's own root element so the grid can measure which way
+   * the popover should open before it opens. Passing the node beats a ref
+   * in the parent: the parent renders N cards and would need N refs.
+   */
+  onToggle: (card: Element | null) => void;
+  onClose?: () => void;
   /** Resting tilt applied when this card is the spotlight focus. */
   tilt?: number;
   focused?: boolean;
   /**
-   * Grid mode (PHASE10 §5): opening EXPANDS the card in place — it widens to
-   * two columns and grows to fit the detail beside the photo — instead of
-   * swiping a cramped, inner-scrolling panel over a fixed-size card.
-   * The slider leaves this off: there the card is the stage, it has room
-   * already, and expanding would fight the spotlight transform.
+   * Grid mode (PHASE11 §8): opening pops the detail out BESIDE the card as an
+   * overlay, so the grid never reflows. The slider leaves this off — there
+   * the card is the stage and the detail swipes up over it.
    */
-  expandInPlace?: boolean;
+  popover?: boolean;
+  /** Which way the popover opens; measured by the grid at click time. */
+  side?: PopoverSide;
+  /** Off on the home teaser — see `PersonDetail.personality` (PHASE11 §7). */
+  personality?: boolean;
   className?: string;
 }
 
@@ -31,10 +41,12 @@ export interface SpeakerCardProps {
  * (see docs/decisions/0009-speaker-interaction.md).
  *
  * Two presentations of one interaction:
- * - Slider (`expandInPlace` off): the detail swipes up over the card's own
- *   image, transform-driven, staying mounted.
- * - Grid (`expandInPlace` on): the card itself grows into the space beside
- *   it, photo left / detail right, so the answer is read at full size.
+ * - Slider (`popover` off): the detail swipes up over the card's own image,
+ *   transform-driven, staying mounted.
+ * - Grid (`popover` on): the card itself never changes size. The detail opens
+ *   as a panel BESIDE it, layered over the grid. PHASE10 expanded the card
+ *   in place instead, which reflowed every card in the row on every click;
+ *   this keeps the grid perfectly still.
  *
  * In both, the panel stays mounted and `inert` keeps its contents out of the
  * tab order and accessibility tree while closed.
@@ -43,82 +55,93 @@ export function SpeakerCard({
   speaker,
   open,
   onToggle,
+  onClose,
   tilt = -2,
   focused = false,
-  expandInPlace = false,
+  popover = false,
+  side = "right",
+  personality = true,
   className = "",
 }: SpeakerCardProps) {
   const locale = useLocale() as "fr" | "en";
-  const expanded = expandInPlace && open;
+  const t = useTranslations("common.filters");
 
   return (
     <article
       className={`speaker-card relative ${focused ? "is-focused" : ""} ${
         open ? "is-open" : ""
-      } ${expandInPlace ? "is-expandable" : ""} ${
-        expanded ? "is-expanded" : ""
+      } ${popover ? "is-popover" : ""} ${
+        open && popover ? `is-open-${side}` : ""
       } ${className}`}
       style={{ ["--card-tilt" as string]: `${tilt}deg` }}
     >
       <button
         type="button"
-        onClick={onToggle}
+        onClick={(e) => onToggle(e.currentTarget.closest("article"))}
         aria-expanded={open}
         aria-controls={`speaker-detail-${speaker.id}`}
-        className="block h-full w-full text-left"
+        className="block w-full text-left"
       >
-        <div
-          className={`relative h-full overflow-hidden rounded-lg border-2 border-black02 shadow-[0_6px_0_0_var(--color-black02)] ${
-            expanded
-              ? "grid grid-cols-1 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]"
-              : ""
-          }`}
-        >
-          <div className="relative">
-            <MorphedImageFrame
-              src={speaker.photoUrl}
-              alt={speaker.name}
-              aspectRatio="4/5"
-              className="rounded-none border-0"
-            />
+        <div className="relative overflow-hidden rounded-lg border-2 border-black02 shadow-[0_6px_0_0_var(--color-black02)]">
+          <MorphedImageFrame
+            src={speaker.photoUrl}
+            alt={speaker.name}
+            aspectRatio="4/5"
+            className="rounded-none border-0"
+          />
 
-            {/* Resting caption. In the slider it fades out behind the
-                swipe-up panel; when the card expands it stays, because the
-                detail now sits beside the photo rather than over it. */}
-            <div
-              className={`absolute inset-x-0 bottom-0 bg-offwhite px-5 py-4 transition-opacity duration-200 ${
-                open && !expandInPlace ? "opacity-0" : "opacity-100"
-              }`}
-            >
-              <p className="font-sans text-heading-m font-bold leading-tight text-black02">
-                {speaker.name}
-              </p>
-              <p className="mt-1 truncate text-body-m text-black02/70">
-                {speaker.role[locale]}
-              </p>
-            </div>
-          </div>
-
-          {/*
-            Detail. Expanded: a normal grid column that sizes to its content,
-            capped by --detail-max so a long answer can't make one card tower
-            over the grid. Slider: absolutely positioned and translated up.
-            Body is the shared PersonDetail, so the icebreaker Q&A and funny
-            moment render identically here, on TeamCard and in the slider.
-          */}
+          {/* Resting caption. In the slider it fades out behind the swipe-up
+              panel; in the grid it stays, because the detail sits beside the
+              card rather than over it. */}
           <div
-            id={`speaker-detail-${speaker.id}`}
-            inert={!open}
-            className={`speaker-detail scroll-on-dark bg-black02/92 px-6 py-6 text-left ${
-              expandInPlace
-                ? "max-h-[var(--detail-max)] overflow-y-auto"
-                : "absolute inset-0 overflow-y-auto"
+            className={`absolute inset-x-0 bottom-0 bg-offwhite px-5 py-4 transition-opacity duration-200 ${
+              open && !popover ? "opacity-0" : "opacity-100"
             }`}
           >
-            <PersonDetail person={speaker} tone="dark" interactive={open} />
+            <p className="font-sans text-heading-m font-bold leading-tight text-black02">
+              {speaker.name}
+            </p>
+            <p className="mt-1 truncate text-body-m text-black02/70">
+              {speaker.role[locale]}
+            </p>
           </div>
         </div>
       </button>
+
+      {/*
+        Detail. Grid: a popover anchored beside the card (see .person-pop).
+        Slider: absolutely positioned over the card and translated up.
+        Body is the shared PersonDetail, so the icebreaker Q&A and funny
+        moment render identically here, on TeamCard and in the slider.
+      */}
+      <div
+        id={`speaker-detail-${speaker.id}`}
+        inert={!open}
+        className={
+          popover
+            ? "person-pop scroll-on-dark rounded-lg border-2 border-black02 bg-black02 px-6 py-6 text-left shadow-[0_8px_0_0_var(--color-black02)]"
+            : "speaker-detail scroll-on-dark absolute inset-0 overflow-y-auto bg-black02/92 px-6 py-6 text-left"
+        }
+      >
+        {popover && (
+          <button
+            type="button"
+            onClick={(e) =>
+              onClose ? onClose() : onToggle(e.currentTarget.closest("article"))
+            }
+            aria-label={t("close")}
+            className="absolute right-4 top-4 rounded-pill border-2 border-offwhite/45 p-1.5 text-offwhite transition-colors hover:bg-offwhite hover:text-black02"
+          >
+            <X size={16} weight="bold" />
+          </button>
+        )}
+        <PersonDetail
+          person={speaker}
+          tone="dark"
+          interactive={open}
+          personality={personality}
+        />
+      </div>
     </article>
   );
 }

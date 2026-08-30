@@ -204,7 +204,7 @@ export function FaqBrowser({ faqs }: { faqs: FaqItem[] }) {
                       {cat === "code-of-conduct" && (
                         <a
                           href={CODE_OF_CONDUCT_URL}
-                          className="mt-4 inline-block font-sans text-body-m font-bold text-black02 underline decoration-2 underline-offset-4 hover:text-black02/60"
+                          className="mt-4 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
                         >
                           {t("readConduct")}
                         </a>

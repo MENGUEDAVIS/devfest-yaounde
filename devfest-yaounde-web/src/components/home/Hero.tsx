@@ -6,7 +6,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
-import { AsciiHeadline } from "./AsciiHeadline";
+import { ScrambleText } from "@/components/ui/ScrambleText";
 import { Button } from "@/components/ui/Button";
 import pastEditions from "@/data/past-editions.json";
 import sponsors from "@/data/sponsors.json";
@@ -87,7 +87,14 @@ export async function Hero() {
       <div aria-hidden className="absolute inset-0 z-10 bg-pastel/80" />
 
       {/* ---- Layer 3: content ---- */}
-      <div className="relative z-20 flex flex-1 flex-col items-center justify-center px-5 pb-6 pt-32 text-center sm:px-8 sm:pt-28">
+      {/*
+        PHASE11 §6: more breathing room around the hero text block, weighted
+        VERTICAL over horizontal (py 3.5rem vs px 1.75rem at base) so the
+        headline keeps its full measure while gaining air above and below.
+        The large `pt` is unchanged in intent — it still clears the fixed
+        chrome — it just no longer doubles as the block's only padding.
+      */}
+      <div className="relative z-20 flex flex-1 flex-col items-center justify-center px-7 pb-14 pt-36 text-center sm:px-10 sm:pb-16 sm:pt-32">
         {/* Logo + eyebrow on ONE row — was two stacked rows */}
         <div
           className={`${heroRise} flex items-center gap-3 sm:gap-4`}
@@ -108,28 +115,35 @@ export async function Hero() {
           Headline — the §7b bold moment. Line 1 plain, line 2 stamped into a
           solid yellow block for dramatic contrast. Both rise out of masks.
         */}
-        {/* Easter egg (PHASE10 §10): type `ascii`, hold the headline, or
-            arrive with #ascii, and this flips to ASCII art of itself. */}
-        <AsciiHeadline
-          text={`${t("headlineLead")} ${year}`}
-          label={t("headline", { year })}
-        >
-          <h1 className="mt-5 font-sans text-display-hero font-bold leading-[0.88] text-black02 sm:mt-6">
-            <span className={maskLine}>
-              <span style={lineStyle(0, 260)}>{t("headlineLead")}</span>
+        {/*
+          Easter egg (PHASE11 §1): hovering "DevFest" scrambles it and
+          decodes it back. Only line 1 carries it — the stamped city block on
+          line 2 is the hero's loudest element already, and animating both
+          would read as a glitch rather than a secret.
+        */}
+        {/*
+          `leading-[0.82]` (was 0.88) plus the stamp's removed top margin is
+          what closes the gap between "DevFest" and the "Yaoundé ####" block
+          so they nearly touch (PHASE11 §6). The mask-line padding in
+          motion.css still keeps the é accent and cap-heights from clipping.
+        */}
+        <h1 className="mt-5 font-sans text-display-hero font-bold leading-[0.82] text-black02 sm:mt-6">
+          <span className={maskLine}>
+            <span style={lineStyle(0, 260)}>
+              <ScrambleText text={t("headlineLead")} triggerOnClick />
             </span>
-            <span className={maskLine}>
-              <span style={lineStyle(1, 260)}>
-                <span
-                  className={`${stampIn} mt-1 inline-block rounded-lg border-4 border-black02 bg-primary px-4 pb-1 pt-0.5 shadow-[0_8px_0_0_var(--color-black02)] sm:mt-2 sm:px-6`}
-                  style={stampStyle(760, -1.5)}
-                >
-                  {t("headlineCity")} {year}
-                </span>
+          </span>
+          <span className={maskLine}>
+            <span style={lineStyle(1, 260)}>
+              <span
+                className={`${stampIn} inline-block rounded-lg border-4 border-black02 bg-primary px-4 pb-1 pt-0.5 shadow-[0_8px_0_0_var(--color-black02)] sm:px-6`}
+                style={stampStyle(760, -1.5)}
+              >
+                {t("headlineCity")} {year}
               </span>
             </span>
-          </h1>
-        </AsciiHeadline>
+          </span>
+        </h1>
 
         <p
           className={`${heroRise} mt-7 max-w-xl text-body-l text-black02/85 sm:mt-8`}

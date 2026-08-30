@@ -2,25 +2,32 @@
 
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PersonSlider } from "@/components/people/PersonSlider";
 import { FilterGroup } from "@/components/ui/FilterGroup";
 import { FilterLayout } from "@/components/ui/FilterLayout";
 import { Reveal } from "@/components/ui/Reveal";
 import { ViewToggle, type PersonView } from "@/components/ui/ViewToggle";
+import { chooseSide, type PopoverSide } from "@/lib/popover-anchor";
 import { TeamCard } from "./TeamCard";
 import type { TeamMember } from "@/data/types";
 
 const TILT = [-2, 1.5, -1, 2];
 
 /**
- * /team — filters + dual views, grouped by contribution (PHASE9 §0/§2/§3/§4).
+ * /team — filters + dual views, organised by contribution (PHASE9 §0/§2/§3/§4).
  *
- * The team is grouped and filtered by `contribution` (Organising, Design,
+ * The team is described and filtered by `contribution` (Organising, Design,
  * Logistics, Sponsoring, Ushering, Programme) rather than an invented
  * sub-team org chart, which was never confirmed. See
  * docs/decisions/0010-team-grouping.md — the "structure unknown" note that
  * used to sit on this page is retired as a result.
+ *
+ * PHASE11 §10: the grid is a FLAT grid again. Contribution is still the
+ * filter axis and still stamped on every card, but it no longer breaks the
+ * grid into visual groups — with a team this size that produced mostly
+ * one-person sections, each costing a heading and a band of whitespace to
+ * say what the card underneath already said.
  *
  * Alumni are excluded from the filtered set and rendered by the page in
  * their own section, so filtering never silently hides the past-organiser
@@ -34,6 +41,8 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
   const [query, setQuery] = useState("");
   const [contribution, setContribution] = useState<string | null>(null);
   const [focusedId, setFocusedId] = useState<string | null>(null);
+  /** Popover anchor — measured at click time, see popover-anchor.ts. */
+  const [side, setSide] = useState<PopoverSide>("right");
 
   const contributions = useMemo(
     () => [...new Set(members.map((m) => m.contribution[locale]))].sort(),
@@ -52,15 +61,29 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
 
   const activeCount = (query.trim() ? 1 : 0) + (contribution ? 1 : 0);
 
-  /** Grid groups by contribution so the grouping is visible, not just filterable. */
-  const grouped = useMemo(() => {
-    const map = new Map<string, TeamMember[]>();
-    for (const m of visible) {
-      const key = m.contribution[locale];
-      map.set(key, [...(map.get(key) ?? []), m]);
+  /** Accordion: one open at a time, by construction (single `focusedId`). */
+  function toggleCard(id: string, card: Element | null) {
+    const next = focusedId === id ? null : id;
+    if (next) setSide(chooseSide(card));
+    setFocusedId(next);
+  }
+
+  useEffect(() => {
+    if (!focusedId || view !== "grid") return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setFocusedId(null);
     }
-    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [visible, locale]);
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target as Element;
+      if (!target.closest(".speaker-card.is-open")) setFocusedId(null);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+    };
+  }, [focusedId, view]);
 
   const sliderIndex = Math.max(
     0,
@@ -127,36 +150,29 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
           emptyLabel={t("noResults")}
         />
       ) : (
-        <div className="flex flex-col gap-14">
-          {grouped.map(([group, people]) => (
-            <section key={group}>
-              <Reveal>
-                <h2 className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
-                  {group}
-                </h2>
-              </Reveal>
-              {/* `items-start` keeps siblings at their natural height when
-                  one card expands (PHASE10 §5). */}
-              <div className="mt-6 grid grid-cols-1 items-start gap-8 sm:grid-cols-2 xl:grid-cols-3">
-                {people.map((m, i) => (
-                  <Reveal
-                    key={m.id}
-                    index={i % 3}
-                    className={focusedId === m.id ? "sm:col-span-2" : ""}
-                  >
-                    <TeamCard
-                      member={m}
-                      open={focusedId === m.id}
-                      onToggle={() =>
-                        setFocusedId(focusedId === m.id ? null : m.id)
-                      }
-                      tilt={TILT[i % TILT.length]}
-                      expandInPlace
-                    />
-                  </Reveal>
-                ))}
-              </div>
-            </section>
+        /* Flat grid — no contribution grouping (PHASE11 §10). */
+        <div
+          data-card-grid
+          className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 xl:grid-cols-3"
+        >
+          {visible.map((m, i) => (
+            <Reveal
+              key={m.id}
+              index={i % 3}
+              /* Lifts the open card's stacking context above its siblings —
+                 `.anim-reveal`'s transform makes each wrapper its own. */
+              className={focusedId === m.id ? "relative z-30" : ""}
+            >
+              <TeamCard
+                member={m}
+                open={focusedId === m.id}
+                onToggle={(card) => toggleCard(m.id, card)}
+                onClose={() => setFocusedId(null)}
+                tilt={TILT[i % TILT.length]}
+                popover
+                side={side}
+              />
+            </Reveal>
           ))}
         </div>
       )}

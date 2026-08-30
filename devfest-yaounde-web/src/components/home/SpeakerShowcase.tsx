@@ -14,6 +14,9 @@ const featured = (speakers as Speaker[]).filter((s) => s.featured);
 /** Alternating resting tilt so the spotlight rotation isn't uniform. */
 const CARD_TILT = [-2.5, 2, -1.5, 2.5];
 
+/** Past this much horizontal drag, releasing moves to the next card. */
+const DRAG_COMMIT_PX = 60;
+
 const AUTO_ADVANCE_MS = 3800;
 
 /**
@@ -83,6 +86,38 @@ export function SpeakerShowcase() {
     setFocused((i) => (i + dir + featured.length) % featured.length);
   }, []);
 
+  /*
+   * Drag / swipe — PHASE11 §7. Matches the page slider's input handling:
+   * Pointer Events, so mouse, touch and pen share one code path, and a
+   * commit threshold rather than free scrolling (the track snaps to a
+   * centred card, so a free-running drag would fight the recentre).
+   *
+   * `touch-action: pan-y` keeps vertical page scrolling with the page — we
+   * only claim the horizontal axis, which is the one the track uses.
+   */
+  const drag = useRef<{ startX: number; pointerId: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+
+  function onPointerDown(e: React.PointerEvent) {
+    // Let clicks on the card itself (opening a detail) work normally.
+    if ((e.target as Element).closest("a,button")) return;
+    drag.current = { startX: e.clientX, pointerId: e.pointerId };
+    setDragging(true);
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+  }
+
+  function onPointerUp(e: React.PointerEvent) {
+    const d = drag.current;
+    if (!d) return;
+    const dx = e.clientX - d.startX;
+    const el = e.currentTarget as Element;
+    if (el.hasPointerCapture?.(d.pointerId))
+      el.releasePointerCapture(d.pointerId);
+    drag.current = null;
+    setDragging(false);
+    if (Math.abs(dx) > DRAG_COMMIT_PX) go(dx < 0 ? 1 : -1);
+  }
+
   // Auto-advance. Never runs for reduced-motion users, and pauses whenever
   // the user is hovering, focused inside, or has a detail panel open.
   useEffect(() => {
@@ -134,11 +169,16 @@ export function SpeakerShowcase() {
         focused card room inside the clipping box.
       */}
       <div
-        className="mt-12 w-full overflow-hidden py-16"
+        className="mt-12 w-full touch-pan-y select-none overflow-hidden py-16"
+        style={{ cursor: dragging ? "grabbing" : "grab" }}
+        data-cursor="grab"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onFocusCapture={() => setPaused(true)}
         onBlurCapture={() => setPaused(false)}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
         <div
           ref={trackRef}
@@ -157,6 +197,10 @@ export function SpeakerShowcase() {
               }}
               focused={i === focused}
               tilt={CARD_TILT[i % CARD_TILT.length]}
+              /* Home is a teaser: name, role, company, bio, socials only.
+                 The icebreaker and funny moment live on /speakers, where
+                 someone has actually asked for the detail (PHASE11 §7). */
+              personality={false}
               className="w-72 shrink-0 sm:w-88"
             />
           ))}

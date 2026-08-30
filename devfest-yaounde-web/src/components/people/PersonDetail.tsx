@@ -62,6 +62,15 @@ export interface PersonDetailProps {
   size?: "compact" | "roomy";
   /** Focusable children need tabIndex -1 when the surface is closed. */
   interactive?: boolean;
+  /**
+   * Show the personality beats — the icebreaker Q&A and the funny moment.
+   *
+   * Off for the HOME speaker cards (PHASE11 §7): the home page is a teaser,
+   * and stacking a bio, a Q&A and a "true story" into a preview card made it
+   * cluttered and forced it to scroll. The full personality lives on
+   * /speakers, which is where someone has actually asked for it.
+   */
+  personality?: boolean;
 }
 
 /**
@@ -81,6 +90,7 @@ export function PersonDetail({
   tone = "dark",
   size = "compact",
   interactive = true,
+  personality = true,
 }: PersonDetailProps) {
   const locale = useLocale() as "fr" | "en";
   const t = useTranslations("common.person");
@@ -97,10 +107,16 @@ export function PersonDetail({
   const ruleCls = dark ? "border-offwhite/20" : "border-black02/15";
 
   return (
-    <div className={roomy ? "flex flex-col gap-6" : "flex flex-col gap-4"}>
+    <div
+      className={
+        roomy
+          ? "person-detail-roomy flex flex-col gap-5"
+          : "flex flex-col gap-4"
+      }
+    >
       <div>
         <p
-          className={`font-sans font-bold leading-tight ${nameCls} ${roomy ? "text-display-l" : "text-heading-l"}`}
+          className={`person-name font-sans font-bold leading-tight ${nameCls} ${roomy ? "text-display-l" : "text-heading-l"}`}
         >
           {person.name}
         </p>
@@ -119,38 +135,43 @@ export function PersonDetail({
 
       {blurb && (
         <p
-          className={`leading-relaxed ${bodyCls} ${roomy ? "text-body-l" : "text-body-m"}`}
+          className={`person-bio leading-relaxed ${bodyCls} ${roomy ? "text-body-l" : "text-body-m"}`}
         >
           {blurb[locale]}
         </p>
       )}
 
       {/* Icebreaker — a quote moment, not a data row */}
-      <div className={`border-t-2 pt-5 ${ruleCls}`}>
-        <p
-          className={`font-mono text-mono-tag font-bold uppercase tracking-wide ${labelCls}`}
-        >
-          {t("icebreaker")}
-        </p>
-        <p className={`mt-2 text-body-m ${bodyCls}`}>
-          {person.icebreakerQuestion[locale]}
-        </p>
-        <div className="mt-3 flex gap-2.5">
-          <Quotes
-            size={roomy ? 28 : 22}
-            weight="fill"
-            aria-hidden
-            className={`shrink-0 ${dark ? "text-primary" : "text-primary"}`}
-          />
+      {personality && (
+        <div className={`person-icebreaker border-t-2 pt-5 ${ruleCls}`}>
           <p
-            className={`font-sans font-bold leading-snug ${nameCls} ${roomy ? "text-heading-l" : "text-heading-m"}`}
+            className={`font-mono text-mono-tag font-bold uppercase tracking-wide ${labelCls}`}
           >
-            {person.icebreakerAnswer[locale]}
+            {t("icebreaker")}
           </p>
+          <p className={`mt-2 text-body-m ${bodyCls}`}>
+            {person.icebreakerQuestion[locale]}
+          </p>
+          <div className="mt-3 flex gap-2.5">
+            <Quotes
+              size={roomy ? 24 : 20}
+              weight="fill"
+              aria-hidden
+              className={`shrink-0 ${dark ? "text-primary" : "text-primary"}`}
+            />
+            {/* PHASE11 §5.3: the roomy answer was display-sized (heading-l) and
+              dominated the slide; heading-m still reads as the quote's
+              punchline without pushing the rest of the slide off. */}
+            <p
+              className={`font-sans font-bold leading-snug ${nameCls} ${roomy ? "text-heading-m" : "text-body-l"}`}
+            >
+              {person.icebreakerAnswer[locale]}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
-      {person.funnyMoment && (
+      {personality && person.funnyMoment && (
         <div
           className={`flex items-start gap-2.5 rounded-lg border-2 px-4 py-3 ${
             dark

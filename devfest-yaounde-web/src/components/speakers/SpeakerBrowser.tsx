@@ -3,12 +3,13 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PersonSlider } from "@/components/people/PersonSlider";
 import { FilterGroup } from "@/components/ui/FilterGroup";
 import { FilterLayout } from "@/components/ui/FilterLayout";
 import { Reveal } from "@/components/ui/Reveal";
 import { ViewToggle, type PersonView } from "@/components/ui/ViewToggle";
+import { chooseSide, type PopoverSide } from "@/lib/popover-anchor";
 import { SpeakerCard } from "./SpeakerCard";
 import type { Speaker } from "@/data/types";
 
@@ -35,6 +36,12 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
   const [query, setQuery] = useState("");
   const [track, setTrack] = useState<string | null>(null);
   const [day, setDay] = useState<string | null>(null);
+
+  /**
+   * Which side the open card's popover opens toward. Measured in the click
+   * handler (see popover-anchor.ts) — never in an effect or during render.
+   */
+  const [side, setSide] = useState<PopoverSide>("right");
 
   /** Deep link resolved once, in a lazy initializer (never an effect). */
   const [focusedId, setFocusedId] = useState<string | null>(() => {
@@ -76,11 +83,44 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
     window.history.replaceState(null, "", url);
   }
 
-  function toggleCard(id: string) {
+  /**
+   * Accordion: one card open at a time. `focusedId` is a single value, so
+   * opening a second card closes the first by construction rather than by a
+   * cleanup pass that could get out of step.
+   */
+  function toggleCard(id: string, card: Element | null) {
     const next = focusedId === id ? null : id;
+    if (next) setSide(chooseSide(card));
     setFocusedId(next);
     writeUrl(next);
   }
+
+  function closeCard() {
+    setFocusedId(null);
+    writeUrl(null);
+  }
+
+  // Escape and click-outside close the open popover — it overlays the grid,
+  // so it needs the same dismissal affordances as any other overlay.
+  useEffect(() => {
+    if (!focusedId || view !== "grid") return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") closeCard();
+    }
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target as Element;
+      if (!target.closest(".speaker-card.is-open")) closeCard();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    // Capture phase: a card's own click handler would otherwise reopen it
+    // in the same gesture that this closes.
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedId, view]);
 
   // Slider index derives from the shared focusedId, so the view switch keeps
   // your place. Falls back to 0 when the focused person is filtered out.
@@ -165,24 +205,32 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
       ) : (
         /*
          * 4 columns at xl — the floating filter rail takes no width from the
-         * grid (PHASE10 §1). `items-start` matters: without it every card in
-         * a row stretches to match an expanded neighbour.
+         * grid (PHASE10 §1). `data-card-grid` is what popover-anchor.ts
+         * measures against to decide which way a card opens.
          */
-        <div className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          data-card-grid
+          className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        >
           {visible.map((s, i) => (
             <Reveal
               key={s.id}
               index={i % 3}
-              /* The Reveal IS the grid item, so the expanded card's column
-                 span has to live here, not on the card. */
-              className={focusedId === s.id ? "sm:col-span-2" : ""}
+              /* The Reveal IS the grid item, so the open card's stacking
+                 context has to be lifted here — `.anim-reveal` carries a
+                 transform, which makes each wrapper its own stacking
+                 context and would otherwise let later siblings paint over
+                 the popover. */
+              className={focusedId === s.id ? "relative z-30" : ""}
             >
               <SpeakerCard
                 speaker={s}
                 open={focusedId === s.id}
-                onToggle={() => toggleCard(s.id)}
+                onToggle={(card) => toggleCard(s.id, card)}
+                onClose={closeCard}
                 tilt={TILT[i % TILT.length]}
-                expandInPlace
+                popover
+                side={side}
               />
             </Reveal>
           ))}

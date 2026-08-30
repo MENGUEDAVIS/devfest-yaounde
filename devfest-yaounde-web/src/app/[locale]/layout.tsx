@@ -3,6 +3,7 @@ import { Google_Sans, Google_Sans_Code } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { CustomCursor } from "@/components/global/CustomCursor";
 import { FloatingScrollbar } from "@/components/global/FloatingScrollbar";
 import { Footer } from "@/components/global/Footer";
 import { GlobalChrome } from "@/components/global/GlobalChrome";
@@ -64,9 +65,7 @@ export default async function LocaleLayout({
           after hydration, far too late. Content is built from a fixed
           allow-list in @/lib/theme, never from user input.
         */}
-        <script
-          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       {/*
         suppressHydrationWarning is scoped to <body> ONLY, and only because
@@ -89,6 +88,7 @@ export default async function LocaleLayout({
           <SmoothScrollProvider />
           <GlobalChrome />
           <FloatingScrollbar />
+          <CustomCursor />
           {/*
             The chrome is fixed-position, so page content needs its own top
             offset. Hero sections apply their own generous top padding

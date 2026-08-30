@@ -25,20 +25,24 @@ export interface FilterLayoutProps {
 }
 
 /**
- * The shared filtered-page layout — PHASE9 §2. Used by /speakers, /schedule
- * and /team so there is ONE implementation rather than three bespoke ones.
+ * The shared filtered-page layout — PHASE9 §2. Used by /speakers, /schedule,
+ * /team and /faqs so there is ONE implementation rather than four bespoke
+ * ones.
  *
- * Desktop: filters live in a STICKY side column, so the main content stays
- * centred in its own column and the controls never scroll away.
+ * Wide desktop: filters live in a rail that floats in the MARGIN beside the
+ * content, taking no width from it — the content column is exactly as wide
+ * and as centred as it would be with no filters at all (PHASE10 §1). The rail
+ * is sticky within this section, so it stays put while you read but stops at
+ * the section's end rather than covering the footer (PHASE11 §3).
  *
- * Mobile: the sidebar collapses into a bottom drawer opened by a Filters
+ * Narrower: the rail collapses into a bottom drawer opened by a Filters
  * button, which keeps vertical space for content. The drawer is focus
  * trapped, closes on Escape / scrim tap / close button / swipe-down, and
  * locks body scroll while open.
  *
- * The `filters` node is rendered in both the sidebar and the drawer, but
- * never both *visible*: the sidebar is `hidden lg:block` and the drawer is
- * `lg:hidden` and only mounted while open. Elements hidden with
+ * The `filters` node is rendered in both the rail and the drawer, but
+ * never both *visible*: the rail is hidden below 1760px and the drawer is
+ * hidden above it and only mounted while open. Elements hidden with
  * `display: none` are dropped from the accessibility tree, so screen readers
  * never encounter two copies. Rendering the same element in two places also
  * creates two component instances, so `useId()` inside FilterGroup yields
@@ -98,47 +102,55 @@ export function FilterLayout({
   }, [drawerOpen]);
 
   return (
-    <>
-      {/* ---- Desktop: rail FLOATING in the margin, outside the flow ---- */}
+    <div className="filter-section relative">
+      {/* ---- Desktop: rail floating in the margin, outside the flow ---- */}
       {/*
-        Rail position, left to right: the viewport centre, minus half the
-        content column (38rem), minus a 1.5rem gutter, minus the rail's own
-        14rem width — so its right edge lands exactly one gutter clear of the
-        content, whatever the viewport.
+        PHASE11 §3 — the rail is now STICKY WITHIN THIS SECTION, not fixed to
+        the viewport.
 
-          left = 50vw - 38rem - 1.5rem - 14rem = 50vw - 53.5rem
+        Before, it was `position: fixed`, which meant it never yielded to
+        anything: scroll to the end of /schedule and it sat on top of the
+        footer. Now `.filter-rail-track` is an absolutely-positioned column
+        spanning exactly this section's height, and the rail is `sticky`
+        inside it. Sticky is bounded by its containing block, so when the
+        section ends the rail stops with it and the footer pushes it up —
+        with no scroll listener and nothing to keep in sync.
 
-        That arithmetic also sets the breakpoint. The rail needs its own
-        1.5rem gutter from the screen edge too, so it only fits once
-        50vw - 53.5rem >= 1.5rem, i.e. from 110rem = 1760px up. Below that
-        there is genuinely no margin to float in — and since the content
-        column must NOT narrow to make room (that was the whole point of this
-        rework), narrower viewports get the drawer rather than a rail sitting
-        on top of the content.
+        The track sits one 1.5rem gutter to the LEFT of the content column
+        (`right: calc(100% + 1.5rem)`), measured from the column itself
+        rather than from the viewport centre — the same result as the old
+        `50vw - 53.5rem` arithmetic, but it no longer has to know the
+        column's width.
+
+        The 1760px breakpoint stays: the rail needs its own 1.5rem gutter
+        from the screen edge, so it only fits once
+        `50vw - 38rem (half the column) - 1.5rem - 14rem >= 1.5rem`,
+        i.e. from 110rem = 1760px up. Below that there is genuinely no margin
+        to float in — and since the content column must NOT narrow to make
+        room (the whole point of the PHASE10 rework), narrower viewports get
+        the drawer instead of a rail sitting on top of the content.
       */}
-      <aside
-        aria-label={heading}
-        className="pointer-events-none fixed left-[calc(50vw-53.5rem)] top-1/2 z-40 hidden w-56 -translate-y-1/2 min-[1760px]:block"
-        style={{ maxHeight: "calc(100svh - var(--chrome-h))" }}
-      >
-        <div className="pointer-events-auto flex max-h-[inherit] flex-col gap-5 overflow-y-auto rounded-lg border-2 border-black02 bg-offwhite p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="font-sans text-heading-m font-bold text-black02">
-              {heading}
-            </h2>
-            {activeCount > 0 && onClearAll && (
-              <button
-                type="button"
-                onClick={onClearAll}
-                className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 underline decoration-2 underline-offset-4 hover:text-black02/60"
-              >
-                {t("clear")}
-              </button>
-            )}
+      <div className="filter-rail-track pointer-events-none absolute bottom-0 top-0 hidden w-56 min-[1760px]:block">
+        <aside aria-label={heading} className="filter-rail-sticky sticky">
+          <div className="pointer-events-auto flex flex-col gap-5 overflow-y-auto rounded-lg border-2 border-black02 bg-offwhite p-5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-sans text-heading-m font-bold text-black02">
+                {heading}
+              </h2>
+              {activeCount > 0 && onClearAll && (
+                <button
+                  type="button"
+                  onClick={onClearAll}
+                  className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 underline decoration-2 underline-offset-4 hover:text-black02/60"
+                >
+                  {t("clear")}
+                </button>
+              )}
+            </div>
+            <div className="flex flex-col gap-5">{filters}</div>
           </div>
-          <div className="flex flex-col gap-5">{filters}</div>
-        </div>
-      </aside>
+        </aside>
+      </div>
 
       {/* ---- Main content: full width, centred, untouched by the rail ---- */}
       <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
@@ -232,6 +244,6 @@ export function FilterLayout({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

@@ -129,7 +129,7 @@ For DevFest Yaoundé, the base theme is:
 
 Yellow is the **default**, not the only option. The footer carries a theme switcher: four circles in the order **Blue, Red, Yellow, Green**, the active one ringed. Picking one repaints the entire site immediately, with no page reload, and the choice is remembered for that visitor.
 
-This does not weaken the rule above — it *is* the rule above, made adjustable. Whichever family is chosen, that family is dominant and the other three stay supporting. The site is never a rainbow; it is yellow-dominant, or blue-dominant, or red-dominant, or green-dominant.
+This does not weaken the rule above — it _is_ the rule above, made adjustable. Whichever family is chosen, that family is dominant and the other three stay supporting. The site is never a rainbow; it is yellow-dominant, or blue-dominant, or red-dominant, or green-dominant.
 
 Implementation shape (the part that matters for design decisions):
 

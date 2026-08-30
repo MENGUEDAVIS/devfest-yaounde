@@ -9,6 +9,7 @@ export const BEVY_URL = "#"; // TODO: real GDG Yaoundé Bevy chapter URL
 export const SOCIAL_LINKS = {
   x: "#",
   instagram: "#",
+  whatsapp: "#",
   linkedin: "#",
   youtube: "#",
   facebook: "#",

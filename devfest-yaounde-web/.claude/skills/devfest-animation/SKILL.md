@@ -126,3 +126,33 @@ Every preset above already turns itself off under `prefers-reduced-motion: reduc
 ## Easter eggs
 
 Every easter egg animation still follows the tiers/easing above (typically `bouncyPop` territory). Log every one added — what it is, where it lives, how to trigger it, which PR/year added it — in `/EASTER-EGGS.md` at the project root, so future organizers don't duplicate or collide with an existing one. See `DESIGN.md` §6.3 for the seed list of ideas.
+
+
+## Reveal uses a DATA ATTRIBUTE, not a class (PHASE11 §8)
+
+`<Reveal>` marks itself visible with `data-visible="true"`, and
+`.anim-reveal[data-visible="true"]` is what shows it.
+
+It used to add an `is-visible` CLASS. Don't go back to that. React owns the
+`className` attribute on that node and rewrites it whenever the `className`
+prop changes — which destroys any class added imperatively. The symptom is
+nasty and non-obvious: pass a conditional class to `Reveal` (as the speakers
+and team grids do), and the element silently snaps back to `.anim-reveal`'s
+hidden state — opacity 0, translateY(40px) — keeping its layout space while
+its content vanishes, permanently, because the observer has already
+unobserved it.
+
+The general rule: if React manages an attribute, don't also write it from an
+effect. Use one React doesn't touch.
+
+## Everything new goes in the reduced-motion block
+
+Every animation added in a phase must also appear in the
+`@media (prefers-reduced-motion: reduce)` block at the bottom of
+`src/app/motion.css`. Current entries include the cinema stage, the polaroid,
+the person popover, the FAQ scrollspy and the scramble affordance.
+
+Two of the newer effects are guarded in JS instead, because they are driven
+by rAF rather than CSS: the headline scramble never starts, and the custom
+cursor never mounts its listeners. Both read `matchMedia` live rather than
+caching it, so toggling the OS setting takes effect without a reload.

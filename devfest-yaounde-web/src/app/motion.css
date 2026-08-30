@@ -352,7 +352,7 @@
 
 /*
  * Scroll reveal — driven by the <Reveal> component (src/components/ui/Reveal.tsx),
- * which adds `is-visible` via IntersectionObserver when the element enters
+ * which sets `data-visible` via IntersectionObserver when the element enters
  * the viewport. Children stagger via --stagger-index.
  */
 .anim-reveal {
@@ -365,7 +365,12 @@
   will-change: opacity, transform;
 }
 
-.anim-reveal.is-visible {
+/*
+ * Driven by a data attribute, not a class — React owns `className` on these
+ * nodes and would wipe an imperatively-added class on any prop change.
+ * See the comment in Reveal.tsx (PHASE11 §8).
+ */
+.anim-reveal[data-visible="true"] {
   opacity: 1;
   transform: translateY(0);
 }
@@ -545,62 +550,87 @@
  * SLIDER presentation — the detail swipes up over the card's own image.
  * 101% (not 100%) hides the panel's own border seam on fractional layouts.
  */
-.speaker-card:not(.is-expandable) .speaker-detail {
+.speaker-card:not(.is-popover) .speaker-detail {
   transform: translateY(101%);
   transition: transform 520ms var(--ease-bouncy);
 }
-.speaker-card:not(.is-expandable).is-open .speaker-detail {
+.speaker-card:not(.is-popover).is-open .speaker-detail {
   transform: translateY(0);
 }
 
 /*
- * GRID presentation — PHASE10 §5: the card EXPANDS IN PLACE instead of
- * inner-scrolling a cramped overlay. Closed, the detail column is collapsed
- * with grid-template-rows 0fr (the only way to animate to content height
- * without hardcoding one). Open, the card widens to two columns and the
- * detail unfolds beside the photo at readable size.
+ * GRID presentation — PHASE11 §8. The detail is a POPOVER beside the card.
  *
- * --detail-max is the height threshold: past it the detail scrolls rather
- * than letting one long answer tower over the rest of the grid. It is a cap,
- * not the default — the ordinary card now fits without scrolling at all.
+ * The card itself never changes size, so the grid does not reflow when one
+ * opens: no siblings jump, no scroll position shifts under the pointer.
+ * (PHASE10 expanded the card into a two-column span, which moved every card
+ * after it on every click.)
+ *
+ * The panel is one card wide and opens one gap to the side — right by
+ * default, left for cards in the last column, chosen by measurement at click
+ * time (src/lib/popover-anchor.ts). It is top-aligned with its card and grows
+ * downward over the row below, which is what an overlay is for.
  */
-.speaker-card.is-expandable {
-  /*
-   * The height threshold. Measured against the real content: an ordinary
-   * card's detail is ~560px in the expanded column, so 40rem (640px) lets
-   * the everyday case open with NO inner scroll at all — which was the whole
-   * point of PHASE10 §5 — while still capping an unusually long bio so one
-   * card can't tower over the grid.
-   */
-  --detail-max: 40rem;
-  transition:
-    grid-column 0ms,
-    transform 420ms var(--ease-out-devfest);
+.speaker-card.is-popover {
+  /* Above sibling cards; below the fixed chrome (z-50) and drawer (z-100). */
+  z-index: 1;
 }
-.speaker-card.is-expandable .speaker-detail {
-  display: grid;
-  grid-template-rows: 0fr;
-  padding-top: 0;
-  padding-bottom: 0;
+.speaker-card.is-popover.is-open {
+  z-index: 30;
+}
+.speaker-card.is-popover .person-pop {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  /* Never taller than the viewport minus the fixed chrome, so a long bio
+     can still be read without the panel running off both ends of the screen.
+     This is the ONLY place a scrollbar can appear on a card, and only for
+     genuinely long content. */
+  max-height: calc(100svh - var(--chrome-h));
+  overflow-y: auto;
   opacity: 0;
+  visibility: hidden;
+  transform: scale(0.94);
+  transform-origin: left top;
   transition:
-    grid-template-rows 460ms var(--ease-out-devfest),
     opacity 260ms var(--ease-out-devfest),
-    padding 460ms var(--ease-out-devfest);
+    transform 380ms var(--ease-bouncy),
+    visibility 0s linear 380ms;
 }
-.speaker-card.is-expandable .speaker-detail > * {
-  min-height: 0;
-  overflow: hidden;
+/* Opens to the right of the card (default). */
+.speaker-card.is-popover.is-open-right .person-pop {
+  left: calc(100% + 2rem);
+  transform-origin: left top;
 }
-.speaker-card.is-expandable.is-open .speaker-detail {
-  grid-template-rows: 1fr;
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
+/* Last column: opens to the left instead. */
+.speaker-card.is-popover.is-open-left .person-pop {
+  right: calc(100% + 2rem);
+  transform-origin: right top;
+}
+.speaker-card.is-popover.is-open .person-pop {
   opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+  transition:
+    opacity 260ms var(--ease-out-devfest),
+    transform 380ms var(--ease-bouncy),
+    visibility 0s;
 }
-/* Once open the panel is a real scroll container again, past the cap. */
-.speaker-card.is-expandable.is-open .speaker-detail > * {
-  overflow: visible;
+/*
+ * Below `sm` there is only one grid column, so there is no "beside" — the
+ * panel drops under its card at full width instead of being pushed off the
+ * side of a phone screen.
+ */
+@media (max-width: 639px) {
+  .speaker-card.is-popover .person-pop {
+    position: relative;
+    left: auto !important;
+    right: auto !important;
+    top: auto;
+    margin-top: 1rem;
+    transform-origin: center top;
+    max-height: none;
+  }
 }
 
 /*
@@ -635,10 +665,20 @@
  * below — enough to foreshadow the neighbours without competing with the
  * one in the spotlight.
  */
+/*
+ * PHASE11 §5.2: the stage is now FULL VIEWPORT HEIGHT (minus the fixed
+ * chrome), and the slide is sized as a fraction of it rather than clamped to
+ * a fixed rem range. That is what removes the slide's scrollbar: the old
+ * 30rem ceiling meant a roomy PersonDetail simply did not fit at any screen
+ * size, so it scrolled. Now the slide grows with the screen and the content
+ * has room, at every width.
+ */
 .cinema-stage {
-  --slide-h: clamp(20rem, 56svh, 30rem);
+  --stage-h: calc(100svh - var(--chrome-h));
+  --slide-h: calc(var(--stage-h) / 1.18);
   --slide-gap: 1.25rem;
-  height: calc(var(--slide-h) * 1.62);
+  height: var(--stage-h);
+  min-height: 32rem;
 }
 .cinema-track {
   display: flex;
@@ -701,19 +741,120 @@
   color: var(--color-black02);
 }
 
-/* ASCII headline easter egg — PHASE10 §10 */
-.ascii-flip {
-  animation: df-ascii-in 320ms var(--ease-out-devfest) both;
+/*
+ * TEXT SCRAMBLE easter egg — PHASE11 §1 (src/components/ui/ScrambleText.tsx).
+ *
+ * The affordance is the point: the headline has to LOOK hoverable or nobody
+ * finds it. A dotted underline appears on hover and the cursor becomes a
+ * pointer — enough to invite a hover without claiming to be a link.
+ *
+ * `font-variant-numeric: tabular-nums` and the inline-block keep the box from
+ * reflowing while glyphs swap: proportional glyph widths would make the whole
+ * headline jitter left and right through the churn.
+ */
+.scramble {
+  display: inline-block;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline dotted transparent;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.06em;
+  transition: text-decoration-color 220ms var(--ease-out-devfest);
 }
-@keyframes df-ascii-in {
-  0% {
-    opacity: 0;
-    transform: translateY(6px);
+.scramble:hover,
+.scramble:focus-visible {
+  text-decoration-color: var(--color-primary);
+}
+.scramble.is-scrambling {
+  text-decoration-color: var(--color-halftone);
+}
+
+/*
+ * Short viewports: the roomy detail is a fixed ~500px of content while the
+ * stage scales with the screen, so on a 720-800px laptop it did not fit and
+ * was being CLIPPED by the slide (worse than the scrollbar it replaced).
+ * Tightening type and rhythm here closes the gap without shrinking the
+ * slider everywhere.
+ */
+@media (max-height: 900px) {
+  .cinema-slide .person-detail-roomy {
+    gap: 0.875rem;
   }
-  100% {
-    opacity: 1;
-    transform: none;
+  .cinema-slide .person-detail-roomy .person-name {
+    font-size: var(--text-heading-l);
   }
+  .cinema-slide .person-detail-roomy .person-bio {
+    font-size: var(--text-body-m);
+  }
+  .cinema-slide .person-detail-roomy .person-icebreaker {
+    padding-top: 0.875rem;
+  }
+}
+
+/*
+ * Very short viewports (720p laptops). Foreshadowing shrinks to a sliver so
+ * the slide can claim nearly the whole stage — losing a little depth cue is
+ * a far better trade than losing words off the bottom of the card.
+ */
+@media (max-height: 780px) {
+  .cinema-stage {
+    --slide-h: calc(var(--stage-h) / 1.08);
+  }
+  .cinema-slide .person-detail-roomy {
+    gap: 0.625rem;
+  }
+  .cinema-slide .person-detail-roomy .person-name {
+    font-size: var(--text-heading-m);
+  }
+  .cinema-slide .person-detail-roomy .person-icebreaker {
+    padding-top: 0.625rem;
+  }
+}
+
+/*
+ * POLAROID photo frame — PHASE11 §5.1.
+ *
+ * Classic proportions: an even white border on three sides and a much
+ * thicker one below, where a real polaroid leaves room to write. The tilt
+ * alternates per slide (--polaroid-tilt, set by the component) so the reel
+ * reads as a stack of physical prints rather than a column of identical
+ * rectangles.
+ *
+ * The frame is detached from the slide's edges by the slide's own padding —
+ * a polaroid flush to a border stops reading as an object sitting on
+ * something and starts reading as a cropped image.
+ */
+.polaroid {
+  background: var(--color-offwhite);
+  padding: 0.75rem 0.75rem 3rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 0 0 var(--color-black02);
+  transform: rotate(var(--polaroid-tilt, 2deg));
+  transition: transform 520ms var(--ease-bouncy);
+  /*
+   * HEIGHT-DRIVEN, not width-driven. The frame carries an inline
+   * aspect-ratio, so giving the print a definite height lets its width
+   * follow — which is what stops a wide column from forcing a tall photo
+   * that overflows the slide (measured at 665px inside a 487px slide before
+   * this). `fit-content` then shrinks the white border to the photo.
+   */
+  box-sizing: border-box;
+  height: 100%;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  display: flex;
+  align-self: center;
+}
+.polaroid > * {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+}
+/* The focused print straightens slightly — a small "picked up" beat. */
+.cinema-slide.is-active .polaroid {
+  transform: rotate(calc(var(--polaroid-tilt, 2deg) * 0.45));
 }
 
 /* SCHEDULE (PHASE7 §6) — session cards fanning in on view change */
@@ -907,8 +1048,16 @@
    */
   .speaker-detail,
   .speaker-card,
-  .speaker-card.is-expandable .speaker-detail {
+  .speaker-card.is-popover .person-pop {
     transition: none !important;
+  }
+  /*
+   * The popover still appears and disappears — it just cuts. `visibility`
+   * must not keep its delayed transition here or the panel would linger
+   * after closing.
+   */
+  .speaker-card.is-popover .person-pop {
+    transform: none !important;
   }
 
   /*
@@ -918,7 +1067,8 @@
    * without motion there is no travel to make the stack legible.
    */
   .cinema-track,
-  .cinema-slide {
+  .cinema-slide,
+  .polaroid {
     transition: none !important;
   }
   .cinema-slide {
@@ -947,9 +1097,13 @@
     transition: none !important;
   }
 
-  /* The egg still fires — it just cuts instead of fading in. */
-  .ascii-flip {
-    animation: none !important;
+  /*
+   * The scramble never starts under reduced motion (guarded in JS), so there
+   * is nothing to disable — but drop the hover underline transition too, so
+   * the affordance appears instantly rather than easing in.
+   */
+  .scramble {
+    transition: none !important;
   }
 
   /* Signature moments: keep the end state, drop the motion */

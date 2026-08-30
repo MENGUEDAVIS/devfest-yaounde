@@ -205,3 +205,29 @@ Reuse the existing primitives rather than rebuilding: `Button`, `Badge`, `Sectio
 Do: use only the fonts/colors/icons listed above; **keep yellow dominant on every page and year (§2.5)**; round every corner; clear the §7b boldness bar; respect reduced-motion and contrast on every new component; log easter eggs.
 
 Don't: **use a gradient of any kind (§2.6)**; **lead with a non-yellow color or give a page its own core color (§2.5, retired)**; **fake the morphed shape (§4.2 interim directive)**; ship a nav/banner that overlaps or reads as two mismatched bars (§7c); ship timid default-looking heroes/buttons/shapes (§7b); stock photography for people; mix icon libraries; sharp corners; color-only status; more than one hero focal point per screen; autoplay sound; CMYK/Pantone values.
+
+
+## Custom cursor (PHASE11 §2)
+
+Desktop-only bracket cursor — a pinned dot plus a trailing themed ring.
+See `docs/guides/custom-cursor.md`. Three hard gates: no coarse pointer, no
+reduced motion, no JS = no custom cursor and the native one is never hidden.
+Never move the `cursor: none` rule out from under `.has-custom-cursor`.
+
+Mark anything draggable that isn't a link or button with `data-cursor="grab"`
+so the ring reacts to it.
+
+## Scrollbars (PHASE10 §4, matched in PHASE11 §4)
+
+ONE language everywhere: a floating pill, theme-filled, outlined in Black 02,
+on a transparent track. The root scroller uses the custom overlay component;
+every nested scroll area reproduces the same look via `*:not(html)` scrollbar
+styling. `.scroll-on-dark` inverts the outline for dark surfaces. There should
+be no default-looking scrollbar anywhere on the site.
+
+## Headline scramble (PHASE11 §1)
+
+`<ScrambleText text={...} />` wraps headline text with the hover decode
+effect. Use it sparingly — varied across pages, not on every heading. It keeps
+the real text in an `sr-only` span; never pass it text that differs from what
+should be read aloud.

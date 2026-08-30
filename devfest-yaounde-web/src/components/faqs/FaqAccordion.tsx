@@ -81,34 +81,46 @@ export function FaqAccordion({
             aria-labelledby={`faq-trigger-${faq.id}`}
             className="px-6 pb-6 text-body-l text-black02/80 sm:px-7"
           >
-            {faq.answer[locale]}
+            {/* The answer is its own paragraph so the CTA below can never
+                sit inline with the last line of text (PHASE11 §9). */}
+            <p>{faq.answer[locale]}</p>
 
             {/*
               Optional CTA (PHASE10 §8) — rendered only when the item actually
               carries one, so answers without a useful next step stay clean.
               Internal hrefs go through the locale-aware Link so the CTA never
               drops the visitor out of their language.
+
+              PHASE11 §9: block-level, on its own line. `inline-flex` inside a
+              block wrapper keeps the button hugging its label while the
+              wrapper forces the line break — an `inline-flex` alone would
+              have flowed into the answer's last line.
             */}
             {faq.cta &&
               (faq.cta.external ? (
-                <a
-                  href={faq.cta.href}
-                  className="faq-cta mt-5 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
-                >
-                  {faq.cta.label[locale]}
-                  <ArrowRight size={16} weight="bold" aria-hidden />
-                </a>
+                <div className="mt-1">
+                  <a
+                    href={faq.cta.href}
+                    className="faq-cta mt-5 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
+                  >
+                    {faq.cta.label[locale]}
+                    <ArrowRight size={16} weight="bold" aria-hidden />
+                  </a>
+                </div>
               ) : (
-                <Link
-                  href={faq.cta.href}
-                  className="faq-cta mt-5 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
-                >
-                  {faq.cta.label[locale]}
-                  <ArrowRight size={16} weight="bold" aria-hidden />
-                </Link>
+                <div className="mt-1">
+                  <Link
+                    href={faq.cta.href}
+                    className="faq-cta mt-5 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
+                  >
+                    {faq.cta.label[locale]}
+                    <ArrowRight size={16} weight="bold" aria-hidden />
+                  </Link>
+                </div>
               ))}
 
-            {children}
+            {/* Same rule for the escape-hatch link. */}
+            {children && <div className="mt-1">{children}</div>}
           </div>
         </div>
       </div>

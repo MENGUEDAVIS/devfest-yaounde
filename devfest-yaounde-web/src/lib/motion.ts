@@ -18,7 +18,7 @@ export const confettiPiece = "anim-confetti-piece";
 export const modalBackdropIn = "anim-modal-backdrop";
 export const modalPopIn = "anim-modal-pop";
 export const navSettle = "anim-nav-settle";
-/** Applied by <Reveal>; pairs with `is-visible` toggled on scroll-into-view. */
+/** Applied by <Reveal>; pairs with `data-visible` set on scroll-into-view. */
 export const revealOnScroll = "anim-reveal";
 /** Kinetic per-word headline pop — set wordStyle(i) on each word. */
 export const wordPop = "anim-word-pop";

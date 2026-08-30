@@ -28,14 +28,6 @@
   --color-black02: #1e1e1e;
 
   /*
-   * Translucent variants. `scrollbar-color` takes plain colours only — it
-   * accepts no `/ alpha` shorthand and no Tailwind opacity utility — so the
-   * shared scrollbar language (§4) needs these as real tokens.
-   */
-  --color-black02-40: rgb(30 30 30 / 0.4);
-  --color-offwhite-45: rgb(240 240 240 / 0.45);
-
-  /*
    * ========================================================================
    * SWAPPABLE DOMINANT THEME — DESIGN.md §2.5
    * ========================================================================
@@ -237,49 +229,57 @@ html.has-overlay-scrollbar::-webkit-scrollbar {
 }
 
 /*
- * ONE scrollbar language everywhere — PHASE10 §4.
+ * ONE scrollbar language everywhere — PHASE10 §4, matched to the root bar in
+ * PHASE11 §4.
  *
- * The root overlay bar (FloatingScrollbar) is a floating pill with a subtle
- * border. Nested scroll areas — the filter rail, the mobile drawer, modals,
- * the expanded person card — can't use that overlay (it tracks the document
- * scroller), so they get the SAME look from native scrollbar styling:
- * transparent track so the bar floats over content, pill thumb, subtle
- * border. Applied to `*` rather than to opt-in classes, so a scroll area
- * added later inherits the language instead of silently falling back to the
- * OS default.
+ * The root scroller uses a custom floating overlay (FloatingScrollbar): a
+ * 10px pill, filled with the theme colour, outlined in Black 02, floating
+ * over the content on a transparent track. Nested scroll areas can't use
+ * that component — it tracks the document scroller — so they reproduce the
+ * SAME look with native scrollbar styling. Before this they were a thin
+ * grey hairline, which read as a default browser scrollbar sitting next to
+ * a custom one.
  *
- * `html` is exempted: the root scroller is either the overlay's (hidden) or
- * the themed fallback below.
+ * Applied to `*` rather than to opt-in classes, so a scroll area added later
+ * inherits the language instead of silently falling back to the OS default.
+ * `html` is exempt: the root scroller is either the overlay's (hidden) or the
+ * themed fallback below.
+ *
+ * Firefox supports only the two standard properties, so it gets a themed
+ * thin bar rather than the full pill. That is a deliberate, visible-enough
+ * degradation — the colours still follow the theme.
  */
 *:not(html) {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-black02-40) transparent;
+  scrollbar-color: var(--color-primary) transparent;
 }
 *:not(html)::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
 }
-*:not(html)::-webkit-scrollbar-track {
+/* Transparent track is what makes the pill read as FLOATING over content. */
+*:not(html)::-webkit-scrollbar-track,
+*:not(html)::-webkit-scrollbar-corner {
   background: transparent;
 }
 *:not(html)::-webkit-scrollbar-thumb {
-  background-clip: content-box; /* keeps the inset so the pill reads as floating */
-  background-color: var(--color-black02-40);
-  border: 2px solid transparent;
+  background-color: var(--color-primary);
+  background-clip: padding-box;
+  border: 2px solid var(--color-black02);
   border-radius: var(--radius-pill);
 }
 *:not(html)::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-black02);
+  background-color: var(--color-halftone);
 }
-/* On dark surfaces (the expanded person card) the same pill inverts. */
+/*
+ * On dark surfaces (the person popover, the slider stage) the Black 02
+ * outline disappears into the background, so the pill is outlined in Off
+ * White instead. Same shape, same theme fill, legible ground.
+ */
 .scroll-on-dark {
-  scrollbar-color: var(--color-offwhite-45) transparent;
+  scrollbar-color: var(--color-primary) transparent;
 }
 .scroll-on-dark::-webkit-scrollbar-thumb {
-  background-color: var(--color-offwhite-45);
-}
-.scroll-on-dark::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-offwhite);
+  border-color: var(--color-offwhite);
 }
 
 /* Native root scrollbar theming — the fallback when the overlay isn't active */
@@ -301,6 +301,170 @@ html:not(.has-overlay-scrollbar)::-webkit-scrollbar-thumb {
 }
 html:not(.has-overlay-scrollbar)::-webkit-scrollbar-thumb:hover {
   background: var(--color-halftone);
+}
+
+/*
+ * CUSTOM CURSOR — PHASE11 §2 (src/components/global/CustomCursor.tsx).
+ *
+ * The native cursor is hidden ONLY under `.has-custom-cursor`, a class the
+ * component adds after confirming a fine pointer, hover support and no
+ * reduced-motion preference. If the script never runs, or the pointer is
+ * coarse, or motion is reduced, the class is absent and the native cursor is
+ * untouched — the failure mode is "no custom cursor", never "no cursor".
+ */
+html.has-custom-cursor,
+html.has-custom-cursor * {
+  cursor: none;
+}
+/*
+ * ...except over real text entry. Losing the I-beam over an input is a
+ * genuine usability regression, not a style choice, so these keep their
+ * native cursors and the ring steps aside (see [data-state="text"]).
+ */
+html.has-custom-cursor input,
+html.has-custom-cursor textarea,
+html.has-custom-cursor select,
+html.has-custom-cursor [contenteditable="true"] {
+  cursor: auto;
+}
+html.has-custom-cursor input[type="search"],
+html.has-custom-cursor input[type="text"],
+html.has-custom-cursor input[type="email"],
+html.has-custom-cursor textarea {
+  cursor: text;
+}
+
+.cursor-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  /* Never intercept a click. The cursor is decoration painted over the page;
+     if it could be hit-tested it would break every interaction under it. */
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out-devfest);
+}
+.cursor-layer[data-visible="true"] {
+  opacity: 1;
+}
+/* Only painted when the component decided it should run. */
+html:not(.has-custom-cursor) .cursor-layer {
+  display: none;
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+/* Pinned to the TRUE pointer position — no easing, so clicks land where the
+   visible cursor is. */
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: var(--radius-pill);
+  background: var(--color-black02);
+  transform: translate3d(var(--cursor-x, -100px), var(--cursor-y, -100px), 0);
+  transition: opacity 160ms var(--ease-out-devfest);
+}
+
+/* The bracket ring CHASES the pointer — this is the trailing motion. */
+.cursor-ring {
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  color: var(--color-primary);
+  transform: translate3d(var(--ring-x, -100px), var(--ring-y, -100px), 0)
+    scale(var(--ring-scale, 1));
+  transition: color 300ms var(--ease-out-devfest);
+}
+.cursor-ring svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* The two halves part and close — the same motif as the logo's split-and-spin. */
+.cursor-bracket {
+  transition: transform 320ms var(--ease-bouncy);
+}
+.cursor-bracket-l {
+  transform: translateX(2px);
+}
+.cursor-bracket-r {
+  transform: translateX(-2px);
+}
+
+/*
+ * Over something clickable the ring grows and the brackets open OUT, so they
+ * frame the target rather than sitting on it. This is the "morphs around
+ * buttons" behaviour.
+ */
+.cursor-layer[data-state="interactive"] {
+  --ring-scale: 1.75;
+}
+.cursor-layer[data-state="interactive"] .cursor-bracket-l {
+  transform: translateX(-3px);
+}
+.cursor-layer[data-state="interactive"] .cursor-bracket-r {
+  transform: translateX(3px);
+}
+.cursor-layer[data-state="interactive"] .cursor-dot {
+  opacity: 0;
+}
+
+/* Over text the custom cursor gets out of the way and the native I-beam
+   (restored above) does the work. */
+.cursor-layer[data-state="text"] {
+  opacity: 0;
+}
+
+/* Pressed: a quick squeeze, so a click has a physical read. */
+.cursor-layer[data-pressed="true"] {
+  --ring-scale: 0.85;
+}
+
+/*
+ * FILTER RAIL — PHASE11 §3. Sticky inside its own section, not fixed to the
+ * viewport, so the footer pushes it up instead of being covered by it.
+ *
+ * The track is one gutter left of the content column and spans exactly the
+ * section's height; the rail sticks within it.
+ *
+ * Vertical centring survives the change, but NOT via `top: 50vh` — that was
+ * measured and rejected. It puts the sticky box's layout top at mid-viewport,
+ * so the section's bottom constraint bites while half a screen of content is
+ * still visible: the filters vanished with the grid still on screen.
+ *
+ * Instead the sticky box is a full viewport tall and the panel is CENTRED
+ * INSIDE it. The box therefore unsticks exactly when the section's bottom
+ * reaches the viewport bottom — not a screen early — and the panel reads as
+ * vertically centred throughout. `padding-top: var(--chrome-h)` centres it
+ * within the space BELOW the fixed navbar, so it can never collide with it.
+ */
+.filter-rail-track {
+  right: calc(100% + 1.5rem);
+}
+.filter-rail-sticky {
+  /*
+   * Sticks BELOW the fixed chrome and is exactly the height of the space
+   * under it, with the panel centred inside. Sizing the box to the free
+   * space (rather than to the whole viewport with top padding) is what keeps
+   * the rail from starting half a screen down on first paint, while still
+   * reading as vertically centred once it is stuck.
+   */
+  top: var(--chrome-h);
+  display: flex;
+  align-items: center;
+  height: calc(100svh - var(--chrome-h));
+  padding-bottom: 1.5rem;
+}
+.filter-rail-sticky > div {
+  width: 100%;
+  max-height: 100%;
 }
 
 /* Focus ring, yellow-family and always visible for keyboard users */

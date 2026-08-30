@@ -2,6 +2,7 @@ import {
   FacebookLogo,
   InstagramLogo,
   LinkedinLogo,
+  WhatsappLogo,
   XLogo,
   YoutubeLogo,
 } from "@phosphor-icons/react/dist/ssr";
@@ -24,6 +25,7 @@ const SOCIALS = [
   { href: SOCIAL_LINKS.linkedin, Icon: LinkedinLogo, label: "LinkedIn" },
   { href: SOCIAL_LINKS.youtube, Icon: YoutubeLogo, label: "YouTube" },
   { href: SOCIAL_LINKS.facebook, Icon: FacebookLogo, label: "Facebook" },
+  { href: SOCIAL_LINKS.whatsapp, Icon: WhatsappLogo, label: "WhatsApp" },
 ];
 
 const LINK_CLASS =

@@ -15,13 +15,27 @@ export interface RevealProps {
 
 /**
  * Scroll-triggered entrance (DESIGN.md §6.2 macro tier, §7c perceptibility).
- * Adds `is-visible` when the element enters the viewport, which drives the
- * `.anim-reveal` transition in motion.css.
+ * Sets `data-visible="true"` when the element enters the viewport, which
+ * drives the `.anim-reveal` transition in motion.css.
  *
- * The class is toggled directly on the node rather than through React state
- * on purpose: it keeps this out of the render path entirely (no
+ * The flag is written directly to the node rather than held in React state on
+ * purpose: it keeps this out of the render path entirely (no
  * set-state-in-effect churn, no re-render per element on scroll), which
  * matters when dozens of these are on one page.
+ *
+ * WHY A DATA ATTRIBUTE AND NOT A CLASS (this was a real bug, PHASE11 §8):
+ * it used to add an `is-visible` CLASS. But React owns the `className`
+ * attribute of this node, and it rewrites that attribute whenever the
+ * `className` PROP changes — wiping any class added imperatively. So the
+ * moment a caller passed a conditional class (`focusedId === id ? "..." : ""`,
+ * which /speakers and /team both do), expanding a card rewrote className,
+ * destroyed `is-visible`, and the element snapped back to `.anim-reveal`'s
+ * hidden state: opacity 0 and translateY(40px). The box kept its space and
+ * the content vanished — and because the observer had already unobserved the
+ * node, it never came back.
+ *
+ * `data-visible` is not a prop, so React never touches it, and imperative
+ * and declarative ownership no longer collide.
  *
  * Reduced-motion users never see the hidden state — motion.css forces
  * `.anim-reveal` visible under that media query, so content is readable
@@ -42,7 +56,7 @@ export function Reveal({
     // Safety net: if IntersectionObserver is unavailable, show immediately
     // rather than leaving content stuck at opacity 0.
     if (typeof IntersectionObserver === "undefined") {
-      node.classList.add("is-visible");
+      node.dataset.visible = "true";
       return;
     }
 
@@ -50,7 +64,7 @@ export function Reveal({
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
+            (entry.target as HTMLElement).dataset.visible = "true";
             observer.unobserve(entry.target);
           }
         }

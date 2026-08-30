@@ -9,8 +9,8 @@ way, and DESIGN.md §2.5 for the design rule.
 
 ## The three tokens you use
 
-| Token              | Tailwind utility | Use for                              |
-| ------------------ | ---------------- | ------------------------------------ |
+| Token              | Tailwind utility | Use for                               |
+| ------------------ | ---------------- | ------------------------------------- |
 | `--color-primary`  | `bg-primary`     | The dominant fill: CTAs, stamps, tabs |
 | `--color-halftone` | `bg-halftone`    | Bright accents, markers, selection    |
 | `--color-pastel`   | `bg-pastel`      | Section washes, hover fills           |
@@ -21,10 +21,10 @@ follow the theme. The switch will visibly skip them.
 
 ## The two tokens you must NOT theme
 
-| Token                          | Utility        | Meaning                    |
-| ------------------------------ | -------------- | -------------------------- |
-| `--color-success` / `-pastel`  | `bg-success…`  | in stock, confirmed, open  |
-| `--color-danger` / `-pastel`   | `bg-danger…`   | sold out, error, urgent    |
+| Token                         | Utility       | Meaning                   |
+| ----------------------------- | ------------- | ------------------------- |
+| `--color-success` / `-pastel` | `bg-success…` | in stock, confirmed, open |
+| `--color-danger` / `-pastel`  | `bg-danger…`  | sold out, error, urgent   |
 
 These are green and red under **every** theme, on purpose. A "sold out" pill
 that turns green because someone picked the Green theme is a bug, not a
