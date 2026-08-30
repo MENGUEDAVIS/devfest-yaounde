@@ -67,7 +67,10 @@ export function AnnouncementBanner({
         className={`${marqueeTrack} min-w-0 flex-1 overflow-hidden`}
       >
         {overflows ? (
-          <div className={`${marqueeLoop} flex w-max gap-16 whitespace-nowrap`}>
+          <div
+            className={`${marqueeLoop} flex w-max whitespace-nowrap`}
+            style={{ ["--marquee-gap" as string]: "4rem" }}
+          >
             <span className="text-body-m font-bold">{message}</span>
             <span className="text-body-m font-bold" aria-hidden>
               {message}

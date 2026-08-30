@@ -210,6 +210,8 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
          */
         <div
           data-card-grid
+          /* Dims the non-focused cards while one is open (PHASE12 §7). */
+          data-card-open={focusedId !== null}
           className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
           {visible.map((s, i) => (

@@ -11,11 +11,6 @@ import type { TeamMember } from "@/data/types";
 export interface TeamCardProps {
   member: TeamMember;
   open: boolean;
-  /**
-   * Receives the card's own root element so the grid can measure which way
-   * the popover should open before it opens. Passing the node beats a ref
-   * in the parent: the parent renders N cards and would need N refs.
-   */
   onToggle: (card: Element | null) => void;
   onClose?: () => void;
   tilt?: number;
@@ -27,9 +22,10 @@ export interface TeamCardProps {
 
 /**
  * Team member card — the same detail interaction as `SpeakerCard`, so the two
- * people-pages behave identically (PHASE9 §4 / ADR 0009). That includes
- * PHASE11 §8's popover grid mode: it would be a divergent fork for the team
- * grid to reflow while the speaker grid holds still.
+ * people-pages behave identically (PHASE9 §4 / ADR 0009). That includes the
+ * popover grid mode and, importantly, the DOM placement rule behind it: the
+ * swipe-up panel must live inside the clipping frame, the popover must live
+ * outside it. See the comment on `SpeakerCard` for why.
  */
 export function TeamCard({
   member,
@@ -43,6 +39,32 @@ export function TeamCard({
 }: TeamCardProps) {
   const locale = useLocale() as "fr" | "en";
   const t = useTranslations("common.filters");
+
+  const detail = (
+    <div
+      id={`team-detail-${member.id}`}
+      inert={!open}
+      className={
+        popover
+          ? "person-pop scroll-on-dark rounded-lg border-2 border-black02 bg-black02 px-6 py-6 text-left shadow-[0_8px_0_0_var(--color-black02)]"
+          : "speaker-detail scroll-on-dark absolute inset-0 overflow-y-auto bg-black02/92 px-6 py-6 text-left"
+      }
+    >
+      {popover && (
+        <button
+          type="button"
+          onClick={(e) =>
+            onClose ? onClose() : onToggle(e.currentTarget.closest("article"))
+          }
+          aria-label={t("close")}
+          className="absolute right-4 top-4 rounded-pill border-2 border-offwhite/45 p-1.5 text-offwhite transition-colors hover:bg-offwhite hover:text-black02"
+        >
+          <X size={16} weight="bold" />
+        </button>
+      )}
+      <PersonDetail person={member} tone="dark" interactive={open} />
+    </div>
+  );
 
   return (
     <article
@@ -79,41 +101,20 @@ export function TeamCard({
             </p>
             {/* Signature moment (/team): the contribution chip lands like a
                 rubber stamp when the card scrolls in — see
-                .anim-contrib-stamp. Decorative motion only; the same text is
-                also in the detail panel. It carries more weight now that the
-                grid is no longer grouped by contribution (PHASE11 §10). */}
+                .anim-contrib-stamp. It carries more weight now that the grid
+                is no longer grouped by contribution. */}
             <div className="anim-contrib-stamp mt-2.5 inline-block">
               <Badge tone="primary" variant="outline">
                 {member.contribution[locale]}
               </Badge>
             </div>
           </div>
+
+          {!popover && detail}
         </div>
       </button>
 
-      <div
-        id={`team-detail-${member.id}`}
-        inert={!open}
-        className={
-          popover
-            ? "person-pop scroll-on-dark rounded-lg border-2 border-black02 bg-black02 px-6 py-6 text-left shadow-[0_8px_0_0_var(--color-black02)]"
-            : "speaker-detail scroll-on-dark absolute inset-0 overflow-y-auto bg-black02/92 px-6 py-6 text-left"
-        }
-      >
-        {popover && (
-          <button
-            type="button"
-            onClick={(e) =>
-              onClose ? onClose() : onToggle(e.currentTarget.closest("article"))
-            }
-            aria-label={t("close")}
-            className="absolute right-4 top-4 rounded-pill border-2 border-offwhite/45 p-1.5 text-offwhite transition-colors hover:bg-offwhite hover:text-black02"
-          >
-            <X size={16} weight="bold" />
-          </button>
-        )}
-        <PersonDetail person={member} tone="dark" interactive={open} />
-      </div>
+      {popover && detail}
     </article>
   );
 }

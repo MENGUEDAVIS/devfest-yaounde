@@ -21,14 +21,14 @@ export interface SpeakerCardProps {
   tilt?: number;
   focused?: boolean;
   /**
-   * Grid mode (PHASE11 §8): opening pops the detail out BESIDE the card as an
-   * overlay, so the grid never reflows. The slider leaves this off — there
-   * the card is the stage and the detail swipes up over it.
+   * Grid mode: opening pops the detail out BESIDE the card as an overlay, so
+   * the grid never reflows. The slider leaves this off — there the card is
+   * the stage and the detail swipes up over it.
    */
   popover?: boolean;
   /** Which way the popover opens; measured by the grid at click time. */
   side?: PopoverSide;
-  /** Off on the home teaser — see `PersonDetail.personality` (PHASE11 §7). */
+  /** Off on the home teaser — see `PersonDetail.personality`. */
   personality?: boolean;
   className?: string;
 }
@@ -40,13 +40,16 @@ export interface SpeakerCardProps {
  * the SAME interaction rather than a second, divergent modal implementation
  * (see docs/decisions/0009-speaker-interaction.md).
  *
- * Two presentations of one interaction:
- * - Slider (`popover` off): the detail swipes up over the card's own image,
- *   transform-driven, staying mounted.
- * - Grid (`popover` on): the card itself never changes size. The detail opens
- *   as a panel BESIDE it, layered over the grid. PHASE10 expanded the card
- *   in place instead, which reflowed every card in the row on every click;
- *   this keeps the grid perfectly still.
+ * TWO PRESENTATIONS, AND THEIR DOM PLACEMENT DIFFERS — this matters:
+ *
+ * - Slider (`popover` off): the panel swipes UP over the card's own image,
+ *   so it must live INSIDE the frame, which clips it. Rendering it as a
+ *   sibling of the frame instead was a real bug (PHASE12 §5): the closed
+ *   panel is only translated out of view, so with nothing clipping it, every
+ *   card's panel painted just below it and the detail appeared to be open on
+ *   all of them at once.
+ * - Grid (`popover` on): the panel opens BESIDE the card and must ESCAPE the
+ *   frame, so it is a sibling and nothing on the path may clip it.
  *
  * In both, the panel stays mounted and `inert` keeps its contents out of the
  * tab order and accessibility tree while closed.
@@ -65,6 +68,37 @@ export function SpeakerCard({
 }: SpeakerCardProps) {
   const locale = useLocale() as "fr" | "en";
   const t = useTranslations("common.filters");
+
+  const detail = (
+    <div
+      id={`speaker-detail-${speaker.id}`}
+      inert={!open}
+      className={
+        popover
+          ? "person-pop scroll-on-dark rounded-lg border-2 border-black02 bg-black02 px-6 py-6 text-left shadow-[0_8px_0_0_var(--color-black02)]"
+          : "speaker-detail scroll-on-dark absolute inset-0 overflow-y-auto bg-black02/92 px-6 py-6 text-left"
+      }
+    >
+      {popover && (
+        <button
+          type="button"
+          onClick={(e) =>
+            onClose ? onClose() : onToggle(e.currentTarget.closest("article"))
+          }
+          aria-label={t("close")}
+          className="absolute right-4 top-4 rounded-pill border-2 border-offwhite/45 p-1.5 text-offwhite transition-colors hover:bg-offwhite hover:text-black02"
+        >
+          <X size={16} weight="bold" />
+        </button>
+      )}
+      <PersonDetail
+        person={speaker}
+        tone="dark"
+        interactive={open}
+        personality={personality}
+      />
+    </div>
+  );
 
   return (
     <article
@@ -105,43 +139,14 @@ export function SpeakerCard({
               {speaker.role[locale]}
             </p>
           </div>
+
+          {/* Slider: inside the frame, which clips the closed panel. */}
+          {!popover && detail}
         </div>
       </button>
 
-      {/*
-        Detail. Grid: a popover anchored beside the card (see .person-pop).
-        Slider: absolutely positioned over the card and translated up.
-        Body is the shared PersonDetail, so the icebreaker Q&A and funny
-        moment render identically here, on TeamCard and in the slider.
-      */}
-      <div
-        id={`speaker-detail-${speaker.id}`}
-        inert={!open}
-        className={
-          popover
-            ? "person-pop scroll-on-dark rounded-lg border-2 border-black02 bg-black02 px-6 py-6 text-left shadow-[0_8px_0_0_var(--color-black02)]"
-            : "speaker-detail scroll-on-dark absolute inset-0 overflow-y-auto bg-black02/92 px-6 py-6 text-left"
-        }
-      >
-        {popover && (
-          <button
-            type="button"
-            onClick={(e) =>
-              onClose ? onClose() : onToggle(e.currentTarget.closest("article"))
-            }
-            aria-label={t("close")}
-            className="absolute right-4 top-4 rounded-pill border-2 border-offwhite/45 p-1.5 text-offwhite transition-colors hover:bg-offwhite hover:text-black02"
-          >
-            <X size={16} weight="bold" />
-          </button>
-        )}
-        <PersonDetail
-          person={speaker}
-          tone="dark"
-          interactive={open}
-          personality={personality}
-        />
-      </div>
+      {/* Grid: outside the frame, so the popover can escape it. */}
+      {popover && detail}
     </article>
   );
 }

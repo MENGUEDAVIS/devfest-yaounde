@@ -59,7 +59,7 @@ export default async function TeamPage({
             headline; /schedule and /faqs stay plain so this reads as a find
             rather than a site-wide tic. */}
         <h1 className="font-sans text-display-hero font-bold leading-[0.9] text-black02">
-          <ScrambleText text={t("title")} triggerOnClick />
+          <ScrambleText text={t("title")} />
         </h1>
         <p className="mt-6 max-w-2xl text-body-l text-black02/80">
           {t("lead")}

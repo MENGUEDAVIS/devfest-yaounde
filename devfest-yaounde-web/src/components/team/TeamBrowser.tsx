@@ -153,6 +153,8 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
         /* Flat grid — no contribution grouping (PHASE11 §10). */
         <div
           data-card-grid
+          /* Dims the non-focused cards while one is open (PHASE12 §7). */
+          data-card-open={focusedId !== null}
           className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 xl:grid-cols-3"
         >
           {visible.map((m, i) => (

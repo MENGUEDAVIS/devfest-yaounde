@@ -130,7 +130,7 @@ export async function Hero() {
         <h1 className="mt-5 font-sans text-display-hero font-bold leading-[0.82] text-black02 sm:mt-6">
           <span className={maskLine}>
             <span style={lineStyle(0, 260)}>
-              <ScrambleText text={t("headlineLead")} triggerOnClick />
+              <ScrambleText text={t("headlineLead")} />
             </span>
           </span>
           <span className={maskLine}>
@@ -211,7 +211,9 @@ export async function Hero() {
           </p>
         </div>
         <div className={`${marqueeTrack} mt-2.5 overflow-hidden`}>
-          <div className={`${marqueeLoop} flex w-max items-center gap-12`}>
+          {/* No flex `gap` here — spacing is a per-item margin so the
+              -50% loop lands exactly on the seam. See .anim-marquee. */}
+          <div className={`${marqueeLoop} flex w-max items-center`}>
             {[...sponsorList, ...sponsorList].map((sponsor, i) => (
               <img
                 key={`${sponsor.id}-${i}`}

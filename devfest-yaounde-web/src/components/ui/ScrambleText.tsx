@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 /**
  * Glyphs the scramble cycles through. Deliberately ASCII-ish and monospace-y
@@ -10,53 +10,64 @@ import { useCallback, useRef, useState } from "react";
  */
 const GLYPHS = "!<>-_\\/[]{}—=+*^?#░▒▓01";
 
-/** How many frames a character churns before it locks, per index step. */
-const STEP_FRAMES = 2;
-/** Frames of churn before the first character locks. */
-const LEAD_FRAMES = 6;
+/**
+ * Pacing (PHASE12 §4). The first version resolved in ~9 frames, which read as
+ * a blink rather than a decode. These numbers are tuned to be WATCHABLE:
+ * a glyph is held for several frames before changing, and each character
+ * starts later than the one before it, so the resolve sweeps visibly across
+ * the word. A short title takes roughly a second and a half.
+ */
+/** Frames each character churns before it locks. */
+const CHURN_FRAMES = 26;
+/** Frames between one character starting and the next. */
+const STAGGER_FRAMES = 4;
+/** Frames a single random glyph is held before being swapped. Slows the churn. */
+const GLYPH_HOLD = 3;
 
 export interface ScrambleTextProps {
   /** The real text. This is what renders on the server and what it resolves to. */
   text: string;
-  /** Also fire on click — used to make the effect discoverable on touch. */
-  triggerOnClick?: boolean;
   className?: string;
 }
 
 /**
- * Text-scramble / decode effect — PHASE11 §1.
+ * Text-scramble / decode easter egg — PHASE11 §1, reworked in PHASE12 §4.
  *
- * On hover, each character rapidly cycles through random glyphs and then
- * resolves, left to right, back to the ORIGINAL text.
+ * CLICK a page's top title and each character churns through random glyphs,
+ * then resolves left to right back to the ORIGINAL text.
  *
- * Why this replaces the ASCII-art banner it supersedes: it animates the REAL
- * DOM text, so "Yaoundé" resolves to "Yaoundé". The banner needed a bitmap
- * block font that had no accented glyphs, which meant either misspelling the
- * city or leaving a hole — the reason that version was never right.
+ * IT IS A HIDDEN EGG, and PHASE12 made that literal:
+ *  - Click only. Hover does nothing.
+ *  - No underline, no dotted decoration, no colour change — no affordance at
+ *    all. The earlier version advertised itself, which made it a feature
+ *    rather than a secret.
+ *  - The cursor does NOT change over it. Adding a pointer cursor would give
+ *    the game away just as loudly as an underline.
+ *  - It never runs on page load. The title renders normally, always.
+ *
+ * SCOPE: one per page — the top-level H1 only, never sub-headings.
+ *
+ * It animates the REAL DOM text, so "Yaoundé" resolves to "Yaoundé". That is
+ * why this replaced the ASCII-art banner it supersedes: that needed a bitmap
+ * block font with no accented glyphs, so it could only have misspelled the
+ * city or left a hole.
  *
  * Accessibility: the mid-scramble string is nonsense, so it must never reach
  * assistive tech. The real text stays in the DOM as an `sr-only` span and the
  * animating span is `aria-hidden`. A screen reader always reads the headline;
- * it just never hears the churn.
+ * it just never hears the churn. It is not a button and takes no focus —
+ * there is nothing here a keyboard user needs to reach, and announcing a
+ * decorative control would be worse than omitting it.
  *
- * Reduced motion: the scramble never starts. `matchMedia` is read at trigger
- * time rather than cached, so a user changing the OS setting mid-session gets
- * the new behaviour without a reload.
+ * Reduced motion: the click does nothing at all; the text simply stays put.
  *
  * The animation writes to the DOM node directly through rAF instead of
  * setState-per-frame: a 60fps re-render of a display headline for the length
  * of the effect is real work for a purely decorative moment.
  */
-export function ScrambleText({
-  text,
-  triggerOnClick = false,
-  className = "",
-}: ScrambleTextProps) {
+export function ScrambleText({ text, className = "" }: ScrambleTextProps) {
   const nodeRef = useRef<HTMLSpanElement>(null);
   const frameRef = useRef<number | null>(null);
-  // Running state is rendered (it drives the cursor affordance), so it is
-  // state — refs must never be read during render.
-  const [running, setRunning] = useState(false);
 
   const scramble = useCallback(() => {
     const node = nodeRef.current;
@@ -67,29 +78,30 @@ export function ScrambleText({
     // Each character gets its own start/end frame, so the resolve sweeps
     // across the word instead of every letter locking at once.
     const schedule = chars.map((_, i) => ({
-      start: i * STEP_FRAMES,
-      end: i * STEP_FRAMES + LEAD_FRAMES,
+      start: i * STAGGER_FRAMES,
+      end: i * STAGGER_FRAMES + CHURN_FRAMES,
     }));
     const total = schedule[schedule.length - 1]?.end ?? 0;
+    // One held glyph per character, refreshed every GLYPH_HOLD frames.
+    const held = chars.map(() => GLYPHS[0]);
     let frame = 0;
-
-    setRunning(true);
 
     const tick = () => {
       const out = chars.map((c, i) => {
-        // Whitespace never churns — scrambling the gaps makes the word
-        // lose its shape and reads as noise rather than as decoding.
+        // Whitespace never churns — scrambling the gaps makes the word lose
+        // its shape and reads as noise rather than as decoding.
         if (c.trim() === "") return c;
-        if (frame >= schedule[i].end) return c;
-        if (frame < schedule[i].start) return c;
-        return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        if (frame < schedule[i].start || frame >= schedule[i].end) return c;
+        if (frame % GLYPH_HOLD === 0) {
+          held[i] = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        }
+        return held[i];
       });
       node.textContent = out.join("");
 
       if (frame >= total) {
         node.textContent = text;
         frameRef.current = null;
-        setRunning(false);
         return;
       }
       frame++;
@@ -99,13 +111,19 @@ export function ScrambleText({
     frameRef.current = requestAnimationFrame(tick);
   }, [text]);
 
+  // Cancel an in-flight scramble if the title unmounts mid-decode, and put
+  // the real text back so a remount never inherits a half-decoded string.
+  useEffect(() => {
+    const node = nodeRef.current;
+    return () => {
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+      if (node) node.textContent = text;
+    };
+  }, [text]);
+
   return (
-    <span
-      className={`scramble ${running ? "is-scrambling" : ""} ${className}`}
-      onPointerEnter={scramble}
-      onFocus={scramble}
-      onClick={triggerOnClick ? scramble : undefined}
-    >
+    <span className={`scramble ${className}`} onClick={scramble}>
       {/* The stable, correct text for assistive tech and for copy/paste. */}
       <span className="sr-only">{text}</span>
       <span ref={nodeRef} aria-hidden>

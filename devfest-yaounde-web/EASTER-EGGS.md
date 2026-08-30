@@ -20,26 +20,29 @@ Format: one entry per egg — what it is, where it lives, how to trigger it, and
 - **Added**: `feat/home-polish`, per PHASE5 §1.
 - **Note**: the navbar's smaller copy of the mark is intentionally _not_ click-spinnable — that button already owns the confetti easter egg above, and stacking two behaviours on one control would make both feel accidental.
 
-## Headline text-scramble (decode)
+## Page-title text-scramble (decode)
 
-- **What**: hovering certain H-level headlines makes each character churn through random ASCII-ish glyphs and then resolve, left to right, back to the real text.
-- **Where**: `src/components/ui/ScrambleText.tsx`, with `.scramble` in `src/app/motion.css`. Wired into the Home hero's "DevFest" line and the `/speakers` and `/team` page H1s.
-- **How to trigger**: hover (or keyboard-focus) a headline that carries it. Click also fires it, which is how it stays reachable on touch, where there is no hover.
-- **Added**: PHASE11 §1.
-- **Notes**:
-  - **Not every headline has it.** `/schedule` and `/faqs` are deliberately plain, so the effect reads as a find rather than a site-wide tic.
+- **What**: clicking a page's top title makes each character churn through random ASCII-ish glyphs and then resolve, left to right, back to the real text.
+- **Where**: `src/components/ui/ScrambleText.tsx`, with `.scramble` in `src/app/motion.css`. Wired into **every page's H1** — the Home hero's "DevFest" line and the `/speakers`, `/team`, `/schedule`, `/faqs`, `/tickets`, `/shop` and `/dp-generator` titles. Exactly one per page.
+- **How to trigger**: **click the page title.** That is the only trigger.
+- **Added**: PHASE11 §1. Substantially reworked in PHASE12 §4.
+- **Notes** — PHASE12 made it a genuinely HIDDEN egg, which changed four things:
+  - **Click only.** Hover no longer does anything.
+  - **No affordance at all.** The dotted underline is gone and the cursor does **not** change over the title. The earlier version advertised itself, which made it a feature rather than a secret. Do not add a hover hint back.
+  - **Never on page load.** The title always renders normally first.
+  - **Much slower.** The first version resolved in ~9 frames, which read as a blink. It now holds each glyph for several frames and staggers the characters, so the decode is watchable — roughly a second and a half for a short title.
+  - Scope is the **top H1 only**, never sub-headings.
   - It animates the REAL DOM text, so accented characters resolve correctly — "Yaoundé" comes back as "Yaoundé". This is why it replaced the earlier ASCII-art banner egg (PHASE10 §10), which needed a bitmap block font with no accented glyphs and so could only have misspelled the city or left a hole.
-  - The affordance is deliberate: a dotted underline in the theme colour appears on hover. An egg nobody can find isn't delight, it's dead code.
-  - The mid-scramble string is nonsense, so it never reaches assistive tech: the real text stays in an `sr-only` span and the animating span is `aria-hidden`.
-  - Under `prefers-reduced-motion` the scramble never starts — the headline just sits there.
+  - The mid-scramble string is nonsense, so it never reaches assistive tech: the real text stays in an `sr-only` span and the animating span is `aria-hidden`. That copy is `user-select: none` so selecting the heading doesn't yield the title twice.
+  - Under `prefers-reduced-motion` clicking does nothing at all.
   - **Supersedes** the ASCII-art banner egg, which is removed. `src/lib/ascii.ts` and `AsciiHeadline.tsx` are gone; don't reintroduce them.
 
-## Bracket cursor
+## Trailing arrow cursor
 
-- **What**: on desktop, the pointer becomes a small solid dot with a larger angled-bracket ring (the logo's `><` motif) chasing it. Over anything clickable the ring grows and the brackets open out to frame the target; pressing squeezes it.
+- **What**: on desktop, the pointer becomes a small solid dot with a larger **rounded arrow** chasing it. Over anything clickable the arrow fades back and a ring blooms to frame the target; pressing squeezes it.
 - **Where**: `src/components/global/CustomCursor.tsx` + the `.cursor-*` block in `src/app/globals.css`. Mounted once in `src/app/[locale]/layout.tsx`.
-- **How to trigger**: just use a mouse on desktop. It recolours with the footer theme switcher.
-- **Added**: PHASE11 §2.
+- **How to trigger**: just use a mouse on desktop. It recolours with the footer theme switcher — to the **contrast** of the active theme (Blue↔Red, Yellow↔Green), never the active family itself.
+- **Added**: PHASE11 §2. Reshaped and recoloured in PHASE12 §3 — it used to be the logo's angled brackets in the theme colour, which read as a logo fragment stuck to the pointer and disappeared against a same-family wash.
 - **Notes** — this one is a hazard if handled carelessly, so the guards are the point:
   - It does not run at all on coarse pointers, without hover, or under `prefers-reduced-motion`. Both media queries are watched live, so plugging in a mouse or toggling the OS motion setting takes effect without a reload.
   - The native cursor is hidden ONLY by a class the component adds after those checks pass. If the script never runs, the cursor is simply never hidden — the failure mode is "no custom cursor", never "no cursor".

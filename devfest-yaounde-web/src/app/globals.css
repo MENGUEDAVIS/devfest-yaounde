@@ -48,6 +48,20 @@
   --color-pastel: var(--color-yellow-pastel);
 
   /*
+   * CONTRAST COLOUR — DESIGN.md §2.5 (PHASE12 §3).
+   *
+   * The complement of the active family, paired Blue<->Red and
+   * Yellow<->Green. Used by the custom cursor, which must never blend into
+   * the wash it is moving over: a yellow cursor on the Pastel Yellow ground
+   * is exactly the visibility problem this pairing removes.
+   *
+   * This is NOT a second dominant colour. It is one small always-moving
+   * element, which is the one place on the site where "must stay legible
+   * against the dominant family" outranks "everything follows the family".
+   */
+  --color-contrast: var(--color-green);
+
+  /*
    * FIXED SEMANTIC STATUS TOKENS — deliberately NOT themed (§2.5).
    * Green must keep meaning success/in-stock and red must keep meaning
    * urgency/error, whichever family is dominant. If these followed the
@@ -82,21 +96,25 @@
   --color-primary: var(--color-blue);
   --color-halftone: var(--color-blue-halftone);
   --color-pastel: var(--color-blue-pastel);
+  --color-contrast: var(--color-red);
 }
 :root[data-theme="red"] {
   --color-primary: var(--color-red);
   --color-halftone: var(--color-red-halftone);
   --color-pastel: var(--color-red-pastel);
+  --color-contrast: var(--color-blue);
 }
 :root[data-theme="yellow"] {
   --color-primary: var(--color-yellow);
   --color-halftone: var(--color-yellow-halftone);
   --color-pastel: var(--color-yellow-pastel);
+  --color-contrast: var(--color-green);
 }
 :root[data-theme="green"] {
   --color-primary: var(--color-green);
   --color-halftone: var(--color-green-halftone);
   --color-pastel: var(--color-green-pastel);
+  --color-contrast: var(--color-yellow);
 }
 
 @theme inline {
@@ -372,14 +390,26 @@ html:not(.has-custom-cursor) .cursor-layer {
   transition: opacity 160ms var(--ease-out-devfest);
 }
 
-/* The bracket ring CHASES the pointer — this is the trailing motion. */
+/*
+ * The rounded arrow CHASES the pointer — this is the trailing motion.
+ *
+ * PHASE12 §3: it is coloured with `--color-contrast`, the complement of the
+ * active family (Blue<->Red, Yellow<->Green), NOT `--color-primary`. A
+ * primary-coloured cursor sits on a same-family pastel wash for most of the
+ * page and effectively disappears. Because it reads a token, switching theme
+ * flips the cursor with no JavaScript at all.
+ *
+ * The arrow's tip is at roughly (9, 5.5) in its own 32-unit box, so the box
+ * is offset to put that tip on the pointer rather than centring the glyph.
+ */
 .cursor-ring {
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
-  color: var(--color-primary);
+  width: 30px;
+  height: 30px;
+  margin: -5px 0 0 -8px;
+  color: var(--color-contrast);
   transform: translate3d(var(--ring-x, -100px), var(--ring-y, -100px), 0)
     scale(var(--ring-scale, 1));
+  transform-origin: 28% 18%; /* the arrow tip, so scaling pivots there */
   transition: color 300ms var(--ease-out-devfest);
 }
 .cursor-ring svg {
@@ -387,33 +417,47 @@ html:not(.has-custom-cursor) .cursor-layer {
   height: 100%;
   overflow: visible;
 }
-/* The two halves part and close — the same motif as the logo's split-and-spin. */
-.cursor-bracket {
-  transition: transform 320ms var(--ease-bouncy);
-}
-.cursor-bracket-l {
-  transform: translateX(2px);
-}
-.cursor-bracket-r {
-  transform: translateX(-2px);
+.cursor-arrow {
+  transition:
+    d 320ms var(--ease-bouncy),
+    opacity 220ms var(--ease-out-devfest);
 }
 
 /*
- * Over something clickable the ring grows and the brackets open OUT, so they
- * frame the target rather than sitting on it. This is the "morphs around
- * buttons" behaviour.
+ * Over something clickable the arrow grows and a ring fades in around it, so
+ * the target is framed rather than covered. This is the "morphs around
+ * buttons" behaviour, kept from PHASE11.
  */
 .cursor-layer[data-state="interactive"] {
-  --ring-scale: 1.75;
+  --ring-scale: 1.5;
 }
-.cursor-layer[data-state="interactive"] .cursor-bracket-l {
-  transform: translateX(-3px);
+.cursor-layer[data-state="interactive"] .cursor-arrow {
+  opacity: 0.35;
 }
-.cursor-layer[data-state="interactive"] .cursor-bracket-r {
-  transform: translateX(3px);
+.cursor-layer[data-state="interactive"] .cursor-halo {
+  opacity: 1;
+  transform: scale(1);
 }
 .cursor-layer[data-state="interactive"] .cursor-dot {
   opacity: 0;
+}
+
+/* The framing ring — only present over interactive targets. */
+.cursor-halo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 2px solid var(--color-contrast);
+  border-radius: var(--radius-pill);
+  opacity: 0;
+  transform: translate3d(var(--ring-x, -100px), var(--ring-y, -100px), 0)
+    scale(0.6);
+  transition:
+    opacity 220ms var(--ease-out-devfest),
+    transform 320ms var(--ease-bouncy);
 }
 
 /* Over text the custom cursor gets out of the way and the native I-beam
@@ -434,33 +478,37 @@ html:not(.has-custom-cursor) .cursor-layer {
  * The track is one gutter left of the content column and spans exactly the
  * section's height; the rail sticks within it.
  *
- * Vertical centring survives the change, but NOT via `top: 50vh` — that was
- * measured and rejected. It puts the sticky box's layout top at mid-viewport,
- * so the section's bottom constraint bites while half a screen of content is
- * still visible: the filters vanished with the grid still on screen.
+ * PHASE12 §1: the rail TRAVELS DOWN the section as you scroll, rather than
+ * sitting frozen at the viewport's vertical centre.
  *
- * Instead the sticky box is a full viewport tall and the panel is CENTRED
- * INSIDE it. The box therefore unsticks exactly when the section's bottom
- * reaches the viewport bottom — not a screen early — and the panel reads as
- * vertically centred throughout. `padding-top: var(--chrome-h)` centres it
- * within the space BELOW the fixed navbar, so it can never collide with it.
+ * The construction that does this is a sticky box pinned near the TOP of the
+ * viewport (just under the chrome), sized to its own content. Scrolling then
+ * carries it down the page with you, and the track — an absolutely positioned
+ * column spanning exactly this section — clamps it at both ends: it can never
+ * travel above the section's start, and when the section ends it scrolls out
+ * with the content instead of running on into the footer.
+ *
+ * Two earlier attempts and why they were wrong:
+ *  - `position: fixed` (PHASE10): never yielded to anything, so it sat on top
+ *    of the footer at the end of /schedule.
+ *  - Sticky, but centred in a viewport-tall box (PHASE11): fixed the footer
+ *    overlap, but froze the rail mid-screen and — because the box was a whole
+ *    viewport tall — released it while a screenful of grid was still visible
+ *    on short sections. Both were measured, not guessed.
+ *
+ * A content-height box pinned near the top has neither problem: nothing is
+ * frozen mid-viewport, and the box releases only when the section itself
+ * genuinely runs out.
  */
 .filter-rail-track {
   right: calc(100% + 1.5rem);
 }
 .filter-rail-sticky {
-  /*
-   * Sticks BELOW the fixed chrome and is exactly the height of the space
-   * under it, with the panel centred inside. Sizing the box to the free
-   * space (rather than to the whole viewport with top padding) is what keeps
-   * the rail from starting half a screen down on first paint, while still
-   * reading as vertically centred once it is stuck.
-   */
-  top: var(--chrome-h);
+  top: calc(var(--chrome-h) + 1rem);
+  /* Never taller than the space under the chrome; scrolls internally past
+     that, using the shared themed pill. */
+  max-height: calc(100svh - var(--chrome-h) - 3rem);
   display: flex;
-  align-items: center;
-  height: calc(100svh - var(--chrome-h));
-  padding-bottom: 1.5rem;
 }
 .filter-rail-sticky > div {
   width: 100%;

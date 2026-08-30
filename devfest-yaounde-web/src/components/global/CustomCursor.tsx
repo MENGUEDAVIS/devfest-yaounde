@@ -13,12 +13,22 @@ const TEXTUAL =
   "input, textarea, [contenteditable=''], [contenteditable='true']";
 
 /**
- * Custom cursor — PHASE11 §2.
+ * Custom cursor — PHASE11 §2, reshaped and recoloured in PHASE12 §3.
  *
  * Two parts: a small solid dot pinned exactly to the pointer, and a larger
- * ring built from the logo's two angled brackets that CHASES it with a little
- * lag. Over an interactive element the ring grows and its brackets close in
- * around the target; over text it gets out of the way entirely.
+ * ROUNDED ARROW that CHASES it with a little lag. Over an interactive element
+ * the arrow grows and softens into a ring that frames the target; over text
+ * it gets out of the way entirely.
+ *
+ * SHAPE: a tail-less pointer with smooth rounded corners — a friendly take on
+ * the classic mouse arrow. It replaced the angled-bracket mark, which read as
+ * a logo fragment stuck to the pointer rather than as a cursor.
+ *
+ * COLOUR: the CONTRAST of the active theme (DESIGN.md §2.5) — Blue theme
+ * gets a Red cursor, Yellow gets Green, and vice versa. Using the active
+ * family would put a yellow cursor on the Pastel Yellow wash, which is the
+ * visibility problem the pairing exists to remove. It follows
+ * `--color-contrast`, so a theme switch flips it with no JS involved.
  *
  * The dot is deliberately at the real pointer position with no easing. If the
  * only visible cursor lagged behind the true hit point, every click would
@@ -157,25 +167,25 @@ export function CustomCursor() {
   return (
     <div ref={rootRef} className="cursor-layer" aria-hidden>
       <div className="cursor-dot" />
+      {/* Framing ring, only visible over interactive targets. */}
+      <div className="cursor-halo" />
       <div className="cursor-ring">
-        {/* The logo's angled-bracket motif, unicolor and themed. Two chevrons
-            facing each other — the same "><" the wordmark is built from. */}
-        <svg viewBox="0 0 40 40" fill="none" aria-hidden>
+        {/*
+          Tail-less rounded arrow — a soft, friendly pointer. Drawn as a
+          stroked path with round joins and caps rather than a sharp filled
+          polygon, which is what gives it the rounded edges; the fill closes
+          it into a solid shape. Unicolor, and `currentColor` is what lets the
+          theme's contrast colour drive it from CSS alone.
+        */}
+        <svg viewBox="0 0 32 32" aria-hidden>
           <path
-            className="cursor-bracket cursor-bracket-l"
-            d="M15 8 L6 20 L15 32"
+            className="cursor-arrow"
+            d="M9 5.5 L24.5 16.2 L17.2 17.6 L14.2 24.6 Z"
+            fill="currentColor"
             stroke="currentColor"
-            strokeWidth="3.5"
-            strokeLinecap="round"
+            strokeWidth="4.2"
             strokeLinejoin="round"
-          />
-          <path
-            className="cursor-bracket cursor-bracket-r"
-            d="M25 8 L34 20 L25 32"
-            stroke="currentColor"
-            strokeWidth="3.5"
             strokeLinecap="round"
-            strokeLinejoin="round"
           />
         </svg>
       </div>

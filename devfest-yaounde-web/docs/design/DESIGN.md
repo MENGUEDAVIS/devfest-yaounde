@@ -137,7 +137,22 @@ Implementation shape (the part that matters for design decisions):
 - **Success-green and error-red are SEPARATE FIXED tokens** (`--color-success`, `--color-danger`) that never follow the theme. Green must keep meaning "in stock / confirmed" and red must keep meaning "sold out / error" no matter which family is dominant — otherwise the Red theme would render the whole site as an error state and the Green theme would make everything look confirmed. Designing a state? Reach for `success`/`danger`, not "green"/"red".
 - **The brand logo is not themed.** The DevFest mark is Google's four-color asset and keeps its own colors under every theme. Photography is not re-themed either.
 
-See [ADR 0011](../decisions/0011-runtime-theming.md) and [the theming guide](../guides/theming.md).
+**The cursor is the one deliberate exception: it uses the CONTRASTING color.**
+
+The custom desktop cursor does _not_ take the dominant family. It takes that family's complement, paired:
+
+| Active theme | Cursor color |
+| ------------ | ------------ |
+| Blue         | **Red**      |
+| Red          | **Blue**     |
+| Yellow       | **Green**    |
+| Green        | **Yellow**   |
+
+This is not a second dominant color and it is not decoration — it is a legibility rule. The cursor is a small element that moves continuously across a page whose background is, by design, a wash of the dominant family. A yellow cursor on the Pastel Yellow ground effectively disappears; the pairing guarantees it never blends into what it is moving over. This is the one place where "must stay visible against the dominant family" outranks "everything follows the family."
+
+It is wired to a `--color-contrast` token that each theme block sets, so switching theme flips the cursor with no JavaScript involved. Nothing else on the site should use `--color-contrast` — if a second element starts using it, that is a second color competing with the dominant one, which §2.5 exists to prevent.
+
+See [ADR 0011](../decisions/0011-runtime-theming.md), [the theming guide](../guides/theming.md) and [the custom cursor guide](../guides/custom-cursor.md).
 
 ### 2.6 Gradients — banned
 

@@ -35,7 +35,7 @@ Every route above exists in **both languages** (see §9 Localization) — e.g. `
 ### 1.2 Announcement Banner
 
 - Sits above the navbar, dismissible (persists dismissal via localStorage/cookie for the session).
-- **Marquee scroll** behavior for longer messages (e.g. "🎟️ Early bird tickets end in 3 days — grab yours before prices go up!").
+- **Marquee scroll** behavior for longer messages (e.g. "🎟️ Early bird tickets end in 3 days — grab yours before prices go up!"). The loop is **seamless** (Phase 12 §2) — see the note on the sponsor marquee below; the same rule applies here.
 - Visually attaches to the navbar (shared rounded container or touching edge) so they read as one cohesive unit, not two competing bars.
 - Used sparingly and only for genuinely time-sensitive updates — ticket deadlines, schedule changes, weather/venue alerts.
 
@@ -58,6 +58,8 @@ Every route above exists in **both languages** (see §9 Localization) — e.g. `
 > **Updated in Phase 11.** The home speaker cards show **basic info only** — name, role, company, short bio, socials. The icebreaker Q&A and the funny moment are deliberately NOT here: home is a teaser, and stacking all three made the preview card cluttered and forced it to scroll. The full personality lives on `/speakers`, where someone has actually asked for it. The home speaker slider also supports **drag/swipe**, matching the page slider's input handling.
 >
 > Hero spacing: the text block carries more padding, weighted vertical over horizontal, and the gap between the "DevFest" line and the stamped "Yaoundé ####" block below it is tightened so they nearly touch.
+>
+> **Phase 12 §5 fix:** the home slider's click-detail opens on **only the clicked card**, and clicking again dismisses it. It was appearing on every card at once — the panel had been moved outside the frame that clips it, so each card's closed (merely translated) panel was painting just below it.
 
 The home page is a **single scrolling story** — teasers everywhere, full detail lives on dedicated pages.
 
@@ -132,7 +134,9 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 >
 > Vertical drag is bound to **mouse and pen only**. On touch, a vertical gesture inside a tall stage is how you scroll the page, so claiming it would trap anyone who scrolled onto the slider; touch gets the buttons instead. Search and filters apply to both views and persist across the toggle, as does the focused speaker.
 >
-> **Phase 11 §5 composition:** the photo is a **polaroid** — thick lower border, tilted, and alternating direction slide to slide — detached from the slide's edges rather than flush to them. The stage is a **full viewport height** so every slide's content fits with **no scrollbar and no clipping at any screen size** (verified from 1280×720 up to 2560×1440; type tightens on short viewports rather than the content being cut). Because the stage is full height, the prev/next controls are **overlaid on the stage**, not placed below it where they would fall off screen, and switching to the slider scrolls the stage under the navbar.
+> **Composition (Phase 11 §5, refined in Phase 12 §6):** the photo is a **polaroid** — thick lower border, tilted, alternating direction slide to slide — detached from the slide's edges rather than flush to them, and **markedly smaller** since Phase 12 (half the linear size, so a quarter of the footprint: an object sitting on the slide rather than the thing that fills it). The slide's text column takes the space it gives up.
+>
+> The stage is sized from the viewport but **not** full height — it reserves room for the **prev/next controls and the slide counter, which sit BELOW the slide**, not overlaid on it, with **no chip or background behind the counter**. Every slide's content fits with **no scrollbar and no clipping at any screen size** (verified 1280×720 to 2560×1440; type tightens on short viewports rather than the content being cut).
 >
 > Search and filters live in a **floating rail** on wide desktops and a **bottom drawer** everywhere else, grouped under labelled headings — one shared pattern across `/speakers`, `/schedule`, `/team` and `/faqs` (`FilterLayout` + `FilterGroup`).
 >
@@ -140,7 +144,9 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 >
 > The consequence worth knowing: the rail only appears from **1760px** up, because that is the width at which margin whitespace actually exists (`50vw − half the content column − a gutter − the rail's own width`). Below it, the drawer. Narrowing the content to make the rail fit at more widths is exactly what this rework removed.
 >
-> **Updated in Phase 11 §3 — the rail is sticky within its SECTION, not fixed to the viewport.** It used to be `position: fixed`, so it never yielded to anything: at the end of `/schedule` it sat on top of the footer. Now it sticks inside its own section and the following content pushes it up. It stays on screen for as long as the content it filters is on screen.
+> **Updated in Phase 12 §1 — the rail TRAVELS DOWN its section as you scroll.** It is a sticky element pinned just under the chrome inside a track that spans exactly its owning section, so it moves down the page with you and is clamped at both ends: it never rises above the section's start, and when the section ends it scrolls out with the content (passing behind the navbar) instead of running into the footer.
+>
+> Two earlier attempts, both measured and rejected: `position: fixed` (Phase 10) never yielded and sat on top of the footer; sticky-but-centred-in-a-viewport-tall-box (Phase 11) fixed the footer overlap but froze the rail mid-screen and released it while a screenful of grid was still visible.
 >
 > Speakers also carry `icebreakerQuestion`, `icebreakerAnswer` and an optional `funnyMoment`, surfaced in the detail reveal as a warm quote moment rather than a data row.
 
@@ -151,6 +157,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 - Consistent card sizing regardless of bio length while closed.
 - **Opening a card opens a POPOVER beside it** (Phase 11 §8, replacing Phase 10's in-place expansion): the card itself never changes size, so the grid does not reflow — no sibling jumps, no scroll position shifting under the pointer. The panel is one card wide, opens to the right, and flips to the left for cards in the last column so it always stays inside the grid.
 - **Accordion: one card open at a time.** Opening another closes the previous one. Escape, a click outside, or the panel's own close button dismiss it.
+- **The other cards dim while one is open** (Phase 12 §7), so the focused card is spotlit. It is opacity, not motion, so it still applies under reduced motion — only the easing is dropped.
 - The grid is deliberately **plain** — it is the scannable view. The cinematic presentation is the slider.
 - No hover underline on speaker names: with the card expanding on click, an extra hover animation on the name read as a link affordance the name doesn't have.
 

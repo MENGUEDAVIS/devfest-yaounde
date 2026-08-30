@@ -1,8 +1,8 @@
 # The custom cursor
 
 On desktop the pointer is replaced with a small solid dot plus a larger
-angled-bracket ring — the logo's `><` motif — that chases it with a slight
-lag. It is themed, so it recolours with the footer theme switcher.
+**rounded arrow** that chases it with a slight lag — a soft, tail-less take on
+the classic mouse arrow. It recolours with the footer theme switcher.
 
 Code: [`src/components/global/CustomCursor.tsx`](../../src/components/global/CustomCursor.tsx)
 and the `.cursor-*` block in `src/app/globals.css`.
@@ -58,8 +58,15 @@ State is carried on `data-` attributes (`data-state`, `data-pressed`,
 - **Chase speed**: `EASE` in the component (0–1; higher is snappier).
 - **Shape**: the two `<path>`s in the component — keep them unicolor and
   keep them reading as the bracket motif.
-- **Colour**: it uses `var(--color-primary)`, so it follows the theme. Do not
-  hardcode a family colour here, or it will stop matching the site.
+- **Colour**: it uses `var(--color-contrast)` — the COMPLEMENT of the active
+  theme (Blue↔Red, Yellow↔Green), per DESIGN.md §2.5. Do **not** switch this
+  to `--color-primary`: a primary-coloured cursor sits on a same-family
+  pastel wash for most of the page and effectively disappears. That
+  visibility problem is the whole reason the pairing exists. And don't
+  hardcode a family colour either, or it will stop following the theme.
+- **Shape**: the single `<path>` in the component. Keep `stroke-linejoin` and
+  `stroke-linecap` set to `round` — the stroke is what rounds the arrow's
+  corners; the fill only closes it into a solid shape.
 - **What counts as interactive**: the `INTERACTIVE` selector list. Add
   `data-cursor="grab"` to anything draggable that isn't a link or button —
   the sliders already carry it.

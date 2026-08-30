@@ -156,3 +156,26 @@ Two of the newer effects are guarded in JS instead, because they are driven
 by rAF rather than CSS: the headline scramble never starts, and the custom
 cursor never mounts its listeners. Both read `matchMedia` live rather than
 caching it, so toggling the OS setting takes effect without a reload.
+
+
+## Marquees must not use flex `gap` (PHASE12 §2)
+
+A marquee duplicates its content once and animates `translateX(0)` to
+`translateX(-50%)`. With `gap` between flex items, a track of 2n items has
+only 2n-1 gaps — there is no gap after the last item — so half the track width
+is half a gap SHORT of where the second copy actually starts, and the row
+visibly jumps on every loop.
+
+Carry the spacing as a right `margin` on each item instead (`.anim-marquee > *`
+already does this via `--marquee-gap`). Then each copy is exactly
+`n * (item + gap)` wide including its trailing space, half the track is
+exactly one copy, and the wrap is invisible. Verified seam error: 0px.
+
+## Slider type tiers are load-bearing (PHASE12 §6)
+
+The `@media (max-height: 950px)` and `(max-height: 840px)` blocks that tighten
+`.person-detail-roomy` are not cosmetic — without them the cinema slide's
+content does not fit on a laptop and gets silently CLIPPED, which is worse
+than a scrollbar. They were deleted by accident once and the overflow
+immediately came back in testing. If you change the stage height or the
+polaroid size, re-measure the fit from 1280x720 up before shipping.

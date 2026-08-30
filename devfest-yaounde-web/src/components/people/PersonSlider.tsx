@@ -262,7 +262,7 @@ export function PersonSlider({
                     overflow was silently clipped. A definite row is what
                     lets the print shrink to fit.
                   */}
-                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-black02 bg-black02 p-6 shadow-[0_8px_0_0_var(--color-black02)] sm:p-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
+                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-black02 bg-black02 p-6 shadow-[0_8px_0_0_var(--color-black02)] sm:p-8 md:grid-cols-[minmax(0,0.6fr)_minmax(0,1.4fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
                   {/* Polaroid: thick lower border, slight tilt, detached from
                       the slide's edges by the padding above (PHASE11 §5.1). */}
                   <div className="polaroid min-h-0">
@@ -291,46 +291,49 @@ export function PersonSlider({
             );
           })}
         </div>
+      </div>
 
-        {/*
-          Controls are OVERLAID on the stage (PHASE11 §5.2). With the stage
-          now a full viewport tall, a control row underneath it would sit
-          below the fold — you would have to scroll past the slider to find
-          the button that moves the slider.
-        */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 sm:p-7">
-          <div className="pointer-events-auto flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => go(-1)}
-              disabled={safeIndex === 0}
-              aria-label={t("prev")}
-              className="flex h-12 w-12 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0 disabled:hover:bg-offwhite motion-reduce:transform-none sm:h-14 sm:w-14"
-            >
-              <CaretUp size={22} weight="bold" />
-            </button>
-            <button
-              type="button"
-              onClick={() => go(1)}
-              disabled={safeIndex === count - 1}
-              aria-label={t("next")}
-              className="flex h-12 w-12 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0 disabled:hover:bg-offwhite motion-reduce:transform-none sm:h-14 sm:w-14"
-            >
-              <CaretDown size={22} weight="bold" />
-            </button>
-          </div>
+      {/*
+        PHASE12 §6: controls sit BELOW the slide again, not overlaid on it.
+        They were overlaid in PHASE11 only because the stage was a full
+        viewport tall and a row underneath would have fallen below the fold.
+        The stage is shorter now (and the polaroid much smaller), so there is
+        room for them in the open — where they don't cover any of the slide.
+      */}
+      <div className="mt-6 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            disabled={safeIndex === 0}
+            aria-label={t("prev")}
+            className="flex h-12 w-12 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0 disabled:hover:bg-offwhite motion-reduce:transform-none sm:h-14 sm:w-14"
+          >
+            <CaretUp size={22} weight="bold" />
+          </button>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            disabled={safeIndex === count - 1}
+            aria-label={t("next")}
+            className="flex h-12 w-12 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-[transform,background-color,box-shadow] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0 disabled:hover:bg-offwhite motion-reduce:transform-none sm:h-14 sm:w-14"
+          >
+            <CaretDown size={22} weight="bold" />
+          </button>
+        </div>
 
-          <div className="pointer-events-auto rounded-pill border-2 border-black02 bg-offwhite px-4 py-2 text-right">
-            <p
-              aria-live="polite"
-              className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02"
-            >
-              {t("position", { current: safeIndex + 1, total: count })}
-            </p>
-            <p className="mt-0.5 hidden font-mono text-caption text-black02/50 sm:block">
-              {t("dragHint")}
-            </p>
-          </div>
+        {/* No chip/pill background — the counter sits cleanly on the page
+              ground (PHASE12 §6). */}
+        <div className="text-right">
+          <p
+            aria-live="polite"
+            className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02"
+          >
+            {t("position", { current: safeIndex + 1, total: count })}
+          </p>
+          <p className="mt-0.5 hidden font-mono text-caption text-black02/50 sm:block">
+            {t("dragHint")}
+          </p>
         </div>
       </div>
     </div>
