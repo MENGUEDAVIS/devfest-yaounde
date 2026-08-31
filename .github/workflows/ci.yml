@@ -1,0 +1,57 @@
+name: CI
+
+# Lint, types and tests on every push and pull request.
+#
+# No secrets are used here on purpose. Everything under test is pure logic —
+# pricing, badge codes, callback verification, receipt rendering — so CI needs
+# neither a database nor a payment provider, and a fork's pull request runs
+# exactly as safely as a branch.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push supersedes the run it interrupts.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: devfest-yaounde-web
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: devfest-yaounde-web/package-lock.json
+
+      # `ci` not `install`: fails loudly if the lockfile and package.json
+      # disagree, rather than quietly resolving something else.
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npx tsc --noEmit
+
+      - run: npm test
+
+      - run: npm run format:check
+        # Formatting drift predates this workflow in several data files; report
+        # it without failing the build until those are cleaned up separately.
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build
+        env:
+          # The build must not need real credentials. If this step ever starts
+          # failing without them, something reads a secret at module scope —
+          # which would also break a preview deploy.
+          NEXT_TELEMETRY_DISABLED: "1"

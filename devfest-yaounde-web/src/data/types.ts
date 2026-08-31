@@ -133,3 +133,85 @@ export interface FaqItem {
     external?: boolean;
   };
 }
+
+// ---------------------------------------------------------------------------
+// Commerce (feat/tickets-flow, feat/shop-flow)
+//
+// Prices live here, in JSON, and NOWHERE else. The checkout routes recompute
+// every total from these files — a price arriving in a request body is always
+// ignored. See docs/decisions/0013-payments-pawapay.md.
+// ---------------------------------------------------------------------------
+
+/** Apparel sizes offered on tiers/products that include clothing. */
+export type ApparelSize = "XS" | "S" | "M" | "L" | "XL" | "XXL";
+
+export interface TicketTier {
+  id: string;
+  /** Proper-noun tier name, rendered mono-tag style. Language-neutral. */
+  name: string;
+  /** Whole XAF. 0 = free tier, which skips the payment provider entirely. */
+  priceXAF: number;
+  description: LocalizedString;
+  perks: LocalizedString[];
+  /** When true, attendee details must collect an apparel size. */
+  includesApparel: boolean;
+  /** Omit for unlimited. Checked server-side at checkout. */
+  quantityAvailable?: number;
+  /** Hidden from the tier list when false — kept so past tiers stay resolvable. */
+  onSale: boolean;
+}
+
+export type ProductStatus =
+  "pre-order" | "in-stock" | "venue-only" | "sold-out";
+
+export interface Product {
+  id: string;
+  name: LocalizedString;
+  description: LocalizedString;
+  priceXAF: number;
+  images: string[];
+  variants?: { size?: ApparelSize[]; color?: string[] };
+  /** Always paired with a visible text label in the UI, never colour alone. */
+  status: ProductStatus;
+}
+
+/** One chosen product + variant + quantity, as sent by the shop checkout. */
+export interface CartLine {
+  productId: string;
+  quantity: number;
+  variant?: { size?: string; color?: string };
+}
+
+/** One attendee on a ticket order. Apparel size only for apparel tiers. */
+export interface AttendeeInput {
+  tierId: string;
+  name: string;
+  email: string;
+  apparelSize?: ApparelSize;
+}
+
+/**
+ * A priced basket, computed server-side. `net` is what the community actually
+ * banks once the discount is applied; `charged` is what the buyer pays. They
+ * differ only when a discount is in play, but both are persisted so the
+ * callback can check the charged figure while accounting reads the net one.
+ */
+export interface PricedBasket {
+  lines: PricedLine[];
+  subtotal: number;
+  discountCode?: string;
+  discountAmount: number;
+  charged: number;
+  net: number;
+  currency: "XAF";
+}
+
+export interface PricedLine {
+  /** Tier id for tickets, product id for shop. */
+  productId: string;
+  name: LocalizedString;
+  quantity: number;
+  unitAmount: number;
+  lineAmount: number;
+  variant?: { size?: string; color?: string };
+}

@@ -222,5 +222,42 @@
       "title": "DP Generator",
       "placeholder": "The DP generator is coming soon."
     }
+  },
+  "errors": {
+    "checkout": {
+      "unauthenticated": "Sign in first — that's what lets you find your tickets again later.",
+      "invalid_body": "Something's missing in the form. Check the flagged fields and try again.",
+      "rate_limited": "Easy there — too many tries at once. Give it a few minutes.",
+      "unknown_tier": "That ticket type is gone. Reload the page to see what's left.",
+      "tier_not_on_sale": "That ticket isn't on sale any more. There are others — take a look.",
+      "tier_sold_out": "That one's sold out — it went fast. Try another tier.",
+      "unknown_product": "That item is no longer in the catalog. Reload the shop.",
+      "product_unavailable": "That item can't be ordered online right now.",
+      "invalid_variant": "Pick an available size and colour before you carry on.",
+      "apparel_size_required": "This ticket comes with a tee — give us a size for each attendee.",
+      "attendee_count_mismatch": "Ten tickets max per order. Need more? Write to us, we'll sort it.",
+      "empty_basket": "Your bag is empty — add something before checking out.",
+      "discount_invalid": "That code doesn't work. Check the spelling, it's usually one letter.",
+      "discount_expired": "That code has expired. Shame — the standard price still stands.",
+      "discount_exhausted": "That code has already been used as many times as it allows.",
+      "discount_not_applicable": "That code doesn't apply to what you're buying here.",
+      "payment_page_failed": "We couldn't open the payment page. Try again in a moment — nothing was charged.",
+      "server_error": "Something broke on our side. Try again — and tell us if it keeps happening."
+    },
+    "payment": {
+      "pending": "Confirming your payment…",
+      "activated": "All good, you're confirmed.",
+      "failed": "The payment didn't go through. Nothing was charged — you can try again.",
+      "amount_mismatch": "The amount received doesn't match your order. We're looking into it and will be in touch.",
+      "not_found": "We can't find that payment."
+    },
+    "dp": {
+      "unsupported_type": "Unsupported format — use a JPEG, PNG or WebP.",
+      "too_large": "That image is too heavy (12 MB max). Shrink it and try again.",
+      "unreadable": "We couldn't read that image. Try a different one.",
+      "shared": "Shared.",
+      "copied": "Caption copied — all that's left is to paste.",
+      "unavailable": "Your browser can't share directly. Download the image and post it yourself."
+    }
   }
 }

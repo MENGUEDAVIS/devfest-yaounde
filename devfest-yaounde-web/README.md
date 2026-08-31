@@ -22,7 +22,7 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 
 ## Status
 
-**Milestone: the main site is built.** Home, Schedule, Speakers, Team and FAQs are complete and working in both languages. Tickets, Shop and the DP generator are still placeholder routes.
+**Milestone: the main site is built, and the commerce backend behind it.** Home, Schedule, Speakers, Team and FAQs are complete in both languages. Tickets, Shop and the DP generator now have a full backend — checkout, payments, fulfilment, check-in, receipts — but **no screens yet**; their routes are still the placeholder pages.
 
 ### What's done
 
@@ -55,4 +55,12 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 
 ### What's next
 
-Tickets, Shop and the DP generator all wait on the same decision: the payment and auth providers, still open in `docs/decisions/0003-payments-and-auth.md`. Content is placeholder throughout (speakers, sessions, team, sponsors) and clearly marked as such — see `docs/guides/updating-content.md` for how to replace it.
+> **Picking this up?** Two documents answer most questions:
+> `docs/guides/frontend-integration.md` (every endpoint the screens call) and
+> `docs/setup/remaining-work.md` (what is left, and what blocks a real sale).
+
+**The interfaces.** Every endpoint the ticket flow, the shop and the DP generator need exists and is tested; what is missing is the UI on top. See `docs/guides/payments-runbook.md` and `docs/guides/check-in-and-orders.md` for what they call.
+
+**Real content.** Everything in `src/data/` is placeholder — speakers, sessions, team, sponsors, and now ticket tiers and shop products too. The tier names and prices in particular are invented mock data and must not ship: `docs/guides/updating-tickets-and-shop.md` and the pre-launch checklist in `docs/setup/deployment.md`.
+
+**Still open:** card payments (Mobile Money only today), refunds, and a public gallery for the DP generator would reverse ADR 0015.

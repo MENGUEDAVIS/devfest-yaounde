@@ -25,10 +25,32 @@ The dev server runs at `http://localhost:3000`. Visiting `/` redirects to the de
 | `npm run lint`         | ESLint (Next.js core-web-vitals + TypeScript rules, Prettier conflicts disabled) |
 | `npm run format`       | Format the whole project with Prettier                                           |
 | `npm run format:check` | Check formatting without writing changes                                         |
+| `npm test`             | Unit tests for the payment/catalog logic (`tests/`, Node's test runner)          |
+| `npm run verify`       | lint + typecheck + tests — run this before pushing                               |
 
 ## Environment variables
 
-None required yet. This project has no payment provider, auth provider, or CMS wired in — see `docs/decisions/0003-payments-and-auth.md` for what's still open. Once those are decided, their required env vars (API keys, webhook secrets, etc.) should be documented here and added to a `.env.example` file — do not commit real secrets.
+Copy `.env.example` to `.env.local` and fill it in. Every variable is
+documented in that file; the summary:
+
+| Variable                                                    | Needed for                                              |
+| ----------------------------------------------------------- | ------------------------------------------------------- |
+| `APP_BASE_URL`, `NEXT_PUBLIC_APP_BASE_URL`                  | building the PawaPay return URL                         |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | sign-in and reading your own tickets/orders             |
+| `SUPABASE_SERVICE_ROLE_KEY`                                 | checkout and fulfilment — **bypasses RLS, server-only** |
+| `PAWAPAY_ENV`, `PAWAPAY_API_TOKEN`                          | creating payment pages and checking deposits            |
+| `BADGE_CODE_SECRET`                                         | ticket badge/QR codes — set once, never rotate          |
+| `PAWAPAY_CALLBACK_*`                                        | optional callback hardening (monitor mode by default)   |
+
+**The informational pages run without any of this.** Home, Schedule, Speakers,
+FAQs and Team render fine on a fresh clone with no `.env.local` at all — only
+the ticket, shop and account routes need the variables above.
+
+`.env.example` is committed on purpose (`.gitignore` has an explicit
+exception for it); real `.env*` files are not. Never commit a filled-in copy.
+
+See `docs/guides/payments-runbook.md` for the order to set things up in, and
+`docs/decisions/0013` / `0014` for why these providers
 
 ## Project structure
 

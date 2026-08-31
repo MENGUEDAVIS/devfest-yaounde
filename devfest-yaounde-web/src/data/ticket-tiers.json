@@ -1,0 +1,81 @@
+[
+  {
+    "id": "haikyu",
+    "name": "HAIKYU",
+    "priceXAF": 0,
+    "onSale": true,
+    "includesApparel": false,
+    "description": {
+      "fr": "L'entrée simple. Gratuite, comme le DevFest l'a toujours été — prends ta place et viens.",
+      "en": "Plain entry. Free, the way DevFest has always been — claim your spot and show up."
+    },
+    "perks": [
+      { "fr": "Accès à toutes les conférences", "en": "Access to every talk" },
+      {
+        "fr": "Accès aux stands des partenaires",
+        "en": "Access to partner booths"
+      },
+      { "fr": "Espace networking", "en": "Networking area" },
+      { "fr": "Badge nominatif", "en": "Named badge" }
+    ]
+  },
+  {
+    "id": "sonnet",
+    "name": "SONNET",
+    "priceXAF": 10000,
+    "onSale": true,
+    "includesApparel": true,
+    "quantityAvailable": 150,
+    "description": {
+      "fr": "Tout Haikyu, plus le t-shirt de l'édition et le kit de goodies. Pour ceux qui repartent avec un souvenir.",
+      "en": "Everything in Haikyu, plus this edition's tee and the swag kit. For people who leave with something."
+    },
+    "perks": [
+      { "fr": "Tout ce que contient Haikyu", "en": "Everything in Haikyu" },
+      {
+        "fr": "T-shirt officiel de l'édition",
+        "en": "Official edition T-shirt"
+      },
+      {
+        "fr": "Kit de goodies (stickers, carnet)",
+        "en": "Swag kit (stickers, notebook)"
+      },
+      {
+        "fr": "Accès prioritaire aux ateliers",
+        "en": "Priority access to workshops"
+      },
+      { "fr": "Déjeuner inclus", "en": "Lunch included" }
+    ]
+  },
+  {
+    "id": "opus",
+    "name": "OPUS",
+    "priceXAF": 35000,
+    "onSale": true,
+    "includesApparel": true,
+    "quantityAvailable": 40,
+    "description": {
+      "fr": "L'expérience complète : masterclass, table ronde privée avec les speakers, et le pack merch entier.",
+      "en": "The full run: masterclass, a private roundtable with the speakers, and the complete merch pack."
+    },
+    "perks": [
+      { "fr": "Tout ce que contient Sonnet", "en": "Everything in Sonnet" },
+      {
+        "fr": "Masterclass technique en petit comité",
+        "en": "Small-group technical masterclass"
+      },
+      {
+        "fr": "Table ronde privée avec les speakers",
+        "en": "Private roundtable with the speakers"
+      },
+      {
+        "fr": "Hoodie de l'édition en plus du t-shirt",
+        "en": "Edition hoodie on top of the tee"
+      },
+      {
+        "fr": "Place réservée au premier rang",
+        "en": "Reserved front-row seat"
+      }
+    ]
+  }
+]

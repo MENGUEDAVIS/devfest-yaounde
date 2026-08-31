@@ -1,0 +1,129 @@
+# Deployment and secrets
+
+Where each secret lives, and why it cannot live somewhere else.
+
+---
+
+## The thing to understand first
+
+**GitHub Secrets cannot supply the app's runtime secrets.**
+
+They are not a general secret store — they are environment variables injected
+into a **GitHub Actions runner** while a workflow executes. Nothing outside a
+workflow can read them.
+
+The app's secrets are read at **request time**, inside a serverless function on
+Vercel:
+
+```ts
+// src/lib/supabase/server.ts — runs on every checkout request
+requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+```
+
+That code executes minutes or months after any workflow finished, on a
+different machine. There is nothing for GitHub to inject into.
+
+It does not help to build in GitHub Actions and deploy the output either: a
+Next.js build deliberately does **not** bake non-`NEXT_PUBLIC_` values into the
+bundle — if it did, `SUPABASE_SERVICE_ROLE_KEY` would ship to every visitor's
+browser. Only `NEXT_PUBLIC_*` values are inlined at build time, and those are
+public by definition.
+
+So the split is not a preference:
+
+| Secret                      | Read when              | Lives in   |
+| --------------------------- | ---------------------- | ---------- |
+| `SUPABASE_SERVICE_ROLE_KEY` | every checkout         | **Vercel** |
+| `PAWAPAY_API_TOKEN`         | every payment/callback | **Vercel** |
+| `BADGE_CODE_SECRET`         | every fulfilment       | **Vercel** |
+| `CRON_SECRET`               | every cron call        | **Vercel** |
+| `RESEND_API_KEY`            | every receipt          | **Vercel** |
+| `SUPABASE_ACCESS_TOKEN`     | in a workflow          | **GitHub** |
+| `SUPABASE_DB_PASSWORD`      | in a workflow          | **GitHub** |
+
+Both are "secrets not in the repo, applied automatically" — which is the
+actual goal. They are just two different mechanisms for two different runtimes.
+
+---
+
+## Vercel — runtime secrets
+
+Once, per environment (Production / Preview / Development):
+
+```bash
+vercel link                       # once, in devfest-yaounde-web/
+vercel env add SUPABASE_SERVICE_ROLE_KEY production
+vercel env add PAWAPAY_API_TOKEN production
+vercel env add BADGE_CODE_SECRET production
+vercel env add CRON_SECRET production
+# …and the NEXT_PUBLIC_ ones, which are not secret but still need setting
+```
+
+Or paste them in the dashboard under **Settings → Environment Variables**.
+
+`vercel env pull .env.local` brings them down for local development, which
+keeps one source of truth instead of two drifting copies.
+
+Three that need care:
+
+- **`APP_BASE_URL`** must be the real HTTPS origin in production. It builds the
+  URL PawaPay sends people back to; `localhost` there means nobody returns.
+- **`BADGE_CODE_SECRET`** must be identical across every environment that
+  issues real tickets, and must never change. Every badge code is derived from
+  it, so rotating it invalidates every ticket already sold.
+- **`SUPABASE_SERVICE_ROLE_KEY`** bypasses all access control. Never prefix it
+  `NEXT_PUBLIC_`. Set it for Production and Preview only if preview deploys are
+  private — a public preview with a service-role key is a public database.
+
+---
+
+## GitHub — workflow secrets
+
+Under **Settings → Secrets and variables → Actions**:
+
+| Secret                  | Where to get it                                        |
+| ----------------------- | ------------------------------------------------------ |
+| `SUPABASE_ACCESS_TOKEN` | Supabase dashboard → Account → Access Tokens           |
+| `SUPABASE_DB_PASSWORD`  | The database password set when the project was created |
+
+Used only by `.github/workflows/migrations.yml`, which applies pending
+migrations when `supabase/migrations/**` changes on `main` and then fails if
+`database.types.ts` is out of step with the live schema.
+
+`.github/workflows/ci.yml` uses **no secrets at all**. Everything it tests is
+pure logic, so a pull request from a fork runs exactly as safely as a branch.
+
+---
+
+## If you really want GitHub as the single source of truth
+
+It is possible, and it is a real pattern: a workflow that reads the secrets and
+pushes them into Vercel through the Vercel API on every change.
+
+It is not what this repo does, because it adds a moving part between "the
+secret changed" and "the app has it", and when that job fails quietly you get a
+production outage whose cause is in a different system. The two-store split
+above has no such gap.
+
+If the team wants it anyway, that is a decision record, not a config tweak.
+
+---
+
+## Pre-launch checklist
+
+- [ ] `PAWAPAY_ENV=production` **and** a production PawaPay token. A sandbox
+      token against the production URL fails as `AUTHENTICATION_ERROR`.
+- [ ] `APP_BASE_URL` / `NEXT_PUBLIC_APP_BASE_URL` set to the real domain.
+- [ ] PawaPay callback registered:
+      `https://YOUR-DOMAIN/api/payments/pawapay/callback`
+- [ ] Supabase → Authentication → URL Configuration: **Site URL** set, and
+      `https://YOUR-DOMAIN/auth/callback` in the redirect allow-list. Google
+      sign-in fails silently without this.
+- [ ] `CRON_SECRET` set. Without it `/api/cron/cleanup` refuses every call, and
+      abandoned checkouts keep holding ticket capacity.
+- [ ] `BADGE_CODE_SECRET` set, backed up, and never to be changed.
+- [ ] **Ticket tiers and shop products replaced with real content.** What is in
+      `src/data/ticket-tiers.json` and `products.json` today is placeholder —
+      invented names, invented prices, invented perks.
+- [ ] Callback hardening left in monitor mode until the logs show real
+      callbacks passing, then enforced (`docs/guides/payments-runbook.md`).

@@ -222,5 +222,42 @@
       "title": "Générateur de photo de profil",
       "placeholder": "Le générateur de DP arrive bientôt."
     }
+  },
+  "errors": {
+    "checkout": {
+      "unauthenticated": "Connecte-toi d'abord — c'est ce qui te permet de retrouver tes billets plus tard.",
+      "invalid_body": "Il manque quelque chose dans le formulaire. Reprends les champs signalés et réessaie.",
+      "rate_limited": "Doucement — trop de tentatives d'un coup. Reprends dans quelques minutes.",
+      "unknown_tier": "Ce type de billet n'existe plus. Recharge la page pour voir ceux qui restent.",
+      "tier_not_on_sale": "Ce billet n'est plus en vente. Il en reste d'autres, jette un œil.",
+      "tier_sold_out": "Plus de place sur ce billet — il est parti vite. Essaie une autre catégorie.",
+      "unknown_product": "Cet article n'est plus au catalogue. Recharge la boutique.",
+      "product_unavailable": "Cet article n'est pas commandable en ligne pour l'instant.",
+      "invalid_variant": "Choisis une taille et une couleur disponibles avant de continuer.",
+      "apparel_size_required": "Ce billet inclut un t-shirt : indique une taille pour chaque participant.",
+      "attendee_count_mismatch": "Dix billets maximum par commande. Au-delà, écris-nous, on s'arrange.",
+      "empty_basket": "Ton panier est vide — ajoute quelque chose avant de payer.",
+      "discount_invalid": "Ce code ne fonctionne pas. Vérifie l'orthographe, ça se joue souvent à une lettre.",
+      "discount_expired": "Ce code a expiré. Dommage — le tarif normal reste valable.",
+      "discount_exhausted": "Ce code a déjà été utilisé le nombre de fois prévu.",
+      "discount_not_applicable": "Ce code ne s'applique pas à ce que tu achètes ici.",
+      "payment_page_failed": "Impossible d'ouvrir la page de paiement. Réessaie dans un instant — rien n'a été débité.",
+      "server_error": "Quelque chose a cassé de notre côté. Réessaie — et si ça persiste, dis-le-nous."
+    },
+    "payment": {
+      "pending": "Paiement en cours de confirmation…",
+      "activated": "C'est bon, tout est confirmé.",
+      "failed": "Le paiement n'est pas passé. Rien n'a été débité — tu peux réessayer.",
+      "amount_mismatch": "Le montant reçu ne correspond pas à ta commande. On regarde ça et on te recontacte.",
+      "not_found": "On ne retrouve pas ce paiement."
+    },
+    "dp": {
+      "unsupported_type": "Format non pris en charge — utilise un JPEG, un PNG ou un WebP.",
+      "too_large": "Image trop lourde (12 Mo maximum). Réduis-la et réessaie.",
+      "unreadable": "Impossible de lire cette image. Essaie avec une autre.",
+      "shared": "Partagé.",
+      "copied": "Légende copiée — il ne reste qu'à coller.",
+      "unavailable": "Ton navigateur ne permet pas le partage direct. Télécharge l'image et publie-la à la main."
+    }
   }
 }

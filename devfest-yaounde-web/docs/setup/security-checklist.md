@@ -39,10 +39,18 @@ A plain-language checklist to skim before every release — not exhaustive, but 
 
 - [ ] Do auth/payment logs avoid recording full card numbers, passwords, or other PII in plaintext?
 
-## Uploads (DP Generator)
+## Uploads (DP Generator) — NO LONGER APPLICABLE
 
-- [ ] Are uploaded photos validated for file type and size on the server?
-- [ ] Is EXIF metadata stripped from uploaded photos before storing/serving them?
+The DP generator composites entirely in the browser and **never uploads a
+photo** (`docs/decisions/0015-dp-generator-client-side.md`). There is no
+upload endpoint, no stored copy, so there is nothing to validate
+server-side and no EXIF to strip — the threat surface is gone rather than
+mitigated.
+
+- [x] ~~Are uploaded photos validated for file type and size on the server?~~
+- [x] ~~Is EXIF metadata stripped from uploaded photos before storing/serving them?~~
+- [ ] Still true that the generator performs no upload? (Adding a public
+      gallery would reverse this and bring both boxes back.)
 
 ## Data handling
 

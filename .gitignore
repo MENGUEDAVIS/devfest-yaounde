@@ -1,0 +1,8 @@
+# Dependencies are installed per project folder, never at the repo root.
+# A stray root node_modules/ (from running npm in the wrong directory) must
+# not reach a commit.
+node_modules/
+
+# OS noise
+.DS_Store
+Thumbs.db

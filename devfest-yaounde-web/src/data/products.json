@@ -1,0 +1,68 @@
+[
+  {
+    "id": "tee-edition",
+    "name": {
+      "fr": "T-shirt DevFest Yaoundé",
+      "en": "DevFest Yaoundé T-shirt"
+    },
+    "description": {
+      "fr": "Coton épais, sérigraphie du motif morphé de l'édition. Coupe unisexe.",
+      "en": "Heavy cotton, screen-printed with this edition's morphed motif. Unisex fit."
+    },
+    "priceXAF": 12000,
+    "images": ["/shop/tee-edition.jpg"],
+    "variants": {
+      "size": ["S", "M", "L", "XL", "XXL"],
+      "color": ["Noir", "Blanc"]
+    },
+    "status": "pre-order"
+  },
+  {
+    "id": "hoodie-edition",
+    "name": { "fr": "Hoodie DevFest Yaoundé", "en": "DevFest Yaoundé hoodie" },
+    "description": {
+      "fr": "Molleton gratté, broderie du logo sur la poitrine. Tient chaud aux nuits de Yaoundé.",
+      "en": "Brushed fleece, embroidered logo on the chest. Handles a Yaoundé night."
+    },
+    "priceXAF": 28000,
+    "images": ["/shop/hoodie-edition.jpg"],
+    "variants": {
+      "size": ["S", "M", "L", "XL", "XXL"],
+      "color": ["Noir"]
+    },
+    "status": "pre-order"
+  },
+  {
+    "id": "sticker-pack",
+    "name": { "fr": "Pack de stickers", "en": "Sticker pack" },
+    "description": {
+      "fr": "Douze stickers vinyle découpés, résistants aux coups de sac à dos.",
+      "en": "Twelve die-cut vinyl stickers that survive a backpack."
+    },
+    "priceXAF": 3000,
+    "images": ["/shop/sticker-pack.jpg"],
+    "status": "in-stock"
+  },
+  {
+    "id": "mug-community",
+    "name": { "fr": "Mug GDG Yaoundé", "en": "GDG Yaoundé mug" },
+    "description": {
+      "fr": "Céramique 350 ml, logo quadricolore. À récupérer sur place le jour de l'événement.",
+      "en": "350 ml ceramic, four-colour logo. Collected at the venue on the day."
+    },
+    "priceXAF": 7000,
+    "images": ["/shop/mug-community.jpg"],
+    "status": "venue-only"
+  },
+  {
+    "id": "tote-bag",
+    "name": { "fr": "Tote bag", "en": "Tote bag" },
+    "description": {
+      "fr": "Toile épaisse, anses longues. Sérigraphie une couleur.",
+      "en": "Heavy canvas, long handles. One-colour screen print."
+    },
+    "priceXAF": 6000,
+    "images": ["/shop/tote-bag.jpg"],
+    "status": "sold-out"
+  }
+]

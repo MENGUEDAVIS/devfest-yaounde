@@ -1,0 +1,68 @@
+name: Database migrations
+
+# Applies supabase/migrations/*.sql to the hosted project when they change on
+# main.
+#
+# This is the one place GitHub Secrets genuinely belong: the CLI runs HERE, in
+# the runner, so a secret in the repository settings is exactly what it needs.
+# Runtime secrets are a different problem and live in Vercel — see
+# docs/setup/deployment.md.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "devfest-yaounde-web/supabase/migrations/**"
+  # Applying a migration is a deliberate act; allow running it by hand too.
+  workflow_dispatch:
+
+# Never let two migration runs overlap, and never cancel one midway.
+concurrency:
+  group: migrations
+  cancel-in-progress: false
+
+env:
+  # Not a secret: this ref is part of the project's public API URL. Kept here
+  # rather than in `supabase/.temp/`, which is gitignored and so absent in CI.
+  SUPABASE_PROJECT_ID: erzeddxxgoimqvihmnrb
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+defaults:
+  run:
+    working-directory: devfest-yaounde-web
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    # If this environment has protection rules in GitHub, the run waits for a
+    # reviewer. Harmless if it does not.
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Show what would be applied
+        run: supabase db push --linked --dry-run
+
+      - name: Apply
+        run: supabase db push --linked --yes
+
+      # Types are generated from the live schema, so a migration that lands
+      # without regenerating them leaves the repo describing a database that
+      # no longer exists.
+      - name: Check generated types are in step with the schema
+        run: |
+          supabase gen types typescript --linked --schema public > /tmp/fresh.ts
+          if ! diff -q /tmp/fresh.ts src/lib/supabase/database.types.ts >/dev/null; then
+            echo "::error::database.types.ts is stale. Regenerate it with:"
+            echo "::error::supabase gen types typescript --linked --schema public > src/lib/supabase/database.types.ts"
+            diff /tmp/fresh.ts src/lib/supabase/database.types.ts || true
+            exit 1
+          fi
