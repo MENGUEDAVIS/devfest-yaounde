@@ -9,7 +9,11 @@
  */
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import {
+  createHash,
+  generateKeyPairSync,
+  sign as cryptoSign,
+} from "node:crypto";
 
 import { normalizeMetadata } from "@/lib/pawapay/metadata";
 import {
@@ -198,6 +202,64 @@ describe("callback verification", () => {
     assert.equal(report.reject, true);
     delete process.env.PAWAPAY_CALLBACK_IPS;
     delete process.env.PAWAPAY_ENFORCE_IP;
+  });
+
+  it("verifies a real signature, and rebuilds the base behind a relay", () => {
+    // PawaPay signs ECDSA P-256 with the raw r||s encoding.
+    const { privateKey, publicKey } = generateKeyPairSync("ec", {
+      namedCurve: "P-256",
+    });
+
+    // The address PawaPay was given — a relay in front of this app.
+    const RELAY_AUTHORITY = "abc123.execute-api.us-east-1.amazonaws.com";
+    const RELAY_PATH = "/prod/api/webhooks/pawapay/deposits";
+
+    const created = Math.floor(Date.now() / 1000);
+    const params = `("@method" "@authority" "@path");created=${created};keyid="k1"`;
+    const base = [
+      `"@method": POST`,
+      `"@authority": ${RELAY_AUTHORITY}`,
+      `"@path": ${RELAY_PATH}`,
+      `"@signature-params": ${params}`,
+    ].join(String.fromCharCode(10));
+
+    const signature = cryptoSign("sha256", Buffer.from(base, "utf8"), {
+      key: privateKey,
+      dsaEncoding: "ieee-p1363",
+    });
+
+    process.env.PAWAPAY_CALLBACK_PUBLIC_KEY = publicKey
+      .export({ type: "spki", format: "pem" })
+      .toString();
+
+    const headers = new Headers({
+      "signature-input": `sig1=${params}`,
+      signature: `sig1=:${signature.toString("base64")}:`,
+    });
+    // The request as WE receive it: our own host and path, not the relay's.
+    const received = {
+      method: "POST",
+      url: new URL("https://devfest.example/api/payments/pawapay/callback"),
+      headers,
+    };
+
+    // Without the override the base is rebuilt from our address, so a
+    // perfectly valid signature cannot verify.
+    delete process.env.PAWAPAY_SIGNATURE_AUTHORITY;
+    delete process.env.PAWAPAY_SIGNATURE_PATH;
+    assert.equal(verifyCallback(received, body).signature, "fail");
+
+    // Told what PawaPay actually signed, it verifies.
+    process.env.PAWAPAY_SIGNATURE_AUTHORITY = RELAY_AUTHORITY;
+    process.env.PAWAPAY_SIGNATURE_PATH = RELAY_PATH;
+    const report = verifyCallback(received, body);
+    assert.equal(report.signature, "pass");
+    assert.equal(report.replay, "pass", "a fresh signature is not a replay");
+    assert.equal(report.reject, false);
+
+    delete process.env.PAWAPAY_SIGNATURE_AUTHORITY;
+    delete process.env.PAWAPAY_SIGNATURE_PATH;
+    delete process.env.PAWAPAY_CALLBACK_PUBLIC_KEY;
   });
 
   it("accepts the allow-listed IP as the first forwarded hop", () => {

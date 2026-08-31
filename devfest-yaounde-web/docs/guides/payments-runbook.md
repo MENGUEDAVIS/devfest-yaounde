@@ -71,6 +71,74 @@ on blind could silently reject real payments.
 
 ---
 
+## Running behind a relay
+
+The callback URL registered with PawaPay is an AWS API Gateway that forwards
+to this app:
+
+```
+PawaPay  →  https://<gateway>/prod/api/webhooks/pawapay/deposits
+         →  https://<this-app>/api/payments/pawapay/callback
+```
+
+This is a deliberate arrangement, and it has consequences worth knowing.
+
+**Why a relay at all:** PawaPay's callback URL is configured per environment
+in their dashboard, not per request — `POST /v2/paymentpage` has no
+`callbackUrl` field. One PawaPay environment therefore has exactly one
+callback address, and it cannot be shared between two applications without
+something in front doing the fan-out.
+
+### What the relay must do
+
+- **Forward the body byte for byte.** `Content-Digest` is computed over the
+  exact bytes PawaPay sent. Parsing the JSON and re-serialising it changes
+  whitespace and key order, and the digest check then fails.
+- **Forward these headers unchanged:** `Content-Digest`, `Signature`,
+  `Signature-Input`.
+- **Pass the response through.** Our status code is a control signal to
+  PawaPay: `200` means "settled, stop resending", `5xx` means "please resend".
+  A relay that always answers `200` silently turns every retryable failure
+  into a lost payment.
+- **Not retry on its own.** We are already idempotent, so a relay-level retry
+  is harmless — but it hides the real state from PawaPay.
+
+### What the relay costs
+
+| Check                  | Behind a relay                                   |
+| ---------------------- | ------------------------------------------------ |
+| Authoritative re-fetch | **Unaffected.** Still the real guard             |
+| `Content-Digest`       | Works, if the body is forwarded untouched        |
+| HTTP signature         | Works **only** with the two variables below      |
+| IP allow-list          | PawaPay's IPs are invisible; you see the relay's |
+
+PawaPay signs the address it was given — the gateway's authority and path —
+so rebuilding the signature base from the address _we_ see could never match.
+Tell the app what was actually signed:
+
+```
+PAWAPAY_SIGNATURE_AUTHORITY="<gateway-host>.execute-api.us-east-1.amazonaws.com"
+PAWAPAY_SIGNATURE_PATH="/prod/api/webhooks/pawapay/deposits"
+```
+
+With those set, signature verification works normally through the relay.
+Without them it fails every time, which is why they must be set _before_
+`PAWAPAY_ENFORCE_SIGNATURE` is ever turned on.
+
+For the IP allow-list, `PAWAPAY_CALLBACK_IPS` must list the **relay's** egress
+addresses, not PawaPay's. If the gateway has no fixed NAT address, leave the
+IP check off — it cannot be made meaningful, and the re-fetch already covers
+what matters.
+
+### One more consequence
+
+Ticketing now depends on the relay being up. If the gateway is down, PawaPay's
+callbacks fail and are retried; nothing is lost, but tickets are issued late.
+The status endpoint keeps working throughout, because it asks PawaPay
+directly rather than waiting to be told.
+
+---
+
 ## Reading the money
 
 Everything is in Supabase. Two tables answer most questions.

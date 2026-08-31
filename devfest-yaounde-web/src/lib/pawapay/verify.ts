@@ -13,6 +13,12 @@
  * `ip: pass`, `digest: pass`, `signature: pass`, then flip the flags.
  *
  * Standards: RFC-9530 (Content-Digest), RFC-9421 (HTTP Message Signatures).
+ *
+ * Behind a relay: if an API Gateway forwards callbacks to this app, PawaPay
+ * signed the RELAY's address, and its IP is the relay's, not PawaPay's. Set
+ * PAWAPAY_SIGNATURE_AUTHORITY / PAWAPAY_SIGNATURE_PATH to the registered
+ * address to keep signature checking meaningful, and point
+ * PAWAPAY_CALLBACK_IPS at the relay. See docs/guides/payments-runbook.md.
  */
 import "server-only";
 import {
@@ -154,11 +160,31 @@ function parseSignatureInput(header: string): ParsedSignatureInput | null {
 }
 
 /** Rebuilds the RFC-9421 signature base, in the exact order signed. */
+/**
+ * The address PawaPay actually signed.
+ *
+ * When a relay sits in front of us (an API Gateway forwarding to this app),
+ * PawaPay signed the RELAY's authority and path — not ours. Rebuilding the
+ * signature base from the request as we received it would then never verify,
+ * no matter how correct the signature is.
+ *
+ * Setting these two variables to the address registered with PawaPay lets the
+ * signature check keep working through a relay. Leave them unset when PawaPay
+ * calls this app directly.
+ */
+function signedOrigin(): { authority?: string; path?: string } {
+  return {
+    authority: process.env.PAWAPAY_SIGNATURE_AUTHORITY || undefined,
+    path: process.env.PAWAPAY_SIGNATURE_PATH || undefined,
+  };
+}
+
 function buildSignatureBase(
   parsed: ParsedSignatureInput,
   request: { method: string; url: URL; headers: Headers },
 ): string | null {
   const lines: string[] = [];
+  const origin = signedOrigin();
 
   for (const component of parsed.components) {
     let value: string | null;
@@ -167,13 +193,17 @@ function buildSignatureBase(
         value = request.method.toUpperCase();
         break;
       case "@authority":
-        value = request.headers.get("host") ?? request.url.host;
+        value =
+          origin.authority ?? request.headers.get("host") ?? request.url.host;
         break;
       case "@path":
-        value = request.url.pathname;
+        value = origin.path ?? request.url.pathname;
         break;
       case "@target-uri":
-        value = request.url.toString();
+        value =
+          origin.authority || origin.path
+            ? `${request.url.protocol}//${origin.authority ?? request.url.host}${origin.path ?? request.url.pathname}`
+            : request.url.toString();
         break;
       case "@scheme":
         value = request.url.protocol.replace(":", "");
