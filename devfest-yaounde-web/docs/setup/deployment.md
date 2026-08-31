@@ -31,15 +31,15 @@ public by definition.
 
 So the split is not a preference:
 
-| Secret                      | Read when              | Lives in   |
-| --------------------------- | ---------------------- | ---------- |
-| `SUPABASE_SERVICE_ROLE_KEY` | every checkout         | **Vercel** |
-| `PAWAPAY_API_TOKEN`         | every payment/callback | **Vercel** |
-| `BADGE_CODE_SECRET`         | every fulfilment       | **Vercel** |
-| `CRON_SECRET`               | every cron call        | **Vercel** |
-| `RESEND_API_KEY`            | every receipt          | **Vercel** |
-| `SUPABASE_ACCESS_TOKEN`     | in a workflow          | **GitHub** |
-| `SUPABASE_DB_PASSWORD`      | in a workflow          | **GitHub** |
+| Secret                                         | Read when              | Lives in                                       |
+| ---------------------------------------------- | ---------------------- | ---------------------------------------------- |
+| `SUPABASE_SERVICE_ROLE_KEY`                    | every checkout         | **Vercel**                                     |
+| `PAWAPAY_API_TOKEN` _or_ `PAWAPAY_TOKEN_PARAM` | every payment/callback | **Vercel**, or **AWS SSM** via OIDC (ADR 0017) |
+| `BADGE_CODE_SECRET`                            | every fulfilment       | **Vercel**                                     |
+| `CRON_SECRET`                                  | every cron call        | **Vercel**                                     |
+| `RESEND_API_KEY`                               | every receipt          | **Vercel**                                     |
+| `SUPABASE_ACCESS_TOKEN`                        | in a workflow          | **GitHub**                                     |
+| `SUPABASE_DB_PASSWORD`                         | in a workflow          | **GitHub**                                     |
 
 Both are "secrets not in the repo, applied automatically" — which is the
 actual goal. They are just two different mechanisms for two different runtimes.
@@ -53,7 +53,8 @@ Once, per environment (Production / Preview / Development):
 ```bash
 vercel link                       # once, in devfest-yaounde-web/
 vercel env add SUPABASE_SERVICE_ROLE_KEY production
-vercel env add PAWAPAY_API_TOKEN production
+vercel env add PAWAPAY_TOKEN_PARAM production   # or PAWAPAY_API_TOKEN
+vercel env add AWS_ROLE_ARN production          # only with PAWAPAY_TOKEN_PARAM
 vercel env add BADGE_CODE_SECRET production
 vercel env add CRON_SECRET production
 # …and the NEXT_PUBLIC_ ones, which are not secret but still need setting
@@ -63,6 +64,30 @@ Or paste them in the dashboard under **Settings → Environment Variables**.
 
 `vercel env pull .env.local` brings them down for local development, which
 keeps one source of truth instead of two drifting copies.
+
+### The PawaPay token, from SSM
+
+In production the token lives in SSM Parameter Store — the same parameter the
+SCD shop reads, so it is rotated in one place. Vercel holds only the
+parameter's **name**, plus the ARN of a role it may assume.
+
+That role must trust Vercel's OIDC provider. **Do not create an AWS access
+key for this**: storing one in Vercel would add a secret in order to avoid
+storing another, and an AWS key reaches further than a payment token.
+
+```bash
+# 1. the parameter (once, shared with the SCD shop)
+aws ssm put-parameter --name /scd/prod/pawapay-token   --type SecureString --value "<token>" --overwrite
+
+# 2. in Vercel
+vercel env add PAWAPAY_TOKEN_PARAM production   # /scd/prod/pawapay-token
+vercel env add AWS_ROLE_ARN production          # the role's ARN
+vercel env add AWS_REGION production            # us-east-1
+```
+
+The IAM role needs `ssm:GetParameter` on that one parameter — and `kms:Decrypt`
+on the key if the SecureString uses a customer-managed one. Setting
+`PAWAPAY_API_TOKEN` instead bypasses all of this and remains fully supported.
 
 Three that need care:
 

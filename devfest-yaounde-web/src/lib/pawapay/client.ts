@@ -12,6 +12,7 @@
  */
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { resolvePawapayToken } from "@/lib/secrets/pawapay-token";
 
 const SANDBOX_BASE = "https://api.sandbox.pawapay.io";
 const PRODUCTION_BASE = "https://api.pawapay.io";
@@ -32,17 +33,24 @@ function baseUrl(): string {
 }
 
 /**
- * Tokens pasted out of a CI secret almost always carry a trailing newline,
- * which turns into a bare `AUTHENTICATION_ERROR` with no useful message.
+ * The bearer token, resolved through `src/lib/secrets/pawapay-token.ts`: a
+ * literal env var, or an SSM SecureString whose *name* is all the deployment
+ * holds. Async because the SSM path is a network call — the value is cached
+ * there, so this is a memory read on every call but the first.
  */
-function apiToken(): string {
-  const token = (process.env.PAWAPAY_API_TOKEN ?? "").replace(/\s+/g, "");
-  if (!token) {
-    throw new PawaPayError("PAWAPAY_API_TOKEN is not set", {
-      transient: false,
+async function apiToken(): Promise<string> {
+  try {
+    return await resolvePawapayToken();
+  } catch (cause) {
+    const message = (cause as Error).message;
+    // Nothing configured is a deployment fault and will not fix itself. An
+    // SSM read that failed for another reason might, and the callback route
+    // turns a transient error into a 5xx so PawaPay resends.
+    const misconfigured = message.includes("No PawaPay token configured");
+    throw new PawaPayError(`could not resolve the PawaPay token: ${message}`, {
+      transient: !misconfigured,
     });
   }
-  return token;
 }
 
 /**
@@ -69,7 +77,7 @@ async function pawapayFetch<T>(path: string, init?: RequestInit): Promise<T> {
       cache: "no-store",
       signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       headers: {
-        Authorization: `Bearer ${apiToken()}`,
+        Authorization: `Bearer ${await apiToken()}`,
         "Content-Type": "application/json",
         ...(init?.headers ?? {}),
       },
