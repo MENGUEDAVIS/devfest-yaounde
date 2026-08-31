@@ -17,6 +17,7 @@ import {
 
 import { normalizeMetadata } from "@/lib/pawapay/metadata";
 import {
+  assertBadgeSecretConfigured,
   badgeCode,
   badgeCodesFor,
   verifyBadgeCode,
@@ -90,6 +91,25 @@ describe("badge codes", () => {
     assert.ok(verifyBadgeCode(code, DEPOSIT, 2));
     assert.ok(!verifyBadgeCode(code, DEPOSIT, 1));
     assert.ok(!verifyBadgeCode("DFY-AAAAA-AAAAA", DEPOSIT, 2));
+  });
+
+  it("are refused at checkout time when the secret is unusable", () => {
+    const saved = process.env.BADGE_CODE_SECRET;
+
+    // An EMPTY value must fail exactly like an absent one — both describe a
+    // deployment that cannot issue a ticket, and the failure has to surface
+    // before a payment page exists rather than after the buyer has paid.
+    process.env.BADGE_CODE_SECRET = "";
+    assert.throws(assertBadgeSecretConfigured, /BADGE_CODE_SECRET/);
+
+    delete process.env.BADGE_CODE_SECRET;
+    assert.throws(assertBadgeSecretConfigured, /BADGE_CODE_SECRET/);
+
+    process.env.BADGE_CODE_SECRET = "too-short";
+    assert.throws(assertBadgeSecretConfigured, /BADGE_CODE_SECRET/);
+
+    process.env.BADGE_CODE_SECRET = saved;
+    assert.doesNotThrow(assertBadgeSecretConfigured);
   });
 
   it("refuse to run without a strong secret", () => {

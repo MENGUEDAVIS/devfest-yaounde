@@ -19,6 +19,7 @@ import { CHECKOUT_ERRORS, CheckoutError } from "./errors";
 import { createPaymentIntent, logPaymentEvent } from "./intents";
 import { fulfilFreeIntent } from "./apply";
 import { createDepositId, createPaymentPage } from "@/lib/pawapay/client";
+import { assertBadgeSecretConfigured } from "@/lib/security/badge-code";
 
 export interface CheckoutResult {
   depositId: string;
@@ -48,6 +49,10 @@ export interface StartCheckoutInput {
 export async function startCheckout(
   input: StartCheckoutInput,
 ): Promise<CheckoutResult> {
+  // Before anything irreversible: a ticket order that cannot mint badge codes
+  // must fail now, not after the buyer has paid for it.
+  if (input.kind === "tickets") assertBadgeSecretConfigured();
+
   const depositId = createDepositId();
 
   // 4. The anchor of trust, written first — and the point where tier capacity

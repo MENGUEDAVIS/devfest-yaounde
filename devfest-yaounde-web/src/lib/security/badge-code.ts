@@ -69,3 +69,18 @@ export function verifyBadgeCode(
   const actual = Buffer.from(code.trim().toUpperCase());
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
+
+/**
+ * Fails fast if the badge secret is unusable.
+ *
+ * Called at checkout, BEFORE a payment page is created. Without this the
+ * first sign of a missing or too-short `BADGE_CODE_SECRET` is an exception
+ * during fulfilment — after the buyer has paid. The callback then answers
+ * 5xx, PawaPay retries forever, and someone is out of pocket with no ticket.
+ *
+ * An empty value fails here exactly like an absent one: both are a
+ * deployment that cannot issue tickets.
+ */
+export function assertBadgeSecretConfigured(): void {
+  secret();
+}
