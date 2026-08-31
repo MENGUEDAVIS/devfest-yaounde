@@ -21,13 +21,6 @@ concurrency:
   group: migrations
   cancel-in-progress: false
 
-env:
-  # Not a secret: this ref is part of the project's public API URL. Kept here
-  # rather than in `supabase/.temp/`, which is gitignored and so absent in CI.
-  SUPABASE_PROJECT_ID: erzeddxxgoimqvihmnrb
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-
 defaults:
   run:
     working-directory: devfest-yaounde-web
@@ -38,6 +31,15 @@ jobs:
     # If this environment has protection rules in GitHub, the run waits for a
     # reviewer. Harmless if it does not.
     environment: production
+    # The `secrets` context is only available at job level and below — putting
+    # this block at workflow level makes the whole run fail to start.
+    env:
+      # Not a secret: this ref is part of the project's public API URL. Kept
+      # here rather than in `supabase/.temp/`, which is gitignored and so
+      # absent in CI.
+      SUPABASE_PROJECT_ID: erzeddxxgoimqvihmnrb
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
