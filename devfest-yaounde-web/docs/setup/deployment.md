@@ -31,15 +31,15 @@ public by definition.
 
 So the split is not a preference:
 
-| Secret                                         | Read when              | Lives in                                       |
-| ---------------------------------------------- | ---------------------- | ---------------------------------------------- |
-| `SUPABASE_SERVICE_ROLE_KEY`                    | every checkout         | **Vercel**                                     |
-| `PAWAPAY_API_TOKEN` _or_ `PAWAPAY_TOKEN_PARAM` | every payment/callback | **Vercel**, or **AWS SSM** via OIDC (ADR 0017) |
-| `BADGE_CODE_SECRET`                            | every fulfilment       | **Vercel**                                     |
-| `CRON_SECRET`                                  | every cron call        | **Vercel**                                     |
-| `RESEND_API_KEY`                               | every receipt          | **Vercel**                                     |
-| `SUPABASE_ACCESS_TOKEN`                        | in a workflow          | **GitHub**                                     |
-| `SUPABASE_DB_PASSWORD`                         | in a workflow          | **GitHub**                                     |
+| Secret                      | Read when              | Lives in                                                        |
+| --------------------------- | ---------------------- | --------------------------------------------------------------- |
+| `SUPABASE_SERVICE_ROLE_KEY` | every checkout         | **Vercel**                                                      |
+| the PawaPay token           | every payment/callback | **Supabase Vault** (ADR 0018), or Vercel, or AWS SSM (ADR 0017) |
+| `BADGE_CODE_SECRET`         | every fulfilment       | **Vercel**                                                      |
+| `CRON_SECRET`               | every cron call        | **Vercel**                                                      |
+| `RESEND_API_KEY`            | every receipt          | **Vercel**                                                      |
+| `SUPABASE_ACCESS_TOKEN`     | in a workflow          | **GitHub**                                                      |
+| `SUPABASE_DB_PASSWORD`      | in a workflow          | **GitHub**                                                      |
 
 Both are "secrets not in the repo, applied automatically" — which is the
 actual goal. They are just two different mechanisms for two different runtimes.
@@ -65,7 +65,39 @@ Or paste them in the dashboard under **Settings → Environment Variables**.
 `vercel env pull .env.local` brings them down for local development, which
 keeps one source of truth instead of two drifting copies.
 
-### The PawaPay token, from SSM
+### The PawaPay token, from Supabase Vault (recommended)
+
+Vercel holds only the secret's **name**. The value lives encrypted in the
+database, read through a function granted to `service_role` alone — using the
+Supabase key the app already has, so no new credential is involved.
+
+Store it once, in the Supabase SQL editor:
+
+```sql
+select vault.create_secret('<the token>', 'pawapay-token', 'PawaPay production API token');
+```
+
+Then in Vercel:
+
+```bash
+vercel env add PAWAPAY_TOKEN_VAULT_KEY production   # pawapay-token
+```
+
+Rotating it is one statement and needs no redeploy — the five-minute cache
+picks it up:
+
+```sql
+select vault.update_secret(
+  (select id from vault.secrets where name = 'pawapay-token'),
+  '<the new token>'
+);
+```
+
+Why here rather than AWS: Supabase is already required for every payment, so
+reading the token from it adds no failure mode checkout did not already have.
+SSM would add a second cloud to the money path.
+
+### Alternative: the same token from AWS SSM
 
 In production the token lives in SSM Parameter Store — the same parameter the
 SCD shop reads, so it is rotated in one place. Vercel holds only the

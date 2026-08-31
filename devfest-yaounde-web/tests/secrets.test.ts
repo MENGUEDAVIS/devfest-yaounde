@@ -10,14 +10,17 @@ import assert from "node:assert/strict";
 
 import {
   __setParameterReaderForTests,
+  __setVaultReaderForTests,
   resetTokenCache,
   resolvePawapayToken,
 } from "@/lib/secrets/pawapay-token";
 
 afterEach(() => {
   __setParameterReaderForTests(null);
+  __setVaultReaderForTests(null);
   delete process.env.PAWAPAY_API_TOKEN;
   delete process.env.PAWAPAY_TOKEN_PARAM;
+  delete process.env.PAWAPAY_TOKEN_VAULT_KEY;
   resetTokenCache();
 });
 
@@ -98,5 +101,47 @@ describe("pawapay token resolution", () => {
     });
     process.env.PAWAPAY_TOKEN_PARAM = "/scd/prod/pawapay-token";
     await assert.rejects(resolvePawapayToken(), /AccessDenied/);
+  });
+
+  it("reads Supabase Vault when a key is configured", async () => {
+    const seen: string[] = [];
+    __setVaultReaderForTests(async (name) => {
+      seen.push(name);
+      return "vault-token";
+    });
+    process.env.PAWAPAY_TOKEN_VAULT_KEY = "pawapay-token";
+
+    assert.equal(await resolvePawapayToken(), "vault-token");
+    assert.deepEqual(seen, ["pawapay-token"]);
+  });
+
+  it("prefers Vault over SSM when both are configured", async () => {
+    let ssmCalls = 0;
+    __setVaultReaderForTests(async () => "from-vault");
+    __setParameterReaderForTests(async () => {
+      ssmCalls++;
+      return "from-ssm";
+    });
+    process.env.PAWAPAY_TOKEN_VAULT_KEY = "pawapay-token";
+    process.env.PAWAPAY_TOKEN_PARAM = "/scd/prod/pawapay-token";
+
+    // Supabase is already on the payment path; AWS would be a second cloud.
+    assert.equal(await resolvePawapayToken(), "from-vault");
+    assert.equal(ssmCalls, 0);
+  });
+
+  it("still lets a literal token win over Vault", async () => {
+    __setVaultReaderForTests(async () => "from-vault");
+    process.env.PAWAPAY_API_TOKEN = "literal";
+    process.env.PAWAPAY_TOKEN_VAULT_KEY = "pawapay-token";
+    assert.equal(await resolvePawapayToken(), "literal");
+  });
+
+  it("reports a missing Vault secret instead of sending an empty bearer", async () => {
+    __setVaultReaderForTests(async () => {
+      throw new Error("Vault has no secret named pawapay-token");
+    });
+    process.env.PAWAPAY_TOKEN_VAULT_KEY = "pawapay-token";
+    await assert.rejects(resolvePawapayToken(), /no secret named/);
   });
 });

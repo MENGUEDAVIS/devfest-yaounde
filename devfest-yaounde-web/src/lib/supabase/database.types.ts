@@ -365,6 +365,7 @@ export type Database = {
         Args: { p_older_than_seconds?: number }
         Returns: number
       }
+      get_vault_secret: { Args: { p_name: string }; Returns: string }
       is_organiser: { Args: { p_user_id?: string }; Returns: boolean }
     }
     Enums: {
