@@ -140,6 +140,55 @@ it asks PawaPay directly rather than waiting to be told.
 
 ---
 
+## Sharing one PawaPay account with another application
+
+The dashboard has **one callback URL per operation type** — Deposits, Refunds,
+Checkouts — not one per application. Two apps on the same account therefore
+compete for the same field, unless they use different operation types.
+
+Which field a Payment Page fires is **not settled by the documentation**: the
+Payment Page guide says "you will receive a deposit callback", while the
+dashboard exposes a separate `Checkouts` field. Resolve it by experiment, not
+by reading — see below.
+
+### Finding out which field fires
+
+1. Put this app's callback in **Checkouts**, leave **Deposits** as it is.
+2. Make one real minimum-amount payment through the ticket flow.
+3. Look at `payment_events` for that `deposit_id`:
+
+```sql
+select event, detail, created_at
+  from payment_events
+ where deposit_id = '<the deposit id>'
+ order by created_at;
+```
+
+Rows means the callback reached us — `Checkouts` is the right field. No rows
+means it went to `Deposits`, and the two apps genuinely collide.
+
+### If they collide
+
+- **A second PawaPay account or environment** for this app. Cleanest: its own
+  token, its own callback URL, no shared configuration at all. Worth asking
+  PawaPay for before building anything.
+- **A relay** in front of the shared URL, fanning out by `depositId`. See the
+  relay section above for what it has to preserve.
+
+### What this app does with a deposit that is not its own
+
+Nothing harmful. The callback looks the deposit up, finds no intent, and asks
+PawaPay to retry — the same behaviour that protects against a callback
+arriving before our own insert. After a few such retries it concludes the
+deposit belongs elsewhere, logs `foreign_deposit_ignored`, and returns 200 so
+PawaPay stops.
+
+Worth knowing about the other direction: an endpoint that returns 200 for an
+unrecognised deposit tells PawaPay "delivered" and it will never retry. If the
+other application does that, a payment meant for this one is lost silently.
+
+---
+
 ## Reading the money
 
 Everything is in Supabase. Two tables answer most questions.

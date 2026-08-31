@@ -23,6 +23,7 @@ import { badgeCodesFor } from "@/lib/security/badge-code";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { sendReceipt } from "./notify";
 import {
+  countEvents,
   getPaymentIntent,
   logPaymentEvent,
   markAmountMismatch,
@@ -52,6 +53,13 @@ export class TransientPaymentError extends Error {
     this.name = "TransientPaymentError";
   }
 }
+
+/**
+ * How many "we have no intent for this" retries to allow before concluding
+ * the deposit belongs to another application on the same PawaPay account.
+ * PawaPay retries for about 15 minutes, so this stops well inside that.
+ */
+const FOREIGN_DEPOSIT_ATTEMPTS = 4;
 
 /** PawaPay states that will never become COMPLETED. */
 const TERMINAL_FAILURES = new Set(["FAILED", "REJECTED", "CANCELLED"]);
@@ -139,9 +147,31 @@ export async function applyDepositIfCompleted(
 
   const intent = await getPaymentIntent(depositId);
   if (!intent) {
-    // Paid, but we have no record of why. Almost always the callback beating
-    // our own insert; retrying resolves it. If it never does, the audit log
-    // is the thread to pull.
+    // Two very different situations look identical here.
+    //
+    //   1. The callback beat our own insert. Retrying fixes it, and that is
+    //      the common case — hence the transient error.
+    //   2. The deposit belongs to a DIFFERENT application sharing this
+    //      PawaPay account. Retrying will never fix that, and answering 5xx
+    //      forever makes us a permanently failing endpoint in their console.
+    //
+    // Telling them apart by counting: a real race resolves within a retry or
+    // two. Past that, it is not ours.
+    const attempts = await countEvents(
+      depositId,
+      "intent_missing_for_completed_deposit",
+    );
+
+    if (attempts >= FOREIGN_DEPOSIT_ATTEMPTS) {
+      await logPaymentEvent(depositId, "foreign_deposit_ignored", { attempts });
+      console.warn(
+        "[payments] deposit is not ours after repeated retries, acknowledging",
+        { depositId, attempts },
+      );
+      // 200, so PawaPay stops. The audit trail keeps the evidence.
+      return "unknown_deposit";
+    }
+
     await logPaymentEvent(depositId, "intent_missing_for_completed_deposit");
     throw new TransientPaymentError(
       `no intent stored for paid deposit ${depositId}`,

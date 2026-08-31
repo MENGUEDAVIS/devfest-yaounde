@@ -169,3 +169,26 @@ export async function logPaymentEvent(
     console.warn("[payments] could not write audit event", event, err);
   }
 }
+
+/** How many times a given event has been recorded for a deposit. */
+export async function countEvents(
+  depositId: string,
+  event: string,
+): Promise<number> {
+  try {
+    const supabase = createAdminSupabase();
+    const { count, error } = await supabase
+      .from("payment_events")
+      .select("id", { count: "exact", head: true })
+      .eq("deposit_id", depositId)
+      .eq("event", event);
+
+    if (error) throw error;
+    return count ?? 0;
+  } catch (err) {
+    // Losing the count must not change the payment outcome: report zero, so
+    // the caller keeps retrying rather than giving up on a real payment.
+    console.warn("[payments] could not count events", event, err);
+    return 0;
+  }
+}
