@@ -71,25 +71,26 @@ on blind could silently reject real payments.
 
 ---
 
-## Running behind a relay
+## Running behind a relay (not the current setup)
 
-The callback URL registered with PawaPay is an AWS API Gateway that forwards
-to this app:
+PawaPay calls this app **directly**:
 
 ```
-PawaPay  →  https://<gateway>/prod/api/webhooks/pawapay/deposits
-         →  https://<this-app>/api/payments/pawapay/callback
+PawaPay  →  https://<this-app>/api/payments/pawapay/callback
 ```
 
-This is a deliberate arrangement, and it has consequences worth knowing.
+Nothing below applies unless a relay is introduced later. Keeping it because
+the constraint that would force one is real: PawaPay's callback URL is
+configured per environment in their dashboard, not per request —
+`POST /v2/paymentpage` has no `callbackUrl` field. One PawaPay environment
+therefore has exactly one callback address, so the day a second application
+needs the same environment, something has to sit in front and fan out.
 
-**Why a relay at all:** PawaPay's callback URL is configured per environment
-in their dashboard, not per request — `POST /v2/paymentpage` has no
-`callbackUrl` field. One PawaPay environment therefore has exactly one
-callback address, and it cannot be shared between two applications without
-something in front doing the fan-out.
+Direct is the better arrangement while it lasts: both the IP allow-list and
+the HTTP signature check work natively, with no overrides and no third party
+on the money path.
 
-### What the relay must do
+### What a relay would have to do
 
 - **Forward the body byte for byte.** `Content-Digest` is computed over the
   exact bytes PawaPay sent. Parsing the JSON and re-serialising it changes
@@ -103,7 +104,7 @@ something in front doing the fan-out.
 - **Not retry on its own.** We are already idempotent, so a relay-level retry
   is harmless — but it hides the real state from PawaPay.
 
-### What the relay costs
+### What a relay would cost
 
 | Check                  | Behind a relay                                   |
 | ---------------------- | ------------------------------------------------ |
@@ -132,10 +133,10 @@ what matters.
 
 ### One more consequence
 
-Ticketing now depends on the relay being up. If the gateway is down, PawaPay's
-callbacks fail and are retried; nothing is lost, but tickets are issued late.
-The status endpoint keeps working throughout, because it asks PawaPay
-directly rather than waiting to be told.
+Ticketing would depend on the relay being up. If the gateway were down,
+PawaPay's callbacks would fail and be retried — nothing lost, but tickets
+issued late. The status endpoint keeps working throughout either way, because
+it asks PawaPay directly rather than waiting to be told.
 
 ---
 
