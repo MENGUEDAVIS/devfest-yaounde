@@ -28,9 +28,6 @@ defaults:
 jobs:
   push:
     runs-on: ubuntu-latest
-    # If this environment has protection rules in GitHub, the run waits for a
-    # reviewer. Harmless if it does not.
-    environment: production
     # The `secrets` context is only available at job level and below — putting
     # this block at workflow level makes the whole run fail to start.
     env:
