@@ -93,6 +93,32 @@ migrations when `supabase/migrations/**` changes on `main` and then fails if
 `.github/workflows/ci.yml` uses **no secrets at all**. Everything it tests is
 pure logic, so a pull request from a fork runs exactly as safely as a branch.
 
+### ⚠ Actions cannot currently start on this repository
+
+Every workflow run so far ends as `startup_failure` with no logs — including a
+nine-line hello-world workflow pushed deliberately to test it. That rules out
+the workflow files: **GitHub Actions itself cannot start a run on this private
+repo.**
+
+The usual cause is a billing or spending-limit condition on the free plan for
+private repositories. Check **Settings → Billing → Actions** on the account,
+or make the repository public — public repos have unlimited Actions minutes.
+
+Until that is resolved, run the checks locally before pushing:
+
+```bash
+npm run verify   # lint + typecheck + tests
+npm run build
+```
+
+and apply migrations by hand:
+
+```bash
+supabase db push --linked --yes
+```
+
+Both workflow files are correct and will run as soon as Actions is available.
+
 ---
 
 ## If you really want GitHub as the single source of truth

@@ -96,7 +96,12 @@ npm run verify   # lint + typecheck + 41 tests
 npm run build
 ```
 
-CI runs the same on every push and pull request, with no secrets.
+CI is meant to run the same on every push and pull request, with no secrets —
+but **Actions cannot currently start on this repository** (`startup_failure`,
+no logs, reproduced with a hello-world workflow). It is a billing or
+spending-limit condition on the private repo, not the workflow files. Until it
+is fixed, `npm run verify` locally is the only gate. See
+`docs/setup/deployment.md`.
 
 What the tests do **not** cover, and cannot: the capacity and discount
 reservations. They guard against concurrency, and an in-process test removes
