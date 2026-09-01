@@ -262,24 +262,39 @@ locks `<html>`, and both were verified to leak.
    The phone layout is a different composition, so it has to win.
 
 
-## Filters: one button, three surfaces (PHASE14 §1)
+## Filters: four surfaces (PHASE14 §1)
 
 `FilterLayout` is the single implementation for `/speakers`, `/schedule`,
-`/team`, `/faqs` and `/shop`. The trigger button is identical everywhere; only
-the surface changes:
+`/team`, `/faqs` and `/shop`. The surface changes with available room, because
+the constraint genuinely differs at each size:
 
-| Viewport                | Surface                                    |
-| ----------------------- | ------------------------------------------ |
-| >= 1024px               | `Modal variant="drawer-left"` — slides in from the left |
-| 640-1023px              | `BottomSheet`, width-capped and centred     |
-| < 640px                 | `BottomSheet`, full width                   |
+| Viewport      | Surface      | Trigger | Modal? |
+| ------------- | ------------ | ------- | ------ |
+| >= 1760px     | Margin rail  | none — always visible | n/a |
+| 1024-1759px   | Push panel   | toggle button | **no** |
+| 640-1023px    | `BottomSheet`, capped + centred | toggle | yes |
+| < 640px       | `BottomSheet`, full width | toggle | yes |
 
-**Do not bring back the margin-float rail.** It floated in the page's left
-margin so the content column kept its full width, which is lovely — and it
-needed 1760px to exist. A 14" laptop is ~1512px, so on the most common machine
-the filters did not render at all. One click to open beats an elegant layout
-nobody can see.
+**The push panel is deliberately NOT a modal.** No scrim, no focus trap, no
+close-on-outside-click — it stays open while you scroll results and keep
+adjusting filters, and every one of those behaviours would fight that. It is
+not built on `Modal` for the same reason: bending the shared shell into a
+non-modal surface would weaken it for the cases that need trapping. It PUSHES
+(the section gains left padding) rather than overlaying, and has square
+corners because it is flush to three viewport edges.
 
-Only ONE surface is mounted at a time, chosen with `useMediaQuery`, not CSS
+**The rail is not deprecated** — it is the right answer above 1760px, where
+real margin exists and it costs the content no width. It just cannot be the
+*only* answer: a 14" laptop is ~1512px, where it does not fit at all.
+
+Only ONE surface mounts at a time, chosen with `useMediaQuery`, not CSS
 `hidden`: two mounted copies would mean duplicate `useId()` values and two tab
 stops for the same control.
+
+## Card grids size from available width, not the viewport
+
+`[data-card-grid]` uses `auto-fill` + `minmax(var(--card-min), 1fr)`. Do not
+put `sm:grid-cols-*` back on them: viewport breakpoints cannot see the push
+panel narrowing the container, so the grid kept 4 columns and squeezed the
+cards instead of reflowing. Tune `--card-min` per page — and remember
+`auto-fill` counts the gap, so the real divisor is `min + gap`.

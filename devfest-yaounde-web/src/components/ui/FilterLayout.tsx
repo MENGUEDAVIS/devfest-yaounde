@@ -1,19 +1,20 @@
 "use client";
 
-import { FunnelSimple } from "@phosphor-icons/react";
+import { FunnelSimple, X } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { BottomSheet } from "./BottomSheet";
-import { Modal } from "./Modal";
 
 /**
- * Laptop and up gets the slide-in sidebar. 1024px is deliberately low: the
- * previous margin-float rail needed 1760px, which no 14" laptop has, so on the
- * machine most people actually use the filters did not render at all.
+ * Where the margin rail genuinely fits. Arithmetic, not taste:
+ * `50vw - 38rem (half the content column) - 1.5rem gutter - 14rem rail`
+ * has to clear another 1.5rem from the screen edge, i.e. 110rem = 1760px.
  */
-const DESKTOP_QUERY = "(min-width: 1024px)";
+const RAIL_QUERY = "(min-width: 1760px)";
+/** Laptop and mid-desktop: no margin to float in, so borrow width instead. */
+const PUSH_QUERY = "(min-width: 1024px)";
 
 export interface FilterLayoutProps {
   /** The filter groups (and search). Rendered into whichever surface is live. */
@@ -32,34 +33,37 @@ export interface FilterLayoutProps {
 }
 
 /**
- * The shared filtered-page layout. Used by /speakers, /schedule, /team, /faqs
- * and /shop, so there is ONE implementation rather than five.
+ * The shared filtered-page layout — one implementation for /speakers,
+ * /schedule, /team, /faqs and /shop.
  *
- * ONE BUTTON, THREE SURFACES — PHASE14 §1. The trigger is identical
- * everywhere; only the surface it opens changes with the viewport:
+ * FOUR SURFACES, because the constraint really is different at each size:
  *
- * | Viewport            | Surface                                  |
- * | ------------------- | ---------------------------------------- |
- * | Laptop & desktop    | Slide-in panel from the LEFT, over a scrim |
- * | Tablet              | Bottom sheet, width-capped and centred   |
- * | Mobile              | Bottom sheet, full width                  |
+ * | Viewport      | Surface      | Why                                        |
+ * | ------------- | ------------ | ------------------------------------------ |
+ * | >= 1760px     | Margin rail  | Real margin exists — use it, take no width |
+ * | 1024-1759px   | Push panel   | No margin, so borrow width; content reflows |
+ * | 640-1023px    | Capped sheet | Too narrow to push; a sheet, not stretched  |
+ * | < 640px       | Full sheet   | A phone                                     |
  *
- * WHY THIS REPLACED THE MARGIN RAIL. Phases 10–12 floated the rail in the
- * page's left margin so the content column kept its full width. That works
- * beautifully at 1760px and does not exist below it — and a 14" laptop is
- * ~1512px, so the filters were simply absent on the most common machine.
- * Trading the margin trick for a panel that opens on demand costs one click
- * and works at every size.
+ * The rail is ALWAYS VISIBLE and needs no trigger — it costs nothing, so
+ * hiding it behind a button would be a step for no reason. The other three
+ * are opened by the Filters button.
  *
- * Both surfaces are the shared overlay components (`Modal` / `BottomSheet`),
- * so the focus trap, Escape, scrim-dismiss and scroll lock have one
- * implementation between them (ADR 0012) — this file adds no overlay
- * mechanics of its own.
+ * THE PUSH PANEL IS NOT A MODAL, and that is the point. It has no scrim, no
+ * focus trap and no close-on-outside-click, because it is meant to stay open
+ * while you scroll the results and keep adjusting filters — every one of
+ * those behaviours would fight exactly that. Only its own toggle closes it.
+ * That is why it is not built on `Modal`: the shared shell is modal by
+ * definition, and bending it into a non-modal surface would weaken it for the
+ * cases that genuinely need trapping.
  *
- * Only ONE surface is mounted at a time, chosen by media query rather than by
- * CSS `hidden`. That matters for more than bytes: two mounted copies would
- * mean two sets of `useId()`-generated ids and two tab stops for the same
- * control.
+ * The two sheet sizes DO use the shared `BottomSheet`, which is modal and
+ * should be — on a phone the sheet covers the results anyway, so trapping
+ * focus in it is correct.
+ *
+ * Only one surface mounts at a time, chosen by media query rather than CSS
+ * `hidden`: two mounted copies would mean duplicate `useId()` values and two
+ * tab stops for the same control.
  */
 export function FilterLayout({
   filters,
@@ -72,72 +76,93 @@ export function FilterLayout({
   const t = useTranslations("common.filters");
   const heading = title ?? t("title");
   const [open, setOpen] = useState(false);
-  const openerRef = useRef<HTMLButtonElement>(null);
-  const isDesktop = useMediaQuery(DESKTOP_QUERY);
+  const hasRail = useMediaQuery(RAIL_QUERY);
+  const canPush = useMediaQuery(PUSH_QUERY);
+  const isPush = canPush && !hasRail;
 
   const close = () => setOpen(false);
-
   const body = <div className="flex flex-col gap-5">{filters}</div>;
 
-  const clearButton = activeCount > 0 && onClearAll && (
+  const clearLink = activeCount > 0 && onClearAll && (
     <button
       type="button"
       onClick={onClearAll}
-      className="rounded-pill border-2 border-black02 px-5 py-3 font-sans text-body-m font-bold text-black02 transition-colors hover:bg-pastel"
+      className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 underline decoration-2 underline-offset-4 hover:text-black02/60"
     >
       {t("clear")}
     </button>
   );
 
   return (
-    <div className="filter-section relative">
+    <div
+      className="filter-section relative"
+      /* Drives the push panel's content offset — see .filter-section in
+         globals.css. Only meaningful in the push range. */
+      data-panel-open={isPush && open ? "true" : "false"}
+    >
+      {/* ---- >= 1760px: the margin rail, always visible ---- */}
+      {hasRail && (
+        <div className="filter-rail-track pointer-events-none absolute bottom-0 top-0 w-56">
+          <aside aria-label={heading} className="filter-rail-sticky sticky">
+            <div className="pointer-events-auto flex flex-col gap-5 overflow-y-auto rounded-lg border-2 border-black02 bg-offwhite p-5">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-sans text-heading-m font-bold text-black02">
+                  {heading}
+                </h2>
+                {clearLink}
+              </div>
+              {body}
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* ---- 1024-1759px: the persistent push panel ---- */}
+      {isPush && open && (
+        <aside aria-label={heading} className="filter-push-panel anim-push-in">
+          <div className="mb-5 flex shrink-0 items-center justify-between gap-3">
+            <h2 className="font-sans text-heading-m font-bold text-black02">
+              {heading}
+            </h2>
+            <button
+              type="button"
+              onClick={close}
+              aria-label={t("close")}
+              className="rounded-pill border-2 border-black02 p-1.5 text-black02 transition-colors hover:bg-primary"
+            >
+              <X size={18} weight="bold" />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">{body}</div>
+          {clearLink && <div className="mt-5 shrink-0">{clearLink}</div>}
+        </aside>
+      )}
+
       <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-        <button
-          ref={openerRef}
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-expanded={open}
-          className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
-        >
-          <FunnelSimple size={18} weight="bold" aria-hidden />
-          {t("open")}
-          {activeCount > 0 && (
-            <span className="rounded-pill bg-primary px-2 py-0.5 font-mono text-mono-tag">
-              {activeCount}
-            </span>
-          )}
-        </button>
+        {/* The rail needs no trigger — it is already on screen. */}
+        {!hasRail && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
+          >
+            <FunnelSimple size={18} weight="bold" aria-hidden />
+            {t("open")}
+            {activeCount > 0 && (
+              <span className="rounded-pill bg-primary px-2 py-0.5 font-mono text-mono-tag">
+                {activeCount}
+              </span>
+            )}
+          </button>
+        )}
         {toolbar}
       </div>
 
       {children}
 
-      {/* ---- Laptop & desktop: slide-in panel from the left ---- */}
-      {isDesktop ? (
-        <Modal
-          open={open}
-          onClose={close}
-          variant="drawer-left"
-          closeLabel={t("close")}
-        >
-          <h2 className="mb-6 shrink-0 pr-12 font-sans text-heading-l font-bold text-black02">
-            {heading}
-          </h2>
-          {/* Only the body scrolls, so the heading and actions stay put. */}
-          <div className="min-h-0 flex-1 overflow-y-auto">{body}</div>
-          <div className="mt-6 flex shrink-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={close}
-              className="flex-1 rounded-pill border-2 border-black02 bg-primary px-6 py-3 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)]"
-            >
-              {t("done")}
-            </button>
-            {clearButton}
-          </div>
-        </Modal>
-      ) : (
-        /* ---- Tablet & mobile: the shared bottom sheet ---- */
+      {/* ---- < 1024px: the shared bottom sheet, capped on tablet ---- */}
+      {!hasRail && !isPush && (
         <BottomSheet
           open={open}
           onClose={close}
@@ -152,7 +177,15 @@ export function FilterLayout({
               >
                 {t("done")}
               </button>
-              {clearButton}
+              {activeCount > 0 && onClearAll && (
+                <button
+                  type="button"
+                  onClick={onClearAll}
+                  className="rounded-pill border-2 border-black02 px-5 py-3 font-sans text-body-m font-bold text-black02"
+                >
+                  {t("clear")}
+                </button>
+              )}
             </div>
           }
         >

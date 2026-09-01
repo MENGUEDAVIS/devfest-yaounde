@@ -875,6 +875,11 @@
     transform: translateX(0);
   }
 }
+/* The push panel slides in from the edge it is anchored to. */
+.anim-push-in {
+  animation: df-drawer-left 320ms var(--ease-out-devfest) both;
+}
+
 .anim-drawer-left {
   animation: df-drawer-left 320ms var(--ease-out-devfest) both;
 }
@@ -1261,6 +1266,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* The push panel appears instantly, and the content reflows without a
+     sliding width — a 320ms layout animation is the jarring kind. */
+  .filter-section {
+    transition: none !important;
+  }
+
   .anim-bouncy-pop,
   .anim-fade-in-up,
   .anim-hero-rise,
@@ -1274,6 +1285,7 @@
   .anim-stamp,
   .anim-drawer-up,
   .anim-drawer-left,
+  .anim-push-in,
   .anim-contrib-stamp,
   .faq-glyph,
   .day-tab,

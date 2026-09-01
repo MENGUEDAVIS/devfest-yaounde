@@ -492,6 +492,114 @@ html:not(.has-custom-cursor) .cursor-layer {
   --ring-scale: 0.85;
 }
 
+/*
+ * FILTER SURFACES — PHASE14 §1, four of them.
+ *
+ * The surface changes with how much room there is, because the constraints
+ * genuinely differ at each size, not for variety's sake:
+ *
+ *   >= 1760px   margin rail   — real margin exists; use it, take no content width
+ *   1024-1759   push panel    — no margin to spare, so borrow width instead
+ *   640-1023    capped sheet  — too narrow to push; a sheet, but not stretched
+ *   < 640       full sheet    — a phone
+ *
+ * ---------------------------------------------------------------- rail ----
+ *
+ * Sticky inside its own section, not fixed to the viewport, so the footer
+ * pushes it up instead of being covered by it. The track is one gutter left
+ * of the content column and spans exactly the section's height; the rail
+ * sticks within it and TRAVELS DOWN the section as you scroll.
+ *
+ * Two earlier attempts and why they were wrong, both measured:
+ *  - `position: fixed`: never yielded, so it sat on top of the footer.
+ *  - Sticky but centred in a viewport-tall box: fixed that, then froze the
+ *    rail mid-screen and released it while a screenful of grid was still
+ *    visible on short sections.
+ * A content-height box pinned near the top has neither problem.
+ *
+ * The 1760px threshold is arithmetic, not taste: the rail needs
+ * `50vw - 38rem (half the column) - 1.5rem - 14rem >= 1.5rem`, i.e. 110rem.
+ * Below it there is no margin to float in.
+ */
+.filter-rail-track {
+  right: calc(100% + 1.5rem);
+}
+.filter-rail-sticky {
+  top: calc(var(--chrome-h) + 1rem);
+  /* Never taller than the space under the chrome; scrolls internally past
+     that, using the shared themed pill. */
+  max-height: calc(100svh - var(--chrome-h) - 3rem);
+  display: flex;
+}
+.filter-rail-sticky > div {
+  width: 100%;
+  max-height: 100%;
+}
+
+/*
+ * ---------------------------------------------------------- push panel ----
+ *
+ * PERSISTENT AND NON-MODAL, which is the whole point: it stays open while you
+ * scroll the results and keep adjusting filters. So, deliberately, it has
+ * NO scrim, NO focus trap, and NO close-on-outside-click — every one of those
+ * would fight the thing it exists to allow. Only its own toggle closes it.
+ *
+ * It PUSHES rather than overlays: the section gains left padding equal to the
+ * panel's width, so the content narrows and its grid reflows to fewer columns
+ * instead of hiding behind the panel.
+ *
+ * Square corners on the panel: it is flush to the viewport's left, top and
+ * bottom edges, so there is no corner to round. `border-radius` would only
+ * show as a gap against the screen edge. (DESIGN.md §5.2 bans sharp corners
+ * on FLOATING objects — an edge-anchored surface is the standing exception,
+ * the same as the announcement banner's top edge.)
+ */
+.filter-push-panel {
+  position: fixed;
+  left: 0;
+  top: var(--chrome-h);
+  bottom: 0;
+  width: 20rem;
+  z-index: 40; /* under the chrome (50) — the navbar stays reachable */
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid var(--color-black02);
+  background: var(--color-offwhite);
+  padding: 1.5rem;
+}
+.filter-section {
+  transition: padding-left 320ms var(--ease-out-devfest);
+}
+@media (min-width: 1024px) and (max-width: 1759px) {
+  .filter-section[data-panel-open="true"] {
+    padding-left: 21.5rem;
+  }
+}
+
+/*
+ * CARD GRIDS SIZE THEMSELVES FROM AVAILABLE WIDTH — PHASE14 §1.
+ *
+ * They used Tailwind's `sm:/lg:/xl:grid-cols-*`, which respond to the
+ * VIEWPORT. That is wrong here: when the push panel opens it narrows the
+ * content without changing the viewport, so the grid kept four columns and
+ * simply squeezed each card thinner. Measured: 4 -> 4 columns at 1512px with
+ * the panel open.
+ *
+ * `auto-fill` + `minmax` fixes it at the source — the column count is derived
+ * from the space the grid actually has, so it reflows when the panel opens,
+ * when the window resizes, and in any future layout, with no breakpoint list
+ * to keep in sync. `min(100%, ...)` keeps a single column from overflowing on
+ * a narrow phone.
+ *
+ * `--card-min` is the dial: bigger min, fewer columns.
+ */
+[data-card-grid] {
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, var(--card-min, 16rem)), 1fr)
+  );
+}
+
 /* Focus ring, yellow-family and always visible for keyboard users */
 :focus-visible {
   outline: 3px solid var(--color-primary);

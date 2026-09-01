@@ -178,7 +178,9 @@ export function TeamBrowser({ members }: { members: TeamMember[] }) {
           data-card-grid
           /* Dims the non-focused cards while one is open (PHASE12 §7). */
           data-card-open={view === "grid" && focusedId !== null}
-          className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 xl:grid-cols-3"
+          /* 23rem yields 3 columns at full width, 2 when pushed. */
+          style={{ ["--card-min" as string]: "23rem" }}
+          className="grid items-start gap-8"
         >
           {visible.map((m, i) => (
             <Reveal

@@ -44,14 +44,16 @@ hold a ticket and does not is a problem at the door, not on the screen.
 Money only, and whether PawaPay covers cards or a second gateway is needed
 **has not been investigated** (`remaining-work.md` §2).
 
-**Phase 14 does:** offers Mobile Money only, and does not render a disabled
-"card" option. A greyed-out button that never works is a worse promise than an
-absent one — it looks like a bug on their phone rather than a decision.
+**DECIDED 2026-09-02:** Mobile Money only. **No card option is rendered at
+all** — not even disabled. A greyed-out button that never works reads as a bug
+on someone's phone rather than a decision.
 
-**Needs a decision:** does PawaPay do cards on this account, or is a second
-gateway in scope? That answer is a phase of its own.
+Card support would need a separate processor aimed at diaspora buyers. That is
+a future decision, explicitly not this phase.
 
 ### G2 — No refunds or cancellation
+
+<!-- Deferred 2026-09-02 to a future phase. -->
 
 Cancelling an order moves no money; refunds are manual in the PawaPay
 dashboard, and `amount_mismatch` needs a human either way.
@@ -68,12 +70,15 @@ adapter. **Without `RESEND_API_KEY` nothing sends** — the payment still
 completes, the ticket still exists, and `payment_events` records
 `receipt_skipped`.
 
-**Phase 14 does:** wires the flow, and the confirmation screen never says "check
-your email" as a bare promise. The badge code is shown on screen and in
-`/account`, so the ticket is reachable whether or not mail is configured. This
-is a config gap, not a code gap.
+**DECIDED 2026-09-02:** don't promise an email that cannot send. The on-screen
+QR and badge code are the source of truth; email is mentioned **only** when
+`RESEND_API_KEY` is actually configured. The badge code also lives in
+`/account`, so the ticket is reachable either way. This is a config gap, not a
+code gap.
 
 ### G4 — No discount-code validation endpoint, on purpose
+
+<!-- Confirmed 2026-09-02: apply at submission, reflect the server's verdict. -->
 
 There is deliberately no "check this code" endpoint: it would be a free oracle
 for guessing codes.
@@ -84,6 +89,8 @@ code comes back as `discount_invalid` / `discount_expired` /
 live-validation affordance that implies checking-as-you-type.
 
 ### G5 — Organiser tools are unbuilt (backend ready)
+
+<!-- Deferred 2026-09-02 to a future phase. -->
 
 `POST /api/check-in` and `PATCH /api/orders/:id/status` both work and are
 access-controlled server-side. The scanner and back-office **screens** do not
