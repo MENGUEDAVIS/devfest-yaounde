@@ -1,7 +1,11 @@
 # 0017 — Read the PawaPay token from AWS SSM, via Vercel OIDC
 
 Date: 2026-08-31
-Status: Accepted
+Status: Accepted — but see `0018`, which makes Supabase Vault the default
+
+> **`0018` supersedes the recommendation here.** Everything below still works
+> and is still supported; it is now the alternative, worth choosing only to
+> share one credential with the SCD shop Lambda.
 
 ## Context
 

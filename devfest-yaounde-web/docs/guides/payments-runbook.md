@@ -9,16 +9,35 @@ Background: `docs/decisions/0013-payments-pawapay.md` (why PawaPay) and
 
 ---
 
-## The one thing to understand
+## How a payment settles
 
-**Nothing is delivered because PawaPay said so.** When PawaPay notifies us that
-a payment happened, we ignore what the message claims and ask PawaPay's API
-directly about that deposit. Only that answer counts.
+**We ask PawaPay. We are never told.**
 
-The other half: before anyone is ever sent to the payment page, we write down
-what we expect them to pay and what we owe them if they do. That record is
-called the **intent**. If the amount that actually arrives doesn't match the
-intent, nothing is delivered and a human gets involved.
+There is no callback in this flow — the one callback URL on this PawaPay
+account belongs to the SCD shop, and a second account would need another
+registered company. So settlement works by asking, in two places:
+
+| Path                                            | Speed       | Covers                                    |
+| ----------------------------------------------- | ----------- | ----------------------------------------- |
+| The return page polls `/api/payments/status`    | seconds     | anyone watching the screen after paying   |
+| A sweep inside `/api/cron/cleanup`, every 5 min | ≤ 5 minutes | closed tab, dead battery, dropped network |
+
+Both call the same authoritative lookup and the same guarded delivery, so any
+number of them racing still issues exactly one ticket.
+
+**Two rules underneath that never change:**
+
+**Nothing is delivered because a message said so.** Whatever arrives —
+a poll, the sweep, or a callback if one ever reaches us — we ask PawaPay's API
+about that deposit and only that answer counts.
+
+**We write down what we expect before anyone pays.** That record is the
+**intent**. If the amount that actually arrives doesn't match it, nothing is
+delivered and a human gets involved.
+
+> The `CRON_SECRET` variable is therefore load-bearing. Without it the sweep
+> refuses every call, and anyone who closes the tab after paying never gets a
+> ticket. See `docs/decisions/0019`.
 
 ---
 
@@ -49,11 +68,27 @@ Copy `.env.example`. Every variable is documented there. Three that matter most:
 1. Set `PAWAPAY_ENV=production` and paste the **production** token. A sandbox
    token against the production URL fails as `AUTHENTICATION_ERROR` with no
    useful detail — if you see that error, check this pair first.
-2. Register the callback URL in the PawaPay dashboard:
-   `https://YOUR-DOMAIN/api/payments/pawapay/callback`
+2. Nothing to register. Settlement does not need a callback.
+   **Optionally**, put `https://YOUR-DOMAIN/api/payments/pawapay/callback` in
+   the dashboard's **Checkouts** field — if it reaches us, settlement becomes
+   instant instead of within five minutes. Nothing breaks if it does not.
 3. Leave all `PAWAPAY_ENFORCE_*` variables empty for now. See below.
 
-### 4. Turn on callback verification — monitor first
+### 4. Confirm the cron is running
+
+The sweep is a settlement path, not housekeeping. After the first deploy,
+check the Vercel Cron logs, or call it by hand:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://YOUR-DOMAIN/api/cron/cleanup
+```
+
+A `403` means `CRON_SECRET` is missing or wrong. A JSON body with a
+`reconciled` block means it is working.
+
+### 5. Turn on callback verification — only if you registered one
+
+Skip this entirely if you did not register a callback URL.
 
 The callback has three extra fences: an IP allow-list, a body-integrity check,
 and a cryptographic signature check. They all **run and log from day one but
@@ -70,6 +105,113 @@ on blind could silently reject real payments.
    rejected a real payment. Fix the configuration before enforcing.
 
 ---
+
+## Reading the money
+
+Everything is in Supabase. Two tables answer most questions.
+
+**`payment_intents`** — one row per checkout attempt.
+
+| `status`          | What it means                                                             |
+| ----------------- | ------------------------------------------------------------------------- |
+| `pending`         | Started, not paid yet — or paid seconds ago and the callback is in flight |
+| `activated`       | Paid, verified, delivered. The happy ending.                              |
+| `failed`          | PawaPay reported a terminal failure. Nothing was charged.                 |
+| `amount_mismatch` | **Needs a human.** Money arrived, but not the amount we asked for.        |
+
+**`payment_events`** — the audit trail, newest first, keyed by `deposit_id`.
+Ids and states only, never card data or attendee personal details.
+
+Useful query — anything that needs attention:
+
+```sql
+select deposit_id, kind, charged_amount, currency, status, created_at
+  from payment_intents
+ where status = 'amount_mismatch'
+    or (status = 'pending' and created_at < now() - interval '2 hours')
+ order by created_at desc;
+```
+
+---
+
+## When something looks wrong
+
+**"They paid but got nothing."**
+Find the intent by `deposit_id`. If it is `pending`, the callback either has
+not arrived or is being retried — check `payment_events` for
+`callback_unexpected_error`. PawaPay retries on its own; a `503` from us is us
+_asking_ for a retry, not a failure. If it is `amount_mismatch`, see below.
+
+**`amount_mismatch`.**
+The amount or currency that arrived does not match the intent. This is
+deliberately never retried and never auto-delivered. Compare the intent's
+`charged_amount` against the deposit in the PawaPay dashboard, then either
+refund or deliver by hand after reconciling.
+
+**Duplicate tickets.**
+Should not be possible: delivery happens inside one SQL function guarded on
+`status = 'pending'`, so a replayed callback becomes a no-op. If you ever see
+duplicates, that guard is the first thing to check — and it is a bug worth a
+decision record.
+
+**Free tickets.**
+The Haikyu tier never touches PawaPay: a 0 XAF basket is fulfilled directly at
+checkout. Its intent goes `pending → activated` with no deposit behind it, and
+that is correct.
+
+**Callbacks are not arriving in local development.**
+They cannot — PawaPay needs a public HTTPS URL. Use a tunnel (`ngrok` or
+similar) and register that URL, or rely on the status endpoint, which re-checks
+the API and settles the payment a little later.
+
+**Supabase project paused.**
+The free tier pauses after about a week of inactivity, which is very possible
+for an event site between editions. Resume it from the dashboard _before_ sales
+open, and check it during a quiet stretch mid-campaign.
+
+---
+
+## Capacity and discount codes
+
+A tier with `quantityAvailable` set is capped **across all orders**, not just
+within one. Capacity is reserved the moment a checkout starts, and held for 30
+minutes; an abandoned checkout releases its seats when that window passes, and
+`/api/cron/cleanup` fails the intent outright an hour in. See
+`docs/decisions/0016-capacity-reservations.md`.
+
+The practical consequence: **if the cleanup cron stops running, a tier will
+slowly look more sold out than it is.** The 30-minute window bounds the damage,
+but check that the cron is firing before a big sales push.
+
+To see what is actually holding seats right now:
+
+```sql
+select a ->> 'tierId' as tier, count(*) as held
+  from payment_intents pi, jsonb_array_elements(pi.attendees) a
+ where pi.status = 'pending'
+   and pi.created_at > now() - interval '30 minutes'
+ group by 1;
+```
+
+Single-use discount codes behave the same way — a code is reserved at checkout
+and only committed to `redeemed_count` when the payment completes.
+
+## Receipts
+
+Sent once, when a deposit is first fulfilled — never on a replayed callback.
+With `RESEND_API_KEY` unset nothing is sent, the payment still completes, and
+`payment_events` records `receipt_skipped`. Look for `receipt_sent`,
+`receipt_skipped` or `receipt_failed` per deposit.
+
+A failed send never fails a payment. If receipts stop arriving, the tickets are
+still valid — the badge codes are in the database and on `/account`.
+
+## Background: the callback question
+
+None of this is needed to run the event. It is kept because the
+constraint behind it is real and will come back if a second application
+ever needs this PawaPay account, or if instant settlement starts to
+matter more than five minutes.
 
 ## Running behind a relay (not the current setup)
 
@@ -197,106 +339,6 @@ unrecognised deposit tells PawaPay "delivered" and it will never retry. If the
 other application does that, a payment meant for this one is lost silently.
 
 ---
-
-## Reading the money
-
-Everything is in Supabase. Two tables answer most questions.
-
-**`payment_intents`** — one row per checkout attempt.
-
-| `status`          | What it means                                                             |
-| ----------------- | ------------------------------------------------------------------------- |
-| `pending`         | Started, not paid yet — or paid seconds ago and the callback is in flight |
-| `activated`       | Paid, verified, delivered. The happy ending.                              |
-| `failed`          | PawaPay reported a terminal failure. Nothing was charged.                 |
-| `amount_mismatch` | **Needs a human.** Money arrived, but not the amount we asked for.        |
-
-**`payment_events`** — the audit trail, newest first, keyed by `deposit_id`.
-Ids and states only, never card data or attendee personal details.
-
-Useful query — anything that needs attention:
-
-```sql
-select deposit_id, kind, charged_amount, currency, status, created_at
-  from payment_intents
- where status = 'amount_mismatch'
-    or (status = 'pending' and created_at < now() - interval '2 hours')
- order by created_at desc;
-```
-
----
-
-## When something looks wrong
-
-**"They paid but got nothing."**
-Find the intent by `deposit_id`. If it is `pending`, the callback either has
-not arrived or is being retried — check `payment_events` for
-`callback_unexpected_error`. PawaPay retries on its own; a `503` from us is us
-_asking_ for a retry, not a failure. If it is `amount_mismatch`, see below.
-
-**`amount_mismatch`.**
-The amount or currency that arrived does not match the intent. This is
-deliberately never retried and never auto-delivered. Compare the intent's
-`charged_amount` against the deposit in the PawaPay dashboard, then either
-refund or deliver by hand after reconciling.
-
-**Duplicate tickets.**
-Should not be possible: delivery happens inside one SQL function guarded on
-`status = 'pending'`, so a replayed callback becomes a no-op. If you ever see
-duplicates, that guard is the first thing to check — and it is a bug worth a
-decision record.
-
-**Free tickets.**
-The Haikyu tier never touches PawaPay: a 0 XAF basket is fulfilled directly at
-checkout. Its intent goes `pending → activated` with no deposit behind it, and
-that is correct.
-
-**Callbacks are not arriving in local development.**
-They cannot — PawaPay needs a public HTTPS URL. Use a tunnel (`ngrok` or
-similar) and register that URL, or rely on the status endpoint, which re-checks
-the API and settles the payment a little later.
-
-**Supabase project paused.**
-The free tier pauses after about a week of inactivity, which is very possible
-for an event site between editions. Resume it from the dashboard _before_ sales
-open, and check it during a quiet stretch mid-campaign.
-
----
-
-## Capacity and discount codes
-
-A tier with `quantityAvailable` set is capped **across all orders**, not just
-within one. Capacity is reserved the moment a checkout starts, and held for 30
-minutes; an abandoned checkout releases its seats when that window passes, and
-`/api/cron/cleanup` fails the intent outright an hour in. See
-`docs/decisions/0016-capacity-reservations.md`.
-
-The practical consequence: **if the cleanup cron stops running, a tier will
-slowly look more sold out than it is.** The 30-minute window bounds the damage,
-but check that the cron is firing before a big sales push.
-
-To see what is actually holding seats right now:
-
-```sql
-select a ->> 'tierId' as tier, count(*) as held
-  from payment_intents pi, jsonb_array_elements(pi.attendees) a
- where pi.status = 'pending'
-   and pi.created_at > now() - interval '30 minutes'
- group by 1;
-```
-
-Single-use discount codes behave the same way — a code is reserved at checkout
-and only committed to `redeemed_count` when the payment completes.
-
-## Receipts
-
-Sent once, when a deposit is first fulfilled — never on a replayed callback.
-With `RESEND_API_KEY` unset nothing is sent, the payment still completes, and
-`payment_events` records `receipt_skipped`. Look for `receipt_sent`,
-`receipt_skipped` or `receipt_failed` per deposit.
-
-A failed send never fails a payment. If receipts stop arriving, the tickets are
-still valid — the badge codes are in the database and on `/account`.
 
 ## What is not built
 

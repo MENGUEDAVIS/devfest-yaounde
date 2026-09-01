@@ -55,9 +55,8 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 
 ### What's next
 
-> **Picking this up?** Two documents answer most questions:
-> `docs/guides/frontend-integration.md` (every endpoint the screens call) and
-> `docs/setup/remaining-work.md` (what is left, and what blocks a real sale).
+> **Picking this up?** Start at [`docs/README.md`](docs/README.md) — it routes
+> by what you are trying to do, and lists which decision records are current.
 
 **The interfaces.** Every endpoint the ticket flow, the shop and the DP generator need exists and is tested; what is missing is the UI on top. See `docs/guides/payments-runbook.md` and `docs/guides/check-in-and-orders.md` for what they call.
 

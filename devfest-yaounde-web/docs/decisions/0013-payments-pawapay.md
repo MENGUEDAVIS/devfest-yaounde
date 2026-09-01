@@ -2,6 +2,14 @@
 
 Date: 2026-08-31
 Status: Accepted — resolves the payment half of `0003-payments-and-auth.md`
+Amended by: `0019` (settlement no longer depends on the callback)
+
+> **Read `0019` before acting on this record.** The provider choice, the
+> authoritative re-fetch, the amount/currency check and the idempotent
+> fulfilment step below are all still exactly how this works. What changed is
+> the _trigger_: a callback URL turned out to be unavailable to this app, so
+> settlement happens by polling instead. The callback route still exists and
+> still behaves as described — it is simply optional now.
 
 ## Context
 
@@ -66,10 +74,9 @@ silently reject a real payment mid-configuration.
   secondary option; this integration covers Mobile Money only. Whether PawaPay
   can serve the card path, or whether a second gateway is needed, is a separate
   decision — flagged, not silently dropped.
-- The callback URL must be registered in the PawaPay dashboard and must be a
-  public HTTPS origin. Local development cannot receive callbacks without a
-  tunnel; the status endpoint re-checks the API, so a local flow still resolves,
-  just later.
+- ~~The callback URL must be registered in the PawaPay dashboard~~ —
+  **superseded by `0019`**: registering it is now optional. Local development
+  never needed a tunnel for this reason and now needs one even less.
 - `PAWAPAY_ENV` and `PAWAPAY_API_TOKEN` must always agree. A sandbox token
   against the production URL fails as `AUTHENTICATION_ERROR` with no useful
   detail.

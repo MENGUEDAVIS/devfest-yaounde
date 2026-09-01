@@ -53,10 +53,10 @@ Once, per environment (Production / Preview / Development):
 ```bash
 vercel link                       # once, in devfest-yaounde-web/
 vercel env add SUPABASE_SERVICE_ROLE_KEY production
-vercel env add PAWAPAY_TOKEN_PARAM production   # or PAWAPAY_API_TOKEN
-vercel env add AWS_ROLE_ARN production          # only with PAWAPAY_TOKEN_PARAM
+vercel env add PAWAPAY_TOKEN_VAULT_KEY production   # "pawapay-token" — see below
 vercel env add BADGE_CODE_SECRET production
 vercel env add CRON_SECRET production
+vercel env add APP_BASE_URL production
 # …and the NEXT_PUBLIC_ ones, which are not secret but still need setting
 ```
 
@@ -99,9 +99,12 @@ SSM would add a second cloud to the money path.
 
 ### Alternative: the same token from AWS SSM
 
-In production the token lives in SSM Parameter Store — the same parameter the
-SCD shop reads, so it is rotated in one place. Vercel holds only the
-parameter's **name**, plus the ARN of a role it may assume.
+**Not the default — Vault above is.** Choose this only to share one
+credential with the SCD shop Lambda, which reads the same SSM parameter. It
+puts AWS on the payment path, which Vault does not (ADR 0018).
+
+Vercel holds only the parameter's **name**, plus the ARN of a role it may
+assume.
 
 That role must trust Vercel's OIDC provider. **Do not create an AWS access
 key for this**: storing one in Vercel would add a secret in order to avoid
@@ -197,13 +200,17 @@ If the team wants it anyway, that is a decision record, not a config tweak.
 - [ ] `PAWAPAY_ENV=production` **and** a production PawaPay token. A sandbox
       token against the production URL fails as `AUTHENTICATION_ERROR`.
 - [ ] `APP_BASE_URL` / `NEXT_PUBLIC_APP_BASE_URL` set to the real domain.
-- [ ] PawaPay callback registered:
-      `https://YOUR-DOMAIN/api/payments/pawapay/callback`
+- [ ] `CRON_SECRET` set **and Vercel Cron confirmed running**. Since ADR 0019
+      the cron is a settlement path, not housekeeping: it is what delivers a
+      ticket when the buyer closed the tab after paying.
+- [ ] _Optional:_ PawaPay **Checkouts** callback pointed at
+      `https://YOUR-DOMAIN/api/payments/pawapay/callback`. Only an
+      optimisation — it makes settlement instant instead of within five
+      minutes. Nothing breaks without it.
 - [ ] Supabase → Authentication → URL Configuration: **Site URL** set, and
       `https://YOUR-DOMAIN/auth/callback` in the redirect allow-list. Google
       sign-in fails silently without this.
-- [ ] `CRON_SECRET` set. Without it `/api/cron/cleanup` refuses every call, and
-      abandoned checkouts keep holding ticket capacity.
+
 - [ ] `BADGE_CODE_SECRET` set, backed up, and never to be changed.
 - [ ] **Ticket tiers and shop products replaced with real content.** What is in
       `src/data/ticket-tiers.json` and `products.json` today is placeholder —
