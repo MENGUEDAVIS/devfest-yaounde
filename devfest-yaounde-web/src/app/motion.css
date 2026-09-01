@@ -859,6 +859,27 @@
 }
 
 /*
+ * Filter drawer sliding in from the LEFT — PHASE14 §1.
+ *
+ * Travel is short (a panel width would over-animate a control surface people
+ * open and close constantly) and the easing is the standard out-curve, not
+ * the bouncy one: a filter panel that springs reads as a toy.
+ */
+@keyframes df-drawer-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.anim-drawer-left {
+  animation: df-drawer-left 320ms var(--ease-out-devfest) both;
+}
+
+/*
  * TEXT SCRAMBLE easter egg — PHASE11 §1, stripped bare in PHASE12 §4.
  *
  * NO AFFORDANCE, deliberately. The earlier version had a dotted underline
@@ -1252,6 +1273,7 @@
   .anim-word-pop,
   .anim-stamp,
   .anim-drawer-up,
+  .anim-drawer-left,
   .anim-contrib-stamp,
   .faq-glyph,
   .day-tab,

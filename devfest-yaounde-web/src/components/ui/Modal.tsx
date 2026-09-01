@@ -9,7 +9,7 @@ import { lockScroll } from "@/lib/scroll-source";
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export type ModalVariant = "dialog" | "takeover";
+export type ModalVariant = "dialog" | "takeover" | "drawer-left";
 
 export interface ModalProps {
   open: boolean;
@@ -27,6 +27,12 @@ export interface ModalProps {
    * including the navbar, and carries no panel chrome of its own — the
    * content sits directly on a blurred scrim so nothing competes with it.
    * Used by the slider lockup.
+   *
+   * `drawer-left`: a full-height panel that slides in from the left edge,
+   * over a scrim. The filter surface on laptops and desktops (PHASE14 §1).
+   * It replaced a rail that floated in the page margin — that approach
+   * needed more horizontal room than a 14" laptop has, so on the machine
+   * most people actually use, the filters simply did not render.
    */
   variant?: ModalVariant;
   /**
@@ -172,6 +178,7 @@ export function Modal({
   if (!open) return null;
 
   const takeover = variant === "takeover";
+  const drawer = variant === "drawer-left";
 
   return createPortal(
     <div
@@ -182,7 +189,9 @@ export function Modal({
             // stays above at 9999, which is correct — it must never be
             // occluded by what it is pointing at.
             "fixed inset-0 z-100 flex items-stretch justify-center p-4 sm:p-6"
-          : "fixed inset-0 z-100 flex items-center justify-center p-4"
+          : drawer
+            ? "fixed inset-0 z-100 flex items-stretch justify-start"
+            : "fixed inset-0 z-100 flex items-center justify-center p-4"
       }
     >
       <div
@@ -194,7 +203,9 @@ export function Modal({
               // stays legible as context but stops competing for attention.
               // A flat scrim over a blur — no gradient (DESIGN.md §2.6).
               "bg-black02/80 backdrop-blur-md"
-            : "bg-black02/50"
+            : drawer
+              ? "bg-black02/50 backdrop-blur-sm"
+              : "bg-black02/50"
         }`}
       />
       <div
@@ -209,7 +220,12 @@ export function Modal({
               // content sits straight on the blurred scrim and gets the
               // whole screen, which is the point of a takeover.
               `${modalPopIn} takeover-panel relative flex w-full max-w-[110rem] flex-col ${className}`
-            : `${modalPopIn} relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-offwhite p-6 sm:p-8 ${className}`
+            : drawer
+              ? // Flush to the left edge: square there, rounded on the side
+                // that is visible, so it reads as attached to the screen
+                // rather than floating. No sharp corners anywhere it shows.
+                `anim-drawer-left relative flex h-full w-[min(22rem,88vw)] flex-col overflow-hidden rounded-r-lg border-y-2 border-r-2 border-black02 bg-offwhite p-6 ${className}`
+              : `${modalPopIn} relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-offwhite p-6 sm:p-8 ${className}`
         }
       >
         <button
@@ -219,7 +235,9 @@ export function Modal({
           className={
             takeover
               ? "absolute right-0 top-0 z-10 rounded-pill border-2 border-offwhite/40 bg-black02/60 p-2.5 text-offwhite transition-colors hover:border-offwhite hover:bg-offwhite hover:text-black02"
-              : "absolute right-4 top-4 rounded-pill p-1.5 text-black02 transition-colors hover:bg-black02/10"
+              : drawer
+                ? "absolute right-4 top-5 z-10 rounded-pill border-2 border-black02 p-1.5 text-black02 transition-colors hover:bg-primary"
+                : "absolute right-4 top-4 rounded-pill p-1.5 text-black02 transition-colors hover:bg-black02/10"
           }
         >
           <X size={20} weight={takeover ? "bold" : "regular"} />

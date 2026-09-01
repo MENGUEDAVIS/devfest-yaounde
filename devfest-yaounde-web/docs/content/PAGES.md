@@ -147,17 +147,17 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 >
 > **Available on mobile too.** It was desktop-only while the slider was an in-page section with no room on a phone; as a full-screen lockup it fits a phone at least as well as a desktop. The mobile composition is different, not a squeeze: a **single vertical column**, a **circle avatar** instead of the polaroid (it costs a fraction of the height, which is what leaves room for the whole detail), and the **controls overlaid at the bottom-right** with the counter beside them rather than stacked under the stage. Verified with no scrollbars from 360×640 up.
 >
-> Search and filters live in a **floating rail** on wide desktops and a **bottom drawer** everywhere else, grouped under labelled headings — one shared pattern across `/speakers`, `/schedule`, `/team` and `/faqs` (`FilterLayout` + `FilterGroup`).
+> Search and filters open from a **Filters button** into one of three surfaces, chosen by viewport — one shared pattern across `/speakers`, `/schedule`, `/team`, `/faqs` and `/shop` (`FilterLayout` + `FilterGroup`).
 >
-> **Updated in Phase 10 — the rail takes no width from the content.** The main column stays exactly as wide and as centred as it would be with no filters at all; the rail floats in the leftover margin whitespace beside it (reference: fonts.google.com), vertically centred in the viewport and clear of the fixed navbar. The speakers grid therefore keeps its **4 columns** — it loses no column to the filters.
+> **Updated in Phase 14 §1 — the margin rail is gone.**
 >
-> The consequence worth knowing: the rail only appears from **1760px** up, because that is the width at which margin whitespace actually exists (`50vw − half the content column − a gutter − the rail's own width`). Below it, the drawer. Narrowing the content to make the rail fit at more widths is exactly what this rework removed.
+> | Viewport                    | Surface                                               |
+> | --------------------------- | ----------------------------------------------------- |
+> | Laptop & desktop (>=1024px) | A panel that **slides in from the left** over a scrim |
+> | Tablet (640-1023px)         | The bottom sheet, **width-capped and centred**        |
+> | Mobile (<640px)             | The bottom sheet, full width                          |
 >
-> **Updated in Phase 12 §1 — the rail TRAVELS DOWN its section as you scroll.** It is a sticky element pinned just under the chrome inside a track that spans exactly its owning section, so it moves down the page with you and is clamped at both ends: it never rises above the section's start, and when the section ends it scrolls out with the content (passing behind the navbar) instead of running into the footer.
->
-> Two earlier attempts, both measured and rejected: `position: fixed` (Phase 10) never yielded and sat on top of the footer; sticky-but-centred-in-a-viewport-tall-box (Phase 11) fixed the footer overlap but froze the rail mid-screen and released it while a screenful of grid was still visible.
->
-> Speakers also carry `icebreakerQuestion`, `icebreakerAnswer` and an optional `funnyMoment`, surfaced in the detail reveal as a warm quote moment rather than a data row.
+> Phases 10-12 floated the rail in the page's left margin so the content column kept its full width. That needed ~1760px of viewport — a 14" laptop is ~1512px, so on the most common machine the filters did not render at all. A panel that opens on demand costs one click and works at every size. All three surfaces are the shared overlay components, so the focus trap, Escape, scrim dismissal and scroll lock have one implementation between them (ADR 0012).
 
 ### 4.1 Grid
 
@@ -182,7 +182,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 ## 5. FAQs Page (`/faqs`)
 
-> **Updated in Phase 10.** Search and the category list moved out of the content column and into the **shared floating rail** (the same `FilterLayout` as `/speakers`, `/schedule` and `/team`), so they stay put while you read instead of scrolling away. The category list is a **scrollspy**: it highlights whichever group you're currently reading, and jumps to a group when clicked.
+> **Updated in Phase 10, revised in Phase 14.** Search and the category list live in the **shared filter panel** (the same `FilterLayout` as `/speakers`, `/schedule`, `/team` and `/shop`) rather than in the content column, so they don't scroll away with the questions. The category list is a **scrollspy**: it highlights whichever group you're currently reading, and jumps to a group when clicked. On this page the panel's heading is "Jump to" rather than "Filters", since it is a search + nav rather than a filter set.
 
 - Grouped accordions by category: **General**, **Tickets & Pricing**, **Venue & Logistics**, **Shop/Swag**, **Code of Conduct**.
 - Search filters questions and answers live as you type; empty categories drop out entirely.

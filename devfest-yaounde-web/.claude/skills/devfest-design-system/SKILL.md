@@ -235,7 +235,7 @@ should be read aloud.
 
 ## Overlays: two shells, no third (ADR 0012)
 
-- **`Modal`** — `variant="dialog"` (centred panel) or `variant="takeover"` (TRUE full screen at z-100, above the chrome, no panel chrome of its own, content on a blurred scrim). Add `browserFullscreen` to also request the Fullscreen API — treat it as polish, never rely on it. The slider lockup uses both.
+- **`Modal`** — three variants: `dialog` (centred panel), `takeover` (TRUE full screen at z-100, above the chrome, no panel chrome of its own, content on a blurred scrim; add `browserFullscreen` for the Fullscreen API — polish, never relied on), and `drawer-left` (full-height slide-in panel from the left edge, the filter surface on laptop/desktop).
 - **`BottomSheet`** — the mobile filter drawer AND mobile card details.
 
 Both own their focus trap, Escape, scrim and scroll lock. Do not write a third
@@ -260,3 +260,26 @@ locks `<html>`, and both were verified to leak.
 2. **Phone media blocks must come LAST in motion.css.** A 640px-tall phone
    matches the `max-height` slider tiers too, and source order breaks the tie.
    The phone layout is a different composition, so it has to win.
+
+
+## Filters: one button, three surfaces (PHASE14 §1)
+
+`FilterLayout` is the single implementation for `/speakers`, `/schedule`,
+`/team`, `/faqs` and `/shop`. The trigger button is identical everywhere; only
+the surface changes:
+
+| Viewport                | Surface                                    |
+| ----------------------- | ------------------------------------------ |
+| >= 1024px               | `Modal variant="drawer-left"` — slides in from the left |
+| 640-1023px              | `BottomSheet`, width-capped and centred     |
+| < 640px                 | `BottomSheet`, full width                   |
+
+**Do not bring back the margin-float rail.** It floated in the page's left
+margin so the content column kept its full width, which is lovely — and it
+needed 1760px to exist. A 14" laptop is ~1512px, so on the most common machine
+the filters did not render at all. One click to open beats an elegant layout
+nobody can see.
+
+Only ONE surface is mounted at a time, chosen with `useMediaQuery`, not CSS
+`hidden`: two mounted copies would mean duplicate `useId()` values and two tab
+stops for the same control.

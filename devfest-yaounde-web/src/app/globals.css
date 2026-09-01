@@ -492,50 +492,6 @@ html:not(.has-custom-cursor) .cursor-layer {
   --ring-scale: 0.85;
 }
 
-/*
- * FILTER RAIL — PHASE11 §3. Sticky inside its own section, not fixed to the
- * viewport, so the footer pushes it up instead of being covered by it.
- *
- * The track is one gutter left of the content column and spans exactly the
- * section's height; the rail sticks within it.
- *
- * PHASE12 §1: the rail TRAVELS DOWN the section as you scroll, rather than
- * sitting frozen at the viewport's vertical centre.
- *
- * The construction that does this is a sticky box pinned near the TOP of the
- * viewport (just under the chrome), sized to its own content. Scrolling then
- * carries it down the page with you, and the track — an absolutely positioned
- * column spanning exactly this section — clamps it at both ends: it can never
- * travel above the section's start, and when the section ends it scrolls out
- * with the content instead of running on into the footer.
- *
- * Two earlier attempts and why they were wrong:
- *  - `position: fixed` (PHASE10): never yielded to anything, so it sat on top
- *    of the footer at the end of /schedule.
- *  - Sticky, but centred in a viewport-tall box (PHASE11): fixed the footer
- *    overlap, but froze the rail mid-screen and — because the box was a whole
- *    viewport tall — released it while a screenful of grid was still visible
- *    on short sections. Both were measured, not guessed.
- *
- * A content-height box pinned near the top has neither problem: nothing is
- * frozen mid-viewport, and the box releases only when the section itself
- * genuinely runs out.
- */
-.filter-rail-track {
-  right: calc(100% + 1.5rem);
-}
-.filter-rail-sticky {
-  top: calc(var(--chrome-h) + 1rem);
-  /* Never taller than the space under the chrome; scrolls internally past
-     that, using the shared themed pill. */
-  max-height: calc(100svh - var(--chrome-h) - 3rem);
-  display: flex;
-}
-.filter-rail-sticky > div {
-  width: 100%;
-  max-height: 100%;
-}
-
 /* Focus ring, yellow-family and always visible for keyboard users */
 :focus-visible {
   outline: 3px solid var(--color-primary);
