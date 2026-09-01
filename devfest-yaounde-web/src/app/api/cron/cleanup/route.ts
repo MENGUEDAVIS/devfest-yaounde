@@ -1,11 +1,14 @@
 /**
  * GET /api/cron/cleanup — housekeeping, run on a schedule.
  *
- * Two jobs:
- *   1. Fail intents that were never paid. This is not cosmetic: a pending
- *      intent holds tier capacity and a discount redemption, so leaving them
- *      around slowly makes a tier look sold out when it is not.
- *   2. Drop rate-limit counters whose window has long passed.
+ * Three jobs, and the first is the important one:
+ *   1. RECONCILE. Ask PawaPay about every pending deposit and settle the ones
+ *      that completed. With no callback available to this app (ADR 0019),
+ *      this is what catches the payment whose buyer closed the tab.
+ *   2. Fail intents that were never paid. Not cosmetic: a pending intent
+ *      holds tier capacity and a discount redemption, so leaving them around
+ *      slowly makes a tier look sold out when it is not.
+ *   3. Drop rate-limit counters whose window has long passed.
  *
  * Protected by a shared secret rather than a session, because the caller is
  * Vercel Cron, not a person. Without `CRON_SECRET` set the route refuses
@@ -15,6 +18,7 @@
 import { NextRequest } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { logPaymentEvent } from "@/lib/payments/intents";
+import { reconcilePendingDeposits } from "@/lib/payments/reconcile";
 
 /** Comfortably past the reservation window, so nothing live is touched. */
 const STALE_INTENT_SECONDS = 3600;
@@ -33,6 +37,10 @@ export async function GET(request: NextRequest) {
   if (!authorised(request)) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
+
+  // Reconcile BEFORE expiring: a deposit that completed a minute before the
+  // expiry threshold must be delivered, not failed.
+  const reconciled = await reconcilePendingDeposits();
 
   const supabase = createAdminSupabase();
 
@@ -55,6 +63,7 @@ export async function GET(request: NextRequest) {
   }
 
   const result = {
+    reconciled,
     expiredIntents: Number(expired ?? 0),
     prunedRateLimits: Number(pruned ?? 0),
   };

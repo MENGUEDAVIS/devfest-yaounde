@@ -167,13 +167,22 @@ select event, detail, created_at
 Rows means the callback reached us — `Checkouts` is the right field. No rows
 means it went to `Deposits`, and the two apps genuinely collide.
 
-### If they collide
+### It does not matter much any more
 
-- **A second PawaPay account or environment** for this app. Cleanest: its own
-  token, its own callback URL, no shared configuration at all. Worth asking
-  PawaPay for before building anything.
-- **A relay** in front of the shared URL, fanning out by `depositId`. See the
-  relay section above for what it has to preserve.
+Since ADR 0019 this app **does not need a callback**. Payments settle by
+asking PawaPay:
+
+- the return page poll settles while the buyer watches it — seconds;
+- the five-minute sweep in `/api/cron/cleanup` catches everyone else.
+
+Both funnel into the same guarded transaction as the callback did, so any
+number of them racing still delivers exactly once.
+
+If the `Checkouts` field does reach us, keep it: settlement becomes instant
+instead of within five minutes. If it does not, nothing is lost.
+
+A second PawaPay account was ruled out — it requires registering another
+legal entity, not filling in a form.
 
 ### What this app does with a deposit that is not its own
 

@@ -178,8 +178,12 @@ GET /api/payments/status?depositId=…
 | `404 not_found`   | Not their deposit, or no such deposit |                                                                 |
 
 Poll every 3–5 seconds, and stop after about two minutes with a "we'll email
-you" message. Mobile Money can take a while, and the receipt arrives either
-way — the tickets are issued by the callback, not by this page being open.
+you" message.
+
+**This page is the primary settlement path** (ADR 0019), so the poll is doing
+real work, not just watching: it is what issues the tickets. Closing the tab
+early is still safe — a sweep runs every five minutes and settles anything
+left — but keeping it open is what makes confirmation feel instant.
 
 Copy for all four states is in `errors.payment.*`, both languages.
 
