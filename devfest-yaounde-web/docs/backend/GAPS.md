@@ -101,6 +101,22 @@ comes back from `/api/account/profile` if a later phase wants them. Also note
 `remaining-work.md`: **check-in requires a connection**; an unreliable venue
 network needs planning before the day.
 
+### G6 — QR rendering needs a dependency decision
+
+The badge code is issued and shown; **the QR image is not drawn**, because
+every reasonable way to draw one needs a call this phase cannot make alone:
+a library (an ADR and a go-ahead), a hand-rolled encoder (several hundred
+lines of Reed-Solomon, wrong-but-plausible output discovered at the door), or
+an external service (which would send the credential to a third party).
+
+**Phase 14 does:** renders the badge code as large, selectable text on the
+confirmation screen and in `/account`. That is required regardless — a cracked
+screen still has to get someone in — so what is missing is the convenience of
+scanning, not the ability to enter.
+
+**Needs a decision:** [ADR 0020](../decisions/0020-qr-rendering.md), which
+recommends the `qrcode` library.
+
 ---
 
 ## Content, not code
