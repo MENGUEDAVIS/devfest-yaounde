@@ -365,8 +365,7 @@
         "legend": "Style"
       },
       "badges": {
-        "legend": "Badge",
-        "hint": "Uniquement des badges de présence. « Intervenant » ou « Organisateur » seraient des affirmations qu'on ne peut pas vérifier sans connexion, et un badge que tout le monde peut s'attribuer ne vaut plus rien pour celles et ceux qui l'ont mérité."
+        "legend": "Badge"
       },
       "looks": {
         "legend": "Photo",
@@ -375,7 +374,8 @@
         "halftone": "Trame",
         "mono": "Noir et blanc",
         "chromatic": "Décalage",
-        "poster": "Sérigraphie"
+        "poster": "Sérigraphie",
+        "pixel": "Pixel art"
       },
       "edges": {
         "legend": "Bord",
@@ -388,7 +388,8 @@
         "grain": "Grain",
         "paper": "Papier",
         "vignette": "Vignettage",
-        "warp": "Ondulation"
+        "warp": "Ondulation",
+        "lens": "Loupe"
       },
       "stickers": {
         "shapes": "Formes",
@@ -399,7 +400,8 @@
         "size": "Taille",
         "turn": "Rotation",
         "remove": "Retirer le sticker",
-        "pick": "Touche un sticker sur la carte pour le déplacer, le redimensionner ou le retirer."
+        "pick": "Touche un sticker sur la carte pour le déplacer, le redimensionner ou le retirer.",
+        "tech": "Tech"
       },
       "adjust": {
         "zoom": "Zoom",
@@ -421,7 +423,8 @@
         "download": "Télécharger",
         "downloading": "On la dessine…",
         "share": "Partager",
-        "sharing": "Ouverture…"
+        "sharing": "Ouverture…",
+        "copyCaption": "Copier la légende"
       },
       "networks": {
         "legend": "Ou publie sur",
@@ -434,7 +437,11 @@
       "status": {
         "downloaded": "Enregistré. Va changer ta photo.",
         "failed": "Le rendu a échoué. Réessaie, ou prends une autre photo.",
-        "attach": "Image enregistrée et légende copiée — il ne reste qu'à joindre l'image au post."
+        "attach": "Image enregistrée et légende copiée — il ne reste qu'à joindre l'image au post.",
+        "wallSent": "Envoyé au mur.",
+        "gallery_rate_limited": "Ça fait plusieurs cartes d'affilée — attends une minute et réessaie.",
+        "gallery_rejected": "Le mur n'a pas accepté celle-ci. Essaie avec une autre carte.",
+        "gallery_failed": "Elle n'est pas arrivée au mur. Ton téléchargement fonctionne toujours."
       },
       "caption": {
         "title": "Ce qui part avec",
@@ -444,7 +451,15 @@
         "title": "La photo ne quitte jamais ton appareil",
         "body": "Rien n'est envoyé, rien n'est stocké. La carte est dessinée dans ton navigateur et enregistrée directement dans tes téléchargements — on ne la voit jamais."
       },
-      "metaDesc": "Crée ta photo de profil DevFest Yaoundé dans ton navigateur — un style, un recadrage, des stickers, et tu télécharges. Rien n'est envoyé."
+      "metaDesc": "Crée ta photo de profil DevFest Yaoundé dans ton navigateur — un style, un recadrage, des stickers, et tu télécharges. Rien n'est envoyé.",
+      "wall": {
+        "title": "Mets-la sur le mur de la communauté",
+        "body": "Une copie plus légère part chez GDG Yaoundé et apparaît sur le mur DevFest une fois que l'équipe l'a regardée. Ton téléchargement pleine taille reste à toi, et rien n'est publié ailleurs.",
+        "consent": "Oui — affichez cette carte, avec ma photo, sur le mur public de la communauté.",
+        "send": "Envoyer au mur",
+        "sending": "Envoi…",
+        "pending": "Envoyé. Elle apparaîtra sur le mur après relecture de l'équipe — tu peux nous demander de la retirer à tout moment."
+      }
     },
     "paymentReturn": {
       "title": "Confirmation de ton paiement",

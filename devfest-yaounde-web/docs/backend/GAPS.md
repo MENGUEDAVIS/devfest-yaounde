@@ -269,6 +269,35 @@ exists.
 needs no edit, because the picker renders whatever `DP_FRAMES` contains and the
 swatch already draws each frame's mask shape.
 
+### G20 — The community wall has no backend
+
+Asked for in this phase: people save their creations, and the chapter shows
+what the community made. The frontend is written and switched OFF — with
+`NEXT_PUBLIC_DP_GALLERY` unset the screen renders no wall control at all,
+because a button that quietly fails is worse than no button (the same rule
+that removed the fake fulfilment picker in G13).
+
+**What does not exist:** `POST /api/dp/gallery`, `DELETE /api/dp/gallery/:id`,
+`GET /api/dp/gallery`, the `dp_cards` table, the storage bucket, the
+moderation queue, and the wall page itself.
+
+**Fully specified** in `docs/backend/dp-gallery-contract.md`: the table with
+its consent record, the three endpoints, validation order, rate limiting
+through the existing `bump_rate_limit`, and the no-account takedown token.
+Supabase Storage is recommended over S3 — the project already has Supabase
+with RLS and a rate limiter, and the only AWS dependency is SSM for one
+parameter.
+
+**This reverses part of ADR 0015**, which said a gallery "should be a new
+decision record, not a quiet feature addition". That record is ADR 0021, and
+it also un-annotates the "Uploads (DP Generator)" section of the security
+checklist, which applies again.
+
+**The blocking item is not code.** The wall publishes photographs of people's
+faces on a public page. Review before publication, a takedown path and a
+retention rule all have to exist, and someone has to run the queue. If that is
+not in place, the honest move is to leave the flag off.
+
 ### G19 — Role badges cannot be verified
 
 The DP generator offers attendance badges only — "I'll be there", "Count me

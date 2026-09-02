@@ -195,6 +195,28 @@ The caption names **no accounts**. It carries the event hashtags and a CTA
 pointing at `devfest.gdgyaounde.com/dp-generator`: a URL is verifiable and
 cannot tag the wrong person (GAPS.md G16).
 
+## The community wall
+
+Everything above happens on the device. **One thing does not**, and only when
+someone asks for it on that card: a smaller copy can be sent to GDG Yaoundé
+for the community wall.
+
+It is off. `NEXT_PUBLIC_DP_GALLERY` gates it, the endpoint behind it does not
+exist yet, and with the flag unset the screen renders no wall control at all —
+not a disabled one. `src/lib/dp/gallery.ts` holds the client side;
+`docs/backend/dp-gallery-contract.md` is what someone needs to build; ADR 0021
+is why it reverses ADR 0015 and what that costs.
+
+Three properties worth knowing if you touch it:
+
+- **The consent box is unticked for every card.** Consent to publish one
+  picture of your face is not consent to publish the next one.
+- **What uploads is not what downloads.** 640px JPEG, roughly thirty times
+  smaller — a wall thumbnail, not the file someone saved.
+- **No EXIF can reach the server**, because the card is drawn from a bitmap
+  onto a canvas. The original file's GPS and camera data were never in those
+  pixels. That is a property of the compositor, not a filter to remember.
+
 ## On a phone
 
 The five control groups become a sheet pinned to the bottom of the screen,

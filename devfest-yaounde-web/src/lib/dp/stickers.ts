@@ -167,55 +167,164 @@ export const SHAPE_STICKERS: ShapeSticker[] = [
   },
 ];
 
+/*
+ * Stylised nods to the platforms this community actually builds on — a cloud,
+ * a flame, a spark, a droid, a phone.
+ *
+ * DRAWN IN-HOUSE, and deliberately not traced from the official marks. These
+ * are Google trademarks; a GDG chapter may use the real assets under the GDG
+ * brand guidelines, but an approximation drawn from memory would be both a
+ * worse likeness and a worse citizen. If the chapter has the official SVGs and
+ * permission to put them on a card people post, swap the `paths` here and
+ * nothing else changes. See GAPS.md G18.
+ */
+export const TECH_STICKERS: ShapeSticker[] = [
+  {
+    id: "cloud",
+    kind: "shape",
+    label: { fr: "Cloud", en: "Cloud" },
+    fill: BLUE,
+    paths: [
+      {
+        d: "M26 74 A20 20 0 0 1 26 38 A24 24 0 0 1 70 30 A18 18 0 0 1 76 74 Z",
+      },
+    ],
+  },
+  {
+    id: "flame",
+    kind: "shape",
+    label: { fr: "Firebase", en: "Firebase" },
+    fill: YELLOW,
+    paths: [
+      // A teardrop with a hot core. The first attempt was two nested
+      // diamonds, which read as a gem rather than a flame.
+      {
+        d: "M50 6 C68 30 82 42 82 60 A32 32 0 0 1 18 60 C18 42 32 30 50 6 Z",
+        fill: YELLOW,
+      },
+      {
+        d: "M50 44 C58 56 64 62 64 70 A14 14 0 0 1 36 70 C36 62 42 56 50 44 Z",
+        fill: RED,
+      },
+    ],
+  },
+  {
+    id: "aistudio",
+    kind: "shape",
+    label: { fr: "AI Studio", en: "AI Studio" },
+    fill: BLUE,
+    paths: [
+      {
+        d: "M14 26 H86 A8 8 0 0 1 94 34 V72 A8 8 0 0 1 86 80 H14 A8 8 0 0 1 6 72 V34 A8 8 0 0 1 14 26 Z",
+        fill: BLUE,
+      },
+      {
+        d: "M50 36 L56 50 L70 56 L56 62 L50 76 L44 62 L30 56 L44 50 Z",
+        fill: PAPER,
+      },
+    ],
+  },
+  {
+    id: "droid",
+    kind: "shape",
+    label: { fr: "Android", en: "Android" },
+    fill: GREEN,
+    paths: [
+      { d: "M22 56 A28 28 0 0 1 78 56 Z", fill: GREEN },
+      {
+        d: "M24 62 H76 V80 A8 8 0 0 1 68 88 H32 A8 8 0 0 1 24 80 Z",
+        fill: GREEN,
+      },
+      { d: "M28 24 L36 36 M72 24 L64 36", fill: "none" },
+      { d: "M38 44 a4 4 0 1 0 0.1 0 Z", fill: "#1E1E1E" },
+      { d: "M62 44 a4 4 0 1 0 0.1 0 Z", fill: "#1E1E1E" },
+    ],
+  },
+  {
+    id: "pixelphone",
+    kind: "shape",
+    label: { fr: "Pixel", en: "Pixel" },
+    fill: PAPER,
+    paths: [
+      {
+        d: "M30 6 H70 A10 10 0 0 1 80 16 V84 A10 10 0 0 1 70 94 H30 A10 10 0 0 1 20 84 V16 A10 10 0 0 1 30 6 Z",
+        fill: PAPER,
+      },
+      { d: "M24 26 H76 V40 H24 Z", fill: "#1E1E1E" },
+      { d: "M36 29 a4 4 0 1 0 0.1 0 Z", fill: BLUE },
+      { d: "M48 29 a4 4 0 1 0 0.1 0 Z", fill: GREEN },
+    ],
+  },
+];
+
+/*
+ * One word, so it fits: a hashtag in UpperCamelCase. French hashtags drop
+ * their accents, because that is how people actually type them.
+ */
 export const TEXT_STICKERS: TextSticker[] = [
   {
     id: "food",
     kind: "text",
     label: { fr: "Le buffet", en: "The food" },
-    text: { fr: "JE VIENS POUR LE BUFFET", en: "HERE FOR THE FOOD" },
+    text: { fr: "#JeViensPourLeBuffet", en: "#HereForTheFood" },
     fill: YELLOW,
+  },
+  {
+    id: "network",
+    kind: "text",
+    label: { fr: "Réseauter", en: "Networking" },
+    text: { fr: "#JeViensReseauter", en: "#GrowMyNetwork" },
+    fill: BLUE,
   },
   {
     id: "sideproject",
     kind: "text",
     label: { fr: "Side project", en: "Side project" },
-    text: {
-      fr: "PARLE-MOI DE MON SIDE PROJECT",
-      en: "ASK ME ABOUT MY SIDE PROJECT",
-    },
-    fill: BLUE,
+    text: { fr: "#ParleMoiDeMonProjet", en: "#AskMeAboutMySideProject" },
+    fill: RED,
   },
   {
     id: "first",
     kind: "text",
     label: { fr: "Première fois", en: "First time" },
-    text: { fr: "MON PREMIER DEVFEST", en: "MY FIRST DEVFEST" },
+    text: { fr: "#MonPremierDevFest", en: "#MyFirstDevFest" },
     fill: GREEN,
   },
   {
     id: "build",
     kind: "text",
     label: { fr: "On construit", en: "Let's build" },
-    text: { fr: "ON CONSTRUIT QUELQUE CHOSE", en: "LET'S BUILD SOMETHING" },
-    fill: RED,
+    text: { fr: "#OnConstruitQuelqueChose", en: "#LetsBuildSomething" },
+    fill: "#FFD427",
+  },
+  {
+    id: "coffee",
+    kind: "text",
+    label: { fr: "Café d'abord", en: "Coffee first" },
+    text: { fr: "#DAbordLeCafe", en: "#CoffeeFirst" },
+    fill: PAPER,
   },
   {
     id: "gdg",
     kind: "text",
     label: { fr: "GDG Yaoundé", en: "GDG Yaoundé" },
-    text: { fr: "GDG YAOUNDÉ", en: "GDG YAOUNDÉ" },
-    fill: PAPER,
+    text: { fr: "#GDGYaounde", en: "#GDGYaounde" },
+    fill: BLUE,
   },
   {
     id: "seeyou",
     kind: "text",
     label: { fr: "On s'y voit", en: "See you there" },
-    text: { fr: "ON S'Y VOIT", en: "SEE YOU THERE" },
-    fill: "#FFD427",
+    text: { fr: "#OnSeVoitLaBas", en: "#SeeYouThere" },
+    fill: YELLOW,
   },
 ];
 
-export const ALL_STICKERS: Sticker[] = [...SHAPE_STICKERS, ...TEXT_STICKERS];
+export const ALL_STICKERS: Sticker[] = [
+  ...SHAPE_STICKERS,
+  ...TECH_STICKERS,
+  ...TEXT_STICKERS,
+];
 
 export function findSticker(id: string): Sticker | undefined {
   return ALL_STICKERS.find((s) => s.id === id);
@@ -239,3 +348,8 @@ export const STICKER_MIN_SCALE = 0.45;
 export const STICKER_MAX_SCALE = 2.4;
 /** Base size of a shape sticker, as a fraction of the card's short edge. */
 export const STICKER_BASE = 0.2;
+
+/** The sticker's own name, for the "selected" readout. */
+export function stickerName(id: string, locale: "fr" | "en"): string {
+  return findSticker(id)?.label[locale] ?? id;
+}

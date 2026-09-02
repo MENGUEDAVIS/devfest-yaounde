@@ -35,6 +35,8 @@ import { dpFileName } from "@/lib/dp/compose";
 import { shareCaption } from "@/lib/dp/share";
 import { eventDates, eventJsonLd, organizationJsonLd } from "@/lib/event";
 import { layoutCard, PAD, PLATE_INSET } from "@/lib/dp/geometry";
+import { ALL_STICKERS, TEXT_STICKERS, stickerName } from "@/lib/dp/stickers";
+import { galleryEnabled, GALLERY_MAX_EDGE } from "@/lib/dp/gallery";
 
 const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
@@ -460,6 +462,49 @@ describe("event structured data", () => {
     assert.equal(org["@type"], "Organization");
     assert.equal(org.name, "GDG Yaoundé");
     assert.ok(org.url.startsWith("https://"));
+  });
+});
+
+describe("dp stickers", () => {
+  it("keeps every word sticker to one hashtag token", () => {
+    for (const sticker of TEXT_STICKERS) {
+      for (const locale of ["fr", "en"] as const) {
+        const text = sticker.text[locale];
+        assert.ok(text.startsWith("#"), `${sticker.id}/${locale}: ${text}`);
+        // A hashtag breaks at the first space, so a multi-word phrase would
+        // silently post as one word plus loose text.
+        assert.ok(
+          !/\s/.test(text),
+          `${sticker.id}/${locale} has a space: ${text}`,
+        );
+      }
+    }
+  });
+
+  it("gives every sticker a distinct id", () => {
+    const ids = ALL_STICKERS.map((s) => s.id);
+    assert.equal(new Set(ids).size, ids.length);
+  });
+
+  it("names every sticker in both languages", () => {
+    for (const sticker of ALL_STICKERS) {
+      for (const locale of ["fr", "en"] as const) {
+        assert.ok(stickerName(sticker.id, locale).length > 0);
+      }
+    }
+  });
+});
+
+describe("dp community wall", () => {
+  it("is off unless the deployment switches it on", () => {
+    // The endpoint does not exist (GAPS.md G20). Dark by default is what
+    // keeps a button that would quietly fail off the screen entirely.
+    assert.equal(process.env.NEXT_PUBLIC_DP_GALLERY, undefined);
+    assert.equal(galleryEnabled(), false);
+  });
+
+  it("uploads a thumbnail, not the download", () => {
+    assert.ok(GALLERY_MAX_EDGE < 1080);
   });
 });
 

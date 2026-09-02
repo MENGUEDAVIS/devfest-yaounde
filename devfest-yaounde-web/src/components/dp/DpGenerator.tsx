@@ -2,12 +2,14 @@
 
 import {
   ArrowClockwise,
+  ClipboardText,
   DownloadSimple,
   ImageSquare,
   InstagramLogo,
   LinkedinLogo,
   ShareNetwork,
   Trash,
+  UsersThree,
   Warning,
   WhatsappLogo,
   XLogo,
@@ -49,11 +51,18 @@ import {
 } from "@/lib/dp/frames";
 import {
   SHAPE_STICKERS,
+  stickerName,
   STICKER_MAX_SCALE,
   STICKER_MIN_SCALE,
+  TECH_STICKERS,
   TEXT_STICKERS,
   type PlacedSticker,
 } from "@/lib/dp/stickers";
+import {
+  galleryEnabled,
+  GallerySubmitError,
+  submitToGallery,
+} from "@/lib/dp/gallery";
 import {
   canShareImage,
   composerUrl,
@@ -82,9 +91,10 @@ const LOOKS: DpLook[] = [
   "mono",
   "chromatic",
   "poster",
+  "pixel",
 ];
 const EDGES: DpEdge[] = ["clean", "torn", "brush"];
-const TEXTURES = ["grain", "paper", "vignette", "warp"] as const;
+const TEXTURES = ["grain", "paper", "vignette", "warp", "lens"] as const;
 const RATIOS: DpRatio[] = ["1:1", "3:4"];
 const CORNERS: DpCorners[] = ["rounded", "square", "mixed"];
 /** The most stickers one card can carry before it is just noise. */
@@ -99,7 +109,16 @@ const NETWORK_ICONS: Record<ShareTarget, typeof WhatsappLogo> = {
 
 type ErrorCode = DpImageError["code"];
 type Notice =
-  "shared" | "copied" | "unavailable" | "downloaded" | "failed" | "attach";
+  | "shared"
+  | "copied"
+  | "unavailable"
+  | "downloaded"
+  | "failed"
+  | "attach"
+  | "wallSent"
+  | "gallery_rate_limited"
+  | "gallery_rejected"
+  | "gallery_failed";
 
 const subscribeNoop = () => () => {};
 
@@ -147,7 +166,9 @@ export function DpGenerator() {
   const [exportSize, setExportSize] = useState(DP_SIZE);
   const [error, setError] = useState<ErrorCode | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const [busy, setBusy] = useState<"download" | "share" | null>(null);
+  const [busy, setBusy] = useState<"download" | "share" | "wall" | null>(null);
+  const [wallConsent, setWallConsent] = useState(false);
+  const [wallSent, setWallSent] = useState(false);
   const [dropping, setDropping] = useState(false);
   const [tab, setTab] = useState<Group>("info");
   const [sheetOpen, setSheetOpen] = useState(true);
@@ -338,6 +359,44 @@ export function DpGenerator() {
   }
 
   /**
+   * Send this card to the community wall.
+   *
+   * Gated twice: the wall has to be switched on for the deployment at all,
+   * and the person has to tick the box on THIS card. Neither is remembered
+   * between cards — consent to publish one picture of your face is not
+   * consent to publish the next one.
+   */
+  async function onSendToWall() {
+    if (!wallConsent) return;
+    setBusy("wall");
+    setNotice(null);
+    const blob = await render();
+    if (blob) {
+      try {
+        await submitToGallery({ card: blob, nickname, locale: lang });
+        setWallSent(true);
+        setWallConsent(false);
+        setNotice("wallSent");
+      } catch (err) {
+        setNotice(
+          err instanceof GallerySubmitError && err.code !== "gallery_disabled"
+            ? err.code
+            : "gallery_failed",
+        );
+      }
+    }
+    setBusy(null);
+  }
+
+  /** The caption on its own, for when only the words are wanted. */
+  async function onCopyCaption() {
+    setBusy("share");
+    setNotice(null);
+    setNotice(await copyCaption(lang));
+    setBusy(null);
+  }
+
+  /**
    * The desktop path, and the honest one.
    *
    * No web API can attach an image to a post for you, so this does the three
@@ -368,9 +427,21 @@ export function DpGenerator() {
       })
     : t("preview.labelAnonymous", { frame: frame.label[lang] });
 
+  /* Two namespaces: `errors.dp.*` is the shared vocabulary for what a share
+     did (or could not do), `status.*` is this screen's own. The wall's
+     outcomes are this screen's, since nothing else can produce them. */
+  const WALL_NOTICES = [
+    "wallSent",
+    "gallery_rate_limited",
+    "gallery_rejected",
+    "gallery_failed",
+  ];
   const noticeText = !notice
     ? ""
-    : notice === "downloaded" || notice === "failed" || notice === "attach"
+    : notice === "downloaded" ||
+        notice === "failed" ||
+        notice === "attach" ||
+        WALL_NOTICES.includes(notice)
       ? t(`status.${notice}`)
       : tError(notice);
 
@@ -712,9 +783,6 @@ export function DpGenerator() {
                       />
                     ))}
                   </div>
-                  <p className="mt-2 max-w-md text-caption text-black02/70">
-                    {t("badges.hint")}
-                  </p>
                 </Group>
 
                 {/* ============ 03 — effects ============ */}
@@ -800,6 +868,19 @@ export function DpGenerator() {
                     ))}
                   </div>
 
+                  <Legend className="mt-6">{t("stickers.tech")}</Legend>
+                  <div className="flex flex-wrap gap-2.5">
+                    {TECH_STICKERS.map((s) => (
+                      <StickerChip
+                        key={s.id}
+                        stickerId={s.id}
+                        label={s.label[lang]}
+                        locale={lang}
+                        onAdd={() => addSticker(s.id)}
+                      />
+                    ))}
+                  </div>
+
                   <Legend className="mt-6">{t("stickers.words")}</Legend>
                   <div className="flex flex-wrap gap-2.5">
                     {TEXT_STICKERS.map((s) => (
@@ -822,8 +903,13 @@ export function DpGenerator() {
 
                   {selectedSticker ? (
                     <div className="mt-5 rounded-lg border-2 border-black02 bg-pastel p-4">
+                      {/* Naming it is the only feedback that says which of
+                          twelve the sliders are about to move. */}
                       <p className="font-sans text-body-m font-bold text-black02">
-                        {t("stickers.selected")}
+                        {t("stickers.selected")}{" "}
+                        <span className="rounded-pill border-2 border-black02 bg-offwhite px-2.5 py-0.5 font-mono text-mono-tag uppercase">
+                          {stickerName(selectedSticker.stickerId, lang)}
+                        </span>
                       </p>
                       <label className="mt-3 flex items-center gap-3">
                         <span className="w-20 shrink-0 font-mono text-mono-tag font-bold uppercase text-black02">
@@ -927,7 +1013,62 @@ export function DpGenerator() {
                         ? t("actions.sharing")
                         : t("actions.share")}
                     </button>
+                    {/* The caption on its own. Share hands over the image and
+                        the words together where the browser allows it; this is
+                        for the times you only want the words — pasting into a
+                        post you have already started, or a caption box that
+                        takes no attachment. */}
+                    <button
+                      type="button"
+                      onClick={() => void onCopyCaption()}
+                      disabled={busy !== null}
+                      className="inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 px-7 py-3 font-sans text-body-m font-bold text-black02 hover:bg-halftone disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <ClipboardText size={18} weight="bold" aria-hidden />
+                      {t("actions.copyCaption")}
+                    </button>
                   </div>
+
+                  {/* THE ONE WAY A CARD LEAVES THE DEVICE.
+                      Rendered only where the wall is switched on, so nothing
+                      here is a button that quietly does nothing — and gated
+                      on a box that is unticked every time, because a face on
+                      a public page is not somewhere to end up by accident. */}
+                  {galleryEnabled() && (
+                    <div className="mt-6 rounded-lg border-2 border-black02 bg-pastel p-5">
+                      <p className="font-sans text-body-l font-bold text-black02">
+                        {t("wall.title")}
+                      </p>
+                      <p className="mt-2 text-body-m text-black02/80">
+                        {t("wall.body")}
+                      </p>
+                      <label className="mt-4 flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={wallConsent}
+                          onChange={(e) => setWallConsent(e.target.checked)}
+                          className="mt-0.5 h-5 w-5 shrink-0 rounded-sm border-2 border-black02 accent-[var(--color-primary)]"
+                        />
+                        <span className="text-body-m font-bold text-black02">
+                          {t("wall.consent")}
+                        </span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => void onSendToWall()}
+                        disabled={!photo || !wallConsent || busy !== null}
+                        className="mt-4 inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-6 py-3 font-sans text-body-m font-bold text-black02 hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <UsersThree size={18} weight="bold" aria-hidden />
+                        {busy === "wall" ? t("wall.sending") : t("wall.send")}
+                      </button>
+                      {wallSent && (
+                        <p className="mt-3 text-body-m font-bold text-black02">
+                          {t("wall.pending")}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Only where the browser CANNOT put the image in a share
                       sheet. Where it can, one tap already does the whole job

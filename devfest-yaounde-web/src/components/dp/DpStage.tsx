@@ -403,7 +403,10 @@ export function DpStage({
     >
       <canvas
         ref={canvasRef}
-        className={`w-full touch-none ${corners === "square" ? "" : "rounded-lg"}`}
+        /* Only the fully-rounded card gets a rounded ELEMENT. "mixed" draws a
+           square outer edge, and a rounded canvas element was clipping its own
+           corners off — the card looked rounded no matter what was drawn. */
+        className={`w-full touch-none ${corners === "rounded" ? "rounded-lg" : ""}`}
         style={{
           aspectRatio: ratio === "3:4" ? "3 / 4" : "1 / 1",
           transform: calm

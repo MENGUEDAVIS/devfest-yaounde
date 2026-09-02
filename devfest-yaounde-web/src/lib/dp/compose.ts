@@ -86,7 +86,7 @@ export const DEFAULT_TRANSFORM: DpTransform = {
 
 /** The photo treatment. One at a time — these are alternatives, not layers. */
 export type DpLook =
-  "none" | "duotone" | "halftone" | "mono" | "chromatic" | "poster";
+  "none" | "duotone" | "halftone" | "mono" | "chromatic" | "poster" | "pixel";
 
 /** How the photo's edge meets the card. */
 export type DpEdge = "clean" | "torn" | "brush";
@@ -102,6 +102,8 @@ export interface DpEffects {
   paper: boolean;
   /** A gentle horizontal ripple, like a misfed print. */
   warp: boolean;
+  /** A magnifying glass over one corner of the photo. */
+  lens: boolean;
 }
 
 export const DEFAULT_EFFECTS: DpEffects = {
@@ -111,6 +113,7 @@ export const DEFAULT_EFFECTS: DpEffects = {
   vignette: false,
   paper: false,
   warp: false,
+  lens: false,
 };
 
 export interface DpComposeInput {
@@ -308,7 +311,107 @@ function geometricPass(
       dst[i + 3] = sample(sx, y, 3);
     }
   }
+
   ctx.putImageData(image, 0, 0);
+}
+
+/**
+ * Pixel art: average each block and flood it back.
+ *
+ * The block is a FRACTION of the render, not a fixed number of pixels, so the
+ * preview and the 2160 export show the same picture — a fixed 8px block would
+ * be chunky on screen and invisible in the file.
+ */
+function pixelate(image: ImageData, w: number, h: number) {
+  const px = image.data;
+  const block = Math.max(3, Math.round(w / 40));
+  for (let by = 0; by < h; by += block) {
+    for (let bx = 0; bx < w; bx += block) {
+      const maxX = Math.min(bx + block, w);
+      const maxY = Math.min(by + block, h);
+      let r = 0,
+        g = 0,
+        b = 0,
+        n = 0;
+      for (let y = by; y < maxY; y++) {
+        for (let x = bx; x < maxX; x++) {
+          const i = (y * w + x) * 4;
+          r += px[i];
+          g += px[i + 1];
+          b += px[i + 2];
+          n++;
+        }
+      }
+      if (!n) continue;
+      r = Math.round(r / n);
+      g = Math.round(g / n);
+      b = Math.round(b / n);
+      for (let y = by; y < maxY; y++) {
+        for (let x = bx; x < maxX; x++) {
+          const i = (y * w + x) * 4;
+          px[i] = r;
+          px[i + 1] = g;
+          px[i + 2] = b;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * A magnifying glass held over the photo.
+ *
+ * Drawn AFTER every other treatment, from the treated pixels, so the lens
+ * magnifies what is actually on the card rather than the original photograph
+ * — a duotone card shows a duotone lens. The rim and the stub of a handle are
+ * what make it read as a magnifier rather than as a bubble.
+ */
+function drawLens(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement | OffscreenCanvas,
+  w: number,
+  h: number,
+) {
+  const r = Math.min(w, h) * 0.26;
+  const cx = w * 0.7;
+  const cy = h * 0.32;
+  const zoom = 1.9;
+  const ink = "#1E1E1E";
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.clip();
+  /* Scale about the lens centre: the point under the glass stays under it. */
+  ctx.translate(cx, cy);
+  ctx.scale(zoom, zoom);
+  ctx.translate(-cx, -cy);
+  ctx.drawImage(canvas as CanvasImageSource, 0, 0);
+  ctx.restore();
+
+  ctx.save();
+  ctx.lineCap = "round";
+  // Handle first, so the rim sits over where they meet.
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = Math.max(3, r * 0.19);
+  ctx.beginPath();
+  const a = Math.PI * 0.28;
+  ctx.moveTo(cx - Math.cos(a) * r * 0.96, cy + Math.sin(a) * r * 0.96);
+  ctx.lineTo(cx - Math.cos(a) * r * 1.5, cy + Math.sin(a) * r * 1.5);
+  ctx.stroke();
+
+  ctx.lineWidth = Math.max(3, r * 0.13);
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // A single glint, so the circle reads as glass.
+  ctx.strokeStyle = "rgba(255,255,255,0.75)";
+  ctx.lineWidth = Math.max(2, r * 0.07);
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.74, Math.PI * 1.05, Math.PI * 1.42);
+  ctx.stroke();
+  ctx.restore();
 }
 
 /**
@@ -326,7 +429,13 @@ function colourPass(
     effects.look === "duotone" ||
     effects.look === "mono" ||
     effects.look === "poster";
-  if (!wantsColour && !effects.grain && !effects.vignette && !effects.paper) {
+  if (
+    !wantsColour &&
+    !effects.grain &&
+    !effects.vignette &&
+    !effects.paper &&
+    effects.look !== "pixel"
+  ) {
     return;
   }
 
@@ -407,6 +516,8 @@ function colourPass(
     px[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
     px[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
   }
+  if (effects.look === "pixel") pixelate(image, w, h);
+
   ctx.putImageData(image, 0, 0);
 }
 
@@ -519,6 +630,7 @@ function renderPhotoLayer(
     );
   }
   colourPass(ctx, w, h, effects, frame);
+  if (effects.lens) drawLens(ctx, canvas, w, h);
   applyEdge(ctx, w, h, radius, effects.edge, frame.id);
   return canvas;
 }
