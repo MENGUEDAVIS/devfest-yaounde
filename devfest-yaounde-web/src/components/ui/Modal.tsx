@@ -213,6 +213,22 @@ export function Modal({
 
   return createPortal(
     <div
+      /*
+       * LENIS MUST KEEP ITS HANDS OFF EVERYTHING IN HERE.
+       *
+       * `lockScroll()` calls `lenis.stop()`, and a stopped Lenis does not go
+       * quiet — it keeps its wheel listener and calls `preventDefault()` on
+       * every wheel event it sees, which is how it holds the page still. That
+       * also swallowed wheel events over the overlay, so a scrollable drawer
+       * could only be moved by dragging its scrollbar. Measured: the panel's
+       * scrollTop never left 0 under a 3000px wheel.
+       *
+       * `data-lenis-prevent` is checked BEFORE the stopped branch, so this
+       * hands the whole overlay back to native scrolling. The page behind
+       * cannot escape either way — it is held by `overflow: hidden` on both
+       * <html> and <body>, not by Lenis.
+       */
+      data-lenis-prevent
       className={
         takeover
           ? // Covers EVERYTHING, navbar included. z-100 clears the chrome
@@ -262,7 +278,19 @@ export function Modal({
                 ? // Wider than the filter drawer — it carries an image and a
                   // description, not a list of chips. Same edge logic,
                   // mirrored: rounded only on the side that shows.
-                  `anim-drawer-right relative flex h-full w-[min(34rem,94vw)] flex-col overflow-y-auto rounded-l-lg border-y-2 border-l-2 border-black02 bg-offwhite ${className}`
+                  //
+                  // FULL-BLEED ON A PHONE (PHASE15 §1). At `min(34rem,94vw)`
+                  // it left a 6% sliver of scrim down one side, which reads as
+                  // a misaligned panel rather than a deliberate margin; at
+                  // phone width there is no room to spare for it either. The
+                  // left edge keeps its radius and border, so the sheet still
+                  // has an edge and no corner is sharp.
+                  //
+                  // `overflow-hidden` with the body scrolling INSIDE, so the
+                  // close button stays pinned. It used to scroll away with
+                  // the content, which on a long product left no way out but
+                  // Escape or a scroll back up.
+                  `anim-drawer-right relative flex h-full w-full flex-col overflow-hidden rounded-l-lg border-y-2 border-l-2 border-black02 bg-offwhite sm:w-[min(34rem,94vw)] ${className}`
                 : `${modalPopIn} relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-offwhite p-6 sm:p-8 ${className}`
         }
       >
@@ -280,7 +308,11 @@ export function Modal({
         >
           <X size={20} weight={takeover ? "bold" : "regular"} />
         </button>
-        {children}
+        {drawerRight ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        ) : (
+          children
+        )}
       </div>
     </div>,
     document.body,

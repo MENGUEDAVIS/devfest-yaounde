@@ -1,4 +1,19 @@
 /**
+ * The canonical origin. Everything that has to name the site — canonical
+ * tags, hreflang alternates, OG/Twitter URLs, the sitemap, robots.txt and the
+ * DP generator's share caption — reads it from here, so the domain is one
+ * edit rather than a hunt through metadata blocks.
+ *
+ * The env var still wins, because a preview deployment should describe
+ * itself; the constant is the fallback and the production answer.
+ */
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_APP_BASE_URL ?? "https://devfest.gdgyaounde.com";
+
+/** The same origin without its scheme — for copy that shows a URL to a human. */
+export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+/**
  * Placeholder external links for global chrome. None of these have been
  * supplied yet — replace with the real URLs before launch. Centralized here
  * so they're a one-line edit instead of a hunt through JSX.

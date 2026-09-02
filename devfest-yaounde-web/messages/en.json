@@ -306,7 +306,12 @@
       "fulfilmentBody": "We'll coordinate pickup or delivery with you after checkout — the team gets in touch once the order is in.",
       "returnsTitle": "Returns and exchanges",
       "returnsBody": "We don't refund a change of mind. But if something arrives damaged, faulty or simply isn't what you ordered, we'll replace it — and apparel can be exchanged for a different size while stock lasts. Just get in touch, or find us at the next event.",
-      "returnsAck": "I understand: no refunds for a change of mind, and exchanges are handled directly with the team."
+      "returnsAck": "I understand: no refunds for a change of mind, and exchanges are handled directly with the team.",
+      "bagCount": "{count, plural, one {# item} other {# items}}",
+      "emptyAll": "Empty bag",
+      "emptyAllConfirm": "Clear the whole bag?",
+      "emptyAllYes": "Yes, empty it",
+      "emptyAllCancel": "Keep it"
     },
     "dpGenerator": {
       "title": "DP Generator",

@@ -306,7 +306,12 @@
       "fulfilmentBody": "On organise le retrait ou la livraison avec toi après la commande — l'équipe te contacte dès qu'elle arrive.",
       "returnsTitle": "Retours et échanges",
       "returnsBody": "On ne rembourse pas un changement d'avis. En revanche, si un article arrive abîmé, défectueux ou ne correspond pas à ta commande, on le remplace — et les vêtements peuvent être échangés contre une autre taille, dans la limite des stocks. Écris-nous, ou retrouve-nous au prochain événement.",
-      "returnsAck": "J'ai compris : pas de remboursement en cas de changement d'avis, et les échanges se règlent directement avec l'équipe."
+      "returnsAck": "J'ai compris : pas de remboursement en cas de changement d'avis, et les échanges se règlent directement avec l'équipe.",
+      "bagCount": "{count, plural, one {# article} other {# articles}}",
+      "emptyAll": "Vider le panier",
+      "emptyAllConfirm": "Tout retirer du panier ?",
+      "emptyAllYes": "Oui, vider",
+      "emptyAllCancel": "Garder"
     },
     "dpGenerator": {
       "title": "Générateur de DP",

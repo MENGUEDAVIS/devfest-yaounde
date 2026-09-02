@@ -55,9 +55,10 @@ export function ShopCheckout({ products }: { products: Product[] }) {
   const te = useTranslations("errors.checkout");
   const locale = useLocale();
   const { profile, loading: sessionLoading } = useSession();
-  const { lines, setQuantity, remove, count } = useCart();
+  const { lines, setQuantity, remove, clear, count } = useCart();
 
   const [step, setStep] = useState<Step>("bag");
+  const [confirmingEmpty, setConfirmingEmpty] = useState(false);
   const [discountCode, setDiscountCode] = useState("");
   const [discountOpen, setDiscountOpen] = useState(false);
   const [discountApplied, setDiscountApplied] = useState(false);
@@ -192,6 +193,54 @@ export function ShopCheckout({ products }: { products: Product[] }) {
                 </p>
               )}
             </div>
+          </div>
+        )}
+
+        {step === "bag" && (
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+              {t("bagCount", { count })}
+            </p>
+            {/*
+              Emptying the bag is one click away and undoable by nobody, so it
+              asks first — but in place, not in a modal. A dialog for "are you
+              sure" over three t-shirts is heavier than the action deserves;
+              swapping the button for its own confirmation is enough friction
+              to stop a mis-tap, and "Keep it" is right there.
+            */}
+            {confirmingEmpty ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-body-m font-bold text-black02">
+                  {t("emptyAllConfirm")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    clear();
+                    setConfirmingEmpty(false);
+                  }}
+                  className="rounded-pill border-2 border-danger bg-danger-pastel px-4 py-1.5 font-sans text-body-m font-bold text-danger"
+                >
+                  {t("emptyAllYes")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingEmpty(false)}
+                  className="rounded-pill border-2 border-black02 px-4 py-1.5 font-sans text-body-m font-bold text-black02 hover:bg-pastel"
+                >
+                  {t("emptyAllCancel")}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmingEmpty(true)}
+                className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 px-4 py-1.5 font-sans text-body-m font-bold text-black02 transition-colors hover:bg-danger-pastel hover:text-danger"
+              >
+                <Trash size={16} weight="bold" aria-hidden />
+                {t("emptyAll")}
+              </button>
+            )}
           </div>
         )}
 

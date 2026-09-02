@@ -106,7 +106,10 @@ export function BottomSheet({
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-100">
+    /* `data-lenis-prevent` for the same reason as `Modal` — a stopped Lenis
+       still preventDefaults wheel events, which would freeze the sheet's own
+       scrolling body along with the page. */
+    <div data-lenis-prevent className="fixed inset-0 z-100">
       <div
         aria-hidden
         onClick={onClose}
