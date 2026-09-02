@@ -4,7 +4,13 @@
  * so they're a one-line edit instead of a hunt through JSX.
  * See docs/guides/updating-global-chrome.md.
  */
-export const BEVY_URL = "#"; // TODO: real GDG Yaoundé Bevy chapter URL
+/**
+ * The chapter's event page. The free (HAIKYU) pass is an RSVP there rather
+ * than a purchase here — the platform already enforces one free RSVP per
+ * person, which is the reason that tier is not sold on this site.
+ */
+export const BEVY_URL =
+  "https://gdg.community.dev/events/details/google-gdg-yaounde-presents-devfest-yaounde-2026/cohost-gdg-yaounde/";
 
 export const SOCIAL_LINKS = {
   x: "#",

@@ -155,6 +155,18 @@
     }
   },
   {
+    "id": "faq-shop-returns",
+    "category": "shop",
+    "question": {
+      "fr": "Puis-je retourner ou échanger un article ?",
+      "en": "Can I return or exchange an item?"
+    },
+    "answer": {
+      "fr": "Pas pour l'instant : comme les billets, les commandes de la boutique ne sont ni remboursables ni annulables une fois payées. Si un article arrive abîmé ou n'est pas celui que tu as commandé, écris-nous — ça, on le règle.",
+      "en": "Not for now: like tickets, shop orders are non-refundable and non-cancellable once paid. If something arrives damaged or isn't what you ordered, write to us — that we'll sort out."
+    }
+  },
+  {
     "id": "faq-conduct",
     "category": "code-of-conduct",
     "question": {

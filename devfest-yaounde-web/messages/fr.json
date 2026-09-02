@@ -259,7 +259,55 @@
     },
     "shop": {
       "title": "Boutique",
-      "placeholder": "La boutique arrive bientôt."
+      "lead": "Le merch DevFest Yaoundé — avant l'événement, pendant, et longtemps après. Paiement Mobile Money.",
+      "bagTitle": "Ton panier",
+      "bag": "Panier",
+      "results": "{count} articles",
+      "noResults": "Rien ne correspond. Essaie une autre recherche.",
+      "searchPlaceholder": "Rechercher dans la boutique",
+      "searchLabel": "Rechercher un article",
+      "availability": "Disponibilité",
+      "allItems": "Tout",
+      "status": {
+        "in-stock": "En stock",
+        "pre-order": "Précommande",
+        "venue-only": "Sur place",
+        "sold-out": "Épuisé"
+      },
+      "unbuyable": {
+        "venue-only": "Vendu uniquement sur place — viens nous voir le jour J.",
+        "sold-out": "Épuisé. S'il y a un réassort, il apparaîtra ici.",
+        "in-stock": "",
+        "pre-order": ""
+      },
+      "backToShop": "Retour à la boutique",
+      "size": "Taille",
+      "colour": "Couleur",
+      "quantity": "Quantité",
+      "decrease": "Diminuer la quantité",
+      "increase": "Augmenter la quantité",
+      "removeLine": "Retirer cet article",
+      "addToBag": "Ajouter au panier",
+      "addedToBag": "Ajouté",
+      "addedHint": "C'est dans ton panier.",
+      "viewBag": "Voir le panier",
+      "pickSizeFirst": "Choisis d'abord une taille.",
+      "viewImage": "Voir l'image {n}",
+      "emptyBagTitle": "Ton panier est bien léger",
+      "emptyBagBody": "Rien dedans pour l'instant. Le merch est juste là, et il ne mord pas.",
+      "browseShop": "Voir la boutique",
+      "keepShopping": "Continuer mes achats",
+      "lineUnavailable": "Cet article n'est plus disponible — retire-le pour continuer.",
+      "steps": {
+        "bag": "Ton panier",
+        "payment": "Paiement"
+      },
+      "fulfilmentTitle": "Comment veux-tu le récupérer ?",
+      "pickup": "Retrait sur place",
+      "pickupHint": "Tu le récupères auprès de nous le jour J.",
+      "delivery": "Livraison",
+      "deliveryHint": "On l'organise avec toi après la commande.",
+      "fulfilmentPending": "Les zones de livraison et les horaires de retrait sont encore en cours de définition : l'équipe confirmera les détails avec toi directement."
     },
     "dpGenerator": {
       "title": "Générateur de photo de profil",

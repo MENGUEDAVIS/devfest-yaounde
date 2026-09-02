@@ -285,14 +285,80 @@ person by the database itself.
 
 ## 8. Shop Page (`/shop`)
 
-- **Standalone and evergreen** — live before, during, and after the event, independent of ticket sale windows.
-- **Product grid**: big imagery (mockups get to shine here, per your note), each product shows a status pill: `Pre-order`, `In Stock`, `Available at venue only`, `Sold Out` — always paired with text, never color alone (DESIGN.md §2.6).
-- Product detail: variant selection (size/color where applicable), quantity, add to cart.
-- **Checkout reuses the Tickets payment layout/components** — same steps pattern (cart → details → discount code → payment → confirmation), same shared login/account.
-- **Image protection**: disable right-click context menu and text/image selection via CSS (`user-select: none`, `pointer-events` tricks) and a `contextmenu` JS handler on product images. Worth setting expectations here — this deters casual copying but isn't a hard technical barrier (screenshots always remain possible); if stronger protection matters, a visible watermark on preview images is the more reliable option.
-- **Order tracking**: "My Orders" in the shared account dashboard — status per item (processing, ready for pickup, shipped, etc.).
+> **Built in Phase 14 Part B** against the real backend. Contract in
+> `docs/guides/frontend-integration.md`; what is wired versus pending in
+> `docs/backend/GAPS.md`.
 
----
+**Evergreen.** The shop runs before, during and after the event — no copy
+assumes the event is still upcoming.
+
+### 8.1 Catalog (`/shop`)
+
+Products come from `src/data/products.json`, which is also what the server
+prices against by id, so display and charge cannot drift.
+
+Every card carries a **status pill — text + Phosphor icon + colour, never
+colour alone** (DESIGN.md §2.6):
+
+| `status`     | Pill         | Buyable |
+| ------------ | ------------ | ------- |
+| `in-stock`   | In stock     | yes     |
+| `pre-order`  | Pre-order    | yes     |
+| `venue-only` | At the venue | **no**  |
+| `sold-out`   | Sold out     | **no**  |
+
+The last two are enforced server-side too, so a stale tab cannot buy them.
+
+**Filtering is by availability and search, not category** — the product model
+has no `category` field, and inventing one client-side would filter on data the
+server does not have (GAPS.md G11). It uses the **shared filter component**, so
+`/shop` gets the same four surfaces as the content pages: margin rail on very
+large screens, floating push panel on laptops, capped sheet on tablet,
+full-width sheet on mobile.
+
+### 8.2 Product (`/shop/[product]`)
+
+Large imagery, variant selection, quantity, add-to-bag, live status.
+
+**Availability is per PRODUCT, not per variant** — the catalog has one status
+per product and no per-variant stock (GAPS.md G12). Rather than greying out
+individual sizes on a guess, an unbuyable product disables the whole control
+set and says why. A sized product will not add to the bag until a size is
+chosen, because the server rejects it otherwise.
+
+**Image protection** — no context menu, no dragging, no selection, confined to
+product imagery. It is a **soft deterrent and nothing more**: the file is still
+in the network tab and a screenshot takes one keystroke. §8 already settles
+this; the documented stronger option is a watermark.
+
+### 8.3 Bag and checkout (`/shop/cart`)
+
+**This is the ticket checkout**, not a second one. The step chrome, the sticky
+order summary with its inline discount field, and the whole payment step —
+Mobile Money only, the phone field, the refund acknowledgment that gates the
+pay button — are shared components under `src/components/checkout/`. What
+differs is genuinely different: line items are products with variants rather
+than attendees with names.
+
+Fewer steps than tickets (**Your bag → Payment**), deliberately: a bag needs no
+per-person details.
+
+- **The bag is device-local.** There is no server cart — checkout posts the
+  whole basket in one request — so it lives in `localStorage`, survives reload,
+  syncs between tabs, and does not follow you to another device (GAPS.md G15).
+- **Pickup vs delivery** is offered, and **not sent**: the order's `fulfilment`
+  column is organiser-set only, and logistics are still open anyway (G13). The
+  copy says the team will confirm rather than implying it was recorded.
+- **Non-refundable, with the same required acknowledgment** as tickets. Whether
+  physical goods deserve a different stance is flagged, not decided — see
+  `docs/content/refund-policy.md` and G14.
+
+### 8.4 Orders
+
+`/account` → **My Orders**, shared with tickets: real status
+(`processing` / `ready_for_pickup` / `shipped` / `delivered` / `cancelled`),
+line items, and totals. Items use the order's `name_snapshot`, not a catalog
+lookup, so a past order still reads correctly after the catalog changes.
 
 ## 9. DP Generator (`/dp-generator` or standalone subdomain)
 

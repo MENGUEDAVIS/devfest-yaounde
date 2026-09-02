@@ -27,15 +27,30 @@ to hunt for is a dark pattern.
 
 ## What is NOT enforced server-side
 
-**The acknowledgment is a client-side gate only.** There is no field for it in
-`ticketCheckoutSchema`, so a request posted directly to `/api/checkout/tickets`
-succeeds without it. That is recorded as gap **G9** in
-`docs/backend/GAPS.md`.
+**The acknowledgment is a client-side gate only**, for tickets and shop
+alike. There is no field for it in either checkout schema, so a request posted
+directly to the API succeeds without it. Recorded as **G9** (tickets) and
+**G14** (shop) in `docs/backend/GAPS.md`.
 
 This matters if the acknowledgment is ever needed as evidence of consent. As a
 UI affordance it does its job; as a legal record it does not exist. Deciding
 whether that is enough is a question for whoever owns the policy, not a bug to
 be quietly patched in the frontend.
+
+## Goods are not tickets — this is worth a second look
+
+The same policy currently covers **shop orders**, and that is a copy decision
+rather than a settled one. A non-refundable rule is ordinary for an event
+ticket, whose value is the seat on the day. It is unusual for a physical
+product, where the normal expectation is a return window, and where "the wrong
+size arrived" is a different situation from "I changed my mind about coming".
+
+The FAQ (`faq-shop-returns`) currently says damaged or incorrect items are
+sorted out directly, which covers the worst case — but there is no stated
+exchange window for a size that does not fit, and apparel is most of the
+catalog.
+
+**This is flagged, not decided.** Recorded as gap **G14**.
 
 ## If this changes
 

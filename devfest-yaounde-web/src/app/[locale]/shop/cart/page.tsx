@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { ShopBrowser } from "@/components/shop/ShopBrowser";
+import { ShopCheckout } from "@/components/shop/ShopCheckout";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import products from "@/data/products.json";
@@ -12,20 +12,12 @@ export async function generateMetadata({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.shop" });
-  return { title: t("title"), description: t("lead") };
+  // Someone's bag has no business in a search index.
+  return { title: t("bagTitle"), robots: { index: false, follow: false } };
 }
 
-/**
- * `/{locale}/shop` — the catalog (PAGES.md §8).
- *
- * Products come from `src/data/products.json`, which is also what the server
- * prices against by id — so what is displayed and what is charged cannot
- * drift, and no price is ever sent from the browser.
- *
- * The shop is EVERGREEN: it runs before, during and after the event, so
- * nothing here is written as though the event were still upcoming.
- */
-export default async function ShopPage({
+/** `/{locale}/shop/cart` — the bag and its checkout (Part A's wizard). */
+export default async function CartPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -38,13 +30,10 @@ export default async function ShopPage({
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
       <SectionContainer background="yellow-wash" maxWidth="6xl">
         <h1 className="font-sans text-display-hero font-bold leading-[0.9] text-black02">
-          <ScrambleText text={t("title")} />
+          <ScrambleText text={t("bagTitle")} />
         </h1>
-        <p className="mt-6 max-w-2xl text-body-l text-black02/80">
-          {t("lead")}
-        </p>
-        <div className="mt-16">
-          <ShopBrowser products={products as Product[]} />
+        <div className="mt-14">
+          <ShopCheckout products={products as Product[]} />
         </div>
       </SectionContainer>
     </main>

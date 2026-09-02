@@ -259,7 +259,55 @@
     },
     "shop": {
       "title": "Shop",
-      "placeholder": "The shop is coming soon."
+      "lead": "DevFest Yaoundé merch — before the event, at the event, and long after. Mobile Money at checkout.",
+      "bagTitle": "Your bag",
+      "bag": "Bag",
+      "results": "{count} items",
+      "noResults": "Nothing matches that. Try a different search.",
+      "searchPlaceholder": "Search the shop",
+      "searchLabel": "Search products",
+      "availability": "Availability",
+      "allItems": "Everything",
+      "status": {
+        "in-stock": "In stock",
+        "pre-order": "Pre-order",
+        "venue-only": "At the venue",
+        "sold-out": "Sold out"
+      },
+      "unbuyable": {
+        "venue-only": "Sold at the venue only — come find us on the day.",
+        "sold-out": "Sold out. If there's another run, it'll show up here.",
+        "in-stock": "",
+        "pre-order": ""
+      },
+      "backToShop": "Back to the shop",
+      "size": "Size",
+      "colour": "Colour",
+      "quantity": "Quantity",
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity",
+      "removeLine": "Remove this item",
+      "addToBag": "Add to bag",
+      "addedToBag": "Added",
+      "addedHint": "It's in your bag.",
+      "viewBag": "View bag",
+      "pickSizeFirst": "Pick a size first.",
+      "viewImage": "View image {n}",
+      "emptyBagTitle": "Your bag's feeling light",
+      "emptyBagBody": "Nothing in it yet. The merch is over there, and it doesn't bite.",
+      "browseShop": "Browse the shop",
+      "keepShopping": "Keep shopping",
+      "lineUnavailable": "This one isn't available any more — remove it to carry on.",
+      "steps": {
+        "bag": "Your bag",
+        "payment": "Payment"
+      },
+      "fulfilmentTitle": "How would you like to get it?",
+      "pickup": "Pick up at the venue",
+      "pickupHint": "Collect it from us on the day.",
+      "delivery": "Delivery",
+      "deliveryHint": "We arrange it with you after the order.",
+      "fulfilmentPending": "Delivery zones and pickup times are still being worked out, so the team will confirm the details with you directly."
     },
     "dpGenerator": {
       "title": "DP Generator",

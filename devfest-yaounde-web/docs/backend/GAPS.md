@@ -101,7 +101,7 @@ comes back from `/api/account/profile` if a later phase wants them. Also note
 `remaining-work.md`: **check-in requires a connection**; an unreliable venue
 network needs planning before the day.
 
-### G6 — QR rendering needs a dependency decision
+### G6 — QR rendering — RESOLVED
 
 The badge code is issued and shown; **the QR image is not drawn**, because
 every reasonable way to draw one needs a call this phase cannot make alone:
@@ -114,8 +114,9 @@ confirmation screen and in `/account`. That is required regardless — a cracked
 screen still has to get someone in — so what is missing is the convenience of
 scanning, not the ability to enter.
 
-**Needs a decision:** [ADR 0020](../decisions/0020-qr-rendering.md), which
-recommends the `qrcode` library.
+**RESOLVED 2026-09-02.** [ADR 0020](../decisions/0020-qr-rendering.md)
+approved; `qrcode` renders the badge client-side, with the readable code kept
+alongside it.
 
 ### G7 — No per-attendee phone; email is mandatory server-side
 
@@ -154,15 +155,79 @@ pretend the consent is recorded.
 `accepted_terms_at`) or is only an interface affordance. See
 `docs/content/refund-policy.md`.
 
-### G10 — The Bevy URL is still a placeholder
+### G10 — The Bevy URL — RESOLVED
 
 The free tier now sends people off-site to RSVP, and `BEVY_URL` in
 `src/lib/site-config.ts` is `"#"`. **The free-pass CTA currently links
 nowhere.**
 
-**Phase 14 does:** builds the flow and points it at the constant. This is a
-one-line config fix, but it is on the critical path for the cheapest way into
-the event — a blocker, not a nicety.
+**RESOLVED 2026-09-02.** `BEVY_URL` now points at the chapter's event page,
+and the free-pass CTA was verified to reach it in both locales.
+
+### G11 — Products have no `category` field
+
+The brief asked for a category filter. `Product` carries `id`, `name`,
+`description`, `priceXAF`, `images`, `variants` and `status` — **no category**,
+and nothing server-side groups products.
+
+**Part B does:** filters on **`status`**, which is real and is what actually
+changes what someone can do, plus a search across name and description.
+Inventing categories client-side would mean filtering on data the server does
+not have, and they would drift the moment the catalog is edited.
+
+**Needs a decision:** if categories matter, they are a field on `products.json`
+(and the guide that maintains it), not a UI-side invention.
+
+### G12 — No per-variant inventory
+
+The brief asked for out-of-stock variants to be individually disabled. The
+catalog has **one `status` per product** and no per-variant stock, so there is
+nothing to disable a single size against.
+
+**Part B does:** shows and enforces availability at the PRODUCT level. When a
+product is unbuyable the whole control set is disabled and says why, which is
+the truthful version of the same intent. It does not grey out individual sizes
+on a guess.
+
+**Needs a decision:** per-variant stock is a schema change — a per-variant
+row, and checkout validation against it.
+
+### G13 — Fulfilment cannot be chosen by the buyer
+
+Orders **do** carry a `fulfilment` column — free-form JSON with
+`method: "pickup" | "shipping"`, a note and a reference. But it is written
+**only by organisers**, through `PATCH /api/orders/:id/status`.
+`shopCheckoutSchema` has no fulfilment field, so a buyer's choice has nowhere
+to go.
+
+**Part B does:** renders the pickup-vs-delivery choice, because it is a real
+question someone wants answered — and the copy says the team will confirm the
+details, rather than implying the preference has been recorded. It is **not
+sent**. Logistics (zones, fees, pickup windows) are open anyway
+(`PAGES.md` §11), so there is no delivery logic to invent here even if the
+field existed.
+
+**Needs a decision:** add `fulfilment` to the shop checkout schema so the
+buyer's preference reaches the order, or accept that the team asks afterwards.
+
+### G14 — Shop orders carry no refund acknowledgment either
+
+The same gap as G9, for goods: the acknowledgment gates the pay button in the
+browser and is not recorded anywhere. **And goods are not tickets** — a
+non-refundable policy is ordinary for an event ticket and unusual for a
+physical product, so this one may want a different policy rather than the
+same one enforced better. Flagged for the human;
+`docs/content/refund-policy.md` currently applies one policy to both.
+
+### G15 — The bag is device-local
+
+There is no cart on the server: `POST /api/checkout/shop` takes the whole
+basket in one request. The bag therefore lives in `localStorage`.
+
+**Part B does:** persists across navigation and reload on that device, and
+syncs between tabs. A bag started on a phone does not appear on a laptop, and
+clearing site data empties it — so nothing in the UI calls it "saved to your
+account".
 
 ---
 

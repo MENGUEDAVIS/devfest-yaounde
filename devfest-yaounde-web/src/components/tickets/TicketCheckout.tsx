@@ -4,15 +4,16 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
-  DeviceMobile,
   Minus,
   Plus,
   Warning,
   ArrowSquareOut,
-  Tag,
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
+import { OrderSummary } from "@/components/checkout/OrderSummary";
+import { PaymentStep } from "@/components/checkout/PaymentStep";
 import { Badge } from "@/components/ui/Badge";
 import { SwagPreview } from "./SwagPreview";
 import { BEVY_URL } from "@/lib/site-config";
@@ -226,37 +227,11 @@ export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-14">
       <div>
-        {/* Progress. Text, not colour alone. */}
-        <ol className="mb-10 flex flex-wrap items-center gap-x-3 gap-y-2">
-          {STEPS.map((s, i) => (
-            <li key={s} className="flex items-center gap-3">
-              <span
-                aria-current={s === step ? "step" : undefined}
-                className={`flex items-center gap-2 font-mono text-mono-tag font-bold uppercase tracking-wide ${
-                  i <= stepIndex ? "text-black02" : "text-black02/40"
-                }`}
-              >
-                <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-pill border-2 border-black02 text-caption ${
-                    i < stepIndex
-                      ? "bg-black02 text-offwhite"
-                      : i === stepIndex
-                        ? "bg-primary text-black02"
-                        : "bg-transparent text-black02/40"
-                  }`}
-                >
-                  {i < stepIndex ? <Check size={12} weight="bold" /> : i + 1}
-                </span>
-                {t(`steps.${s}`)}
-              </span>
-              {i < STEPS.length - 1 && (
-                <span aria-hidden className="text-black02/25">
-                  /
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
+        <CheckoutSteps
+          steps={STEPS.map((k) => ({ key: k, label: k }))}
+          current={stepIndex}
+          label={(key) => t(`steps.${key}`)}
+        />
 
         {/*
           Sign-in offered up front and OPTIONAL — it prefills the attendee
@@ -618,87 +593,15 @@ export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
         )}
 
         {step === "payment" && (
-          <div className="flex max-w-md flex-col gap-6">
-            {/*
-              Mobile Money only. Card is NOT offered — the integration does not
-              support it, and a disabled control would read as a bug on
-              someone's phone rather than a decision (GAPS.md G1).
-            */}
-            <div className="flex items-start gap-3 rounded-lg border-2 border-black02 bg-offwhite p-5">
-              <DeviceMobile
-                size={22}
-                weight="bold"
-                className="mt-0.5 shrink-0 text-black02"
-              />
-              <div>
-                <p className="text-body-m font-bold text-black02">
-                  {t("momoTitle")}
-                </p>
-                <p className="mt-1 text-body-m text-black02/75">
-                  {t("momoBody")}
-                </p>
-              </div>
-            </div>
-
-            <label className="flex flex-col gap-1.5">
-              <span className="text-body-m font-bold text-black02">
-                {t("phoneLabel")}
-              </span>
-              <input
-                value={phone}
-                onChange={(e) =>
-                  setPhone(e.target.value.replace(/[^0-9]/g, ""))
-                }
-                placeholder="237690000000"
-                inputMode="numeric"
-                className="rounded-lg border-2 border-black02 bg-offwhite px-4 py-2.5 font-mono text-body-m text-black02"
-              />
-              <span className="text-caption text-black02/60">
-                {t("phoneHint")}
-              </span>
-            </label>
-
-            {/*
-              The refund policy, stated plainly and gating the payment. It is
-              in normal body type on the page someone is about to pay from —
-              not a link, not a collapsed block, not small print. Money is
-              involved; burying this would be a dark pattern.
-            */}
-            <div className="rounded-lg border-2 border-black02 bg-pastel p-5">
-              <p className="font-sans text-body-l font-bold text-black02">
-                {t("refundTitle")}
-              </p>
-              <p className="mt-2 text-body-m text-black02/80">
-                {t("refundBody")}
-              </p>
-              <label className="mt-4 flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-0.5 h-5 w-5 shrink-0 rounded-sm border-2 border-black02 accent-[var(--color-primary)]"
-                />
-                <span className="text-body-m font-bold text-black02">
-                  {t("refundAck")}
-                </span>
-              </label>
-            </div>
-
-            {!sessionLoading && !profile && (
-              <div className="rounded-lg border-2 border-black02 bg-offwhite p-5">
-                <p className="text-body-m font-bold text-black02">
-                  {t("signInRequired")}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => signInWithGoogle(locale, `/${locale}/tickets`)}
-                  className="mt-4 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)]"
-                >
-                  {t("continueWithGoogle")}
-                </button>
-              </div>
-            )}
-          </div>
+          <PaymentStep
+            phone={phone}
+            setPhone={setPhone}
+            acceptedTerms={acceptedTerms}
+            setAcceptedTerms={setAcceptedTerms}
+            profile={profile}
+            sessionLoading={sessionLoading}
+            signInNext={`/${locale}/tickets`}
+          />
         )}
 
         <div className="mt-10 flex flex-wrap items-center gap-3">
@@ -741,116 +644,37 @@ export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
 
       {/* ---- Order summary, sticky through every step ---- */}
       <aside className="lg:sticky lg:top-40 lg:self-start">
-        <div className="rounded-lg border-2 border-black02 bg-offwhite p-6">
-          <h2 className="font-sans text-heading-m font-bold text-black02">
-            {t("summary")}
-          </h2>
-          {total === 0 ? (
-            <p className="mt-4 text-body-m text-black02/70">
-              {t("summaryEmpty")}
-            </p>
-          ) : (
-            <>
-              <ul className="mt-4 flex flex-col gap-3">
-                {paidTiers
-                  .filter((tier) => (counts[tier.id] ?? 0) > 0)
-                  .map((tier) => (
-                    <li
-                      key={tier.id}
-                      className="flex items-baseline justify-between gap-4"
-                    >
-                      <span className="text-body-m text-black02">
-                        {tier.name} × {counts[tier.id]}
-                      </span>
-                      <span className="font-mono text-body-m font-bold text-black02">
-                        {money(tier.priceXAF * (counts[tier.id] ?? 0))}
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-              <div className="mt-5 flex items-baseline justify-between gap-4 border-t-2 border-black02/15 pt-4">
-                <span className="font-sans text-body-l font-bold text-black02">
-                  {t("total")}
-                </span>
-                <span className="font-mono text-heading-m font-bold text-black02">
-                  {money(subtotal)} XAF
-                </span>
-              </div>
-              {/* The server recomputes every total from the catalog, so this
-                  is an estimate until the order comes back with its quote. */}
-              <p className="mt-3 text-caption text-black02/60">
-                {t("totalNote")}
-              </p>
-
-              {/*
-                Discount code, inline. There is deliberately NO pre-validation
-                endpoint — one would be a free oracle for guessing codes
-                (GAPS.md G4) — so "Apply" stages the code and the server's
-                verdict arrives with the order. The copy says exactly that
-                rather than implying the code has been checked.
-              */}
-              <div className="mt-5 border-t-2 border-black02/15 pt-4">
-                {!discountOpen ? (
-                  <button
-                    type="button"
-                    onClick={() => setDiscountOpen(true)}
-                    className="inline-flex items-center gap-2 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 underline decoration-2 underline-offset-4 hover:text-black02/60"
-                  >
-                    <Tag size={14} weight="bold" aria-hidden />
-                    {t("addDiscount")}
-                  </button>
-                ) : (
-                  <div>
-                    <label
-                      htmlFor="discount-code"
-                      className="text-body-m font-bold text-black02"
-                    >
-                      {t("discountLabel")}
-                    </label>
-                    <div className="mt-2 flex gap-2">
-                      <input
-                        id="discount-code"
-                        value={discountCode}
-                        onChange={(e) => {
-                          setDiscountCode(e.target.value.toUpperCase());
-                          setDiscountApplied(false);
-                          setDiscountError(null);
-                        }}
-                        placeholder="GDG-2026"
-                        maxLength={32}
-                        className="min-w-0 flex-1 rounded-lg border-2 border-black02 bg-offwhite px-3 py-2 font-mono text-body-m uppercase tracking-wide text-black02"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDiscountApplied(discountCode.trim().length >= 3);
-                          setDiscountError(null);
-                        }}
-                        disabled={discountCode.trim().length < 3}
-                        className="shrink-0 rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02 disabled:opacity-40"
-                      >
-                        {t("apply")}
-                      </button>
-                    </div>
-                    {discountError && (
-                      <p
-                        role="alert"
-                        className="mt-2 text-body-m font-bold text-danger"
-                      >
-                        {te(discountError as never)}
-                      </p>
-                    )}
-                    {discountApplied && !discountError && (
-                      <p className="mt-2 text-body-m text-black02/75">
-                        {t("discountStaged")}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+        <OrderSummary
+          title={t("summary")}
+          lines={paidTiers
+            .filter((tier) => (counts[tier.id] ?? 0) > 0)
+            .map((tier) => ({
+              id: tier.id,
+              label: tier.name,
+              quantity: counts[tier.id] ?? 0,
+              amount: tier.priceXAF * (counts[tier.id] ?? 0),
+            }))}
+          total={subtotal}
+          emptyLabel={t("summaryEmpty")}
+          note={t("totalNote")}
+          discount={{
+            open: discountOpen,
+            setOpen: setDiscountOpen,
+            code: discountCode,
+            setCode: (v) => {
+              setDiscountCode(v);
+              setDiscountApplied(false);
+              setDiscountError(null);
+            },
+            applied: discountApplied,
+            apply: () => {
+              setDiscountApplied(discountCode.trim().length >= 3);
+              setDiscountError(null);
+            },
+            error: discountError,
+            errorText: (code) => te(code as never),
+          }}
+        />
       </aside>
     </div>
   );
