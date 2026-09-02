@@ -859,6 +859,124 @@
 }
 
 /*
+ * Filter drawer sliding in from the LEFT — PHASE14 §1.
+ *
+ * Travel is short (a panel width would over-animate a control surface people
+ * open and close constantly) and the easing is the standard out-curve, not
+ * the bouncy one: a filter panel that springs reads as a toy.
+ */
+@keyframes df-drawer-right {
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.anim-drawer-right {
+  animation: df-drawer-right 320ms var(--ease-out-devfest) both;
+}
+
+@keyframes df-drawer-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+/* The push panel slides in from the edge it is anchored to. */
+/*
+ * The waiting-room spinner. A ring with one quarter in the theme colour, so
+ * the rotation is legible — a solid ring would look static.
+ */
+@keyframes df-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.payment-spinner {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-pill);
+  border: 4px solid var(--color-black02);
+  border-top-color: var(--color-primary);
+  animation: df-spin 900ms linear infinite;
+}
+
+/*
+ * SWAG CUTOUTS — a row of small prints, alternating tilt, one lifting on
+ * hover with its name above it. Same family as the slider's polaroid: white
+ * card, dark border, soft corners.
+ *
+ * `overflow: visible` on the row is deliberate — the hover lift and the
+ * popover both reach outside the item's box, and a clipping ancestor would
+ * shave them (the same bug the speaker spotlight hit).
+ */
+.swag-cutout {
+  position: relative;
+  width: 3.5rem;
+  padding: 0.3rem 0.3rem 0.75rem;
+  background: var(--color-offwhite);
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-sm);
+  transform: rotate(var(--swag-tilt, 0deg));
+  transition:
+    transform 260ms var(--ease-bouncy),
+    box-shadow 260ms var(--ease-out-devfest);
+  cursor: pointer;
+}
+.swag-cutout:hover,
+.swag-cutout:focus-within {
+  transform: rotate(0deg) scale(1.18) translateY(-4px);
+  box-shadow: 0 6px 0 0 var(--color-black02);
+  z-index: 2;
+}
+.swag-thumb {
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: var(--color-pastel);
+}
+.swag-pop {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  white-space: nowrap;
+  padding: 0.25rem 0.6rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-black02);
+  color: var(--color-offwhite);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 200ms var(--ease-out-devfest),
+    transform 200ms var(--ease-out-devfest);
+}
+.swag-cutout:hover .swag-pop,
+.swag-cutout:focus-within .swag-pop {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.anim-push-in {
+  animation: df-drawer-left 320ms var(--ease-out-devfest) both;
+}
+
+.anim-drawer-left {
+  animation: df-drawer-left 320ms var(--ease-out-devfest) both;
+}
+
+/*
  * TEXT SCRAMBLE easter egg — PHASE11 §1, stripped bare in PHASE12 §4.
  *
  * NO AFFORDANCE, deliberately. The earlier version had a dotted underline
@@ -1240,6 +1358,37 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Swag cutouts keep the hover NAME — it is information — but drop the
+     lift and the tilt, which are not. */
+  .swag-cutout,
+  .swag-pop {
+    transition: none !important;
+    transform: none !important;
+  }
+  .swag-cutout:hover,
+  .swag-cutout:focus-within {
+    transform: none !important;
+  }
+  .swag-pop {
+    transform: translateX(-50%) !important;
+  }
+
+  /* The push panel appears instantly, and the content reflows without a
+     sliding width — a 320ms layout animation is the jarring kind. */
+  .filter-section {
+    transition: none !important;
+  }
+
+  /*
+   * The spinner keeps turning: it is a progress indicator, not decoration,
+   * and a frozen one would read as "stuck" on the one screen where people
+   * most need to know something is still happening. Slowed instead, which is
+   * what the reduced-motion guidance asks for on essential indicators.
+   */
+  .payment-spinner {
+    animation-duration: 2.4s !important;
+  }
+
   .anim-bouncy-pop,
   .anim-fade-in-up,
   .anim-hero-rise,
@@ -1252,6 +1401,9 @@
   .anim-word-pop,
   .anim-stamp,
   .anim-drawer-up,
+  .anim-drawer-left,
+  .anim-drawer-right,
+  .anim-push-in,
   .anim-contrib-stamp,
   .faq-glyph,
   .day-tab,

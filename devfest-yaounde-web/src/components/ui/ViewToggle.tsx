@@ -53,7 +53,7 @@ export function ViewToggle({
             type="button"
             onClick={() => onChange(key)}
             aria-pressed={view === key}
-            className={`flex items-center gap-2 px-4 py-2.5 font-mono text-mono-tag font-bold uppercase tracking-wide transition-colors duration-200 ${
+            className={`flex items-center gap-2 px-4 py-3.5 font-mono text-mono-tag font-bold uppercase tracking-wide transition-colors duration-200 ${
               view === key
                 ? "bg-black02 text-offwhite"
                 : "bg-transparent text-black02 hover:bg-pastel"

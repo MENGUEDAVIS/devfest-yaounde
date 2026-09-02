@@ -126,3 +126,31 @@ when a payment actually completes — an abandoned checkout doesn't burn a code.
 Run `npm run verify` (lint, types, tests). The tests read these two files
 directly, so a malformed entry — a missing language, a broken variant list —
 fails there rather than at someone's checkout.
+
+---
+
+## What the UI does with each catalog field (added Phase 14 Part B)
+
+Edited in `src/data/products.json`. The server prices from this same file by
+id, so a price here is the price charged — there is no second place to change.
+
+| Field                      | Where it shows                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| `name`, `description`      | Card, detail page, order summary                                                                 |
+| `priceXAF`                 | Everywhere a price appears; **the server recomputes from this**                                  |
+| `images[]`                 | First image on the card; all of them as thumbnails on the detail                                 |
+| `variants.size` / `.color` | Selectable chips. A sized product will not add to the bag without a size — the server rejects it |
+| `status`                   | The pill, **and** whether it can be bought at all                                                |
+
+**Adding a product** is a new entry in the array. **Retiring one** is
+`status: "sold-out"` — do not delete it, because past orders reference the id.
+
+Two things the UI cannot do, because the data does not carry them:
+
+- **No categories.** The filter is by availability and search instead (G11).
+- **No per-variant stock.** A product is buyable or it is not; a single
+  out-of-stock size cannot be expressed (G12).
+
+Ticket tiers work the same way in `src/data/ticket-tiers.json`. Note
+`quantityAvailable` there is the **capacity the server enforces** — removing it
+makes a tier uncapped, and it is covered by a test for that reason.

@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { FilterLayout } from "@/components/ui/FilterLayout";
 import { Reveal } from "@/components/ui/Reveal";
-import { CODE_OF_CONDUCT_URL } from "@/lib/site-config";
+import { CODE_OF_CONDUCT_URL, isPlaceholderUrl } from "@/lib/site-config";
 import { scrollToY } from "@/lib/scroll-source";
 import { FaqAccordion } from "./FaqAccordion";
 import type { FaqItem } from "@/data/types";
@@ -200,15 +200,18 @@ export function FaqBrowser({ faqs }: { faqs: FaqItem[] }) {
                     >
                       {/* Not a `faq.cta`: this URL is still an unconfirmed
                           placeholder living in site-config, so it can't be
-                          authored into the content file yet. */}
-                      {cat === "code-of-conduct" && (
-                        <a
-                          href={CODE_OF_CONDUCT_URL}
-                          className="mt-4 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
-                        >
-                          {t("readConduct")}
-                        </a>
-                      )}
+                          authored into the content file yet — and while it is
+                          a placeholder the button is not rendered at all,
+                          because a CTA that goes nowhere is worse than none. */}
+                      {cat === "code-of-conduct" &&
+                        !isPlaceholderUrl(CODE_OF_CONDUCT_URL) && (
+                          <a
+                            href={CODE_OF_CONDUCT_URL}
+                            className="mt-4 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
+                          >
+                            {t("readConduct")}
+                          </a>
+                        )}
                     </FaqAccordion>
                   </Reveal>
                 ))}

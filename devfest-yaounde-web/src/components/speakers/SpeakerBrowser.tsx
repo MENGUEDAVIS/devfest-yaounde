@@ -237,7 +237,15 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
           data-card-grid
           /* Dims the non-focused cards while one is open (PHASE12 §7). */
           data-card-open={view === "grid" && focusedId !== null}
-          className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          /* Columns come from available width, not the viewport — see
+             [data-card-grid] in globals.css.
+
+             16rem, not 17: auto-fill counts the 2rem gap in each track, so
+             the real divisor is min+gap. 16rem gives 4 columns at the full
+             1216px content width and 3 once the panel pushes it to 872px;
+             17rem dropped straight to 2. */
+          style={{ ["--card-min" as string]: "16rem" }}
+          className="grid items-start gap-8"
         >
           {visible.map((s, i) => (
             <Reveal

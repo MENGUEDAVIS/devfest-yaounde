@@ -65,7 +65,7 @@ export function Navbar({ compact }: { compact: boolean }) {
           href="/"
           onClick={handleLogoClick}
           aria-label={t("home")}
-          className="logo-interactive relative flex shrink-0 items-center gap-2.5 whitespace-nowrap font-sans text-heading-m font-bold text-black02 transition-transform duration-200 ease-bouncy hover:scale-105"
+          className="logo-interactive relative flex shrink-0 items-center gap-2.5 whitespace-nowrap py-1.5 font-sans text-heading-m font-bold text-black02 transition-transform duration-200 ease-bouncy hover:scale-105"
         >
           <DevFestLogo className="h-6 w-auto shrink-0" />
           DevFest Yaoundé
@@ -110,7 +110,7 @@ export function Navbar({ compact }: { compact: boolean }) {
 
         <button
           type="button"
-          className="shrink-0 rounded-pill p-1.5 transition-transform duration-200 ease-bouncy hover:scale-110 active:scale-90 lg:hidden"
+          className="-mr-1.5 shrink-0 rounded-pill p-3 transition-transform duration-200 ease-bouncy hover:scale-110 active:scale-90 lg:hidden"
           onClick={() => setMobileOpen((open) => !open)}
           aria-label={mobileOpen ? t("closeMenu") : t("openMenu")}
           aria-expanded={mobileOpen}

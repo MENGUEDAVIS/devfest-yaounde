@@ -101,6 +101,15 @@ export function SpeakerShowcase() {
   /** Set once a press has travelled far enough to be a drag, not a click. */
   const movedRef = useRef(false);
   const [dragging, setDragging] = useState(false);
+  /*
+   * Auto-advance stops for good once someone touches the reel.
+   *
+   * Hover already paused it, which covers a mouse — but a touch device has no
+   * hover, so the carousel kept sliding under a finger that was reaching for
+   * a card. Taking over on the first pointer contact is the honest reading of
+   * intent: they are driving now.
+   */
+  const [userTookOver, setUserTookOver] = useState(false);
 
   /*
    * Drag starts on the CARD too, not just in the gaps between cards.
@@ -116,6 +125,7 @@ export function SpeakerShowcase() {
     drag.current = { startX: e.clientX, pointerId: e.pointerId };
     movedRef.current = false;
     setDragging(true);
+    setUserTookOver(true);
     // NB: the pointer is deliberately NOT captured here — see onPointerMove.
   }
 
@@ -162,12 +172,12 @@ export function SpeakerShowcase() {
   // Auto-advance. Never runs for reduced-motion users, and pauses whenever
   // the user is hovering, focused inside, or has a detail panel open.
   useEffect(() => {
-    if (reduceMotion || paused || openId !== null) return;
+    if (reduceMotion || paused || userTookOver || openId !== null) return;
     const id = setInterval(() => {
       setFocused((i) => (i + 1) % featured.length);
     }, AUTO_ADVANCE_MS);
     return () => clearInterval(id);
-  }, [reduceMotion, paused, openId]);
+  }, [reduceMotion, paused, userTookOver, openId]);
 
   return (
     <section className="overflow-hidden bg-pastel py-24 sm:py-32 lg:py-40">

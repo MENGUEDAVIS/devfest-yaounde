@@ -106,7 +106,10 @@ export function BottomSheet({
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-100">
+    /* `data-lenis-prevent` for the same reason as `Modal` — a stopped Lenis
+       still preventDefaults wheel events, which would freeze the sheet's own
+       scrolling body along with the page. */
+    <div data-lenis-prevent className="fixed inset-0 z-100">
       <div
         aria-hidden
         onClick={onClose}
@@ -131,7 +134,14 @@ export function BottomSheet({
           }
           dragStart.current = null;
         }}
-        className={`anim-drawer-up absolute inset-x-0 bottom-0 flex max-h-[85svh] flex-col rounded-t-lg border-t-4 border-black02 bg-offwhite px-6 pb-8 pt-4 ${className}`}
+        /*
+         * PHASE14 §1: width-capped and centred from `sm` up. A sheet stretched
+         * across a tablet reads as a broken phone layout — Material's
+         * large-screen dialog behaviour is to cap and centre it. Mobile keeps
+         * the full-width sheet, which is right on a phone. The side corners
+         * are rounded once it is no longer flush to the edges.
+         */
+        className={`anim-drawer-up absolute inset-x-0 bottom-0 mx-auto flex max-h-[85svh] flex-col rounded-t-lg border-t-4 border-black02 bg-offwhite px-6 pb-8 pt-4 sm:max-w-xl sm:rounded-t-xl sm:border-x-2 ${className}`}
       >
         {/* Grab handle — also the swipe affordance */}
         <div

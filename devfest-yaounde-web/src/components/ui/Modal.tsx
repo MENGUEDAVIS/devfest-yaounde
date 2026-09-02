@@ -1,15 +1,34 @@
 "use client";
 
 import { X } from "@phosphor-icons/react";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { modalBackdropIn, modalPopIn } from "@/lib/motion";
 import { lockScroll } from "@/lib/scroll-source";
 
+/**
+ * "Has this hydrated yet?"
+ *
+ * The portal needs `document`, which does not exist while the server renders
+ * — and a modal CAN be open on first paint (arriving straight at
+ * /shop/[product] opens its drawer), so the guard has to be real rather than
+ * theoretical: without it that route fails to prerender outright.
+ *
+ * `useSyncExternalStore` rather than the usual `useState` + `useEffect`:
+ * that pattern is a setState in an effect body, which this codebase's lint
+ * rejects, and this is precisely the "external, non-reactive" read the hook
+ * exists for. The subscribe function never fires because the answer never
+ * changes after hydration.
+ */
+const subscribeNoop = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
+
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export type ModalVariant = "dialog" | "takeover";
+export type ModalVariant =
+  "dialog" | "takeover" | "drawer-left" | "drawer-right";
 
 export interface ModalProps {
   open: boolean;
@@ -27,6 +46,22 @@ export interface ModalProps {
    * including the navbar, and carries no panel chrome of its own — the
    * content sits directly on a blurred scrim so nothing competes with it.
    * Used by the slider lockup.
+   *
+   * `drawer-left`: a full-height panel that slides in from the left edge,
+   * over a scrim. The filter surface on laptops and desktops (PHASE14 §1).
+   * It replaced a rail that floated in the page margin — that approach
+   * needed more horizontal room than a 14" laptop has, so on the machine
+   * most people actually use, the filters simply did not render.
+   *
+   * `drawer-right`: a FLOATING card that slides in from the right — product
+   * detail in the shop. Right rather than left because it is a detail *of*
+   * something you just clicked, and the reading order puts the follow-up on
+   * the side you finish on.
+   *
+   * It is detached from every edge and fully rounded, over a blurred scrim,
+   * rather than glued to the right edge. On a phone it becomes a full-bleed
+   * sheet instead, because a floating card inside a 390px screen is mostly
+   * margin.
    */
   variant?: ModalVariant;
   /**
@@ -96,6 +131,11 @@ export function Modal({
    * A ref fixes it here rather than requiring every caller to remember
    * useCallback.
    */
+  const hydrated = useSyncExternalStore(
+    subscribeNoop,
+    clientSnapshot,
+    serverSnapshot,
+  );
   const onCloseRef = useRef(onClose);
   // Synced in an effect, not during render — writing a ref while rendering is
   // exactly what `react-hooks/refs` forbids, and it would tear under
@@ -169,12 +209,31 @@ export function Modal({
     };
   }, [open, browserFullscreen]);
 
-  if (!open) return null;
+  if (!open || !hydrated) return null;
 
   const takeover = variant === "takeover";
+  const drawerLeft = variant === "drawer-left";
+  const drawerRight = variant === "drawer-right";
+  const drawer = drawerLeft || drawerRight;
 
   return createPortal(
     <div
+      /*
+       * LENIS MUST KEEP ITS HANDS OFF EVERYTHING IN HERE.
+       *
+       * `lockScroll()` calls `lenis.stop()`, and a stopped Lenis does not go
+       * quiet — it keeps its wheel listener and calls `preventDefault()` on
+       * every wheel event it sees, which is how it holds the page still. That
+       * also swallowed wheel events over the overlay, so a scrollable drawer
+       * could only be moved by dragging its scrollbar. Measured: the panel's
+       * scrollTop never left 0 under a 3000px wheel.
+       *
+       * `data-lenis-prevent` is checked BEFORE the stopped branch, so this
+       * hands the whole overlay back to native scrolling. The page behind
+       * cannot escape either way — it is held by `overflow: hidden` on both
+       * <html> and <body>, not by Lenis.
+       */
+      data-lenis-prevent
       className={
         takeover
           ? // Covers EVERYTHING, navbar included. z-100 clears the chrome
@@ -182,7 +241,13 @@ export function Modal({
             // stays above at 9999, which is correct — it must never be
             // occluded by what it is pointing at.
             "fixed inset-0 z-100 flex items-stretch justify-center p-4 sm:p-6"
-          : "fixed inset-0 z-100 flex items-center justify-center p-4"
+          : drawerLeft
+            ? "fixed inset-0 z-100 flex items-stretch justify-start"
+            : drawerRight
+              ? // Padding is what detaches the card from the screen on
+                // desktop; a phone gets none, so the sheet is full-bleed.
+                "fixed inset-0 z-100 flex items-stretch justify-end sm:p-5 lg:p-7"
+              : "fixed inset-0 z-100 flex items-center justify-center p-4"
       }
     >
       <div
@@ -194,7 +259,9 @@ export function Modal({
               // stays legible as context but stops competing for attention.
               // A flat scrim over a blur — no gradient (DESIGN.md §2.6).
               "bg-black02/80 backdrop-blur-md"
-            : "bg-black02/50"
+            : drawer
+              ? "bg-black02/50 backdrop-blur-sm"
+              : "bg-black02/50"
         }`}
       />
       <div
@@ -209,7 +276,32 @@ export function Modal({
               // content sits straight on the blurred scrim and gets the
               // whole screen, which is the point of a takeover.
               `${modalPopIn} takeover-panel relative flex w-full max-w-[110rem] flex-col ${className}`
-            : `${modalPopIn} relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-offwhite p-6 sm:p-8 ${className}`
+            : drawerLeft
+              ? // Flush to the left edge: square there, rounded on the side
+                // that is visible, so it reads as attached to the screen
+                // rather than floating. No sharp corners anywhere it shows.
+                `anim-drawer-left relative flex h-full w-[min(22rem,88vw)] flex-col overflow-hidden rounded-r-lg border-y-2 border-r-2 border-black02 bg-offwhite p-6 ${className}`
+              : drawerRight
+                ? // Wider than the filter drawer — it carries an image and a
+                  // description, not a list of chips. Same edge logic,
+                  // mirrored: rounded only on the side that shows.
+                  //
+                  // A FLOATING CARD (PHASE16 §1), not a panel glued to the
+                  // edge: rounded on all four corners, bordered all the way
+                  // round, and held off every edge by the wrapper's padding.
+                  //
+                  // FULL-BLEED ON A PHONE. At `min(34rem,94vw)` it left a 6%
+                  // sliver of scrim down one side, which reads as a
+                  // misaligned panel rather than a margin, and 390px has none
+                  // to spare — so the phone gets the whole screen, still
+                  // rounded so no corner is sharp.
+                  //
+                  // `overflow-hidden` with the body scrolling INSIDE, so the
+                  // close button stays pinned. It used to scroll away with
+                  // the content, which on a long product left no way out but
+                  // Escape or a scroll back up.
+                  `anim-drawer-right relative flex h-full w-full flex-col overflow-hidden rounded-lg border-2 border-black02 bg-offwhite shadow-[0_10px_0_0_var(--color-black02)] sm:w-[min(34rem,94vw)] ${className}`
+                : `${modalPopIn} relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-offwhite p-6 sm:p-8 ${className}`
         }
       >
         <button
@@ -219,12 +311,18 @@ export function Modal({
           className={
             takeover
               ? "absolute right-0 top-0 z-10 rounded-pill border-2 border-offwhite/40 bg-black02/60 p-2.5 text-offwhite transition-colors hover:border-offwhite hover:bg-offwhite hover:text-black02"
-              : "absolute right-4 top-4 rounded-pill p-1.5 text-black02 transition-colors hover:bg-black02/10"
+              : drawer
+                ? "absolute right-4 top-5 z-20 rounded-pill border-2 border-black02 bg-offwhite p-1.5 text-black02 transition-colors hover:bg-primary"
+                : "absolute right-4 top-4 rounded-pill p-1.5 text-black02 transition-colors hover:bg-black02/10"
           }
         >
           <X size={20} weight={takeover ? "bold" : "regular"} />
         </button>
-        {children}
+        {drawerRight ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        ) : (
+          children
+        )}
       </div>
     </div>,
     document.body,

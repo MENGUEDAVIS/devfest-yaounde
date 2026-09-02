@@ -22,20 +22,23 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 
 ## Status
 
-**Milestone: the main site is built, and the commerce backend behind it.** Home, Schedule, Speakers, Team and FAQs are complete in both languages. Tickets, Shop and the DP generator now have a full backend — checkout, payments, fulfilment, check-in, receipts — but **no screens yet**; their routes are still the placeholder pages.
+**Milestone: the frontend is done.** Every page in the sitemap is built in both languages and wired to the real backend, links unfurl with a branded image, and misses and crashes land on pages that say something useful. What is left is content, configuration and the backend gaps — not screens: see [What's next](#whats-next).
 
 ### What's done
 
-| Page                               | State                                                                                                                                               |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Home** (`/`)                     | Full-page hero, sponsor marquee, about, stats, speaker preview, schedule preview, memory lane, quotes, FAQ preview, community CTA, full-page footer |
-| **Schedule** (`/schedule`)         | Day tabs, timeline + list views, **parallel tracks**, filters, expandable sessions, add-to-calendar                                                 |
-| **Speakers** (`/speakers`)         | Filterable grid with popover detail cards, plus a full-page slider lockup                                                                           |
-| **Team** (`/team`)                 | Same grid + slider, filtered by contribution, with an alumni section                                                                                |
-| **FAQs** (`/faqs`)                 | Grouped accordions, live search, category scrollspy, per-item CTAs                                                                                  |
-| **Tickets** (`/tickets`)           | **Placeholder** — blocked on ADR 0003                                                                                                               |
-| **Shop** (`/shop`)                 | **Placeholder** — blocked on ADR 0003                                                                                                               |
-| **DP generator** (`/dp-generator`) | **Placeholder** — blocked on ADR 0003                                                                                                               |
+| Page                                    | State                                                                                                                                                                                                                                                        |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Home** (`/`)                          | Full-page hero, sponsor marquee, about, stats, speaker preview, schedule preview, memory lane, quotes, FAQ preview, community CTA, full-page footer                                                                                                          |
+| **Schedule** (`/schedule`)              | Day tabs, timeline + list views, **parallel tracks**, filters, expandable sessions, add-to-calendar                                                                                                                                                          |
+| **Speakers** (`/speakers`)              | Filterable grid with popover detail cards, plus a full-page slider lockup                                                                                                                                                                                    |
+| **Team** (`/team`)                      | Same grid + slider, filtered by contribution, with an alumni section                                                                                                                                                                                         |
+| **FAQs** (`/faqs`)                      | Grouped accordions, live search, category scrollspy, per-item CTAs                                                                                                                                                                                           |
+| **Tickets** (`/tickets`)                | Tier selection, Mobile Money checkout, badge QR + readable code. Free tier RSVPs on Bevy rather than pretending to sell a 0 XAF ticket                                                                                                                       |
+| **Shop** (`/shop`)                      | Filterable catalog, product detail in a deep-linkable drawer, device-local bag, discount codes, Mobile Money checkout                                                                                                                                        |
+| **DP generator** (`/dp-generator`)      | Eight patterned styles, seven photo looks, torn/brushed edges, five textures, three corner cuts, draggable stickers (shapes, tech, hashtags), 1:1 and 3:4 cards, tilt and rubber-band physics, 1080/2160 PNG export, honest hybrid sharing. No server at all |
+| **Account** (`/account`)                | Google sign-in, your tickets with their badge codes, your orders and their state                                                                                                                                                                             |
+| **Payment return** (`/payments/return`) | Where PawaPay sends every buyer — polls until the payment settles, then shows the badge. Was a 404 holding a completed payment                                                                                                                               |
+| **404 / 500**                           | Real error states in both languages — a localised not-found with somewhere to go, an error boundary with a retry and a reference                                                                                                                             |
 
 ### Systems behind it
 
@@ -43,6 +46,8 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 - **Momentum scroll** (Lenis) behind a single seam, with a floating pill scrollbar reproduced in every nested scroll context. See ADR 0007.
 - **One shared filtered-page layout** across all four content pages: a filter rail that floats in the margin without taking width from the content, travels with the scroll, and is clamped to its own section — collapsing to a bottom sheet on narrow screens.
 - **One shared overlay shell** (`Modal`) powering both the classic dialog and the slider's full-page takeover, and **one shared bottom sheet** (`BottomSheet`) powering both the mobile filter drawer and mobile card details.
+- **No link that goes nowhere** — placeholder URLs are never rendered as anchors: icon-only links are filtered at source, expected labels degrade to plain text. That removed 164 dead anchors, the site's biggest SEO defect.
+- **Launch-grade SEO** — per-page, per-locale titles and descriptions, canonical URLs, `hreflang` alternates both ways, OpenGraph and Twitter cards, branded OG images rendered on demand by `next/og`, `sitemap.xml`, `robots.txt` and `Organization`/`Product` structured data. See `docs/guides/seo.md`.
 - **Custom desktop cursor** — a trailing rounded arrow in the theme's contrasting colour, disabled entirely on touch and under reduced motion. See `docs/guides/custom-cursor.md`.
 
 ### Ground rules the build holds to
@@ -58,8 +63,8 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 > **Picking this up?** Start at [`docs/README.md`](docs/README.md) — it routes
 > by what you are trying to do, and lists which decision records are current.
 
-**The interfaces.** Every endpoint the ticket flow, the shop and the DP generator need exists and is tested; what is missing is the UI on top. See `docs/guides/payments-runbook.md` and `docs/guides/check-in-and-orders.md` for what they call.
+**Configuration, before anything can actually be sold.** `BADGE_CODE_SECRET`, the PawaPay token and the AWS relay all fail quietly if they are wrong — money leaves accounts and no ticket appears. The full list is `docs/setup/remaining-work.md` §1, and the gaps the UI deliberately did not paper over are `docs/backend/GAPS.md`.
 
 **Real content.** Everything in `src/data/` is placeholder — speakers, sessions, team, sponsors, and now ticket tiers and shop products too. The tier names and prices in particular are invented mock data and must not ship: `docs/guides/updating-tickets-and-shop.md` and the pre-launch checklist in `docs/setup/deployment.md`.
 
-**Still open:** card payments (Mobile Money only today), refunds, and a public gallery for the DP generator would reverse ADR 0015.
+**Still open:** card payments (Mobile Money only today), refunds, organiser tools, buyer-settable fulfilment, role-badge verification, and the community wall's backend — the frontend for it is written and switched off (ADR 0021, GAPS.md G20).

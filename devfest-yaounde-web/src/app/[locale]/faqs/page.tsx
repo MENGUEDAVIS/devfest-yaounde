@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { FaqBrowser } from "@/components/faqs/FaqBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
@@ -15,14 +16,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.faqs" });
-  return {
-    title: `${t("title")} · DevFest Yaoundé`,
+  return pageMetadata({
+    locale,
+    path: "/faqs",
+    title: t("title"),
     description: t("metaDesc"),
-    openGraph: {
-      title: `${t("title")} · DevFest Yaoundé`,
-      description: t("metaDesc"),
-    },
-  };
+  });
 }
 
 export default async function FaqsPage({
