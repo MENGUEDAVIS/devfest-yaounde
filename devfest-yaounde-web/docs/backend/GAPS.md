@@ -238,6 +238,36 @@ tabs. A bag started on a phone does not appear on a laptop, and clearing site
 data empties it — so nothing in the UI calls it "saved to your account", and
 nothing should start.
 
+### G16 — The share caption has no community handles
+
+`PAGES.md` §9 asks the share caption to carry "prefilled caption + event
+hashtag + community handles". Two of the three exist in `src/lib/dp/share.ts`:
+the caption and `SHARE_HASHTAGS`. **The handles do not**, and none were
+invented — every entry in `SOCIAL_LINKS` (`src/lib/site-config.ts`) is still
+`"#"`, so there is no confirmed `@name` on any network to put in a caption
+that thousands of people would post.
+
+**OPEN — content, not code.** Once the real profiles are known, add them to
+`SHARE_CAPTIONS` or alongside `SHARE_HASHTAGS` in `share.ts`; the caption is
+built in one place and shown on screen exactly as it is sent, so the change is
+a one-liner and is immediately visible.
+
+Guessing was the alternative and it was rejected: a wrong handle in a share
+caption tags a stranger, and it does it on every post.
+
+### G17 — The DP frames are placeholder colours, not the morphed motif
+
+`PAGES.md` §9 asks for the morphed-shape motif on the frames. `DpMask` offers
+`rounded` and `circle` only, per ADR 0015 and the standing instruction in
+`DESIGN.md` §4.2 not to approximate the signature shape until the real asset
+exists.
+
+**OPEN — asset, not code.** The five frames are honest, on-brand colour
+schemes. When the shape asset arrives, `DpMask` and `clipToMask` in
+`compose.ts` are the two places that change, and the UI needs no edit: the
+picker renders whatever `DP_FRAMES` contains and the swatch already draws each
+frame's mask shape.
+
 ---
 
 ## Content, not code

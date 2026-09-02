@@ -613,6 +613,61 @@ html:not(.has-custom-cursor) .cursor-layer {
   );
 }
 
+/*
+ * ZOOM SLIDER — the DP generator's crop control.
+ *
+ * The only range input on the site, and the native one does not belong on a
+ * page built out of 2px black borders and flat fills. Both vendor track/thumb
+ * pairs are written out because a browser drops the ENTIRE rule when it meets
+ * a selector it cannot parse, so `-webkit-` and `-moz-` cannot be combined
+ * into one selector list.
+ *
+ * The thumb is the theme colour on a black ring, so it re-colours with the
+ * theme switcher rather than pinning yellow into a page that might be blue.
+ */
+.dp-range {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 1.5rem;
+  background: transparent;
+  cursor: pointer;
+}
+.dp-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+.dp-range::-webkit-slider-runnable-track {
+  height: 0.5rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-offwhite);
+}
+.dp-range::-moz-range-track {
+  height: 0.5rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-offwhite);
+}
+.dp-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  /* Half the thumb, minus half the track, pulls it back onto the centre
+     line — WebKit positions the thumb from the top of the track box. */
+  margin-top: -0.5rem;
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+.dp-range::-moz-range-thumb {
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+
 /* Focus ring, yellow-family and always visible for keyboard users */
 :focus-visible {
   outline: 3px solid var(--color-primary);

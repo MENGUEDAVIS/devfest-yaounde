@@ -309,8 +309,56 @@
       "returnsAck": "J'ai compris : pas de remboursement en cas de changement d'avis, et les échanges se règlent directement avec l'équipe."
     },
     "dpGenerator": {
-      "title": "Générateur de photo de profil",
-      "placeholder": "Le générateur de DP arrive bientôt."
+      "title": "Générateur de DP",
+      "lead": "Crée ta photo de profil DevFest Yaoundé. Ton nom, ton style, et tu télécharges — tout se passe ici, sur ton appareil.",
+      "steps": {
+        "name": "Ton nom",
+        "photo": "Ta photo",
+        "look": "Choisis un style",
+        "frame": "Cadre-la"
+      },
+      "nickname": {
+        "label": "Nom affiché",
+        "placeholder": "Le nom qu'on te donne",
+        "hint": "Le nom que tu utilises vraiment. Pas besoin du vrai."
+      },
+      "photo": {
+        "cta": "Choisir une photo",
+        "replace": "En choisir une autre",
+        "remove": "Retirer",
+        "drop": "ou dépose-la ici",
+        "dropActive": "Lâche.",
+        "hint": "JPEG, PNG ou WebP, 12 Mo maximum."
+      },
+      "adjust": {
+        "zoom": "Zoom",
+        "reset": "Recentrer",
+        "hint": "Fais glisser la photo pour la déplacer. Au clavier : les flèches pour déplacer, + et − pour zoomer, Maj pour avancer plus finement.",
+        "waiting": "Ajoute d'abord une photo — il n'y a rien à cadrer."
+      },
+      "preview": {
+        "empty": "Ta carte apparaît ici",
+        "label": "Ta carte DevFest : {nickname}, sur le fond {frame}.",
+        "labelAnonymous": "Ta carte DevFest, sur le fond {frame}."
+      },
+      "actions": {
+        "download": "Télécharger",
+        "downloading": "On la dessine…",
+        "share": "Partager",
+        "sharing": "Ouverture…"
+      },
+      "status": {
+        "downloaded": "Enregistré. Va changer ta photo.",
+        "failed": "Le rendu a échoué. Réessaie, ou prends une autre photo."
+      },
+      "caption": {
+        "title": "Ce qui part avec",
+        "hint": "Le partage envoie l'image avec cette légende. Si ton navigateur ne le permet pas, la légende atterrit dans ton presse-papiers — tu n'as plus qu'à coller."
+      },
+      "privacy": {
+        "title": "La photo ne quitte jamais ton appareil",
+        "body": "Rien n'est envoyé, rien n'est stocké. La carte est dessinée dans ton navigateur et enregistrée directement dans tes téléchargements — on ne la voit jamais."
+      }
     },
     "paymentReturn": {
       "title": "Confirmation de ton paiement",

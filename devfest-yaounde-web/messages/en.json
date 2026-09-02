@@ -310,7 +310,55 @@
     },
     "dpGenerator": {
       "title": "DP Generator",
-      "placeholder": "The DP generator is coming soon."
+      "lead": "Make yourself a DevFest Yaoundé profile picture. Name it, frame it, download it — the whole thing happens right here on your device.",
+      "steps": {
+        "name": "Your name",
+        "photo": "Your photo",
+        "look": "Pick a look",
+        "frame": "Frame it"
+      },
+      "nickname": {
+        "label": "Display name",
+        "placeholder": "Whatever you go by",
+        "hint": "The name you actually use. No real name required."
+      },
+      "photo": {
+        "cta": "Choose a photo",
+        "replace": "Choose another",
+        "remove": "Remove",
+        "drop": "or drop one here",
+        "dropActive": "Let go.",
+        "hint": "JPEG, PNG or WebP, up to 12 MB."
+      },
+      "adjust": {
+        "zoom": "Zoom",
+        "reset": "Recentre",
+        "hint": "Drag the photo to move it around. On a keyboard: arrows to move, + and − to zoom, hold Shift for smaller steps.",
+        "waiting": "Add a photo first — there's nothing to frame yet."
+      },
+      "preview": {
+        "empty": "Your card shows up here",
+        "label": "Your DevFest card: {nickname}, on the {frame} background.",
+        "labelAnonymous": "Your DevFest card, on the {frame} background."
+      },
+      "actions": {
+        "download": "Download",
+        "downloading": "Drawing it…",
+        "share": "Share",
+        "sharing": "Opening…"
+      },
+      "status": {
+        "downloaded": "Saved. Go and change your picture.",
+        "failed": "That didn't render. Try again, or use a different photo."
+      },
+      "caption": {
+        "title": "What goes out with it",
+        "hint": "Sharing sends the image with this caption attached. If your browser won't do that, the caption lands on your clipboard instead — paste it wherever you're posting."
+      },
+      "privacy": {
+        "title": "The photo never leaves your device",
+        "body": "Nothing is uploaded and nothing is stored. The card is drawn in your browser and saved straight to your downloads — we never see it."
+      }
     },
     "paymentReturn": {
       "title": "Confirming your payment",
