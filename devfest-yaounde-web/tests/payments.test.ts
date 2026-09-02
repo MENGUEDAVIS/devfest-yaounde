@@ -34,6 +34,7 @@ import {
 import { dpFileName } from "@/lib/dp/compose";
 import { shareCaption } from "@/lib/dp/share";
 import { eventDates, eventJsonLd, organizationJsonLd } from "@/lib/event";
+import { layoutCard, PAD, PLATE_INSET } from "@/lib/dp/geometry";
 
 const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
@@ -459,6 +460,61 @@ describe("event structured data", () => {
     assert.equal(org["@type"], "Organization");
     assert.equal(org.name, "GDG Yaoundé");
     assert.ok(org.url.startsWith("https://"));
+  });
+});
+
+describe("dp card geometry", () => {
+  it("decreases nested radii by exactly the padding between them", () => {
+    for (const ratio of ["1:1", "3:4"] as const) {
+      const l = layoutCard(1080, ratio);
+      // The standard nested-radius rule: outer = inner + padding. Matching
+      // radii at every level is what makes concentric rounded shapes look
+      // wrong, so this is a correctness property, not a preference.
+      assert.ok(
+        l.radius.card > l.radius.photo && l.radius.photo > l.radius.plate,
+        `radii must decrease inward: ${JSON.stringify(l.radius)}`,
+      );
+      assert.ok(Math.abs(l.radius.card - l.radius.photo - PAD * 1080) < 0.51);
+      assert.ok(
+        Math.abs(l.radius.photo - l.radius.plate - PLATE_INSET * 1080) < 0.51,
+      );
+      assert.ok(l.radius.plate > 0, "no corner may be sharp");
+    }
+  });
+
+  it("centres the photo on the card, in both directions", () => {
+    for (const ratio of ["1:1", "3:4"] as const) {
+      const l = layoutCard(1080, ratio);
+      const right = l.width - (l.photo.x + l.photo.w);
+      const bottom = l.height - (l.photo.y + l.photo.h);
+      assert.ok(
+        Math.abs(l.photo.x - right) < 0.51,
+        `left ${l.photo.x} vs right ${right}`,
+      );
+      assert.ok(
+        Math.abs(l.photo.y - bottom) < 0.51,
+        `top ${l.photo.y} vs bottom ${bottom}`,
+      );
+    }
+  });
+
+  it("keeps the plate inside the photo, on the same centreline", () => {
+    const l = layoutCard(1080, "1:1");
+    const plateCentre = l.plate.x + l.plate.w / 2;
+    assert.ok(Math.abs(plateCentre - l.width / 2) < 0.51);
+    assert.ok(l.plate.x >= l.photo.x);
+    assert.ok(l.plate.y + l.plate.h <= l.photo.y + l.photo.h + 0.51);
+  });
+
+  it("makes a tall card taller without changing its margins or type", () => {
+    const square = layoutCard(1080, "1:1");
+    const tall = layoutCard(1080, "3:4");
+    assert.equal(tall.height, 1440);
+    // Every length is a fraction of WIDTH, so a 3:4 card keeps the same
+    // margins and the same type size and simply gets a taller photo.
+    assert.equal(square.photo.x, tall.photo.x);
+    assert.equal(square.plate.h, tall.plate.h);
+    assert.ok(tall.photo.h > square.photo.h);
   });
 });
 

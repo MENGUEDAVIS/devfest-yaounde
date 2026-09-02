@@ -269,10 +269,39 @@ exists.
 needs no edit, because the picker renders whatever `DP_FRAMES` contains and the
 swatch already draws each frame's mask shape.
 
+### G19 — Role badges cannot be verified
+
+The DP generator offers attendance badges only — "I'll be there", "Count me
+in", "My first one", "Back again". **"Speaker", "Organiser" and "Volunteer"
+are deliberately absent.**
+
+They are claims about a role, and the generator has no login, no session and
+no backend by design (ADR 0015), so there is nothing to check them against. A
+self-selectable Speaker badge means anyone can wear one, which devalues it for
+the people who actually earned it — worse than not offering it at all.
+
+**DECIDED 2026-09-02: attendance only.** No verification method was supplied,
+and the phase's instruction was to default to this.
+
+**OPEN — two routes if role badges are ever wanted:**
+
+1. **A per-role unlock code** handed to real speakers and organisers. Weak
+   security — one leak and it is worthless — but arguably enough for a vanity
+   badge. It is a frontend change plus a place to keep the codes, and it MUST
+   ship with a plain line saying it is a soft check, not verification.
+2. **Real verification**, once the badge can be tied to an account: the ticket
+   tier or a role column would say who is what. That is a backend item, and it
+   depends on G7/G8 (identity and ticket ownership).
+
+Either way, `DP_BADGES` in `src/lib/dp/frames.ts` and one input are where it
+lands. Until then the picker explains on-screen why role badges are missing,
+rather than leaving people to wonder.
+
 ### G18 — The DP frame art is drawn in code, not by a designer
 
-The eight frames are compositor primitives arranged by hand: honest, on-brand
-and flat per DESIGN.md §2.6, but nobody with a design tool has looked at them.
+The eight styles are compositor primitives arranged by hand — patterns,
+stickers, edge treatments and photo effects, all honest, on-brand and flat per
+DESIGN.md §2.6. Nobody with a design tool has looked at them.
 
 **OPEN — worth a designer's pass, not a blocker.** If real frame artwork is
 ever supplied as images, it needs a new decoration kind (an image layer) in

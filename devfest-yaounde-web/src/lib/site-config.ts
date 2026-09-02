@@ -11,7 +11,29 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_APP_BASE_URL ?? "https://devfest.gdgyaounde.com";
 
 /** The same origin without its scheme — for copy that shows a URL to a human. */
-export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "");
+export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "").replace(
+  /\/$/,
+  "",
+);
+
+/**
+ * Is this URL a stand-in rather than a real destination?
+ *
+ * Placeholders are written as `"#"` while the real address is unknown. An
+ * anchor pointing at one is worse than no anchor: it does nothing when
+ * clicked, and a crawler counts it as a link that goes nowhere — the single
+ * biggest SEO defect on the site before this, at 164 dead anchors across 18
+ * pages, almost all of them speaker and team profiles.
+ *
+ * So the rule is: **never render a link to a placeholder.** Either leave the
+ * item out (an icon nobody can use) or render the label as plain text (a
+ * legal page people expect to see named).
+ */
+export function isPlaceholderUrl(url: string | null | undefined): boolean {
+  return (
+    !url || url === "#" || url.trim() === "" || url.startsWith("javascript:")
+  );
+}
 
 /**
  * Placeholder external links for global chrome. None of these have been
@@ -41,5 +63,8 @@ export const SOCIAL_LINKS = {
  * aren't in the sitemap (PAGES.md §0) — no route exists for them yet. Kept
  * as "#" placeholders until that's resolved (new routes vs. external docs).
  */
+/** Last edition's recap post or album. Not published yet. */
+export const RECAP_URL = "#";
+
 export const PRIVACY_POLICY_URL = "#";
 export const CODE_OF_CONDUCT_URL = "#";

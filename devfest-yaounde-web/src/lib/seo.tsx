@@ -73,6 +73,9 @@ export function pageMetadata({
       type: "website",
       siteName: "DevFest Yaoundé",
       locale: locale === "en" ? "en_GB" : "fr_FR",
+      /* Tells a crawler the other language exists as a sibling of THIS page,
+         which is the OpenGraph half of the hreflang story. */
+      alternateLocale: locale === "en" ? ["fr_FR"] : ["en_GB"],
       url,
       title: full,
       description,

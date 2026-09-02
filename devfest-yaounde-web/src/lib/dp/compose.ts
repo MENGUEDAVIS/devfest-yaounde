@@ -6,49 +6,61 @@
  * no server copy, no EXIF to strip and no retention question to answer.
  * See docs/decisions/0015-dp-generator-client-side.md.
  *
- * NO IMAGE LIBRARY, AND NO SHADER RUNTIME. Every effect here — duotone,
- * halftone, mono, grain, vignette — is a pass over an ImageData buffer or a
- * few hundred `arc` calls, which 2D canvas does well and which run once per
- * frame on a region of at most 734px square. A WebGL pipeline would mean
- * shader sources, a program cache, context-loss handling and a second code
- * path for the export, to make something imperceptibly faster. If an effect
- * ever genuinely needs the GPU, that is the moment for an ADR, not before.
+ * ONE RENDERER, TWO SIZES. The preview and the export run this exact
+ * function; only the pixel dimensions differ. That is what lets a test read
+ * the downloaded file back and compare it to the preview the person
+ * approved — and it is the reason the effects stay on 2D canvas rather than
+ * moving to WebGL. A GL path fast enough to matter would still need a 2D
+ * fallback for the export and for machines without a context, and two
+ * renderers is exactly how a file stops matching its preview. Every effect
+ * here is one pass over an ImageData buffer or a few hundred paths, on a
+ * region under 1000px square.
  *
- * The card's art is FLAT throughout (DESIGN.md §2.6): solid shapes, no fill
- * ramps. The vignette is the one place a smooth falloff exists, and it is
- * computed per pixel over the PHOTO rather than painted as a ramp fill —
- * a photographic treatment, not a UI surface.
+ * Layout, radii and the photo box come from `geometry.ts`; the background
+ * patterns from `patterns.ts`; the stickers from `stickers.ts`. This file
+ * owns the photo treatments and the order things are drawn in.
  */
 import {
+  MARK_PATHS,
+  MARK_STROKE_WIDTH,
+  MARK_VIEWBOX,
+} from "@/lib/brand/devfest-mark";
+import { EVENT } from "@/lib/event";
+import {
+  DEFAULT_BADGE_ID,
   DEFAULT_FRAME_ID,
-  DEFAULT_TAG_ID,
+  findBadge,
   findFrame,
-  findTag,
-  type DpDecoration,
   type DpFrame,
 } from "./frames";
+import {
+  cardHeight,
+  layoutCard,
+  type CardLayout,
+  type DpCorners,
+  type DpRatio,
+  type Rect,
+} from "./geometry";
+import {
+  drawOverspill,
+  drawPattern,
+  roundedRectPath,
+  seeded,
+} from "./patterns";
+import {
+  findSticker,
+  STICKER_BASE,
+  type PlacedSticker,
+  type ShapeSticker,
+} from "./stickers";
 
-/** Square output, sized for a social avatar without being wasteful. */
+export type { DpRatio, DpCorners } from "./geometry";
+export { photoBoxUnits, cardHeight, layoutCard } from "./geometry";
+
+/** Card WIDTH for the export. Height follows from the ratio. */
 export const DP_SIZE = 1080;
 /** The "print it big" option — same art, four times the pixels. */
 export const DP_SIZE_HIGH = 2160;
-
-/**
- * The photo box, as a fraction of the card: the card loses a 0.09 margin on
- * each side and a 0.14 band for the nickname.
- *
- * EXPORTED because the crop control needs it to turn pointer travel into pan.
- * It used to be copied into the component, which worked but left two numbers
- * that had to agree; importing the one the compositor actually draws with
- * means they cannot drift.
- */
-export const PHOTO_BOX_RATIO = 0.68;
-const PHOTO_MARGIN_RATIO = 0.09;
-/**
- * Where the type starts, as a fraction of the card. Decorations stay above
- * it; the badge, the nickname and the wordmark live below it.
- */
-const TEXT_BAND_TOP = 0.8;
 
 /** Reject files that are not really images, or are large enough to hurt. */
 export const ACCEPTED_TYPES = [
@@ -59,9 +71,9 @@ export const ACCEPTED_TYPES = [
 export const MAX_FILE_BYTES = 12 * 1024 * 1024;
 
 export interface DpTransform {
-  /** 1 = photo fits the frame. Higher zooms in. */
+  /** 1 = photo covers the box. Higher zooms in. */
   scale: number;
-  /** Pan, in fractions of the frame size, from the centre. */
+  /** Pan, as fractions of the photo box's own width and height. */
   offsetX: number;
   offsetY: number;
 }
@@ -72,24 +84,33 @@ export const DEFAULT_TRANSFORM: DpTransform = {
   offsetY: 0,
 };
 
-/**
- * The photo treatments. One look at a time, because they are alternatives
- * rather than layers — a mono duotone is just a duotone.
- */
-export type DpLook = "none" | "duotone" | "halftone" | "mono";
+/** The photo treatment. One at a time — these are alternatives, not layers. */
+export type DpLook =
+  "none" | "duotone" | "halftone" | "mono" | "chromatic" | "poster";
+
+/** How the photo's edge meets the card. */
+export type DpEdge = "clean" | "torn" | "brush";
 
 export interface DpEffects {
   look: DpLook;
-  /** Film grain. Independent of the look, and reads well over all of them. */
+  edge: DpEdge;
+  /** Film grain. */
   grain: boolean;
   /** Darkened corners, computed per pixel. */
   vignette: boolean;
+  /** Paper fibre and a faint press texture. */
+  paper: boolean;
+  /** A gentle horizontal ripple, like a misfed print. */
+  warp: boolean;
 }
 
 export const DEFAULT_EFFECTS: DpEffects = {
   look: "none",
+  edge: "clean",
   grain: false,
   vignette: false,
+  paper: false,
+  warp: false,
 };
 
 export interface DpComposeInput {
@@ -98,10 +119,13 @@ export interface DpComposeInput {
   /** Free-form display name — no real-name requirement (PAGES.md §9). */
   nickname: string;
   transform?: DpTransform;
+  /** Card width. Height follows from `ratio`. */
   size?: number;
+  ratio?: DpRatio;
+  corners?: DpCorners;
   effects?: DpEffects;
-  tagId?: string;
-  /** Which language the tag prints in. */
+  badgeId?: string;
+  stickers?: PlacedSticker[];
   locale?: "fr" | "en";
 }
 
@@ -132,374 +156,26 @@ export async function loadPhoto(file: File): Promise<ImageBitmap> {
   }
 }
 
-/* ------------------------------------------------------------------ paths */
+/* ------------------------------------------------------------- canvas util */
 
-function roundedRectPath(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.arcTo(x + width, y, x + width, y + height, radius);
-  ctx.arcTo(x + width, y + height, x, y + height, radius);
-  ctx.arcTo(x, y + height, x, y, radius);
-  ctx.arcTo(x, y, x + width, y, radius);
-  ctx.closePath();
+function makeCanvas(
+  w: number,
+  h: number,
+): {
+  canvas: HTMLCanvasElement | OffscreenCanvas;
+  ctx: CanvasRenderingContext2D;
+} {
+  const canvas =
+    typeof OffscreenCanvas !== "undefined"
+      ? new OffscreenCanvas(w, h)
+      : Object.assign(document.createElement("canvas"), {
+          width: w,
+          height: h,
+        });
+  const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | null;
+  if (!ctx) throw new Error("2d canvas context unavailable");
+  return { canvas, ctx };
 }
-
-interface Box {
-  x: number;
-  y: number;
-  size: number;
-}
-
-function maskPath(ctx: CanvasRenderingContext2D, frame: DpFrame, box: Box) {
-  if (frame.mask === "circle") {
-    ctx.beginPath();
-    ctx.arc(
-      box.x + box.size / 2,
-      box.y + box.size / 2,
-      box.size / 2,
-      0,
-      Math.PI * 2,
-    );
-    ctx.closePath();
-  } else {
-    roundedRectPath(ctx, box.x, box.y, box.size, box.size, box.size * 0.14);
-  }
-}
-
-/* -------------------------------------------------------------- randomness */
-
-/**
- * A tiny deterministic generator, seeded from the frame id.
- *
- * Confetti has to land in the same places every render: `Math.random` would
- * reshuffle the art on every pointer move during a drag, and the exported
- * file would not match the preview the person approved.
- */
-function seeded(seed: string) {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return () => {
-    h ^= h << 13;
-    h ^= h >>> 17;
-    h ^= h << 5;
-    return ((h >>> 0) % 100000) / 100000;
-  };
-}
-
-/* ------------------------------------------------------------ decorations */
-
-/**
- * True over the badge, the name and the wordmark.
- *
- * Only the CENTRED column, not the whole band: confetti in the bottom
- * corners is part of the look, confetti across someone's name is a defect.
- */
-function overlapsType(x: number, y: number, size: number) {
-  return y > size * TEXT_BAND_TOP && Math.abs(x - size / 2) < size * 0.42;
-}
-
-/** True where a decoration would land on the photo instead of around it. */
-function overlapsPhoto(x: number, y: number, box: Box, pad: number) {
-  return (
-    x > box.x - pad &&
-    x < box.x + box.size + pad &&
-    y > box.y - pad &&
-    y < box.y + box.size + pad
-  );
-}
-
-function drawConfetti(
-  ctx: CanvasRenderingContext2D,
-  frame: DpFrame,
-  size: number,
-  box: Box,
-) {
-  const rand = seeded(`${frame.id}-confetti`);
-  const colours = frame.palette ?? [frame.accent];
-  const pad = size * 0.02;
-  let placed = 0;
-  // Rejection sampling: keep drawing candidates, skip the ones that would sit
-  // on the face. Capped so a hostile aspect ratio cannot spin here.
-  for (let tries = 0; tries < 400 && placed < 34; tries++) {
-    const x = rand() * size;
-    const y = rand() * size;
-    if (overlapsPhoto(x, y, box, pad) || overlapsType(x, y, size)) continue;
-    placed++;
-
-    const s = size * (0.014 + rand() * 0.018);
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rand() * Math.PI);
-    ctx.fillStyle =
-      colours[Math.floor(rand() * colours.length) % colours.length];
-    const shape = Math.floor(rand() * 3);
-    if (shape === 0) {
-      roundedRectPath(ctx, -s / 2, -s / 4, s, s / 2, s * 0.2);
-      ctx.fill();
-    } else if (shape === 1) {
-      ctx.beginPath();
-      ctx.arc(0, 0, s / 2.4, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // A chevron — the DevFest mark's own angle, at confetti scale.
-      ctx.lineWidth = s * 0.28;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.strokeStyle = ctx.fillStyle;
-      ctx.beginPath();
-      ctx.moveTo(-s / 2, -s / 2);
-      ctx.lineTo(s / 2, 0);
-      ctx.lineTo(-s / 2, s / 2);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-}
-
-function drawSparkles(
-  ctx: CanvasRenderingContext2D,
-  frame: DpFrame,
-  size: number,
-  box: Box,
-) {
-  const rand = seeded(`${frame.id}-sparkle`);
-  const colours = frame.palette ?? [frame.accent];
-  let placed = 0;
-  for (let tries = 0; tries < 200 && placed < 9; tries++) {
-    const x = rand() * size;
-    const y = rand() * size;
-    if (overlapsPhoto(x, y, box, size * 0.015) || overlapsType(x, y, size))
-      continue;
-    placed++;
-    const r = size * (0.012 + rand() * 0.014);
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rand() * Math.PI);
-    ctx.fillStyle =
-      colours[Math.floor(rand() * colours.length) % colours.length];
-    // Four-point star: two opposing cusps on each axis, waisted at the centre.
-    ctx.beginPath();
-    ctx.moveTo(0, -r);
-    ctx.quadraticCurveTo(0, 0, r, 0);
-    ctx.quadraticCurveTo(0, 0, 0, r);
-    ctx.quadraticCurveTo(0, 0, -r, 0);
-    ctx.quadraticCurveTo(0, 0, 0, -r);
-    ctx.fill();
-    ctx.restore();
-  }
-}
-
-function drawBrackets(
-  ctx: CanvasRenderingContext2D,
-  frame: DpFrame,
-  size: number,
-) {
-  const arm = size * 0.075;
-  const inset = size * 0.028;
-  ctx.save();
-  ctx.strokeStyle = frame.accent;
-  ctx.lineWidth = size * 0.019;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  // Top-left "<" and bottom-right ">" — the mark's angle, blown up and used
-  // as a frame rather than as a logo.
-  ctx.beginPath();
-  ctx.moveTo(inset + arm, inset);
-  ctx.lineTo(inset, inset + arm);
-  ctx.lineTo(inset + arm, inset + arm * 2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(size - inset - arm, size - inset - arm * 2);
-  ctx.lineTo(size - inset, size - inset - arm);
-  ctx.lineTo(size - inset - arm, size - inset);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawHalftoneField(
-  ctx: CanvasRenderingContext2D,
-  frame: DpFrame,
-  size: number,
-  box: Box,
-) {
-  // Dots thin out from the bottom-left corner: the §2.4 halftone, used as a
-  // texture on the card rather than on the photo.
-  const step = size * 0.032;
-  const maxR = step * 0.34;
-  ctx.save();
-  ctx.fillStyle = frame.palette?.[0] ?? frame.accent;
-  for (let y = step / 2; y < size; y += step) {
-    for (let x = step / 2; x < size; x += step) {
-      if (overlapsPhoto(x, y, box, size * 0.012)) continue;
-      // Keep out of the band the badge, the name and the wordmark occupy —
-      // a dot field behind a name is texture at the cost of reading it.
-      if (y > size * TEXT_BAND_TOP) continue;
-      const d = Math.hypot(x, size - y) / (size * 1.15);
-      const r = maxR * Math.max(0, 1 - d);
-      if (r < maxR * 0.12) continue;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  ctx.restore();
-}
-
-function drawStripes(
-  ctx: CanvasRenderingContext2D,
-  frame: DpFrame,
-  size: number,
-) {
-  /* A diagonal band across the top-right corner. It is allowed to run under
-     the photo rather than being kept clear of it: this is a `beneath` layer,
-     so the photo lands on top and the band reads as passing behind — which
-     is the point of putting it there. */
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(size * 0.55, 0);
-  ctx.lineTo(size, 0);
-  ctx.lineTo(size, size * 0.45);
-  ctx.closePath();
-  ctx.clip();
-  ctx.strokeStyle = frame.palette?.[1] ?? frame.accent;
-  ctx.lineWidth = size * 0.016;
-  const gap = size * 0.045;
-  for (let i = -1; i < 14; i++) {
-    const o = size * 0.5 + i * gap;
-    ctx.beginPath();
-    ctx.moveTo(o, 0);
-    ctx.lineTo(o + size * 0.5, size * 0.5);
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawTape(ctx: CanvasRenderingContext2D, frame: DpFrame, box: Box) {
-  const w = box.size * 0.3;
-  const h = box.size * 0.1;
-  const corners: [number, number, number][] = [
-    [box.x, box.y, -0.72],
-    [box.x + box.size, box.y + box.size, -0.72],
-  ];
-  // ONE colour for both strips: tape comes off one roll, and two colours read
-  // as two unrelated bars rather than as tape holding a photo down.
-  const tapeColour = frame.palette?.[0] ?? frame.accent;
-  corners.forEach(([cx, cy, rot]) => {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(rot);
-    ctx.fillStyle = tapeColour;
-    ctx.strokeStyle = frame.foreground;
-    ctx.lineWidth = box.size * 0.008;
-    roundedRectPath(ctx, -w / 2, -h / 2, w, h, h * 0.18);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  });
-}
-
-function drawDashRing(
-  ctx: CanvasRenderingContext2D,
-  frame: DpFrame,
-  size: number,
-  box: Box,
-) {
-  const grow = size * 0.028;
-  ctx.save();
-  ctx.strokeStyle = frame.accent;
-  ctx.lineWidth = size * 0.008;
-  ctx.setLineDash([size * 0.022, size * 0.018]);
-  ctx.lineCap = "round";
-  maskPath(ctx, frame, {
-    x: box.x - grow,
-    y: box.y - grow,
-    size: box.size + grow * 2,
-  });
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawPostcard(
-  ctx: CanvasRenderingContext2D,
-  frame: DpFrame,
-  size: number,
-) {
-  const inset = size * 0.032;
-  ctx.save();
-  ctx.strokeStyle = frame.accent;
-  ctx.lineWidth = size * 0.012;
-  roundedRectPath(
-    ctx,
-    inset,
-    inset,
-    size - inset * 2,
-    size - inset * 2,
-    size * 0.05,
-  );
-  ctx.stroke();
-  ctx.restore();
-}
-
-/** Decorations that belong UNDER the photo. */
-const BENEATH: DpDecoration[] = [
-  "confetti",
-  "brackets",
-  "halftone",
-  "sparkles",
-  "stripes",
-  "postcard",
-];
-
-function drawDecorations(
-  ctx: CanvasRenderingContext2D,
-  frame: DpFrame,
-  size: number,
-  box: Box,
-  layer: "beneath" | "over",
-) {
-  for (const decoration of frame.decorations) {
-    const beneath = BENEATH.includes(decoration);
-    if ((layer === "beneath") !== beneath) continue;
-    switch (decoration) {
-      case "confetti":
-        drawConfetti(ctx, frame, size, box);
-        break;
-      case "sparkles":
-        drawSparkles(ctx, frame, size, box);
-        break;
-      case "brackets":
-        drawBrackets(ctx, frame, size);
-        break;
-      case "halftone":
-        drawHalftoneField(ctx, frame, size, box);
-        break;
-      case "stripes":
-        drawStripes(ctx, frame, size);
-        break;
-      case "postcard":
-        drawPostcard(ctx, frame, size);
-        break;
-      case "tape":
-        drawTape(ctx, frame, box);
-        break;
-      case "dashRing":
-        drawDashRing(ctx, frame, size, box);
-        break;
-    }
-  }
-}
-
-/* ----------------------------------------------------------------- effects */
 
 function hexToRgb(hex: string): [number, number, number] {
   const v = hex.replace("#", "");
@@ -519,21 +195,26 @@ function hexToRgb(hex: string): [number, number, number] {
 const luma = (r: number, g: number, b: number) =>
   0.2126 * r + 0.7152 * g + 0.0722 * b;
 
-function makeCanvas(size: number): {
-  canvas: HTMLCanvasElement | OffscreenCanvas;
-  ctx: CanvasRenderingContext2D;
-} {
-  const canvas =
-    typeof OffscreenCanvas !== "undefined"
-      ? new OffscreenCanvas(size, size)
-      : Object.assign(document.createElement("canvas"), {
-          width: size,
-          height: size,
-        });
-  const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | null;
-  if (!ctx) throw new Error("2d canvas context unavailable");
-  return { canvas, ctx };
+/** Shrinks the type until it fits, rather than squashing it to width. */
+function fitFont(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  build: (px: number) => string,
+  startPx: number,
+  minPx: number,
+): number {
+  let px = startPx;
+  while (px > minPx) {
+    ctx.font = build(px);
+    if (ctx.measureText(text).width <= maxWidth) break;
+    px -= Math.max(1, startPx * 0.02);
+  }
+  ctx.font = build(px);
+  return px;
 }
+
+/* ------------------------------------------------------------- photo layer */
 
 /**
  * Draws the photo to COVER the box — the short edge fills, the long edge
@@ -543,83 +224,129 @@ function makeCanvas(size: number): {
 function drawCovered(
   ctx: CanvasRenderingContext2D,
   photo: ImageBitmap,
-  size: number,
+  w: number,
+  h: number,
   transform: DpTransform,
 ) {
-  const cover = Math.max(size / photo.width, size / photo.height);
+  const cover = Math.max(w / photo.width, h / photo.height);
   const scale = cover * Math.max(transform.scale, 0.1);
-  const drawWidth = photo.width * scale;
-  const drawHeight = photo.height * scale;
-  const centreX = size / 2 + transform.offsetX * size;
-  const centreY = size / 2 + transform.offsetY * size;
-  ctx.drawImage(
-    photo,
-    centreX - drawWidth / 2,
-    centreY - drawHeight / 2,
-    drawWidth,
-    drawHeight,
-  );
+  const drawW = photo.width * scale;
+  const drawH = photo.height * scale;
+  const cx = w / 2 + transform.offsetX * w;
+  const cy = h / 2 + transform.offsetY * h;
+  ctx.drawImage(photo, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
 }
 
-/** Turns the photo into halftone dots, drawn in the frame's own two colours. */
-function halftone(
-  source: CanvasRenderingContext2D,
-  size: number,
+/** Turns the photo into halftone dots, in the style's own two colours. */
+function halftonePhoto(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
   dark: string,
   light: string,
 ) {
-  const data = source.getImageData(0, 0, size, size).data;
-  const cell = Math.max(4, Math.round(size / 58));
-  source.fillStyle = light;
-  source.fillRect(0, 0, size, size);
-  source.fillStyle = dark;
-  for (let y = 0; y < size; y += cell) {
-    for (let x = 0; x < size; x += cell) {
-      // One sample from the centre of the cell is enough at this dot pitch,
-      // and avoids averaging cell² pixels on every pointer move.
-      const sx = Math.min(size - 1, x + (cell >> 1));
-      const sy = Math.min(size - 1, y + (cell >> 1));
-      const i = (sy * size + sx) * 4;
+  const data = ctx.getImageData(0, 0, w, h).data;
+  const cell = Math.max(4, Math.round(Math.min(w, h) / 58));
+  ctx.fillStyle = light;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = dark;
+  for (let y = 0; y < h; y += cell) {
+    for (let x = 0; x < w; x += cell) {
+      const sx = Math.min(w - 1, x + (cell >> 1));
+      const sy = Math.min(h - 1, y + (cell >> 1));
+      const i = (sy * w + sx) * 4;
       const t = luma(data[i], data[i + 1], data[i + 2]) / 255;
       const r = (cell / 2) * Math.sqrt(1 - t) * 1.22;
       if (r < 0.35) continue;
-      source.beginPath();
-      source.arc(x + cell / 2, y + cell / 2, r, 0, Math.PI * 2);
-      source.fill();
+      ctx.beginPath();
+      ctx.arc(x + cell / 2, y + cell / 2, r, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
 }
 
 /**
- * One pass over the pixels for the look, the grain and the vignette.
- *
- * Combined deliberately: three separate passes over a 734px square would read
- * the same buffer three times for no benefit.
+ * The geometric pass: warp and chromatic offset both READ from a copy of the
+ * buffer, so they run together in one remap rather than one after the other.
  */
-function applyPixelEffects(
+function geometricPass(
   ctx: CanvasRenderingContext2D,
-  size: number,
+  w: number,
+  h: number,
+  effects: DpEffects,
+) {
+  if (!effects.warp && effects.look !== "chromatic") return;
+
+  const image = ctx.getImageData(0, 0, w, h);
+  const dst = image.data;
+  const src = new Uint8ClampedArray(dst);
+  const amp = effects.warp ? Math.max(2, w * 0.012) : 0;
+  const wl = h / 5.5;
+  /* ROUNDED, and that is not cosmetic. A fractional shift makes a fractional
+     ARRAY INDEX, `src[i + 4.1]` is `undefined`, and assigning undefined into
+     a Uint8ClampedArray writes 0 — so red and blue were being zeroed and the
+     "misprint" look came out as a solid green photograph. */
+  const shift =
+    effects.look === "chromatic" ? Math.round(Math.max(1, w * 0.006)) : 0;
+
+  const sample = (x: number, y: number, channel: number) => {
+    const cx = x < 0 ? 0 : x >= w ? w - 1 : x;
+    const cy = y < 0 ? 0 : y >= h ? h - 1 : y;
+    return src[(cy * w + cx) * 4 + channel];
+  };
+
+  for (let y = 0; y < h; y++) {
+    const dx = amp ? Math.round(Math.sin((y / wl) * Math.PI * 2) * amp) : 0;
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const sx = x + dx;
+      // Channels pulled from three slightly different places is what
+      // misregistered print looks like.
+      dst[i] = sample(sx - shift, y, 0);
+      dst[i + 1] = sample(sx, y, 1);
+      dst[i + 2] = sample(sx + shift, y, 2);
+      dst[i + 3] = sample(sx, y, 3);
+    }
+  }
+  ctx.putImageData(image, 0, 0);
+}
+
+/**
+ * The colour pass: look, grain, paper and vignette in ONE walk of the buffer.
+ * Four separate passes would read the same pixels four times for no gain.
+ */
+function colourPass(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
   effects: DpEffects,
   frame: DpFrame,
 ) {
-  const needsPixels =
+  const wantsColour =
     effects.look === "duotone" ||
     effects.look === "mono" ||
-    effects.grain ||
-    effects.vignette;
-  if (!needsPixels) return;
+    effects.look === "poster";
+  if (!wantsColour && !effects.grain && !effects.vignette && !effects.paper) {
+    return;
+  }
 
-  const image = ctx.getImageData(0, 0, size, size);
+  const image = ctx.getImageData(0, 0, w, h);
   const px = image.data;
   const [dr, dg, db] = hexToRgb(frame.duotone?.[0] ?? "#1E1E1E");
   const [lr, lg, lb] = hexToRgb(frame.duotone?.[1] ?? frame.accent);
-  const rand = seeded(`${frame.id}-grain`);
-  const half = size / 2;
-  // Corners start darkening at 62% of the way out, reaching 45% at the very
-  // corner. Computed per pixel over the photo — a photographic falloff, not
-  // a painted ramp on a UI surface (DESIGN.md §2.6).
+  const rand = seeded(`${frame.id}-texture`);
+  const halfW = w / 2;
+  const halfH = h / 2;
+  const diag = Math.hypot(halfW, halfH);
+  /* Corners start darkening 62% of the way out and reach 45% at the corner.
+     Computed per pixel over the PHOTO — a photographic falloff, not a ramp
+     painted on a UI surface (DESIGN.md §2.6). */
   const vigStart = 0.62;
   const vigDepth = 0.55;
+  const levels = 5;
+  /* Paper ruling period, in pixels, held to a constant fraction of the
+     render so the texture looks the same in the preview and in the file. */
+  const rulePeriod = Math.max(3, Math.round(h / 150));
 
   for (let i = 0; i < px.length; i += 4) {
     let r = px[i];
@@ -627,13 +354,18 @@ function applyPixelEffects(
     let b = px[i + 2];
 
     if (effects.look === "mono") {
-      const y = luma(r, g, b);
-      r = g = b = y;
+      r = g = b = luma(r, g, b);
     } else if (effects.look === "duotone") {
       const t = luma(r, g, b) / 255;
       r = dr + (lr - dr) * t;
       g = dg + (lg - dg) * t;
       b = db + (lb - db) * t;
+    } else if (effects.look === "poster") {
+      // Flat bands rather than a smooth range — screen-print, not photo.
+      const q = 255 / (levels - 1);
+      r = Math.round(r / q) * q;
+      g = Math.round(g / q) * q;
+      b = Math.round(b / q) * q;
     }
 
     if (effects.grain) {
@@ -643,11 +375,26 @@ function applyPixelEffects(
       b += n;
     }
 
+    if (effects.paper) {
+      const p = i >> 2;
+      const x = p % w;
+      const y = (p / w) | 0;
+      /* Low-frequency fibre plus a faint press ruling, warmer than grain and
+         deliberately much quieter. The ruling's PERIOD scales with the
+         render: a fixed 7px period is invisible in a preview and reads as
+         corduroy at 2160. */
+      const fibre = Math.sin(x * 0.07 + y * 0.013) * 5;
+      const rule = ((y % rulePeriod) - rulePeriod / 2) * 0.7;
+      r += fibre + rule + 3;
+      g += fibre + rule + 1;
+      b += fibre + rule - 2;
+    }
+
     if (effects.vignette) {
       const p = i >> 2;
-      const dx = (p % size) - half;
-      const dy = ((p / size) | 0) - half;
-      const d = Math.hypot(dx, dy) / (half * Math.SQRT2);
+      const dx = (p % w) - halfW;
+      const dy = ((p / w) | 0) - halfH;
+      const d = Math.hypot(dx, dy) / diag;
       if (d > vigStart) {
         const k = 1 - ((d - vigStart) / (1 - vigStart)) * vigDepth;
         r *= k;
@@ -663,48 +410,478 @@ function applyPixelEffects(
   ctx.putImageData(image, 0, 0);
 }
 
-/** The photo, cropped and treated, on its own transparent layer. */
+/**
+ * The edge treatment, applied as a mask.
+ *
+ * `clean` is the rounded rectangle the layout asks for. `torn` walks the
+ * perimeter with seeded jitter, so the photo looks ripped out rather than
+ * cropped. `brush` stamps overlapping tapered strokes and keeps only what
+ * they cover, which leaves the ragged, slightly transparent ends a real
+ * brush leaves.
+ */
+function applyEdge(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  radius: number,
+  edge: DpEdge,
+  seed: string,
+) {
+  const { canvas: maskCanvas, ctx: mask } = makeCanvas(w, h);
+  mask.fillStyle = "#000";
+
+  if (edge === "clean") {
+    roundedRectPath(mask, 0, 0, w, h, radius);
+    mask.fill();
+  } else if (edge === "torn") {
+    const rand = seeded(`${seed}-torn`);
+    const amp = Math.min(w, h) * 0.022;
+    const step = Math.min(w, h) * 0.028;
+    const pts: [number, number][] = [];
+    const side = (
+      from: [number, number],
+      to: [number, number],
+      nx: number,
+      ny: number,
+    ) => {
+      const len = Math.hypot(to[0] - from[0], to[1] - from[1]);
+      const n = Math.max(3, Math.round(len / step));
+      for (let i = 0; i < n; i++) {
+        const t = i / n;
+        const j = (rand() - 0.35) * amp;
+        pts.push([
+          from[0] + (to[0] - from[0]) * t + nx * j,
+          from[1] + (to[1] - from[1]) * t + ny * j,
+        ]);
+      }
+    };
+    side([0, 0], [w, 0], 0, 1);
+    side([w, 0], [w, h], -1, 0);
+    side([w, h], [0, h], 0, -1);
+    side([0, h], [0, 0], 1, 0);
+    mask.beginPath();
+    mask.moveTo(pts[0][0], pts[0][1]);
+    for (const [x, y] of pts.slice(1)) mask.lineTo(x, y);
+    mask.closePath();
+    mask.fill();
+  } else {
+    const rand = seeded(`${seed}-brush`);
+    mask.lineCap = "round";
+    mask.strokeStyle = "#000";
+    // Broad horizontal sweeps, each wandering a little, together covering
+    // the middle and leaving the edges frayed.
+    const rows = 12;
+    for (let i = 0; i < rows; i++) {
+      const y = (h / rows) * (i + 0.5);
+      mask.lineWidth = (h / rows) * (1.05 + rand() * 0.75);
+      mask.beginPath();
+      mask.moveTo(-w * 0.01 + rand() * w * 0.13, y + (rand() - 0.5) * h * 0.03);
+      mask.bezierCurveTo(
+        w * 0.3,
+        y + (rand() - 0.5) * h * 0.05,
+        w * 0.7,
+        y + (rand() - 0.5) * h * 0.05,
+        w * 1.01 - rand() * w * 0.13,
+        y + (rand() - 0.5) * h * 0.03,
+      );
+      mask.stroke();
+    }
+  }
+
+  ctx.globalCompositeOperation = "destination-in";
+  ctx.drawImage(maskCanvas, 0, 0);
+  ctx.globalCompositeOperation = "source-over";
+}
+
+/** The photo, cropped, treated and masked, on its own transparent layer. */
 function renderPhotoLayer(
   photo: ImageBitmap,
-  boxSize: number,
+  box: Rect,
+  radius: number,
   transform: DpTransform,
   effects: DpEffects,
   frame: DpFrame,
 ) {
-  const { canvas, ctx } = makeCanvas(Math.round(boxSize));
-  const size = Math.round(boxSize);
+  const w = Math.max(1, Math.round(box.w));
+  const h = Math.max(1, Math.round(box.h));
+  const { canvas, ctx } = makeCanvas(w, h);
   ctx.imageSmoothingQuality = "high";
-  drawCovered(ctx, photo, size, transform);
+  drawCovered(ctx, photo, w, h, transform);
 
+  geometricPass(ctx, w, h, effects);
   if (effects.look === "halftone") {
-    halftone(
+    halftonePhoto(
       ctx,
-      size,
+      w,
+      h,
       frame.duotone?.[0] ?? "#1E1E1E",
       frame.duotone?.[1] ?? frame.background,
     );
   }
-  applyPixelEffects(ctx, size, effects, frame);
+  colourPass(ctx, w, h, effects, frame);
+  applyEdge(ctx, w, h, radius, effects.edge, frame.id);
   return canvas;
+}
+
+/* ---------------------------------------------------------------- stickers */
+
+/** The flat ink shadow every sticker carries, in the site's own language. */
+function stickerShadow(u: number) {
+  return { dx: u * 0.006, dy: u * 0.009 };
+}
+
+function drawShapeSticker(
+  ctx: CanvasRenderingContext2D,
+  sticker: ShapeSticker,
+  size: number,
+  u: number,
+  shadowOnly = false,
+) {
+  const scale = size / 100;
+  const stroke = Math.max(1.5, u * 0.0075) / scale;
+
+  if (sticker.mark) {
+    // The real brand asset, drawn from the shared path data. Its shadow is
+    // the SAME paths in ink — a rectangle behind a logo made of four
+    // separate pieces just looks like a grey box, which is what it was.
+    const markScale = size / MARK_VIEWBOX.width;
+    ctx.save();
+    ctx.translate(-size / 2, (-MARK_VIEWBOX.height * markScale) / 2);
+    ctx.scale(markScale, markScale);
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#1E1E1E";
+    ctx.lineWidth = MARK_STROKE_WIDTH * 2.4;
+    for (const { d, fill } of MARK_PATHS) {
+      const path = new Path2D(d);
+      ctx.fillStyle = shadowOnly ? "#1E1E1E" : fill;
+      ctx.stroke(path);
+      ctx.fill(path);
+    }
+    ctx.restore();
+    return;
+  }
+
+  ctx.save();
+  ctx.translate(-size / 2, -size / 2);
+  ctx.scale(scale, scale);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#1E1E1E";
+  ctx.lineWidth = stroke;
+  for (const part of sticker.paths) {
+    const path = new Path2D(part.d);
+    if (part.fill === "none") {
+      ctx.stroke(path);
+      continue;
+    }
+    ctx.stroke(path);
+    ctx.fillStyle = shadowOnly ? "#1E1E1E" : (part.fill ?? sticker.fill);
+    ctx.fill(path);
+  }
+  ctx.restore();
+}
+
+function drawStickers(
+  ctx: CanvasRenderingContext2D,
+  layout: CardLayout,
+  placed: PlacedSticker[],
+  locale: "fr" | "en",
+) {
+  const u = layout.unit;
+  const { dx, dy } = stickerShadow(u);
+
+  /* KEPT ON THE CARD AT DRAW TIME. Clamping the stored position instead
+     would need every control that can move a sticker to know how wide it
+     renders — including the size slider, which changes the width after the
+     fact. Doing it here means nothing can put a sticker off the edge. */
+  const inside = (centre: number, half: number, extent: number) =>
+    Math.min(extent - half, Math.max(half, centre));
+
+  for (const item of placed) {
+    const sticker = findSticker(item.stickerId);
+    if (!sticker) continue;
+
+    ctx.save();
+
+    if (sticker.kind === "shape") {
+      const size = STICKER_BASE * u * item.scale;
+      const half = size * 0.62;
+      ctx.translate(
+        inside(item.x * layout.width, half, layout.width),
+        inside(item.y * layout.height, half, layout.height),
+      );
+      ctx.rotate(item.rotation);
+      // The shadow is the same shape, offset and flat — the site's chunky
+      // shadow language, not a blur.
+      ctx.save();
+      ctx.translate(dx, dy);
+      ctx.globalAlpha = 0.28;
+      drawShapeSticker(ctx, sticker, size, u, true);
+      ctx.restore();
+      drawShapeSticker(ctx, sticker, size, u);
+    } else {
+      const text = sticker.text[locale];
+      // Shrunk to fit rather than allowed to run off: a long phrase at a
+      // large size would otherwise leave the card entirely.
+      const maxW = layout.width * 0.82;
+      let fontPx = STICKER_BASE * u * item.scale * 0.2;
+      const font = (px: number) =>
+        `700 ${Math.round(px)}px "Google Sans Code", ui-monospace, monospace`;
+      ctx.font = font(fontPx);
+      while (ctx.measureText(text).width + fontPx * 1.6 > maxW && fontPx > 8) {
+        fontPx *= 0.94;
+        ctx.font = font(fontPx);
+      }
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const padX = fontPx * 0.8;
+      const w = ctx.measureText(text).width + padX * 2;
+      const h = fontPx * 2.1;
+      ctx.translate(
+        inside(item.x * layout.width, w / 2, layout.width),
+        inside(item.y * layout.height, h / 2, layout.height),
+      );
+      ctx.rotate(item.rotation);
+
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = "#1E1E1E";
+      roundedRectPath(ctx, -w / 2 + dx, -h / 2 + dy, w, h, h / 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.fillStyle = sticker.fill;
+      ctx.strokeStyle = "#1E1E1E";
+      ctx.lineWidth = Math.max(1.5, u * 0.0075);
+      roundedRectPath(ctx, -w / 2, -h / 2, w, h, h / 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = sticker.fill === "#1E1E1E" ? "#F0F0F0" : "#1E1E1E";
+      ctx.fillText(text, 0, fontPx * 0.06);
+    }
+    ctx.restore();
+  }
+}
+
+/**
+ * Draws one sticker, centred, into a small canvas — for the picker.
+ *
+ * The chip shows the ACTUAL artwork rather than a label, which is the
+ * difference between choosing a sticker and reading a list of nouns. It goes
+ * through the same routine as the card, so a chip cannot show something the
+ * card will not draw.
+ */
+export function drawStickerPreview(
+  canvas: HTMLCanvasElement,
+  stickerId: string,
+  locale: "fr" | "en",
+  px: number,
+) {
+  const sticker = findSticker(stickerId);
+  if (!sticker) return;
+  canvas.width = px;
+  canvas.height = px;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.clearRect(0, 0, px, px);
+  ctx.save();
+  ctx.translate(px / 2, px / 2);
+  if (sticker.kind === "shape") {
+    drawShapeSticker(ctx, sticker, px * 0.78, px * 3.6);
+  } else {
+    // Text stickers are wide; the chip shows the first word, upright.
+    const word = sticker.text[locale].split(" ")[0];
+    const fontPx = px * 0.26;
+    ctx.font = `700 ${Math.round(fontPx)}px "Google Sans Code", ui-monospace, monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const w = Math.min(px * 0.94, ctx.measureText(word).width + fontPx);
+    const h = fontPx * 2;
+    ctx.fillStyle = sticker.fill;
+    ctx.strokeStyle = "#1E1E1E";
+    ctx.lineWidth = Math.max(1.5, px * 0.045);
+    roundedRectPath(ctx, -w / 2, -h / 2, w, h, h / 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = sticker.fill === "#1E1E1E" ? "#F0F0F0" : "#1E1E1E";
+    ctx.fillText(word, 0, fontPx * 0.06, w - fontPx * 0.4);
+  }
+  ctx.restore();
+}
+
+/** Where a sticker's hit area is, in card fractions. Used by the crop stage. */
+export function stickerRadius(item: PlacedSticker, ratio: DpRatio): number {
+  void ratio;
+  return (STICKER_BASE * item.scale) / 2;
+}
+
+/* ------------------------------------------------------------------- plate */
+
+function drawPlate(
+  ctx: CanvasRenderingContext2D,
+  layout: CardLayout,
+  frame: DpFrame,
+  nickname: string,
+  badgeText: string,
+) {
+  const { plate, platePad, unit: u } = layout;
+
+  // The plate, with the radius the nesting rule gives it.
+  ctx.save();
+  ctx.fillStyle = frame.plate;
+  ctx.strokeStyle = "#1E1E1E";
+  ctx.lineWidth = Math.max(2, u * 0.006);
+  roundedRectPath(ctx, plate.x, plate.y, plate.w, plate.h, layout.radius.plate);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  const left = plate.x + platePad;
+  const inner = plate.w - platePad * 2;
+
+  // The name. Left-aligned on the plate's own grid, and shrunk to fit rather
+  // than squashed — a squashed name reads as a bug.
+  const name = nickname.trim().slice(0, 28);
+  const nameY = plate.y + plate.h * 0.38;
+  if (name) {
+    ctx.save();
+    ctx.fillStyle = frame.foreground;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    fitFont(
+      ctx,
+      name,
+      inner,
+      (px) =>
+        `700 ${Math.round(px)}px "Google Sans", "Product Sans", Inter, system-ui, sans-serif`,
+      u * 0.085,
+      u * 0.04,
+    );
+    ctx.fillText(name, left, nameY);
+    ctx.restore();
+  }
+
+  // A hairline, then the lockup: the mark, the event, the chapter. This is
+  // what makes a posted card unmistakably DevFest Yaoundé rather than a
+  // pretty photo in a frame.
+  const ruleY = plate.y + plate.h * 0.6;
+  ctx.save();
+  ctx.strokeStyle = frame.foreground;
+  ctx.globalAlpha = 0.35;
+  ctx.lineWidth = Math.max(1, u * 0.0025);
+  ctx.beginPath();
+  ctx.moveTo(left, ruleY);
+  ctx.lineTo(left + inner, ruleY);
+  ctx.stroke();
+  ctx.restore();
+
+  const markH = u * 0.042;
+  const markW = (markH / MARK_VIEWBOX.height) * MARK_VIEWBOX.width;
+  const lockupY = plate.y + plate.h * 0.78;
+
+  /* A paper chip behind the mark. Without it the yellow bracket vanished
+     into a yellow plate — the piece was there, stroked, and read as an empty
+     outline. Paper separates all four brand colours from any plate colour,
+     and the ink keyline separates the chip from a pale one. */
+  const chipPad = u * 0.014;
+  ctx.save();
+  ctx.fillStyle = "#F0F0F0";
+  ctx.strokeStyle = "#1E1E1E";
+  ctx.lineWidth = Math.max(1.5, u * 0.004);
+  roundedRectPath(
+    ctx,
+    left - chipPad,
+    lockupY - markH / 2 - chipPad,
+    markW + chipPad * 2,
+    markH + chipPad * 2,
+    (markH + chipPad * 2) * 0.3,
+  );
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(left, lockupY - markH / 2);
+  ctx.scale(markH / MARK_VIEWBOX.height, markH / MARK_VIEWBOX.height);
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "#1E1E1E";
+  ctx.lineWidth = MARK_STROKE_WIDTH * 1.6;
+  for (const { d, fill } of MARK_PATHS) {
+    const path = new Path2D(d);
+    ctx.fillStyle = fill;
+    ctx.stroke(path);
+    ctx.fill(path);
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = frame.foreground;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  const lockup = `${EVENT.name.toUpperCase()} ${EVENT.year}   ·   ${EVENT.organizer.toUpperCase()}`;
+  fitFont(
+    ctx,
+    lockup,
+    inner - markW - u * 0.036,
+    (px) =>
+      `600 ${Math.round(px)}px "Google Sans Code", ui-monospace, monospace`,
+    u * 0.03,
+    u * 0.016,
+  );
+  ctx.fillText(lockup, left + markW + u * 0.036, lockupY);
+  ctx.restore();
+
+  // The badge: a tag pinned to the plate's top edge, in the sticker's own
+  // language — flat shadow, heavy outline — so it belongs to the card
+  // instead of floating over it.
+  if (badgeText) {
+    ctx.save();
+    ctx.translate(plate.x + plate.w - u * 0.13, plate.y);
+    ctx.rotate(-0.05);
+    ctx.font = `700 ${Math.round(u * 0.028)}px "Google Sans Code", ui-monospace, monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const padX = u * 0.03;
+    const w = ctx.measureText(badgeText).width + padX * 2;
+    const h = u * 0.068;
+    const r = h * 0.34;
+
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = "#1E1E1E";
+    roundedRectPath(ctx, -w / 2 + u * 0.005, -h / 2 + u * 0.008, w, h, r);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = frame.accent;
+    ctx.strokeStyle = "#1E1E1E";
+    ctx.lineWidth = Math.max(2, u * 0.006);
+    roundedRectPath(ctx, -w / 2, -h / 2, w, h, r);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = frame.accent === "#1E1E1E" ? "#F0F0F0" : "#1E1E1E";
+    ctx.fillText(badgeText, 0, u * 0.002);
+    ctx.restore();
+  }
 }
 
 /* ------------------------------------------------------------------ render */
 
 /**
- * Renders the whole card onto a canvas. Exposed separately from `composeDp`
- * so a live preview can draw into an on-screen canvas at a smaller size
- * without producing a Blob on every pointer move.
+ * Renders the whole card. Exposed separately from `composeDp` so the live
+ * preview can draw into an on-screen canvas at a smaller size without
+ * producing a Blob on every pointer move.
  */
 export function renderDp(
   canvas: HTMLCanvasElement | OffscreenCanvas,
   input: DpComposeInput,
 ): void {
-  const size = input.size ?? DP_SIZE;
+  const width = input.size ?? DP_SIZE;
+  const ratio = input.ratio ?? "1:1";
   const frame = findFrame(input.frameId ?? DEFAULT_FRAME_ID);
   if (!frame) throw new Error(`unknown frame: ${input.frameId}`);
 
-  canvas.width = size;
-  canvas.height = size;
+  const layout = layoutCard(width, ratio, input.corners ?? "rounded");
+  canvas.width = layout.width;
+  canvas.height = layout.height;
 
   const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | null;
   if (!ctx) throw new Error("2d canvas context unavailable");
@@ -713,85 +890,91 @@ export function renderDp(
   const effects = input.effects ?? DEFAULT_EFFECTS;
   const locale = input.locale ?? "fr";
 
-  ctx.clearRect(0, 0, size, size);
-  ctx.fillStyle = frame.background;
-  ctx.fillRect(0, 0, size, size);
+  ctx.clearRect(0, 0, layout.width, layout.height);
 
-  const margin = size * PHOTO_MARGIN_RATIO;
-  const box: Box = { x: margin, y: margin, size: size * PHOTO_BOX_RATIO };
-
-  drawDecorations(ctx, frame, size, box, "beneath");
-
+  // 1. The card: ground, pattern, ink edge — all clipped to the outer radius.
   ctx.save();
-  maskPath(ctx, frame, box);
+  roundedRectPath(ctx, 0, 0, layout.width, layout.height, layout.radius.card);
   ctx.clip();
+  ctx.fillStyle = frame.background;
+  ctx.fillRect(0, 0, layout.width, layout.height);
+  drawPattern({
+    ctx,
+    frame,
+    w: layout.width,
+    h: layout.height,
+    u: layout.unit,
+  });
+  ctx.restore();
+
+  // 2. The photo, already masked by its edge treatment.
   ctx.drawImage(
-    renderPhotoLayer(input.photo, box.size, transform, effects, frame),
-    box.x,
-    box.y,
-    box.size,
-    box.size,
+    renderPhotoLayer(
+      input.photo,
+      layout.photo,
+      layout.radius.photo,
+      transform,
+      effects,
+      frame,
+    ),
+    layout.photo.x,
+    layout.photo.y,
+    layout.photo.w,
+    layout.photo.h,
   );
-  ctx.restore();
 
-  // Accent ring, on the same path so it hugs whichever mask is active.
-  ctx.save();
-  maskPath(ctx, frame, box);
-  ctx.strokeStyle = frame.accent;
-  ctx.lineWidth = size * 0.018;
-  ctx.stroke();
-  ctx.restore();
-
-  drawDecorations(ctx, frame, size, box, "over");
-
-  // Role sticker, straddling the bottom edge of the photo.
-  const tag = findTag(input.tagId ?? DEFAULT_TAG_ID);
-  const tagText = tag?.text[locale] ?? "";
-  if (tagText) {
+  // A clean edge gets an ink keyline; a torn or brushed one must not, or the
+  // rectangle it was supposed to escape is drawn straight back on.
+  if (effects.edge === "clean") {
     ctx.save();
-    ctx.translate(size / 2, box.y + box.size);
-    ctx.rotate(-0.045);
-    ctx.font = `700 ${Math.round(size * 0.032)}px "Google Sans Code", "Google Sans", ui-monospace, monospace`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    const padX = size * 0.032;
-    const w = ctx.measureText(tagText).width + padX * 2;
-    const h = size * 0.072;
-    ctx.fillStyle = frame.accent;
-    ctx.strokeStyle = frame.foreground;
-    ctx.lineWidth = size * 0.007;
-    roundedRectPath(ctx, -w / 2, -h / 2, w, h, h / 2);
-    ctx.fill();
+    ctx.strokeStyle = "#1E1E1E";
+    ctx.lineWidth = Math.max(2, layout.unit * 0.006);
+    roundedRectPath(
+      ctx,
+      layout.photo.x,
+      layout.photo.y,
+      layout.photo.w,
+      layout.photo.h,
+      layout.radius.photo,
+    );
     ctx.stroke();
-    // Ink on the accent, unless the accent IS the ink.
-    ctx.fillStyle = frame.accent === "#1E1E1E" ? "#F0F0F0" : "#1E1E1E";
-    ctx.fillText(tagText, 0, size * 0.002);
     ctx.restore();
   }
 
-  // Nickname.
-  const nickname = input.nickname.trim().slice(0, 28);
-  if (nickname) {
-    ctx.fillStyle = frame.foreground;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.font = `700 ${Math.round(size * 0.062)}px "Google Sans", "Product Sans", Inter, system-ui, sans-serif`;
-    /* A badge takes the space directly under the photo, so the name moves
-       down to clear it. Measured at 1080: 9px of gap before, 33px after. */
-    ctx.fillText(
-      nickname,
-      size / 2,
-      box.y + box.size + size * (tagText ? 0.098 : 0.075),
-      size * 0.86,
-    );
+  // 3. A few pattern pieces in FRONT of the photo, so the card holds it
+  //    rather than the photo simply covering the card.
+  drawOverspill({
+    ctx,
+    frame,
+    w: layout.width,
+    h: layout.height,
+    u: layout.unit,
+    photo: layout.photo,
+  });
+
+  // 4. Stickers, over the photo but under the branding.
+  if (input.stickers?.length) {
+    drawStickers(ctx, layout, input.stickers, locale);
   }
 
-  // Wordmark.
-  ctx.fillStyle = frame.accent;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "alphabetic";
-  ctx.font = `600 ${Math.round(size * 0.03)}px "Google Sans Mono", ui-monospace, monospace`;
-  ctx.fillText("DEVFEST YAOUNDE", size / 2, size - size * 0.038, size * 0.86);
+  // 5. The plate: name, lockup, badge.
+  const badge = findBadge(input.badgeId ?? DEFAULT_BADGE_ID);
+  drawPlate(ctx, layout, frame, input.nickname, badge?.text[locale] ?? "");
+
+  // 6. The card's own outline, last, so nothing sits on top of it.
+  ctx.save();
+  ctx.strokeStyle = "#1E1E1E";
+  ctx.lineWidth = Math.max(2, layout.unit * 0.008);
+  roundedRectPath(
+    ctx,
+    ctx.lineWidth / 2,
+    ctx.lineWidth / 2,
+    layout.width - ctx.lineWidth,
+    layout.height - ctx.lineWidth,
+    layout.radius.card,
+  );
+  ctx.stroke();
+  ctx.restore();
 }
 
 /**
@@ -803,7 +986,8 @@ export function renderDp(
  * preview the person just approved.
  */
 export async function composeDp(input: DpComposeInput): Promise<Blob> {
-  const size = input.size ?? DP_SIZE;
+  const width = input.size ?? DP_SIZE;
+  const height = cardHeight(width, input.ratio ?? "1:1");
   try {
     await document.fonts?.ready;
   } catch {
@@ -812,7 +996,7 @@ export async function composeDp(input: DpComposeInput): Promise<Blob> {
   }
 
   if (typeof OffscreenCanvas !== "undefined") {
-    const canvas = new OffscreenCanvas(size, size);
+    const canvas = new OffscreenCanvas(width, height);
     renderDp(canvas, input);
     return canvas.convertToBlob({ type: "image/png" });
   }

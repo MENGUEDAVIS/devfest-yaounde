@@ -318,17 +318,19 @@
     },
     "dpGenerator": {
       "title": "DP Generator",
-      "lead": "Make yourself a DevFest Yaoundé profile picture. Name it, style it, download it — the whole thing happens right here on your device.",
+      "lead": "Make yourself a DevFest Yaoundé profile picture. Name it, style it, sticker it, download it — the whole thing happens right here on your device.",
       "tabs": {
         "info": "You",
-        "look": "Style",
-        "adjust": "Crop",
+        "style": "Style",
+        "effects": "Effects",
+        "stickers": "Stickers",
         "share": "Save"
       },
       "groups": {
-        "info": "Your name and photo",
-        "look": "Style it",
-        "adjust": "Frame it",
+        "info": "You and your photo",
+        "style": "Pick a style",
+        "effects": "Textures and effects",
+        "stickers": "Stick things on",
         "share": "Save and share"
       },
       "sheet": {
@@ -348,27 +350,56 @@
         "dropActive": "Let go.",
         "hint": "JPEG, PNG or WebP, up to 12 MB."
       },
-      "frames": {
-        "legend": "Frame"
+      "ratio": {
+        "legend": "Shape",
+        "square": "Square",
+        "portrait": "Tall"
       },
-      "tags": {
-        "legend": "Badge"
+      "corners": {
+        "legend": "Corners",
+        "rounded": "Rounded",
+        "square": "Hard edge",
+        "mixed": "Mixed"
+      },
+      "frames": {
+        "legend": "Style"
+      },
+      "badges": {
+        "legend": "Badge",
+        "hint": "Attendance badges only. \"Speaker\" and \"Organiser\" would be claims we cannot check without a login, and a badge anyone can award themselves is worth nothing to the people who earned it."
       },
       "looks": {
-        "legend": "Effect",
+        "legend": "Photo",
         "none": "As shot",
         "duotone": "Duotone",
         "halftone": "Halftone",
-        "mono": "Black & white"
+        "mono": "Black & white",
+        "chromatic": "Misprint",
+        "poster": "Screen print"
+      },
+      "edges": {
+        "legend": "Edge",
+        "clean": "Clean",
+        "torn": "Torn",
+        "brush": "Brushed"
       },
       "textures": {
+        "legend": "Texture",
         "grain": "Grain",
-        "vignette": "Vignette"
+        "paper": "Paper",
+        "vignette": "Vignette",
+        "warp": "Ripple"
       },
-      "export": {
-        "legend": "Size",
-        "standard": "Standard · {px}px",
-        "high": "Big · {px}px"
+      "stickers": {
+        "shapes": "Shapes",
+        "words": "Words",
+        "hint": "Tap to add, then drag it around the card. Select one to resize or turn it — with a keyboard: arrows to move, + and − to size, [ and ] to turn, Delete to remove.",
+        "full": "That's as many as one card can carry. Remove one to add another.",
+        "selected": "Selected sticker",
+        "size": "Size",
+        "turn": "Turn",
+        "remove": "Remove sticker",
+        "pick": "Tap a sticker on the card to move, resize or remove it."
       },
       "adjust": {
         "zoom": "Zoom",
@@ -376,10 +407,15 @@
         "hint": "Drag the photo to move it around. On a keyboard: arrows to move, + and − to zoom, hold Shift for smaller steps.",
         "waiting": "Add a photo first — there's nothing to frame yet."
       },
+      "export": {
+        "legend": "Size",
+        "standard": "Standard · {px}px",
+        "high": "Big · {px}px"
+      },
       "preview": {
         "empty": "Your card shows up here",
-        "label": "Your DevFest card: {nickname}, on the {frame} frame.",
-        "labelAnonymous": "Your DevFest card, on the {frame} frame."
+        "label": "Your DevFest card: {nickname}, in the {frame} style.",
+        "labelAnonymous": "Your DevFest card, in the {frame} style."
       },
       "actions": {
         "download": "Download",
@@ -408,7 +444,7 @@
         "title": "The photo never leaves your device",
         "body": "Nothing is uploaded and nothing is stored. The card is drawn in your browser and saved straight to your downloads — we never see it."
       },
-      "metaDesc": "Build a DevFest Yaoundé profile picture in your browser — pick a frame, crop it, download it. Nothing is uploaded."
+      "metaDesc": "Build a DevFest Yaoundé profile picture in your browser — pick a style, crop it, sticker it, download it. Nothing is uploaded."
     },
     "paymentReturn": {
       "title": "Confirming your payment",

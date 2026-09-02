@@ -1,68 +1,54 @@
 /**
- * DP generator — frame catalog.
+ * DP generator — the style catalog.
  *
- * A frame is DATA, not code: colours, a mask shape, and a list of decorations
- * the compositor knows how to draw. Adding one for next year's edition is an
- * entry in `DP_FRAMES` and nothing else — no new drawing code, no touched
- * component. See docs/guides/dp-generator.md.
+ * A style is DATA: colours, a background pattern, and the plate the branding
+ * sits on. Adding one for next year's edition is an entry in `DP_FRAMES` and
+ * nothing else — the picker, the swatches and the compositor all read it.
  *
  * Colours come from DESIGN.md §2 (the four Google families, their halftones
- * and pastels). Every fill is FLAT (§2.6); the card's art is built from solid
- * shapes rather than shading.
- *
- * On the mask shape: PAGES.md §9 asks for the morphed-shape motif, and
- * DESIGN.md §4.2 carries a standing instruction not to fake it until the real
- * asset is supplied. `mask` is therefore still limited to honest shapes, and
- * the union mask can be added here later without touching any caller
- * (GAPS.md G17).
+ * and pastels). Every fill is FLAT (§2.6): the craft comes from shape and
+ * repetition, never from a colour ramp.
  */
-
-export type DpMask = "rounded" | "circle";
 
 /**
- * The decoration vocabulary. Each is a drawing primitive in `compose.ts` that
- * reads its colours from the frame, so any frame can use any of them and a
- * new combination costs one line.
+ * The background patterns. Each is a drawing routine in `compose.ts` that
+ * reads its colours from the style, so any style can use any of them.
  *
- * `confetti`  — flat shapes scattered in the margin, never over the photo
- * `brackets`  — the DevFest angle-bracket motif, in opposite corners
- * `halftone`  — a dot field that thins out as it crosses the card (§2.4)
- * `sparkles`  — small four-point stars
- * `stripes`   — a diagonal band along one edge
- * `tape`      — two strips of tape holding the photo down, photobooth-style
- * `dashRing`  — a dashed outline offset outside the photo
- * `postcard`  — a thick inner border, like a print with a white margin
+ * `confetti`  — flat shapes and chevrons scattered across the ground
+ * `terrazzo`  — chips of the four brand families, speckled like terrazzo
+ * `halftone`  — a dot field that thins across the card (§2.4)
+ * `checker`   — a bold offset checkerboard of rounded squares
+ * `waves`     — repeated brush arcs, like a printed pattern
+ * `grid`      — a drafting grid with heavier rules and corner ticks
+ * `rays`      — flat wedges radiating from a corner, no colour ramp
+ * `tiles`     — two-tone rounded tiling, quietly dense
  */
-export type DpDecoration =
+export type DpPattern =
   | "confetti"
-  | "brackets"
+  | "terrazzo"
   | "halftone"
-  | "sparkles"
-  | "stripes"
-  | "tape"
-  | "dashRing"
-  | "postcard";
+  | "checker"
+  | "waves"
+  | "grid"
+  | "rays"
+  | "tiles";
 
 export interface DpFrame {
   id: string;
   /** Shown in the picker. Both languages, per the i18n rule. */
   label: { fr: string; en: string };
-  /** Card background behind everything. */
+  /** The card's ground. */
   background: string;
-  /** The ring around the photo, and most decoration art. */
+  /** The pattern drawn over it, and the plate's fill. */
   accent: string;
-  /** Nickname and wordmark colour. */
+  /** Type colour on the plate. */
   foreground: string;
-  mask: DpMask;
-  /** Drawn under and around the photo, in the order given. */
-  decorations: DpDecoration[];
-  /**
-   * Extra colours for `confetti` and `sparkles`. Defaults to the accent
-   * alone. Frames that use all four Google families do it deliberately —
-   * that palette IS the brand's own, not four competing dominants.
-   */
+  /** The plate the branding sits on. */
+  plate: string;
+  pattern: DpPattern;
+  /** Pattern colours. Defaults to the accent alone. */
   palette?: string[];
-  /** [shadow, highlight] for the duotone effect. Defaults to ink → accent. */
+  /** [shadow, highlight] for the duotone and halftone photo effects. */
   duotone?: [string, string];
 }
 
@@ -81,7 +67,7 @@ const RED = "#EA4335";
 const RED_LIGHT = "#FF7DAF";
 const RED_PASTEL = "#F8D8D8";
 
-/** The four families together — the DevFest/Google mark's own palette. */
+/** The four families together — the DevFest mark's own palette. */
 const BRAND_FOUR = [YELLOW, BLUE, GREEN, RED];
 
 export const DP_FRAMES: DpFrame[] = [
@@ -91,42 +77,43 @@ export const DP_FRAMES: DpFrame[] = [
     background: YELLOW_PASTEL,
     accent: YELLOW,
     foreground: INK,
-    mask: "rounded",
-    decorations: ["confetti", "sparkles"],
+    plate: YELLOW,
+    pattern: "confetti",
     palette: BRAND_FOUR,
+    duotone: [INK, YELLOW_LIGHT],
   },
   {
-    id: "brackets",
-    label: { fr: "Chevrons", en: "Brackets" },
+    id: "terrazzo",
+    label: { fr: "Terrazzo", en: "Terrazzo" },
     background: PAPER,
     accent: INK,
     foreground: INK,
-    mask: "rounded",
-    decorations: ["brackets", "dashRing"],
-    palette: [YELLOW, INK],
-    duotone: [INK, YELLOW_LIGHT],
+    plate: YELLOW_PASTEL,
+    pattern: "terrazzo",
+    palette: BRAND_FOUR,
+    duotone: [INK, YELLOW],
   },
   {
     id: "midnight",
     label: { fr: "Minuit", en: "Midnight" },
     background: INK,
     accent: YELLOW_LIGHT,
-    foreground: PAPER,
-    mask: "rounded",
-    decorations: ["halftone", "sparkles"],
-    palette: [YELLOW_LIGHT, PAPER],
+    foreground: INK,
+    plate: YELLOW_LIGHT,
+    pattern: "halftone",
+    palette: [YELLOW_LIGHT, YELLOW],
     duotone: [INK, YELLOW_LIGHT],
   },
   {
-    id: "polaroid",
-    label: { fr: "Polaroïd", en: "Polaroid" },
-    background: PAPER,
+    id: "checker",
+    label: { fr: "Damier", en: "Checker" },
+    background: YELLOW,
     accent: INK,
     foreground: INK,
-    mask: "rounded",
-    decorations: ["postcard", "tape"],
-    palette: [YELLOW, RED],
-    duotone: [INK, PAPER],
+    plate: PAPER,
+    pattern: "checker",
+    palette: [YELLOW_LIGHT],
+    duotone: [INK, YELLOW_PASTEL],
   },
   {
     id: "lagoon",
@@ -134,10 +121,21 @@ export const DP_FRAMES: DpFrame[] = [
     background: BLUE_PASTEL,
     accent: BLUE,
     foreground: INK,
-    mask: "circle",
-    decorations: ["stripes", "halftone"],
+    plate: BLUE,
+    pattern: "waves",
     palette: [BLUE, BLUE_LIGHT],
     duotone: [INK, BLUE_LIGHT],
+  },
+  {
+    id: "blueprint",
+    label: { fr: "Plan", en: "Blueprint" },
+    background: "#0B2545",
+    accent: BLUE_LIGHT,
+    foreground: PAPER,
+    plate: "#0B2545",
+    pattern: "grid",
+    palette: [BLUE_LIGHT, BLUE],
+    duotone: ["#0B2545", BLUE_LIGHT],
   },
   {
     id: "grove",
@@ -145,9 +143,9 @@ export const DP_FRAMES: DpFrame[] = [
     background: GREEN_PASTEL,
     accent: GREEN,
     foreground: INK,
-    mask: "circle",
-    decorations: ["confetti", "dashRing"],
-    palette: [GREEN, GREEN_LIGHT, YELLOW],
+    plate: GREEN_LIGHT,
+    pattern: "tiles",
+    palette: [GREEN, GREEN_LIGHT],
     duotone: [INK, GREEN_LIGHT],
   },
   {
@@ -156,21 +154,10 @@ export const DP_FRAMES: DpFrame[] = [
     background: RED_PASTEL,
     accent: RED,
     foreground: INK,
-    mask: "rounded",
-    decorations: ["stripes", "sparkles"],
-    palette: [RED, RED_LIGHT, YELLOW],
+    plate: RED_LIGHT,
+    pattern: "rays",
+    palette: [RED, RED_LIGHT],
     duotone: [INK, RED_LIGHT],
-  },
-  {
-    id: "spotlight",
-    label: { fr: "Projecteur", en: "Spotlight" },
-    background: YELLOW,
-    accent: INK,
-    foreground: INK,
-    mask: "rounded",
-    decorations: ["halftone", "brackets"],
-    palette: [INK, YELLOW_LIGHT],
-    duotone: [INK, YELLOW_PASTEL],
   },
 ];
 
@@ -181,53 +168,51 @@ export function findFrame(id: string): DpFrame | undefined {
 export const DEFAULT_FRAME_ID = DP_FRAMES[0].id;
 
 /**
- * The sticker that straddles the bottom of the photo.
+ * The badge that hangs off the branding plate.
  *
- * Kept apart from the frames on purpose: any tag works with any frame, so
- * folding them together would multiply the catalog for no gain. `none` is
- * first because most people want their face and their name, not a role.
+ * ATTENDANCE ONLY, AND THAT IS A DECISION (PHASE16 §4). "Speaker",
+ * "Organiser" and "Volunteer" are claims about a role, and with no login and
+ * no backend there is nothing to check them against — a self-selectable
+ * Speaker badge means anyone can wear one, which devalues it for the people
+ * who actually earned it. Everything here is a statement about yourself that
+ * costs nobody anything if it is wrong.
  *
- * The French wording avoids gendered job nouns rather than reaching for a
- * midpoint — "Au micro" and "Dans l'équipe" say the same thing and read like
- * the rest of the site's voice.
+ * Role badges are recorded as a backend item (GAPS.md G19). If a soft
+ * unlock code is ever wanted, this array and one input are where it lands.
  */
-export interface DpTag {
+export interface DpBadge {
   id: string;
   label: { fr: string; en: string };
   /** Empty for `none`; what actually gets printed otherwise. */
   text: { fr: string; en: string };
 }
 
-export const DP_TAGS: DpTag[] = [
-  {
-    id: "none",
-    label: { fr: "Aucun", en: "None" },
-    text: { fr: "", en: "" },
-  },
+export const DP_BADGES: DpBadge[] = [
+  { id: "none", label: { fr: "Aucun", en: "None" }, text: { fr: "", en: "" } },
   {
     id: "attending",
     label: { fr: "J'y serai", en: "I'll be there" },
     text: { fr: "J'Y SERAI", en: "I'LL BE THERE" },
   },
   {
-    id: "speaker",
-    label: { fr: "Au micro", en: "Speaker" },
-    text: { fr: "AU MICRO", en: "SPEAKER" },
+    id: "countmein",
+    label: { fr: "J'en suis", en: "Count me in" },
+    text: { fr: "J'EN SUIS", en: "COUNT ME IN" },
   },
   {
-    id: "organiser",
-    label: { fr: "Dans l'équipe", en: "Organiser" },
-    text: { fr: "DANS L'ÉQUIPE", en: "ORGANISER" },
+    id: "firsttime",
+    label: { fr: "Première fois", en: "First timer" },
+    text: { fr: "MA PREMIÈRE FOIS", en: "MY FIRST ONE" },
   },
   {
-    id: "volunteer",
-    label: { fr: "Bénévole", en: "Volunteer" },
-    text: { fr: "BÉNÉVOLE", en: "VOLUNTEER" },
+    id: "backagain",
+    label: { fr: "J'y retourne", en: "Back again" },
+    text: { fr: "J'Y RETOURNE", en: "BACK AGAIN" },
   },
 ];
 
-export const DEFAULT_TAG_ID = DP_TAGS[0].id;
+export const DEFAULT_BADGE_ID = DP_BADGES[0].id;
 
-export function findTag(id: string): DpTag | undefined {
-  return DP_TAGS.find((tag) => tag.id === id);
+export function findBadge(id: string): DpBadge | undefined {
+  return DP_BADGES.find((badge) => badge.id === id);
 }

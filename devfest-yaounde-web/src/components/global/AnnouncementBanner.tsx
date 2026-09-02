@@ -88,7 +88,7 @@ export function AnnouncementBanner({
         onClick={onDismiss}
         aria-label={t("dismiss")}
         tabIndex={hidden ? -1 : undefined}
-        className="shrink-0 rounded-pill p-1.5 transition-[background-color,transform] duration-200 ease-bouncy hover:scale-110 hover:bg-black02/10 active:scale-90"
+        className="-m-3.5 shrink-0 rounded-pill p-3.5 transition-[background-color,transform] duration-200 ease-bouncy hover:scale-110 hover:bg-black02/10 active:scale-90"
       >
         <X size={16} weight="bold" />
       </button>

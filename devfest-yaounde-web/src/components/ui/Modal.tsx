@@ -53,10 +53,15 @@ export interface ModalProps {
    * needed more horizontal room than a 14" laptop has, so on the machine
    * most people actually use, the filters simply did not render.
    *
-   * `drawer-right`: the same, from the right, and wider — product detail in
-   * the shop. Right rather than left because it is a detail *of* something
-   * you just clicked, and the reading order puts the follow-up on the side
-   * you finish on.
+   * `drawer-right`: a FLOATING card that slides in from the right — product
+   * detail in the shop. Right rather than left because it is a detail *of*
+   * something you just clicked, and the reading order puts the follow-up on
+   * the side you finish on.
+   *
+   * It is detached from every edge and fully rounded, over a blurred scrim,
+   * rather than glued to the right edge. On a phone it becomes a full-bleed
+   * sheet instead, because a floating card inside a 390px screen is mostly
+   * margin.
    */
   variant?: ModalVariant;
   /**
@@ -239,7 +244,9 @@ export function Modal({
           : drawerLeft
             ? "fixed inset-0 z-100 flex items-stretch justify-start"
             : drawerRight
-              ? "fixed inset-0 z-100 flex items-stretch justify-end"
+              ? // Padding is what detaches the card from the screen on
+                // desktop; a phone gets none, so the sheet is full-bleed.
+                "fixed inset-0 z-100 flex items-stretch justify-end sm:p-5 lg:p-7"
               : "fixed inset-0 z-100 flex items-center justify-center p-4"
       }
     >
@@ -279,18 +286,21 @@ export function Modal({
                   // description, not a list of chips. Same edge logic,
                   // mirrored: rounded only on the side that shows.
                   //
-                  // FULL-BLEED ON A PHONE (PHASE15 §1). At `min(34rem,94vw)`
-                  // it left a 6% sliver of scrim down one side, which reads as
-                  // a misaligned panel rather than a deliberate margin; at
-                  // phone width there is no room to spare for it either. The
-                  // left edge keeps its radius and border, so the sheet still
-                  // has an edge and no corner is sharp.
+                  // A FLOATING CARD (PHASE16 §1), not a panel glued to the
+                  // edge: rounded on all four corners, bordered all the way
+                  // round, and held off every edge by the wrapper's padding.
+                  //
+                  // FULL-BLEED ON A PHONE. At `min(34rem,94vw)` it left a 6%
+                  // sliver of scrim down one side, which reads as a
+                  // misaligned panel rather than a margin, and 390px has none
+                  // to spare — so the phone gets the whole screen, still
+                  // rounded so no corner is sharp.
                   //
                   // `overflow-hidden` with the body scrolling INSIDE, so the
                   // close button stays pinned. It used to scroll away with
                   // the content, which on a long product left no way out but
                   // Escape or a scroll back up.
-                  `anim-drawer-right relative flex h-full w-full flex-col overflow-hidden rounded-l-lg border-y-2 border-l-2 border-black02 bg-offwhite sm:w-[min(34rem,94vw)] ${className}`
+                  `anim-drawer-right relative flex h-full w-full flex-col overflow-hidden rounded-lg border-2 border-black02 bg-offwhite shadow-[0_10px_0_0_var(--color-black02)] sm:w-[min(34rem,94vw)] ${className}`
                 : `${modalPopIn} relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-offwhite p-6 sm:p-8 ${className}`
         }
       >

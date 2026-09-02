@@ -62,7 +62,7 @@
     "getInvolved": {
       "title": "S'impliquer",
       "shop": "Boutique",
-      "dpGenerator": "Générateur de DP",
+      "dpGenerator": "Générateur de PP",
       "community": "Rejoindre la communauté"
     },
     "legal": {
@@ -317,18 +317,20 @@
       "metaDesc": "T-shirts, hoodies et tout le kit DevFest Yaoundé. Paiement Mobile Money, retrait sur place."
     },
     "dpGenerator": {
-      "title": "Générateur de DP",
-      "lead": "Crée ta photo de profil DevFest Yaoundé. Ton nom, ton style, et tu télécharges — tout se passe ici, sur ton appareil.",
+      "title": "Générateur de PP",
+      "lead": "Crée ta photo de profil DevFest Yaoundé. Ton nom, ton style, tes stickers, et tu télécharges — tout se passe ici, sur ton appareil.",
       "tabs": {
         "info": "Toi",
-        "look": "Style",
-        "adjust": "Cadre",
+        "style": "Style",
+        "effects": "Effets",
+        "stickers": "Stickers",
         "share": "Garder"
       },
       "groups": {
-        "info": "Ton nom et ta photo",
-        "look": "Ton style",
-        "adjust": "Cadre-la",
+        "info": "Toi et ta photo",
+        "style": "Choisis un style",
+        "effects": "Textures et effets",
+        "stickers": "Colle des trucs",
         "share": "Garder et partager"
       },
       "sheet": {
@@ -348,27 +350,56 @@
         "dropActive": "Lâche.",
         "hint": "JPEG, PNG ou WebP, 12 Mo maximum."
       },
-      "frames": {
-        "legend": "Cadre"
+      "ratio": {
+        "legend": "Format",
+        "square": "Carré",
+        "portrait": "Portrait"
       },
-      "tags": {
-        "legend": "Badge"
+      "corners": {
+        "legend": "Coins",
+        "rounded": "Arrondis",
+        "square": "Nets",
+        "mixed": "Mixte"
+      },
+      "frames": {
+        "legend": "Style"
+      },
+      "badges": {
+        "legend": "Badge",
+        "hint": "Uniquement des badges de présence. « Intervenant » ou « Organisateur » seraient des affirmations qu'on ne peut pas vérifier sans connexion, et un badge que tout le monde peut s'attribuer ne vaut plus rien pour celles et ceux qui l'ont mérité."
       },
       "looks": {
-        "legend": "Effet",
+        "legend": "Photo",
         "none": "Telle quelle",
         "duotone": "Duotone",
         "halftone": "Trame",
-        "mono": "Noir et blanc"
+        "mono": "Noir et blanc",
+        "chromatic": "Décalage",
+        "poster": "Sérigraphie"
+      },
+      "edges": {
+        "legend": "Bord",
+        "clean": "Net",
+        "torn": "Déchiré",
+        "brush": "Au pinceau"
       },
       "textures": {
+        "legend": "Texture",
         "grain": "Grain",
-        "vignette": "Vignettage"
+        "paper": "Papier",
+        "vignette": "Vignettage",
+        "warp": "Ondulation"
       },
-      "export": {
-        "legend": "Taille",
-        "standard": "Standard · {px} px",
-        "high": "Grand · {px} px"
+      "stickers": {
+        "shapes": "Formes",
+        "words": "Mots",
+        "hint": "Touche pour ajouter, puis fais glisser sur la carte. Sélectionne-en un pour le redimensionner ou le tourner — au clavier : les flèches pour déplacer, + et − pour la taille, [ et ] pour tourner, Suppr pour retirer.",
+        "full": "C'est tout ce qu'une carte peut porter. Retires-en un pour en ajouter un autre.",
+        "selected": "Sticker sélectionné",
+        "size": "Taille",
+        "turn": "Rotation",
+        "remove": "Retirer le sticker",
+        "pick": "Touche un sticker sur la carte pour le déplacer, le redimensionner ou le retirer."
       },
       "adjust": {
         "zoom": "Zoom",
@@ -376,10 +407,15 @@
         "hint": "Fais glisser la photo pour la déplacer. Au clavier : les flèches pour déplacer, + et − pour zoomer, Maj pour avancer plus finement.",
         "waiting": "Ajoute d'abord une photo — il n'y a rien à cadrer."
       },
+      "export": {
+        "legend": "Taille",
+        "standard": "Standard · {px} px",
+        "high": "Grand · {px} px"
+      },
       "preview": {
         "empty": "Ta carte apparaît ici",
-        "label": "Ta carte DevFest : {nickname}, sur le cadre {frame}.",
-        "labelAnonymous": "Ta carte DevFest, sur le cadre {frame}."
+        "label": "Ta carte DevFest : {nickname}, style {frame}.",
+        "labelAnonymous": "Ta carte DevFest, style {frame}."
       },
       "actions": {
         "download": "Télécharger",
@@ -408,7 +444,7 @@
         "title": "La photo ne quitte jamais ton appareil",
         "body": "Rien n'est envoyé, rien n'est stocké. La carte est dessinée dans ton navigateur et enregistrée directement dans tes téléchargements — on ne la voit jamais."
       },
-      "metaDesc": "Crée ta photo de profil DevFest Yaoundé dans ton navigateur — un cadre, un recadrage, un téléchargement. Rien n'est envoyé."
+      "metaDesc": "Crée ta photo de profil DevFest Yaoundé dans ton navigateur — un style, un recadrage, des stickers, et tu télécharges. Rien n'est envoyé."
     },
     "paymentReturn": {
       "title": "Confirmation de ton paiement",

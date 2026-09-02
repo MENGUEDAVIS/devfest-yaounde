@@ -1,7 +1,7 @@
 # The DP generator
 
-`/{locale}/dp-generator` — a visitor drops in a photo, picks a frame, crops it
-and downloads a square DevFest profile picture.
+`/{locale}/dp-generator` — a visitor drops in a photo, picks a style, crops
+it, sticks things on it and downloads a DevFest profile card.
 
 **It has no backend, and that is a decision, not an omission** (ADR 0015). The
 photo is read with `createImageBitmap`, drawn onto a canvas and saved locally.
@@ -11,178 +11,221 @@ else on the site is down, and the URL can be shared on its own.
 
 ## Where the pieces live
 
-| File                                | Job                                                 |
-| ----------------------------------- | --------------------------------------------------- |
-| `src/lib/dp/frames.ts`              | The frame catalog — **the file you edit each year** |
-| `src/lib/dp/compose.ts`             | The compositor: mask, cover-fit, nickname, wordmark |
-| `src/lib/dp/share.ts`               | Web Share API, clipboard fallback, caption          |
-| `src/components/dp/DpGenerator.tsx` | The screen and all of its state                     |
-| `src/components/dp/DpStage.tsx`     | The live preview, which is also the crop control    |
-| `src/components/dp/pan.ts`          | Zoom range and the pan clamp                        |
-| `messages/{fr,en}.json`             | `pages.dpGenerator.*` and `errors.dp.*`             |
+| File                                | Job                                                     |
+| ----------------------------------- | ------------------------------------------------------- |
+| `src/lib/dp/frames.ts`              | Styles and badges — **the file you edit each year**     |
+| `src/lib/dp/stickers.ts`            | The sticker sheet                                       |
+| `src/lib/dp/patterns.ts`            | The eight background patterns                           |
+| `src/lib/dp/geometry.ts`            | The card's layout grid and its nested radii             |
+| `src/lib/dp/compose.ts`             | Photo treatments, the plate, stickers, the render order |
+| `src/lib/brand/devfest-mark.ts`     | The DevFest mark's path data, shared with the SVG logo  |
+| `src/components/dp/DpGenerator.tsx` | The screen and all of its state                         |
+| `src/components/dp/DpStage.tsx`     | Preview, crop control and sticker board in one          |
+| `src/components/dp/pan.ts`          | Zoom range, the pan clamp, the rubber band              |
+| `messages/{fr,en}.json`             | `pages.dpGenerator.*` and `errors.dp.*`                 |
 
-## Changing the frames for a new year
+## The layout grid
 
-Edit `DP_FRAMES` in `src/lib/dp/frames.ts`. Nothing else needs to change — the
-picker, the swatches, the empty-state preview and the canvas all read from that
-array, and the swatch draws each frame's own mask shape.
+Everything is positioned from `geometry.ts`, so "aligned" is a property of the
+geometry rather than of whoever last edited a magic number. Every length —
+including the vertical ones — is a fraction of the card's **width**, which is
+why a 3:4 card has the same margins and the same type size as a 1:1 card and
+simply gets a taller photo.
 
-A frame is **data, not code**: colours, a mask, and a list of decorations the
-compositor already knows how to draw.
+The card's corners come in three cuts — **rounded** (the default and the
+site's own language), **hard edge**, and **mixed** (square outside, rounded
+inside, the classic mounted-photo treatment). The square options are a
+DELIBERATE exception to the no-sharp-corners rule: that rule governs the
+site's chrome, and this is artwork a visitor is making for themselves.
+
+**Nested radii decrease inward, by exactly the padding between each pair** —
+the standard `outer = inner + padding` rule:
+
+```
+card 0.135W  →  (pad 0.085W)  →  photo 0.050W  →  (pad 0.035W)  →  plate 0.015W
+```
+
+The plate ends up nearly square-cornered, and that is the rule working rather
+than a mistake: a small element deep inside a very round one is supposed to
+look like that. Matching the card's radius at every level is what looks wrong.
+Four unit tests hold this, the centring and the ratio behaviour. With a
+square outer edge there is nothing to subtract from, so the inner radii simply
+stand on their own.
+
+The outer padding is **8.5% of the card on every side**, and it is that wide
+because the pattern is half the design. At 5% the photo swallowed the card and
+eight carefully different styles all came out as the same picture with a
+differently coloured hairline round it.
+
+## Changing the styles for a new year
+
+Edit `DP_FRAMES` in `src/lib/dp/frames.ts`. A style is **data**: colours, a
+background pattern, and the plate the branding sits on.
 
 ```ts
 {
-  id: "confetti",                              // stable, used in state
+  id: "confetti",
   label: { fr: "Confettis", en: "Confetti" },  // both languages, always
-  background: "#FFE7A5",   // the card behind everything
-  accent: "#F9AB00",       // the ring, the badge, most of the art
-  foreground: "#1E1E1E",   // the nickname and wordmark
-  mask: "rounded",         // "rounded" | "circle"
-  decorations: ["confetti", "sparkles"],
-  palette: [YELLOW, BLUE, GREEN, RED],   // confetti/sparkle colours
-  duotone: ["#1E1E1E", "#FFD427"],       // [shadow, highlight] for the effect
+  background: "#FFE7A5",   // the card's ground
+  accent: "#F9AB00",       // the badge, and most of the pattern
+  foreground: "#1E1E1E",   // type on the plate
+  plate: "#F9AB00",        // the branding plate
+  pattern: "confetti",
+  palette: [YELLOW, BLUE, GREEN, RED],  // pattern colours
+  duotone: ["#1E1E1E", "#FFD427"],      // [shadow, highlight] for the effects
 }
 ```
 
-### The decoration vocabulary
+### The pattern vocabulary
 
 | Name       | What it draws                                             |
 | ---------- | --------------------------------------------------------- |
-| `confetti` | Flat shapes scattered in the margin, never on the photo   |
-| `sparkles` | Small four-point stars                                    |
-| `brackets` | The DevFest angle-bracket motif, in opposite corners      |
+| `confetti` | Flat shapes, chevrons and stars scattered over the ground |
+| `terrazzo` | Broken chips of the four brand families, with ink speckle |
 | `halftone` | A dot field that thins across the card (DESIGN.md §2.4)   |
-| `stripes`  | A diagonal band across a corner, passing behind the photo |
-| `tape`     | Two strips of tape holding the photo down                 |
-| `dashRing` | A dashed outline offset outside the photo                 |
-| `postcard` | A thick inner border, like a print with a white margin    |
+| `checker`  | A bold offset checkerboard of rounded squares             |
+| `waves`    | Repeated brush arcs, like a printed pattern               |
+| `grid`     | A drafting grid, with heavier rules and corner ticks      |
+| `rays`     | Flat wedges radiating from the base — solid, not a ramp   |
+| `tiles`    | Two-tone rounded tiling with an alternating weave         |
 
-Mix them freely — any frame can use any of them, and a new combination costs
-one line. Decorations are drawn either beneath the photo or over it; the
-`BENEATH` list in `compose.ts` decides which, and the photo is what makes a
-`stripes` band read as passing behind someone's shoulder.
+Two rules to check when you add a style:
 
-Two rules hold everything together, and both are enforced by geometry rather
-than by care:
+- **The plate must not be the ground colour.** Two of the first eight were,
+  and they were only readable because of their outline.
+- **Flat fills only.** Every shape is one colour. A fill ramp would break
+  DESIGN.md §2.6 and would be the only one on the site.
 
-- **Nothing lands on a face.** Every scattered decoration rejects candidate
-  points inside the photo box.
-- **Nothing lands on the type.** `TEXT_BAND_TOP` marks where the badge, the
-  name and the wordmark live; the dot field stops there, and confetti avoids
-  the centred column through it while still filling the bottom corners.
+`confetti` and `terrazzo` also spill a few pieces in FRONT of the photo. It is
+a small thing that does a lot — the photo stops being a rectangle pasted on a
+background and starts being something the card is holding. Patterns made of
+loose pieces get it; a checkerboard spilling over a photograph would just look
+like a mistake.
 
-Two things to check when you add a frame:
+## Effects
 
-- **Contrast.** `foreground` sits on `background` and has to be readable at a
-  36px avatar. The existing eight pair a dark foreground with a pale ground, or
-  the reverse — do not add a mid-tone pair.
-- **Flat fills only.** `background` is a single colour, and so is every shape.
-  A fill ramp would break DESIGN.md §2.6 and would be the only one on the site.
+**Looks** (one at a time): as shot, duotone, halftone, black & white,
+misprint (channel offset), screen print (posterised).
+**Edges**: clean, torn, brushed — the edge is a mask, so a torn photo really
+does leave its own corner behind.
+**Textures** (independent): grain, paper, vignette, ripple.
 
-The first entry is `DEFAULT_FRAME_ID`, so put the year's lead frame first.
+All of it is 2D canvas: one geometric pass for the ripple and the channel
+offset, one colour pass that does the look, the grain, the paper and the
+vignette together, and a mask for the edge.
 
-### Badges
+**There is no shader runtime and no image library.** The preview and the
+export run the same `renderDp`, which is what lets a test read the downloaded
+file back and compare it to the preview someone approved. A GL path fast
+enough to matter would still need a 2D fallback for the export and for
+machines without a context, and two renderers is exactly how a file stops
+matching its preview. If an effect ever genuinely needs the GPU, that is the
+moment for an ADR.
 
-`DP_TAGS`, in the same file, is the sticker that straddles the bottom of the
-photo — "I'll be there", "Speaker", "Organiser", "Volunteer", and `none`. They
-are kept apart from the frames because any badge works with any frame; folding
-them together would multiply the catalog for nothing. `text` is what gets
-printed (upper case, both languages); `label` is what the picker shows.
+## Stickers
 
-### Effects
+`SHAPE_STICKERS` and `TEXT_STICKERS` in `src/lib/dp/stickers.ts`. A shape is a
+vector path in a 100×100 box; a word is a phrase in a rounded tag. Both get
+the same treatment — a flat ink shadow, a heavy ink outline, a flat fill —
+because that is what makes a sticker read as a sticker rather than as clip art
+dropped on a photo.
 
-Four looks — `none`, `duotone`, `halftone`, `mono` — plus two independent
-toggles, grain and vignette. They apply to the photo only, on its own layer,
-before the ring and the badge go on top.
+The picker draws each chip with the compositor itself, so a chip cannot
+advertise something the card will not draw.
 
-All of it is 2D canvas: one pass over an ImageData buffer for the look, the
-grain and the vignette together, and a few hundred `arc` calls for the halftone
-dots. **There is no shader runtime and no image library**, and that is
-deliberate — a WebGL pipeline would mean shader sources, a program cache,
-context-loss handling and a second code path for the export, to make something
-imperceptibly faster on a region 734px square. If an effect ever genuinely
-needs the GPU, that is the moment for an ADR.
+Placement is deliberate rather than formulaic: shapes go round the photo on a
+fixed ring, words stack down the middle where there is room for their width. A
+single formula spread them evenly on paper and piled them on top of each other
+in practice, because a word sticker is five times wider than a shape.
 
-A frame's `duotone` pair also drives the halftone's two colours, so a new frame
-gets sensible effects for free.
+Stickers are clamped **at draw time**, not in state. Clamping the stored
+position would need every control that can move one — including the size
+slider, which changes the width after the fact — to know how wide it renders.
 
-## The mask shape is still deliberately plain
+Nothing here reproduces a third-party logo: the "community" stickers are GDG
+Yaoundé's own name and the event's own mark.
 
-`PAGES.md` §9 asks for the morphed-shape motif and `DpMask` offers only
-rounded rectangles and circles. That follows DESIGN.md §4.2: do not approximate
-the signature shape until the real asset exists. When it does, extend `DpMask`
-and `clipToMask` in `compose.ts` — the UI needs no change (GAPS.md G17).
+## Badges: attendance only, and why
 
-## What the crop control actually does
+`DP_BADGES` offers "I'll be there", "Count me in", "My first one" and "Back
+again". It offers **no role badges**, and that is a decision (PHASE16 §4).
 
-The thing you drag **is** the card you download, at the same proportions with
-the nickname and wordmark already on it. There is no separate "crop box" whose
-output you then discover.
+"Speaker", "Organiser" and "Volunteer" are claims about a role. With no login
+and no backend there is nothing to check them against, so a self-selectable
+Speaker badge means anyone can wear one — which devalues it for the people who
+actually earned it. Everything on offer is a statement about yourself that
+costs nobody anything if it turns out to be wrong.
 
-Pan is stored as `offsetX` / `offsetY` in **fractions of the photo box**, and
-zoom as `scale`, where 1 means "covers the box exactly". Every control that can
-move the crop — drag, arrow keys, the zoom slider — goes through
-`clampTransform`, so none of them can reach a state the others cannot, and
-zooming back out pulls the pan in with it.
+**If role badges are ever wanted**, the two routes are a per-role unlock code
+(weak, but maybe enough for a vanity badge — it would need a plain "this is a
+soft check" line next to it) or real verification once accounts exist. Either
+is a backend item: GAPS.md **G19**.
 
-The clamp needs no geometry from the compositor: the box cancels out of the
-arithmetic, leaving aspect ratio and zoom (see the comment in `pan.ts`). The
-one number that IS shared is `PHOTO_BOX_RATIO` in `DpStage.tsx`, which converts
-pointer travel into pan. If the compositor's margins ever change, that constant
-makes dragging feel slightly fast or slow — it cannot produce a wrong render.
+## Interactions
+
+- **Tilt.** The card leans toward the cursor, which makes it read as an object
+  rather than an image.
+- **Rubber band.** Dragging the crop past its limit stretches the card and
+  releases with a spring. Past the limit the crop stops moving, which on its
+  own feels like the drag broke; letting the card follow a fraction of the
+  extra distance says "there is nothing more here" in the language of every
+  touch surface people already use.
+- **One surface, two jobs.** A drag on a sticker moves the sticker; a drag
+  anywhere else pans the photo. That rule is the whole interaction model, and
+  it is what avoids a mode switch.
+- **Keyboard.** With a sticker selected: arrows move it, `+`/`−` size it,
+  `[`/`]` turn it, Delete removes it, Escape deselects. With nothing selected
+  the same keys pan and zoom the crop.
+- **Reduced motion turns off the tilt and the spring entirely**, and the sheet
+  toggles instantly. Asserted, not assumed.
 
 ## Sharing
 
 Two paths, and the difference between them is a platform limit, not a taste:
 
-- **Where the browser can share files** (`navigator.canShare({files})` — the
-  share sheet on Android and iOS, and some desktop browsers), one tap hands the
-  image _and_ the caption to whatever app the person picks. That is a real
-  image post to Instagram, WhatsApp, X or LinkedIn.
+- **Where the browser can share files** (`navigator.canShare({files})`), one
+  tap hands the image _and_ the caption to whatever app the person picks.
 - **Everywhere else**, no web API can attach an image to a post on someone's
   behalf. So the per-network buttons do the three things that _can_ be done —
-  save the image, copy the caption, open the composer — and the screen says the
-  image still has to be attached. Instagram has no web composer at all, so
+  save the image, copy the caption, open the composer — and the screen says
+  the image still has to be attached. Instagram has no web composer at all, so
   there it saves and stops rather than opening a link that goes nowhere.
 
-LinkedIn takes a URL and ignores prefilled text (its `shareArticle` text
-parameter was removed), which is why every fallback also copies the caption: on
-LinkedIn, pasting is the only way the words arrive.
+The caption names **no accounts**. It carries the event hashtags and a CTA
+pointing at `devfest.gdgyaounde.com/dp-generator`: a URL is verifiable and
+cannot tag the wrong person (GAPS.md G16).
 
-The caption is built once in `shareCaption` and shown on the page exactly as it
-is sent, so what someone reads is what gets posted. It carries the event
-hashtags and a CTA pointing at `devfest.gdgyaounde.com/dp-generator`.
+## On a phone
 
-It names **no accounts**. A URL is verifiable and cannot tag the wrong person; a
-guessed handle tags a stranger on every post, and none of the chapter's
-profiles are confirmed. See GAPS.md G16.
+The five control groups become a sheet pinned to the bottom of the screen,
+with a tab bar and a hide button, and the card shrinks so both stay on screen
+at once. It is **one DOM in two shapes** — `max-md:` / `md:` classes, not a
+media-query mount — so nothing jumps at hydration and there is exactly one
+copy of every control.
+
+The sheet is deliberately **not** the shared `BottomSheet`. That one is modal:
+scrim, focus trap, scroll lock. Every one of those would hide or freeze the
+live preview this sheet exists to sit beside. `FilterLayout` makes the same
+call for its persistent panel, and for the same reason.
+
+Its height is capped by a formula tied to the tokens the card is sized by —
+the screen, less the chrome, less the shrunken preview — rather than tuned by
+eye. Asserted at 360px and 390px wide, on all five tabs.
 
 ## Limits worth knowing
 
 - Accepted: JPEG, PNG, WebP, up to 12 MB. These are UX guards, not security
   controls — nothing leaves the device, so a bad file only spoils the render.
-- Output is PNG at 1080×1080, or 2160×2160 with the big option. The preview
-  draws at 720 for speed, and the export waits for `document.fonts.ready` so the
-  file is never set in the fallback face the preview had already replaced.
-- The nickname is capped at 28 characters in the input because the card prints
-  28; the two numbers are meant to stay equal.
+- Output is PNG at 1080 or 2160 wide; a 3:4 card is 1080×1440 or 2160×2880.
+  The preview draws at 760 wide, and the export waits for
+  `document.fonts.ready` so the file is never set in the fallback face the
+  preview had already replaced.
+- Twelve stickers per card. Past that it is not a card, it is a collage.
+- The nickname is capped at 28 characters in the input because the plate
+  prints 28; the two numbers are meant to stay equal. A long name shrinks to
+  fit rather than being squashed.
+- The year in the lockup comes from `EVENT.year` in `src/lib/event.ts`, taken
+  from the chapter's own event slug. Re-check it against the real listing
+  before launch.
 - It needs JavaScript and `createImageBitmap`. There is no server-rendered
   fallback and there cannot be one.
-
-## On a phone
-
-The same four control groups become a sheet pinned to the bottom of the screen,
-with a tab bar and a hide button, and the card shrinks so both stay on screen at
-once. It is **one DOM in two shapes** — pure `max-md:` / `md:` classes, not a
-media-query mount — so nothing jumps at hydration and there is exactly one copy
-of every control.
-
-The sheet is deliberately **not** the shared `BottomSheet`. That one is modal:
-scrim, focus trap, scroll lock. Every one of those would hide or freeze the live
-preview this sheet exists to sit beside. `FilterLayout` makes the same call for
-its persistent panel, and for the same reason.
-
-Its height is capped by a formula tied to the tokens the card is sized by — the
-screen, less the chrome, less the shrunken preview — rather than tuned by eye,
-so the card cannot end up behind it on a shorter phone. That is asserted at
-360px and 390px wide, on all four tabs.

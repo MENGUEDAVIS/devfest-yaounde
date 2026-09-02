@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Google_Sans, Google_Sans_Code } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -49,8 +49,20 @@ export async function generateMetadata({
     },
     description: t("metaDesc"),
     applicationName: "DevFest Yaoundé",
+    manifest: "/manifest.webmanifest",
   };
 }
+
+/**
+ * The browser chrome's colour on mobile.
+ *
+ * The DEFAULT yellow, not the visitor's chosen theme: this is read once when
+ * the page loads, long before the theme script has run, so making it follow
+ * the switcher would just make it wrong for a moment on every load.
+ */
+export const viewport: Viewport = {
+  themeColor: "#F9AB00",
+};
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

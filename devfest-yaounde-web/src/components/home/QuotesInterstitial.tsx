@@ -49,7 +49,10 @@ export function QuotesInterstitial() {
         </footer>
       </blockquote>
 
-      <div className="mt-12 flex justify-center gap-3">
+      {/* The dot stays a dot; the BUTTON around it is thumb-sized. A 14px
+          target is a miss waiting to happen, and it fails the tap-target
+          audit — but growing the dot itself would wreck the row. */}
+      <div className="mt-12 flex justify-center gap-1">
         {quoteList.map((q, i) => (
           <button
             key={q.id}
@@ -57,10 +60,14 @@ export function QuotesInterstitial() {
             onClick={() => setIndex(i)}
             aria-label={`${i + 1}`}
             aria-current={i === index}
-            className={`h-3.5 rounded-pill border-2 border-black02 transition-[width,background-color] duration-300 ease-bouncy ${
-              i === index ? "w-10 bg-primary" : "w-3.5 bg-transparent"
-            }`}
-          />
+            className="grid h-11 min-w-11 place-items-center px-1.5"
+          >
+            <span
+              className={`h-3.5 rounded-pill border-2 border-black02 transition-[width,background-color] duration-300 ease-bouncy ${
+                i === index ? "w-10 bg-primary" : "w-3.5 bg-transparent"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </SectionContainer>

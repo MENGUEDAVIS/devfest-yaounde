@@ -16,6 +16,13 @@ import { SITE_URL } from "./site-config";
 export const EVENT = {
   name: "DevFest Yaoundé",
   organizer: "GDG Yaoundé",
+  /**
+   * The edition. Taken from the chapter's own event slug in `site-config.ts`
+   * ("…devfest-yaounde-2026…"), which is the only confirmed statement of the
+   * year in the repo — not a guess, but worth re-checking against the real
+   * listing before launch.
+   */
+  year: 2026,
   /** Two days, the second derived — same assumption `calendar.ts` makes. */
   days: 2,
   /** Local start/end times, used only when a real date exists. */

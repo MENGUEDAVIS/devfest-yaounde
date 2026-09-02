@@ -26,19 +26,19 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 
 ### What's done
 
-| Page                                    | State                                                                                                                                                              |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Home** (`/`)                          | Full-page hero, sponsor marquee, about, stats, speaker preview, schedule preview, memory lane, quotes, FAQ preview, community CTA, full-page footer                |
-| **Schedule** (`/schedule`)              | Day tabs, timeline + list views, **parallel tracks**, filters, expandable sessions, add-to-calendar                                                                |
-| **Speakers** (`/speakers`)              | Filterable grid with popover detail cards, plus a full-page slider lockup                                                                                          |
-| **Team** (`/team`)                      | Same grid + slider, filtered by contribution, with an alumni section                                                                                               |
-| **FAQs** (`/faqs`)                      | Grouped accordions, live search, category scrollspy, per-item CTAs                                                                                                 |
-| **Tickets** (`/tickets`)                | Tier selection, Mobile Money checkout, badge QR + readable code. Free tier RSVPs on Bevy rather than pretending to sell a 0 XAF ticket                             |
-| **Shop** (`/shop`)                      | Filterable catalog, product detail in a deep-linkable drawer, device-local bag, discount codes, Mobile Money checkout                                              |
-| **DP generator** (`/dp-generator`)      | Name, photo, eight drawn frames, badges, four photo effects, drag-and-zoom crop over a live preview, 1080/2160 PNG export, honest hybrid sharing. No server at all |
-| **Account** (`/account`)                | Google sign-in, your tickets with their badge codes, your orders and their state                                                                                   |
-| **Payment return** (`/payments/return`) | Where PawaPay sends every buyer — polls until the payment settles, then shows the badge. Was a 404 holding a completed payment                                     |
-| **404 / 500**                           | Real error states in both languages — a localised not-found with somewhere to go, an error boundary with a retry and a reference                                   |
+| Page                                    | State                                                                                                                                                                                                          |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Home** (`/`)                          | Full-page hero, sponsor marquee, about, stats, speaker preview, schedule preview, memory lane, quotes, FAQ preview, community CTA, full-page footer                                                            |
+| **Schedule** (`/schedule`)              | Day tabs, timeline + list views, **parallel tracks**, filters, expandable sessions, add-to-calendar                                                                                                            |
+| **Speakers** (`/speakers`)              | Filterable grid with popover detail cards, plus a full-page slider lockup                                                                                                                                      |
+| **Team** (`/team`)                      | Same grid + slider, filtered by contribution, with an alumni section                                                                                                                                           |
+| **FAQs** (`/faqs`)                      | Grouped accordions, live search, category scrollspy, per-item CTAs                                                                                                                                             |
+| **Tickets** (`/tickets`)                | Tier selection, Mobile Money checkout, badge QR + readable code. Free tier RSVPs on Bevy rather than pretending to sell a 0 XAF ticket                                                                         |
+| **Shop** (`/shop`)                      | Filterable catalog, product detail in a deep-linkable drawer, device-local bag, discount codes, Mobile Money checkout                                                                                          |
+| **DP generator** (`/dp-generator`)      | Eight patterned styles, six photo looks, torn/brushed edges, four textures, draggable stickers, 1:1 and 3:4 cards, tilt and rubber-band physics, 1080/2160 PNG export, honest hybrid sharing. No server at all |
+| **Account** (`/account`)                | Google sign-in, your tickets with their badge codes, your orders and their state                                                                                                                               |
+| **Payment return** (`/payments/return`) | Where PawaPay sends every buyer — polls until the payment settles, then shows the badge. Was a 404 holding a completed payment                                                                                 |
+| **404 / 500**                           | Real error states in both languages — a localised not-found with somewhere to go, an error boundary with a retry and a reference                                                                               |
 
 ### Systems behind it
 
@@ -46,6 +46,7 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 - **Momentum scroll** (Lenis) behind a single seam, with a floating pill scrollbar reproduced in every nested scroll context. See ADR 0007.
 - **One shared filtered-page layout** across all four content pages: a filter rail that floats in the margin without taking width from the content, travels with the scroll, and is clamped to its own section — collapsing to a bottom sheet on narrow screens.
 - **One shared overlay shell** (`Modal`) powering both the classic dialog and the slider's full-page takeover, and **one shared bottom sheet** (`BottomSheet`) powering both the mobile filter drawer and mobile card details.
+- **No link that goes nowhere** — placeholder URLs are never rendered as anchors: icon-only links are filtered at source, expected labels degrade to plain text. That removed 164 dead anchors, the site's biggest SEO defect.
 - **Launch-grade SEO** — per-page, per-locale titles and descriptions, canonical URLs, `hreflang` alternates both ways, OpenGraph and Twitter cards, branded OG images rendered on demand by `next/og`, `sitemap.xml`, `robots.txt` and `Organization`/`Product` structured data. See `docs/guides/seo.md`.
 - **Custom desktop cursor** — a trailing rounded arrow in the theme's contrasting colour, disabled entirely on touch and under reduced motion. See `docs/guides/custom-cursor.md`.
 
