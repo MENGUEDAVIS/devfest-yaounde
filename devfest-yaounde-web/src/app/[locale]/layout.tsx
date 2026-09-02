@@ -9,6 +9,9 @@ import { Footer } from "@/components/global/Footer";
 import { GlobalChrome } from "@/components/global/GlobalChrome";
 import { SmoothScrollProvider } from "@/components/global/SmoothScrollProvider";
 import { routing } from "@/i18n/routing";
+import { organizationJsonLd } from "@/lib/event";
+import { JsonLd } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site-config";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "../globals.css";
 
@@ -24,15 +27,30 @@ const googleSansCode = Google_Sans_Code({
   weight: ["400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  /* Resolves relative OG/Twitter image paths. Without it Next falls back to
-     localhost, which would ship broken social previews. */
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_BASE_URL ?? "http://localhost:3000",
-  ),
-  title: "DevFest Yaoundé",
-  description: "DevFest Yaoundé — GDG Yaoundé",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "home" });
+
+  return {
+    /* Resolves relative OG/Twitter image paths. Without it Next falls back to
+       localhost, which would ship broken social previews. */
+    metadataBase: new URL(SITE_URL),
+    /* Every page supplies its bare title and gets the suffix from here, so
+       "Billets" becomes "Billets · DevFest Yaoundé" without twelve copies of
+       the string — and the home page, which IS the name, does not end up
+       saying it twice. */
+    title: {
+      default: "DevFest Yaoundé",
+      template: "%s · DevFest Yaoundé",
+    },
+    description: t("metaDesc"),
+    applicationName: "DevFest Yaoundé",
+  };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -71,6 +89,9 @@ export default async function LocaleLayout({
           allow-list in @/lib/theme, never from user input.
         */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* Who runs this, on every page. Nothing here is speculative, so
+            unlike the Event block it is always emitted. */}
+        <JsonLd data={organizationJsonLd()} />
       </head>
       {/*
         suppressHydrationWarning is scoped to <body> ONLY, and only because

@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PaymentReturn } from "@/components/payments/PaymentReturn";
 import { SectionContainer } from "@/components/ui/SectionContainer";
@@ -6,14 +8,16 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
-}) {
+}): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.paymentReturn" });
-  return {
+  return pageMetadata({
+    locale,
+    path: "/payments/return",
     title: t("title"),
-    // A payment receipt has no business in a search index.
-    robots: { index: false, follow: false },
-  };
+    description: t("metaDesc"),
+    index: false,
+  });
 }
 
 /**

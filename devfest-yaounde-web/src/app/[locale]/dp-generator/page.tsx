@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DpGenerator } from "@/components/dp/DpGenerator";
 import { ScrambleText } from "@/components/ui/ScrambleText";
@@ -7,10 +9,15 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
-}) {
+}): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.dpGenerator" });
-  return { title: t("title"), description: t("lead") };
+  return pageMetadata({
+    locale,
+    path: "/dp-generator",
+    title: t("title"),
+    description: t("metaDesc"),
+  });
 }
 
 /**

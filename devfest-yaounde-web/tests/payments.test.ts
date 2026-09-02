@@ -33,6 +33,7 @@ import {
 } from "@/lib/payments/catalog";
 import { dpFileName } from "@/lib/dp/compose";
 import { shareCaption } from "@/lib/dp/share";
+import { eventDates, eventJsonLd, organizationJsonLd } from "@/lib/event";
 
 const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
@@ -430,6 +431,34 @@ describe("server-side pricing", () => {
       quoteCart([{ productId: "sticker-pack", quantity: 99 }]),
       CHECKOUT_ERRORS.INVALID_BODY,
     );
+  });
+});
+
+describe("event structured data", () => {
+  it("stays silent while the date is unconfirmed", () => {
+    // startDate is REQUIRED by schema.org. An Event block without one is
+    // invalid data that Search Console reports, and inventing a date would
+    // publish a wrong one to every crawler that read it.
+    assert.equal(eventDates(null), null);
+    assert.equal(eventJsonLd("fr", "x", null), null);
+  });
+
+  it("switches itself on the moment a date lands", () => {
+    const data = eventJsonLd("en", "Two days in Yaoundé", "2026-11-14");
+    assert.ok(data, "a dated event must produce a block");
+    assert.equal(data!["@type"], "Event");
+    assert.equal(data!.startDate, "2026-11-14T09:00:00");
+    // Two days, so the end is the FOLLOWING day — the same assumption the
+    // add-to-calendar links make.
+    assert.equal(data!.endDate, "2026-11-15T18:00:00");
+    assert.ok(String(data!.url).endsWith("/en"));
+  });
+
+  it("always describes the organiser, since none of that is speculative", () => {
+    const org = organizationJsonLd();
+    assert.equal(org["@type"], "Organization");
+    assert.equal(org.name, "GDG Yaoundé");
+    assert.ok(org.url.startsWith("https://"));
   });
 });
 

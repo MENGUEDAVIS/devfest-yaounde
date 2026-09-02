@@ -151,7 +151,8 @@
       "title": "Quick questions",
       "cta": "More questions?",
       "toggleHint": "Tap a question"
-    }
+    },
+    "metaDesc": "DevFest Yaoundé is GDG Yaoundé's flagship tech conference — two days of talks, workshops and the community that shows up for each other."
   },
   "pages": {
     "schedule": {
@@ -255,7 +256,8 @@
       "discountStaged": "We'll apply this when you place the order, and show what came off.",
       "refundTitle": "Tickets are non-refundable",
       "refundBody": "Once a ticket is paid for it can't be refunded or cancelled — not for a change of plans, and not after the event. You can put someone else's name on it before the day.",
-      "refundAck": "I understand tickets are non-refundable."
+      "refundAck": "I understand tickets are non-refundable.",
+      "metaDesc": "Pick your pass and pay with Mobile Money. Every tier, what's included, and how to get in."
     },
     "shop": {
       "title": "Shop",
@@ -311,7 +313,8 @@
       "emptyAll": "Empty bag",
       "emptyAllConfirm": "Clear the whole bag?",
       "emptyAllYes": "Yes, empty it",
-      "emptyAllCancel": "Keep it"
+      "emptyAllCancel": "Keep it",
+      "metaDesc": "Tees, hoodies and the rest of the DevFest Yaoundé kit. Pay with Mobile Money, collect at the event."
     },
     "dpGenerator": {
       "title": "DP Generator",
@@ -404,7 +407,8 @@
       "privacy": {
         "title": "The photo never leaves your device",
         "body": "Nothing is uploaded and nothing is stored. The card is drawn in your browser and saved straight to your downloads — we never see it."
-      }
+      },
+      "metaDesc": "Build a DevFest Yaoundé profile picture in your browser — pick a frame, crop it, download it. Nothing is uploaded."
     },
     "paymentReturn": {
       "title": "Confirming your payment",
@@ -426,7 +430,8 @@
       "missingBody": "This page needs a payment to look up, and there isn't one in the link you followed.",
       "backToTickets": "Go to tickets",
       "viewAccount": "See my tickets",
-      "scanAtDoor": "Scan at the door"
+      "scanAtDoor": "Scan at the door",
+      "metaDesc": "Confirming your payment."
     },
     "account": {
       "title": "My account",
@@ -447,7 +452,8 @@
       "browseTickets": "See ticket tiers",
       "noOrdersTitle": "No orders yet",
       "noOrdersBody": "Anything you buy from the shop lands here, with where it is in the process.",
-      "browseShop": "Browse the shop"
+      "browseShop": "Browse the shop",
+      "metaDesc": "Your tickets, your orders, your badge codes."
     }
   },
   "errors": {
@@ -486,6 +492,24 @@
       "shared": "Shared.",
       "copied": "Caption copied — all that's left is to paste.",
       "unavailable": "Your browser can't share directly. Download the image and post it yourself."
+    },
+    "notFound": {
+      "title": "This page took a coffee break",
+      "body": "The link you followed doesn't lead anywhere — a typo, or something we moved. No harm done. Here's where everyone else is going.",
+      "linksLabel": "Where to go instead",
+      "links": {
+        "home": "Home",
+        "schedule": "Schedule",
+        "tickets": "Tickets",
+        "shop": "Shop"
+      }
+    },
+    "crash": {
+      "title": "Something gave out on our side",
+      "body": "That's on us, not on you. Give it another go — and if it keeps happening, tell us and quote the reference below.",
+      "retry": "Try again",
+      "home": "Back to the home page",
+      "reference": "Reference"
     }
   }
 }

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { pageMetadata } from "@/lib/seo";
 import { ShopBrowser } from "@/components/shop/ShopBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
@@ -22,15 +23,24 @@ export async function generateMetadata({
   const found = catalog.find((p) => p.id === product);
   if (!found) return {};
   const l = locale as "fr" | "en";
-  return {
+
+  /* The shared helper for canonical, hreflang and the card, then the product
+     PHOTO replaces the generated image — a real picture of the thing beats a
+     rendered title card when the link is to something you can buy. */
+  const base = pageMetadata({
+    locale,
+    path: `/shop/${found.id}`,
     title: found.name[l],
     description: found.description[l],
-    openGraph: {
-      title: found.name[l],
-      description: found.description[l],
-      images: found.images.slice(0, 1),
-    },
-  };
+  });
+  const photo = found.images[0];
+  return photo
+    ? {
+        ...base,
+        openGraph: { ...base.openGraph, images: [photo] },
+        twitter: { ...base.twitter, images: [photo] },
+      }
+    : base;
 }
 
 /**

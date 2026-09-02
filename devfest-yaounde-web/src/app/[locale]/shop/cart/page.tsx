@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ShopCheckout } from "@/components/shop/ShopCheckout";
 import { ScrambleText } from "@/components/ui/ScrambleText";
@@ -9,11 +11,16 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
-}) {
+}): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.shop" });
-  // Someone's bag has no business in a search index.
-  return { title: t("bagTitle"), robots: { index: false, follow: false } };
+  return pageMetadata({
+    locale,
+    path: "/shop/cart",
+    title: t("bagTitle"),
+    description: t("metaDesc"),
+    index: false,
+  });
 }
 
 /** `/{locale}/shop/cart` — the bag and its checkout (Part A's wizard). */

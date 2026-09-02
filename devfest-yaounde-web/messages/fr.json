@@ -151,7 +151,8 @@
       "title": "Questions rapides",
       "cta": "D'autres questions ?",
       "toggleHint": "Touche une question"
-    }
+    },
+    "metaDesc": "DevFest Yaoundé, la conférence tech du GDG Yaoundé — deux jours de talks, d'ateliers et d'une communauté qui se serre les coudes."
   },
   "pages": {
     "schedule": {
@@ -255,7 +256,8 @@
       "discountStaged": "On l'applique au moment de la commande, et on t'indique ce qui a été déduit.",
       "refundTitle": "Les billets ne sont pas remboursables",
       "refundBody": "Une fois payé, un billet ne peut être ni remboursé ni annulé — ni en cas de changement de programme, ni après l'événement. Tu peux en revanche y mettre le nom de quelqu'un d'autre avant le jour J.",
-      "refundAck": "Je comprends que les billets ne sont pas remboursables."
+      "refundAck": "Je comprends que les billets ne sont pas remboursables.",
+      "metaDesc": "Choisis ton pass et paie en Mobile Money. Tous les tarifs, ce qu'ils incluent, et comment entrer."
     },
     "shop": {
       "title": "Boutique",
@@ -311,7 +313,8 @@
       "emptyAll": "Vider le panier",
       "emptyAllConfirm": "Tout retirer du panier ?",
       "emptyAllYes": "Oui, vider",
-      "emptyAllCancel": "Garder"
+      "emptyAllCancel": "Garder",
+      "metaDesc": "T-shirts, hoodies et tout le kit DevFest Yaoundé. Paiement Mobile Money, retrait sur place."
     },
     "dpGenerator": {
       "title": "Générateur de DP",
@@ -404,7 +407,8 @@
       "privacy": {
         "title": "La photo ne quitte jamais ton appareil",
         "body": "Rien n'est envoyé, rien n'est stocké. La carte est dessinée dans ton navigateur et enregistrée directement dans tes téléchargements — on ne la voit jamais."
-      }
+      },
+      "metaDesc": "Crée ta photo de profil DevFest Yaoundé dans ton navigateur — un cadre, un recadrage, un téléchargement. Rien n'est envoyé."
     },
     "paymentReturn": {
       "title": "Confirmation de ton paiement",
@@ -426,7 +430,8 @@
       "missingBody": "Cette page a besoin d'un paiement à retrouver, et le lien que tu as suivi n'en contient pas.",
       "backToTickets": "Voir les billets",
       "viewAccount": "Voir mes billets",
-      "scanAtDoor": "À scanner à l'entrée"
+      "scanAtDoor": "À scanner à l'entrée",
+      "metaDesc": "Confirmation de ton paiement."
     },
     "account": {
       "title": "Mon compte",
@@ -447,7 +452,8 @@
       "browseTickets": "Voir les formules",
       "noOrdersTitle": "Pas encore de commande",
       "noOrdersBody": "Tout ce que tu achètes à la boutique arrive ici, avec son état d'avancement.",
-      "browseShop": "Voir la boutique"
+      "browseShop": "Voir la boutique",
+      "metaDesc": "Tes billets, tes commandes, tes codes de badge."
     }
   },
   "errors": {
@@ -486,6 +492,24 @@
       "shared": "Partagé.",
       "copied": "Légende copiée — il ne reste qu'à coller.",
       "unavailable": "Ton navigateur ne permet pas le partage direct. Télécharge l'image et publie-la à la main."
+    },
+    "notFound": {
+      "title": "Cette page a pris un café",
+      "body": "Le lien que tu as suivi ne mène nulle part — une faute de frappe, ou quelque chose qu'on a déplacé. Rien de grave. Voilà où tout le monde va.",
+      "linksLabel": "Où aller à la place",
+      "links": {
+        "home": "Accueil",
+        "schedule": "Programme",
+        "tickets": "Billets",
+        "shop": "Boutique"
+      }
+    },
+    "crash": {
+      "title": "Quelque chose a lâché chez nous",
+      "body": "C'est de notre faute, pas de la tienne. Réessaie — et si ça recommence, dis-le-nous en citant la référence ci-dessous.",
+      "retry": "Réessayer",
+      "home": "Retour à l'accueil",
+      "reference": "Référence"
     }
   }
 }

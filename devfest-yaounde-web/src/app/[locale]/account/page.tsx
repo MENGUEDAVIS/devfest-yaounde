@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AccountDashboard } from "@/components/account/AccountDashboard";
 import { ScrambleText } from "@/components/ui/ScrambleText";
@@ -7,11 +9,16 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
-}) {
+}): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.account" });
-  // Someone's tickets and orders have no business in a search index.
-  return { title: t("title"), robots: { index: false, follow: false } };
+  return pageMetadata({
+    locale,
+    path: "/account",
+    title: t("title"),
+    description: t("metaDesc"),
+    index: false,
+  });
 }
 
 /** `/{locale}/account` — My Tickets and My Orders, shared by tickets and shop. */
