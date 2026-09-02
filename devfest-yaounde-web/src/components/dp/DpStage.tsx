@@ -2,7 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
-import { renderDp, type DpTransform } from "@/lib/dp/compose";
+import {
+  PHOTO_BOX_RATIO,
+  renderDp,
+  type DpEffects,
+  type DpTransform,
+} from "@/lib/dp/compose";
 import { clampTransform } from "./pan";
 
 /**
@@ -11,18 +16,6 @@ import { clampTransform } from "./pan";
  * occupies, and cheap enough to redraw on every pointer move.
  */
 const PREVIEW_SIZE = 720;
-
-/**
- * The photo box as a fraction of the card, mirroring `renderDp`: the card
- * loses a 0.09 margin on each side and a 0.14 band for the nickname.
- *
- * This is the ONE number shared with the compositor, and it is worth knowing
- * what it can and cannot break. It converts pointer travel into pan, so if it
- * ever drifts the drag feels slightly fast or slightly slow. It cannot
- * produce a wrong render, and it cannot let the photo be dragged off the
- * mask — `clampTransform` derives that from the aspect ratio alone.
- */
-const PHOTO_BOX_RATIO = 0.68;
 
 /** Arrow-key pan, as a fraction of the photo box. Shift makes it finer. */
 const KEY_PAN_STEP = 0.02;
@@ -34,6 +27,9 @@ export interface DpStageProps {
   nickname: string;
   transform: DpTransform;
   onTransformChange: (next: DpTransform) => void;
+  effects: DpEffects;
+  tagId: string;
+  locale: "fr" | "en";
   /** Describes the render for screen readers — the canvas has no text. */
   label: string;
   /** Id of the visible drag/keys hint, wired up as the description. */
@@ -63,6 +59,9 @@ export function DpStage({
   nickname,
   transform,
   onTransformChange,
+  effects,
+  tagId,
+  locale,
   label,
   hintId,
 }: DpStageProps) {
@@ -86,6 +85,9 @@ export function DpStage({
         frameId,
         nickname,
         transform,
+        effects,
+        tagId,
+        locale,
         size: PREVIEW_SIZE,
       });
     };
@@ -100,7 +102,7 @@ export function DpStage({
     return () => {
       cancelled = true;
     };
-  }, [photo, frameId, nickname, transform]);
+  }, [photo, frameId, nickname, transform, effects, tagId, locale]);
 
   const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
     if (!e.isPrimary) return;
@@ -118,7 +120,9 @@ export function DpStage({
     if (!active || active.pointerId !== e.pointerId) return;
 
     /* Pan is measured against the DISPLAYED box, not the render resolution,
-       so a photo tracks the finger 1:1 at any screen size. */
+       so a photo tracks the finger 1:1 at any screen size. The box ratio is
+       IMPORTED from the compositor rather than copied, so the number that
+       moves the photo and the number that draws it cannot drift apart. */
     const box = e.currentTarget.getBoundingClientRect().width * PHOTO_BOX_RATIO;
     if (box <= 0) return;
 

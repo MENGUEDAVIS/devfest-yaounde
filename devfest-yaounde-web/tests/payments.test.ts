@@ -445,10 +445,25 @@ describe("dp generator helpers", () => {
   });
 
   it("writes a share caption in both languages", () => {
-    const fr = shareCaption("fr", "https://devfestyaounde.org");
-    const en = shareCaption("en", "https://devfestyaounde.org");
+    const fr = shareCaption("fr");
+    const en = shareCaption("en");
     assert.ok(fr.includes("#DevFestYaounde"));
     assert.ok(en.includes("#DevFestYaounde"));
     assert.notEqual(fr, en, "the two locales must not share one string");
+  });
+
+  it("points the caption at the generator, and names no accounts", () => {
+    for (const caption of [shareCaption("fr"), shareCaption("en")]) {
+      assert.ok(
+        caption.includes("/dp-generator"),
+        "the CTA has to name the page people are being sent to",
+      );
+      // Handles are deliberately absent — none are confirmed (GAPS.md G16),
+      // and a wrong one tags a stranger on every post.
+      assert.ok(
+        !/(^|\s)@\w/.test(caption),
+        `caption names an account: ${caption}`,
+      );
+    }
   });
 });

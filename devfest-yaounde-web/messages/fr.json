@@ -316,11 +316,21 @@
     "dpGenerator": {
       "title": "Générateur de DP",
       "lead": "Crée ta photo de profil DevFest Yaoundé. Ton nom, ton style, et tu télécharges — tout se passe ici, sur ton appareil.",
-      "steps": {
-        "name": "Ton nom",
-        "photo": "Ta photo",
-        "look": "Choisis un style",
-        "frame": "Cadre-la"
+      "tabs": {
+        "info": "Toi",
+        "look": "Style",
+        "adjust": "Cadre",
+        "share": "Garder"
+      },
+      "groups": {
+        "info": "Ton nom et ta photo",
+        "look": "Ton style",
+        "adjust": "Cadre-la",
+        "share": "Garder et partager"
+      },
+      "sheet": {
+        "show": "Modifier",
+        "hide": "Masquer"
       },
       "nickname": {
         "label": "Nom affiché",
@@ -335,6 +345,28 @@
         "dropActive": "Lâche.",
         "hint": "JPEG, PNG ou WebP, 12 Mo maximum."
       },
+      "frames": {
+        "legend": "Cadre"
+      },
+      "tags": {
+        "legend": "Badge"
+      },
+      "looks": {
+        "legend": "Effet",
+        "none": "Telle quelle",
+        "duotone": "Duotone",
+        "halftone": "Trame",
+        "mono": "Noir et blanc"
+      },
+      "textures": {
+        "grain": "Grain",
+        "vignette": "Vignettage"
+      },
+      "export": {
+        "legend": "Taille",
+        "standard": "Standard · {px} px",
+        "high": "Grand · {px} px"
+      },
       "adjust": {
         "zoom": "Zoom",
         "reset": "Recentrer",
@@ -343,8 +375,8 @@
       },
       "preview": {
         "empty": "Ta carte apparaît ici",
-        "label": "Ta carte DevFest : {nickname}, sur le fond {frame}.",
-        "labelAnonymous": "Ta carte DevFest, sur le fond {frame}."
+        "label": "Ta carte DevFest : {nickname}, sur le cadre {frame}.",
+        "labelAnonymous": "Ta carte DevFest, sur le cadre {frame}."
       },
       "actions": {
         "download": "Télécharger",
@@ -352,9 +384,18 @@
         "share": "Partager",
         "sharing": "Ouverture…"
       },
+      "networks": {
+        "legend": "Ou publie sur",
+        "hint": "Aucun de ces réseaux ne peut joindre l'image à ta place : chacun enregistre l'image, copie la légende et ouvre la fenêtre de publication — tu n'as plus qu'à glisser l'image. Instagram n'a pas de publication sur le web du tout, donc là c'est enregistrer, puis publier depuis l'appli.",
+        "whatsapp": "WhatsApp",
+        "x": "X",
+        "linkedin": "LinkedIn",
+        "instagram": "Instagram"
+      },
       "status": {
         "downloaded": "Enregistré. Va changer ta photo.",
-        "failed": "Le rendu a échoué. Réessaie, ou prends une autre photo."
+        "failed": "Le rendu a échoué. Réessaie, ou prends une autre photo.",
+        "attach": "Image enregistrée et légende copiée — il ne reste qu'à joindre l'image au post."
       },
       "caption": {
         "title": "Ce qui part avec",

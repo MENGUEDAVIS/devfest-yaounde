@@ -238,35 +238,47 @@ tabs. A bag started on a phone does not appear on a laptop, and clearing site
 data empties it — so nothing in the UI calls it "saved to your account", and
 nothing should start.
 
-### G16 — The share caption has no community handles
+### G16 — Community handles in the DP caption — RESOLVED
 
-`PAGES.md` §9 asks the share caption to carry "prefilled caption + event
-hashtag + community handles". Two of the three exist in `src/lib/dp/share.ts`:
-the caption and `SHARE_HASHTAGS`. **The handles do not**, and none were
-invented — every entry in `SOCIAL_LINKS` (`src/lib/site-config.ts`) is still
-`"#"`, so there is no confirmed `@name` on any network to put in a caption
-that thousands of people would post.
+`PAGES.md` §9 asked the share caption to carry "prefilled caption + event
+hashtag + community handles". Two of the three shipped. The handles did not,
+because every entry in `SOCIAL_LINKS` is still `"#"` and guessing an `@name`
+tags a stranger on every post someone makes.
 
-**OPEN — content, not code.** Once the real profiles are known, add them to
-`SHARE_CAPTIONS` or alongside `SHARE_HASHTAGS` in `share.ts`; the caption is
-built in one place and shown on screen exactly as it is sent, so the change is
-a one-liner and is immediately visible.
+**DECIDED 2026-09-02: no handles, and none are wanted.** The caption carries a
+CTA instead — `devfest.gdgyaounde.com/dp-generator` — which does the job the
+handles were meant to do, sends people to something the chapter controls, and
+cannot be wrong. A URL is verifiable; a handle is a guess.
 
-Guessing was the alternative and it was rejected: a wrong handle in a share
-caption tags a stranger, and it does it on every post.
+If real profiles are ever confirmed AND someone wants them in-caption, it is
+one edit in `shareCaption` (`src/lib/dp/share.ts`), and the caption is shown on
+screen exactly as it is sent, so the change is visible immediately.
 
-### G17 — The DP frames are placeholder colours, not the morphed motif
+### G17 — The DP photo mask is not the morphed shape
 
-`PAGES.md` §9 asks for the morphed-shape motif on the frames. `DpMask` offers
-`rounded` and `circle` only, per ADR 0015 and the standing instruction in
-`DESIGN.md` §4.2 not to approximate the signature shape until the real asset
+`PAGES.md` §9 asks for the morphed-shape motif on the frames. The frames
+themselves are now real artwork — eight designed combinations of confetti,
+brackets, halftone fields, tape, stripes and dashed rings, drawn by the
+compositor (PHASE15 §3). **What is still plain is the photo MASK**: `DpMask`
+offers `rounded` and `circle` only, per ADR 0015 and the standing instruction
+in `DESIGN.md` §4.2 not to approximate the signature shape until the real asset
 exists.
 
-**OPEN — asset, not code.** The five frames are honest, on-brand colour
-schemes. When the shape asset arrives, `DpMask` and `clipToMask` in
-`compose.ts` are the two places that change, and the UI needs no edit: the
-picker renders whatever `DP_FRAMES` contains and the swatch already draws each
-frame's mask shape.
+**OPEN — asset, not code, and narrower than it was.** When the shape arrives,
+`DpMask` and `maskPath` in `compose.ts` are the two places that change; the UI
+needs no edit, because the picker renders whatever `DP_FRAMES` contains and the
+swatch already draws each frame's mask shape.
+
+### G18 — The DP frame art is drawn in code, not by a designer
+
+The eight frames are compositor primitives arranged by hand: honest, on-brand
+and flat per DESIGN.md §2.6, but nobody with a design tool has looked at them.
+
+**OPEN — worth a designer's pass, not a blocker.** If real frame artwork is
+ever supplied as images, it needs a new decoration kind (an image layer) in
+`compose.ts` and an asset pipeline — the current vocabulary is vector drawing
+only. That is a bigger change than adding another entry to `DP_FRAMES`, so it
+should be a decision rather than a quiet extension.
 
 ---
 

@@ -27,28 +27,86 @@ Edit `DP_FRAMES` in `src/lib/dp/frames.ts`. Nothing else needs to change — the
 picker, the swatches, the empty-state preview and the canvas all read from that
 array, and the swatch draws each frame's own mask shape.
 
+A frame is **data, not code**: colours, a mask, and a list of decorations the
+compositor already knows how to draw.
+
 ```ts
 {
-  id: "sunrise",                                    // stable, used in state
-  label: { fr: "Lever de soleil", en: "Sunrise" },  // both languages, always
-  background: "#FFE7A5",  // the card behind the photo
-  accent: "#F9AB00",      // the ring, and the wordmark
-  foreground: "#1E1E1E",  // the nickname
-  mask: "rounded",        // "rounded" | "circle"
+  id: "confetti",                              // stable, used in state
+  label: { fr: "Confettis", en: "Confetti" },  // both languages, always
+  background: "#FFE7A5",   // the card behind everything
+  accent: "#F9AB00",       // the ring, the badge, most of the art
+  foreground: "#1E1E1E",   // the nickname and wordmark
+  mask: "rounded",         // "rounded" | "circle"
+  decorations: ["confetti", "sparkles"],
+  palette: [YELLOW, BLUE, GREEN, RED],   // confetti/sparkle colours
+  duotone: ["#1E1E1E", "#FFD427"],       // [shadow, highlight] for the effect
 }
 ```
 
-Two things to check when you add one:
+### The decoration vocabulary
+
+| Name       | What it draws                                             |
+| ---------- | --------------------------------------------------------- |
+| `confetti` | Flat shapes scattered in the margin, never on the photo   |
+| `sparkles` | Small four-point stars                                    |
+| `brackets` | The DevFest angle-bracket motif, in opposite corners      |
+| `halftone` | A dot field that thins across the card (DESIGN.md §2.4)   |
+| `stripes`  | A diagonal band across a corner, passing behind the photo |
+| `tape`     | Two strips of tape holding the photo down                 |
+| `dashRing` | A dashed outline offset outside the photo                 |
+| `postcard` | A thick inner border, like a print with a white margin    |
+
+Mix them freely — any frame can use any of them, and a new combination costs
+one line. Decorations are drawn either beneath the photo or over it; the
+`BENEATH` list in `compose.ts` decides which, and the photo is what makes a
+`stripes` band read as passing behind someone's shoulder.
+
+Two rules hold everything together, and both are enforced by geometry rather
+than by care:
+
+- **Nothing lands on a face.** Every scattered decoration rejects candidate
+  points inside the photo box.
+- **Nothing lands on the type.** `TEXT_BAND_TOP` marks where the badge, the
+  name and the wordmark live; the dot field stops there, and confetti avoids
+  the centred column through it while still filling the bottom corners.
+
+Two things to check when you add a frame:
 
 - **Contrast.** `foreground` sits on `background` and has to be readable at a
-  36px avatar. The existing five pair a dark foreground with a pale ground, or
+  36px avatar. The existing eight pair a dark foreground with a pale ground, or
   the reverse — do not add a mid-tone pair.
-- **Flat fills only.** `background` is a single colour. A gradient would break
-  DESIGN.md §2.6 and would be the only one on the site.
+- **Flat fills only.** `background` is a single colour, and so is every shape.
+  A fill ramp would break DESIGN.md §2.6 and would be the only one on the site.
 
-The first entry is `DEFAULT_FRAME_ID`, so put the year's lead colour first.
+The first entry is `DEFAULT_FRAME_ID`, so put the year's lead frame first.
 
-## The shape is deliberately plain
+### Badges
+
+`DP_TAGS`, in the same file, is the sticker that straddles the bottom of the
+photo — "I'll be there", "Speaker", "Organiser", "Volunteer", and `none`. They
+are kept apart from the frames because any badge works with any frame; folding
+them together would multiply the catalog for nothing. `text` is what gets
+printed (upper case, both languages); `label` is what the picker shows.
+
+### Effects
+
+Four looks — `none`, `duotone`, `halftone`, `mono` — plus two independent
+toggles, grain and vignette. They apply to the photo only, on its own layer,
+before the ring and the badge go on top.
+
+All of it is 2D canvas: one pass over an ImageData buffer for the look, the
+grain and the vignette together, and a few hundred `arc` calls for the halftone
+dots. **There is no shader runtime and no image library**, and that is
+deliberate — a WebGL pipeline would mean shader sources, a program cache,
+context-loss handling and a second code path for the export, to make something
+imperceptibly faster on a region 734px square. If an effect ever genuinely
+needs the GPU, that is the moment for an ADR.
+
+A frame's `duotone` pair also drives the halftone's two colours, so a new frame
+gets sensible effects for free.
+
+## The mask shape is still deliberately plain
 
 `PAGES.md` §9 asks for the morphed-shape motif and `DpMask` offers only
 rounded rectangles and circles. That follows DESIGN.md §4.2: do not approximate
@@ -75,25 +133,56 @@ makes dragging feel slightly fast or slow — it cannot produce a wrong render.
 
 ## Sharing
 
-`shareDp` tries the share sheet with the actual PNG attached, and falls back to
-copying the caption. It returns which of the three happened — `shared`,
-`copied`, `unavailable` — and the screen says so out loud, because a tap that
-does nothing visible reads as broken.
+Two paths, and the difference between them is a platform limit, not a taste:
 
-The caption is built once in `shareCaption` and displayed on the page exactly
-as it is sent, so what someone reads is what gets posted. It carries the event
-hashtags and a link back to the current origin — **not** a hardcoded domain, so
-preview deployments link to themselves.
+- **Where the browser can share files** (`navigator.canShare({files})` — the
+  share sheet on Android and iOS, and some desktop browsers), one tap hands the
+  image _and_ the caption to whatever app the person picks. That is a real
+  image post to Instagram, WhatsApp, X or LinkedIn.
+- **Everywhere else**, no web API can attach an image to a post on someone's
+  behalf. So the per-network buttons do the three things that _can_ be done —
+  save the image, copy the caption, open the composer — and the screen says the
+  image still has to be attached. Instagram has no web composer at all, so
+  there it saves and stops rather than opening a link that goes nowhere.
 
-It carries **no community handles**, because none are confirmed yet; see
-GAPS.md G16 before adding any.
+LinkedIn takes a URL and ignores prefilled text (its `shareArticle` text
+parameter was removed), which is why every fallback also copies the caption: on
+LinkedIn, pasting is the only way the words arrive.
+
+The caption is built once in `shareCaption` and shown on the page exactly as it
+is sent, so what someone reads is what gets posted. It carries the event
+hashtags and a CTA pointing at `devfest.gdgyaounde.com/dp-generator`.
+
+It names **no accounts**. A URL is verifiable and cannot tag the wrong person; a
+guessed handle tags a stranger on every post, and none of the chapter's
+profiles are confirmed. See GAPS.md G16.
 
 ## Limits worth knowing
 
 - Accepted: JPEG, PNG, WebP, up to 12 MB. These are UX guards, not security
   controls — nothing leaves the device, so a bad file only spoils the render.
-- Output is always 1080×1080 PNG. The preview draws at 720 for speed.
+- Output is PNG at 1080×1080, or 2160×2160 with the big option. The preview
+  draws at 720 for speed, and the export waits for `document.fonts.ready` so the
+  file is never set in the fallback face the preview had already replaced.
 - The nickname is capped at 28 characters in the input because the card prints
   28; the two numbers are meant to stay equal.
 - It needs JavaScript and `createImageBitmap`. There is no server-rendered
   fallback and there cannot be one.
+
+## On a phone
+
+The same four control groups become a sheet pinned to the bottom of the screen,
+with a tab bar and a hide button, and the card shrinks so both stay on screen at
+once. It is **one DOM in two shapes** — pure `max-md:` / `md:` classes, not a
+media-query mount — so nothing jumps at hydration and there is exactly one copy
+of every control.
+
+The sheet is deliberately **not** the shared `BottomSheet`. That one is modal:
+scrim, focus trap, scroll lock. Every one of those would hide or freeze the live
+preview this sheet exists to sit beside. `FilterLayout` makes the same call for
+its persistent panel, and for the same reason.
+
+Its height is capped by a formula tied to the tokens the card is sized by — the
+screen, less the chrome, less the shrunken preview — rather than tuned by eye,
+so the card cannot end up behind it on a shorter phone. That is asserted at
+360px and 390px wide, on all four tabs.

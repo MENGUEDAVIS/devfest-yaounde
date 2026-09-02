@@ -315,12 +315,22 @@
     },
     "dpGenerator": {
       "title": "DP Generator",
-      "lead": "Make yourself a DevFest Yaoundé profile picture. Name it, frame it, download it — the whole thing happens right here on your device.",
-      "steps": {
-        "name": "Your name",
-        "photo": "Your photo",
-        "look": "Pick a look",
-        "frame": "Frame it"
+      "lead": "Make yourself a DevFest Yaoundé profile picture. Name it, style it, download it — the whole thing happens right here on your device.",
+      "tabs": {
+        "info": "You",
+        "look": "Style",
+        "adjust": "Crop",
+        "share": "Save"
+      },
+      "groups": {
+        "info": "Your name and photo",
+        "look": "Style it",
+        "adjust": "Frame it",
+        "share": "Save and share"
+      },
+      "sheet": {
+        "show": "Edit",
+        "hide": "Hide"
       },
       "nickname": {
         "label": "Display name",
@@ -335,6 +345,28 @@
         "dropActive": "Let go.",
         "hint": "JPEG, PNG or WebP, up to 12 MB."
       },
+      "frames": {
+        "legend": "Frame"
+      },
+      "tags": {
+        "legend": "Badge"
+      },
+      "looks": {
+        "legend": "Effect",
+        "none": "As shot",
+        "duotone": "Duotone",
+        "halftone": "Halftone",
+        "mono": "Black & white"
+      },
+      "textures": {
+        "grain": "Grain",
+        "vignette": "Vignette"
+      },
+      "export": {
+        "legend": "Size",
+        "standard": "Standard · {px}px",
+        "high": "Big · {px}px"
+      },
       "adjust": {
         "zoom": "Zoom",
         "reset": "Recentre",
@@ -343,8 +375,8 @@
       },
       "preview": {
         "empty": "Your card shows up here",
-        "label": "Your DevFest card: {nickname}, on the {frame} background.",
-        "labelAnonymous": "Your DevFest card, on the {frame} background."
+        "label": "Your DevFest card: {nickname}, on the {frame} frame.",
+        "labelAnonymous": "Your DevFest card, on the {frame} frame."
       },
       "actions": {
         "download": "Download",
@@ -352,9 +384,18 @@
         "share": "Share",
         "sharing": "Opening…"
       },
+      "networks": {
+        "legend": "Or post it to",
+        "hint": "None of these can attach a picture for you, so each one saves the image, copies the caption, and opens the composer — you drop the image in. Instagram has no web composer at all, so there it's save, then post from the app.",
+        "whatsapp": "WhatsApp",
+        "x": "X",
+        "linkedin": "LinkedIn",
+        "instagram": "Instagram"
+      },
       "status": {
         "downloaded": "Saved. Go and change your picture.",
-        "failed": "That didn't render. Try again, or use a different photo."
+        "failed": "That didn't render. Try again, or use a different photo.",
+        "attach": "Image saved and caption copied — attach the image to the post."
       },
       "caption": {
         "title": "What goes out with it",

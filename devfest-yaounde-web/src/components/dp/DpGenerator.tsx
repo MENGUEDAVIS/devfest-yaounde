@@ -4,8 +4,12 @@ import {
   ArrowClockwise,
   DownloadSimple,
   ImageSquare,
+  InstagramLogo,
+  LinkedinLogo,
   ShareNetwork,
   Warning,
+  WhatsappLogo,
+  XLogo,
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -15,47 +19,86 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import type { ChangeEvent, DragEvent } from "react";
-import { Reveal } from "@/components/ui/Reveal";
+import type { ChangeEvent, DragEvent, ReactNode } from "react";
 import {
   ACCEPTED_TYPES,
   composeDp,
+  DEFAULT_EFFECTS,
   DEFAULT_TRANSFORM,
+  DP_SIZE,
+  DP_SIZE_HIGH,
   DpImageError,
   dpFileName,
   loadPhoto,
+  type DpEffects,
+  type DpLook,
   type DpTransform,
 } from "@/lib/dp/compose";
-import { DEFAULT_FRAME_ID, DP_FRAMES, findFrame } from "@/lib/dp/frames";
-import { downloadDp, shareCaption, shareDp } from "@/lib/dp/share";
+import {
+  DEFAULT_FRAME_ID,
+  DEFAULT_TAG_ID,
+  DP_FRAMES,
+  DP_TAGS,
+  findFrame,
+} from "@/lib/dp/frames";
+import {
+  canShareImage,
+  composerUrl,
+  copyCaption,
+  downloadDp,
+  shareCaption,
+  shareDp,
+  SHARE_NETWORKS,
+  type ShareNetwork as ShareTarget,
+} from "@/lib/dp/share";
 import { DpStage } from "./DpStage";
 import { clampTransform, MAX_SCALE, MIN_SCALE } from "./pan";
 
 /** Matches the slice in `renderDp` — the input refuses what the card would cut. */
 const MAX_NICKNAME = 28;
 
+const GROUPS = ["info", "look", "adjust", "share"] as const;
+type Group = (typeof GROUPS)[number];
+
+const LOOKS: DpLook[] = ["none", "duotone", "halftone", "mono"];
+
+const NETWORK_ICONS: Record<ShareTarget, typeof WhatsappLogo> = {
+  whatsapp: WhatsappLogo,
+  x: XLogo,
+  linkedin: LinkedinLogo,
+  instagram: InstagramLogo,
+};
+
 type ErrorCode = DpImageError["code"];
-type Notice = "shared" | "copied" | "unavailable" | "downloaded" | "failed";
+type Notice =
+  "shared" | "copied" | "unavailable" | "downloaded" | "failed" | "attach";
 
 const subscribeNoop = () => () => {};
 
 /**
- * `/dp-generator` — the whole feature (PAGES.md §9).
+ * `/dp-generator` — the whole feature (PAGES.md §9, reworked in PHASE15 §3-5).
  *
  * STANDALONE BY DESIGN: no sign-in, no session, no order, no network call of
  * any kind. It shares the brand and nothing else, so it keeps working when
  * the rest of the site's backend is down, and it can be handed out as a link
  * on its own.
  *
- * NOT A WIZARD. The name, the photo, the look and the crop are all live at
- * once, over one preview that is literally the file you are about to save.
- * A stepper was the obvious shape and the wrong one: every control here
- * changes the same picture, so hiding three of them behind "next" would make
- * people walk the flow again to fix one thing.
+ * NOT A WIZARD. The name, the photo, the look and the crop all change the
+ * same picture, so hiding three of them behind "next" would make people walk
+ * the flow again to fix one thing.
  *
- * The compositing, the frames and the sharing come from `src/lib/dp/`. This
- * component owns the state and the screen, and deliberately re-implements
- * none of it.
+ * ONE DOM, TWO SHAPES. On a desktop the four control groups stack in a column
+ * beside a sticky preview. On a phone the same four groups become a
+ * toggleable sheet pinned to the bottom, with a tab bar to switch between
+ * them and the preview always in view above. The switch is pure CSS
+ * (`max-md:` / `md:`) rather than a media-query mount, so nothing jumps at
+ * hydration and there is exactly one copy of every control — no duplicate
+ * `useId`, no second tab stop, nothing to keep in sync.
+ *
+ * The sheet is deliberately NOT the shared `BottomSheet`: that one is modal —
+ * scrim, focus trap, scroll lock — and every one of those would hide or
+ * freeze the live preview this sheet exists to sit beside. `FilterLayout`
+ * makes the same call for the same reason, and says so.
  */
 export function DpGenerator() {
   const t = useTranslations("pages.dpGenerator");
@@ -66,15 +109,22 @@ export function DpGenerator() {
   const [nickname, setNickname] = useState("");
   const [photo, setPhoto] = useState<ImageBitmap | null>(null);
   const [frameId, setFrameId] = useState(DEFAULT_FRAME_ID);
+  const [tagId, setTagId] = useState(DEFAULT_TAG_ID);
+  const [effects, setEffects] = useState<DpEffects>(DEFAULT_EFFECTS);
   const [transform, setTransform] = useState<DpTransform>(DEFAULT_TRANSFORM);
+  const [exportSize, setExportSize] = useState(DP_SIZE);
   const [error, setError] = useState<ErrorCode | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [busy, setBusy] = useState<"download" | "share" | null>(null);
   const [dropping, setDropping] = useState(false);
+  const [tab, setTab] = useState<Group>("info");
+  const [sheetOpen, setSheetOpen] = useState(true);
 
   const fileInput = useRef<HTMLInputElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
   const hintId = useId();
   const zoomId = useId();
+  const groupId = useId();
 
   /* Bitmaps hold decoded pixels — a 12 MB JPEG is far larger once decoded, so
      the one being replaced is released rather than left to the collector. The
@@ -85,19 +135,40 @@ export function DpGenerator() {
     return () => photo.close();
   }, [photo]);
 
-  /* The share caption carries the event link, and the only honest source for
-     it is the address this page is actually being served from — hardcoding a
-     domain would put the wrong URL in every caption on every preview
-     deployment. Read through useSyncExternalStore so the server renders a
-     defined empty value instead of a guess to be corrected. */
-  const origin = useSyncExternalStore(
+  /* Whether this browser can put the actual IMAGE into a share sheet. It
+     decides which of the two share paths is offered, and it is a browser
+     capability, so it is read the way every other one here is: through a
+     store with a defined server answer rather than a guess corrected later. */
+  const canShareFile = useSyncExternalStore(
     subscribeNoop,
-    () => window.location.origin,
-    () => "",
+    () => canShareImage(),
+    () => false,
   );
-  const eventUrl = origin ? `${origin}/${lang}` : "";
 
   const frame = findFrame(frameId) ?? DP_FRAMES[0];
+  const caption = shareCaption(lang);
+
+  /**
+   * Bring the card back on screen — phones only.
+   *
+   * The page leads with a display-size title and a paragraph, which is right
+   * for a landing page and puts the preview about 450px down. With the sheet
+   * pinned over the bottom of the screen, that left the card in the gap
+   * between them: invisible while you edited it, which is the one thing this
+   * layout exists to prevent. So anything that means "I am editing now" —
+   * adding a photo, opening the sheet, switching tab — scrolls the card up
+   * under the chrome, where it stays until the reader scrolls away
+   * themselves.
+   */
+  function revealPreview() {
+    if (!window.matchMedia("(max-width: 767px)").matches) return;
+    previewRef.current?.scrollIntoView({
+      block: "start",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+    });
+  }
 
   async function acceptFile(file: File | undefined) {
     if (!file) return;
@@ -109,6 +180,7 @@ export function DpGenerator() {
          frame someone else's shoulders. */
       setTransform(DEFAULT_TRANSFORM);
       setError(null);
+      revealPreview();
     } catch (err) {
       setError(err instanceof DpImageError ? err.code : "unreadable");
     }
@@ -130,7 +202,16 @@ export function DpGenerator() {
   async function render(): Promise<Blob | null> {
     if (!photo) return null;
     try {
-      return await composeDp({ photo, frameId, nickname, transform });
+      return await composeDp({
+        photo,
+        frameId,
+        nickname,
+        transform,
+        effects,
+        tagId,
+        locale: lang,
+        size: exportSize,
+      });
     } catch {
       setNotice("failed");
       return null;
@@ -153,14 +234,34 @@ export function DpGenerator() {
     setNotice(null);
     const blob = await render();
     if (blob) {
-      const outcome = await shareDp({
-        blob,
-        fileName: dpFileName(nickname),
-        locale: lang,
-        eventUrl,
-      });
-      setNotice(outcome);
+      setNotice(
+        await shareDp({ blob, fileName: dpFileName(nickname), locale: lang }),
+      );
     }
+    setBusy(null);
+  }
+
+  /**
+   * The desktop path, and the honest one.
+   *
+   * No web API can attach an image to a post for you, so this does the three
+   * things that CAN be done and says what it did: saves the image, puts the
+   * caption where it can be pasted, and opens the composer. The window is
+   * opened from inside the click — deferring it behind the render would let
+   * the popup blocker eat it.
+   */
+  async function onNetwork(network: ShareTarget) {
+    setBusy("share");
+    setNotice(null);
+    const url = composerUrl(network, lang);
+    const composer = url
+      ? window.open("", "_blank", "noopener,noreferrer")
+      : null;
+    const blob = await render();
+    if (blob) downloadDp(blob, dpFileName(nickname));
+    await copyCaption(lang);
+    if (composer && url) composer.location.replace(url);
+    setNotice("attach");
     setBusy(null);
   }
 
@@ -171,217 +272,33 @@ export function DpGenerator() {
       })
     : t("preview.labelAnonymous", { frame: frame.label[lang] });
 
-  const noticeText =
-    notice === "downloaded" || notice === "failed"
+  const noticeText = !notice
+    ? ""
+    : notice === "downloaded" || notice === "failed" || notice === "attach"
       ? t(`status.${notice}`)
-      : notice
-        ? tError(notice)
-        : "";
+      : tError(notice);
+
+  const panelId = (group: Group) => `${groupId}-${group}`;
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:gap-16">
-      {/* ---------------- Controls ---------------- */}
-      <div className="order-2 flex flex-col gap-10 lg:order-1">
-        <Field step="01" title={t("steps.name")}>
-          <label className="flex flex-col gap-1.5">
-            <span className="sr-only">{t("nickname.label")}</span>
-            <input
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              maxLength={MAX_NICKNAME}
-              placeholder={t("nickname.placeholder")}
-              autoComplete="off"
-              className="w-full max-w-sm rounded-lg border-2 border-black02 bg-offwhite px-4 py-2.5 font-sans text-body-l font-bold text-black02"
-            />
-            <span className="flex max-w-sm items-center justify-between gap-4 text-caption text-black02/60">
-              {t("nickname.hint")}
-              <span className="shrink-0 font-mono tabular-nums">
-                {nickname.length}/{MAX_NICKNAME}
-              </span>
-            </span>
-          </label>
-        </Field>
-
-        <Field step="02" title={t("steps.photo")}>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => fileInput.current?.click()}
-              className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-6 py-3 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
-            >
-              <ImageSquare size={18} weight="bold" aria-hidden />
-              {photo ? t("photo.replace") : t("photo.cta")}
-            </button>
-            {photo && (
-              <button
-                type="button"
-                onClick={() => {
-                  setPhoto(null);
-                  setTransform(DEFAULT_TRANSFORM);
-                  setNotice(null);
-                }}
-                className="rounded-pill border-2 border-black02 px-5 py-3 font-sans text-body-m font-bold text-black02 hover:bg-halftone"
-              >
-                {t("photo.remove")}
-              </button>
-            )}
-            <input
-              ref={fileInput}
-              type="file"
-              accept={ACCEPTED_TYPES.join(",")}
-              onChange={onPick}
-              className="sr-only"
-              aria-label={t("photo.cta")}
-            />
-          </div>
-          <p className="mt-2 text-caption text-black02/60">{t("photo.hint")}</p>
-
-          {error && (
-            <p
-              role="alert"
-              className="mt-3 flex items-start gap-2 rounded-lg border-2 border-danger bg-danger-pastel p-4 text-body-m font-bold text-black02"
-            >
-              <Warning
-                size={20}
-                weight="bold"
-                aria-hidden
-                className="mt-0.5 shrink-0 text-danger"
-              />
-              {tError(error)}
-            </p>
-          )}
-        </Field>
-
-        <Field step="03" title={t("steps.look")}>
-          <fieldset>
-            <legend className="sr-only">{t("steps.look")}</legend>
-            <div className="flex flex-wrap gap-3">
-              {DP_FRAMES.map((option) => (
-                <label key={option.id} className="cursor-pointer">
-                  <input
-                    type="radio"
-                    name="dp-frame"
-                    value={option.id}
-                    checked={option.id === frameId}
-                    onChange={() => setFrameId(option.id)}
-                    className="peer sr-only"
-                  />
-                  {/* Selection is carried by weight, a fill AND the ring —
-                      never by colour alone (DESIGN.md §2.6). */}
-                  <span className="flex items-center gap-2.5 rounded-pill border-2 border-black02 bg-offwhite py-1.5 pl-1.5 pr-4 font-sans text-body-m text-black02 peer-checked:bg-primary peer-checked:font-bold peer-checked:shadow-[0_4px_0_0_var(--color-black02)] peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-[3px] peer-focus-visible:outline-[var(--color-primary)]">
-                    <span
-                      aria-hidden
-                      className="flex h-8 w-8 items-center justify-center rounded-md border-2 border-black02"
-                      style={{ background: option.background }}
-                    >
-                      <span
-                        className={`h-4 w-4 border-2 ${option.mask === "circle" ? "rounded-pill" : "rounded-sm"}`}
-                        style={{ borderColor: option.accent }}
-                      />
-                    </span>
-                    {option.label[lang]}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        </Field>
-
-        <Field step="04" title={t("steps.frame")}>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-            <label
-              htmlFor={zoomId}
-              className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02"
-            >
-              {t("adjust.zoom")}
-            </label>
-            <input
-              id={zoomId}
-              type="range"
-              className="dp-range w-full max-w-xs"
-              min={MIN_SCALE}
-              max={MAX_SCALE}
-              step={0.01}
-              value={transform.scale}
-              disabled={!photo}
-              onChange={(e) =>
-                setTransform((current) =>
-                  photo
-                    ? clampTransform(photo, {
-                        ...current,
-                        scale: Number(e.target.value),
-                      })
-                    : current,
-                )
-              }
-            />
-            <button
-              type="button"
-              onClick={() => setTransform(DEFAULT_TRANSFORM)}
-              disabled={!photo}
-              className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02 hover:bg-halftone disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <ArrowClockwise size={16} weight="bold" aria-hidden />
-              {t("adjust.reset")}
-            </button>
-          </div>
-          <p id={hintId} className="mt-3 max-w-md text-caption text-black02/70">
-            {photo ? t("adjust.hint") : t("adjust.waiting")}
-          </p>
-        </Field>
-
-        <Reveal className="rounded-lg border-2 border-black02 bg-pastel p-5">
-          <p className="font-sans text-body-l font-bold text-black02">
-            {t("privacy.title")}
-          </p>
-          <p className="mt-2 text-body-m text-black02/80">
-            {t("privacy.body")}
-          </p>
-        </Reveal>
-
-        {/* Sits with the privacy note rather than beside the Share button, for
-            two reasons: they are the same kind of block — what actually
-            happens, in plain words — and the preview rail has to stay SHORTER
-            than this column, or it has no room to stick in. */}
-        {eventUrl && (
-          <Reveal className="rounded-lg border-2 border-black02 bg-offwhite p-5">
-            <p className="font-sans text-body-m font-bold text-black02">
-              {t("caption.title")}
-            </p>
-            <p className="mt-2 whitespace-pre-line rounded-md bg-pastel p-3 font-mono text-caption text-black02">
-              {shareCaption(lang, eventUrl)}
-            </p>
-            <p className="mt-2 text-caption text-black02/70">
-              {t("caption.hint")}
-            </p>
-          </Reveal>
-        )}
-      </div>
-
-      {/*
-        ---------------- Preview + actions ----------------
-
-        The preview leads on a phone, so the first thing you see is the thing
-        you are making. That does put Download and Share above the controls
-        there, which is the trade-off taken knowingly: moving them below would
-        need a second mount point chosen by media query, and that buys a
-        hydration jump — on mobile if the server shape is desktop, on desktop
-        if it is not. Both are worse than one flick back up to a button that
-        is plainly disabled until there is something to save.
-
-        The rail sticks under the chrome at the same offset as the filter rail
-        (globals.css `--chrome-h`). It can only stick while it stays SHORTER
-        than the controls column — that is why the caption block lives over
-        there, and why anything else added here should too.
-      */}
-      <div className="order-1 lg:order-2 lg:sticky lg:top-[calc(var(--chrome-h)+1rem)] lg:self-start">
+    <div className="grid gap-12 max-md:pb-40 md:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] md:gap-14 lg:gap-16">
+      {/* ================= Preview ================= */}
+      <div
+        ref={previewRef}
+        className="order-1 scroll-mt-[calc(var(--chrome-h)-3.5rem)] md:order-2 md:sticky md:top-[calc(var(--chrome-h)+1rem)] md:self-start"
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDropping(true);
+        }}
+        onDragLeave={() => setDropping(false)}
+        onDrop={onDrop}
+      >
+        {/* On a phone the card gives up some size while the sheet is open, so
+            both stay on screen at once — the whole reason the sheet toggles. */}
         <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDropping(true);
-          }}
-          onDragLeave={() => setDropping(false)}
-          onDrop={onDrop}
+          className={`mx-auto transition-[max-width] duration-300 ease-bouncy motion-reduce:transition-none ${
+            sheetOpen ? "max-md:max-w-[15rem]" : "max-md:max-w-none"
+          }`}
         >
           {photo ? (
             <DpStage
@@ -390,6 +307,9 @@ export function DpGenerator() {
               nickname={nickname}
               transform={transform}
               onTransformChange={setTransform}
+              effects={effects}
+              tagId={tagId}
+              locale={lang}
               label={stageLabel}
               hintId={hintId}
             />
@@ -401,7 +321,7 @@ export function DpGenerator() {
               type="button"
               onClick={() => fileInput.current?.click()}
               style={{ background: frame.background }}
-              className={`flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+              className={`flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
                 dropping ? "border-black02 bg-primary" : "border-black02/50"
               }`}
             >
@@ -418,7 +338,7 @@ export function DpGenerator() {
                 {dropping ? t("photo.dropActive") : t("preview.empty")}
               </span>
               <span
-                className="text-body-m opacity-75"
+                className="text-body-m opacity-75 max-md:hidden"
                 style={{ color: frame.foreground }}
               >
                 {t("photo.drop")}
@@ -426,57 +346,448 @@ export function DpGenerator() {
             </button>
           )}
         </div>
+      </div>
 
-        <div className="mt-5 flex flex-col gap-3">
+      {/* ================= Controls ================= */}
+      <div
+        className={`order-2 md:order-1 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-50 max-md:rounded-t-lg max-md:border-x-2 max-md:border-t-4 max-md:border-black02 max-md:bg-offwhite max-md:px-5 max-md:pb-4 max-md:pt-3`}
+      >
+        {/* ---- Sheet header: phones only ---- */}
+        <div className="mb-3 flex items-center justify-between gap-3 md:hidden">
+          <span aria-hidden className="h-1.5 w-12 rounded-pill bg-black02/25" />
           <button
             type="button"
-            onClick={() => void onDownload()}
-            disabled={!photo || busy !== null}
-            className="inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 bg-primary px-7 py-3.5 font-sans text-body-l font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 motion-reduce:transform-none"
+            onClick={() => {
+              const next = !sheetOpen;
+              setSheetOpen(next);
+              if (next) revealPreview();
+            }}
+            aria-expanded={sheetOpen}
+            aria-controls={`${groupId}-sheet`}
+            className="rounded-pill border-2 border-black02 bg-primary px-4 py-1.5 font-sans text-body-m font-bold text-black02"
           >
-            <DownloadSimple size={20} weight="bold" aria-hidden />
-            {busy === "download"
-              ? t("actions.downloading")
-              : t("actions.download")}
-          </button>
-          <button
-            type="button"
-            onClick={() => void onShare()}
-            disabled={!photo || busy !== null}
-            className="inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 px-7 py-3 font-sans text-body-m font-bold text-black02 hover:bg-halftone disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ShareNetwork size={18} weight="bold" aria-hidden />
-            {busy === "share" ? t("actions.sharing") : t("actions.share")}
+            {sheetOpen ? t("sheet.hide") : t("sheet.show")}
           </button>
         </div>
 
-        {/* One live region for every outcome — saved, shared, copied, or the
-            browser refusing both. Silence after a tap is the failure mode this
-            prevents. */}
-        <p
-          aria-live="polite"
-          className="mt-3 min-h-[1.5rem] text-body-m font-bold text-black02"
+        {/*
+          The auto-height animation this codebase already uses: 1fr -> 0fr on
+          a grid row, so the sheet collapses to exactly its content height
+          without anyone measuring anything.
+        */}
+        <div
+          id={`${groupId}-sheet`}
+          className={`max-md:grid max-md:transition-[grid-template-rows] max-md:duration-300 max-md:ease-bouncy motion-reduce:transition-none ${
+            sheetOpen ? "max-md:grid-rows-[1fr]" : "max-md:grid-rows-[0fr]"
+          }`}
         >
-          {noticeText}
-        </p>
+          <div className="max-md:min-h-0 max-md:overflow-hidden">
+            <div
+              /* Lenis would otherwise swallow wheel/touch scrolling here for
+                 the same reason it did inside the shop drawer. */
+              data-lenis-prevent
+              /*
+                The sheet is capped so it CANNOT cover the card, and the cap
+                is derived from the same tokens the card is sized by rather
+                than tuned by eye: the screen, less the chrome, less the
+                shrunken preview (15rem), less breathing room. Tall tabs
+                scroll inside that; short ones (Crop) are naturally shorter
+                and leave the card more room.
+              */
+              className="max-md:max-h-[calc(100svh-var(--chrome-h)-15rem-4rem)] max-md:overflow-y-auto max-md:pb-2"
+            >
+              {/* ---- Tab bar: phones only ---- */}
+              <div className="mb-5 flex gap-2 md:hidden">
+                {GROUPS.map((group) => (
+                  <button
+                    key={group}
+                    type="button"
+                    onClick={() => {
+                      setTab(group);
+                      setSheetOpen(true);
+                      revealPreview();
+                    }}
+                    aria-pressed={tab === group}
+                    aria-controls={panelId(group)}
+                    className={`flex-1 rounded-pill border-2 border-black02 px-2 py-2 font-sans text-body-m font-bold transition-colors ${
+                      tab === group
+                        ? "bg-black02 text-offwhite"
+                        : "bg-offwhite text-black02"
+                    }`}
+                  >
+                    {t(`tabs.${group}`)}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-10 max-md:gap-0">
+                {/* ============ 01 — name and photo ============ */}
+                <Group
+                  id={panelId("info")}
+                  step="01"
+                  title={t("groups.info")}
+                  active={tab === "info"}
+                >
+                  <label className="flex flex-col gap-1.5">
+                    <span className="sr-only">{t("nickname.label")}</span>
+                    <input
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      maxLength={MAX_NICKNAME}
+                      placeholder={t("nickname.placeholder")}
+                      autoComplete="off"
+                      className="w-full max-w-sm rounded-lg border-2 border-black02 bg-offwhite px-4 py-2.5 font-sans text-body-l font-bold text-black02"
+                    />
+                    <span className="flex max-w-sm items-center justify-between gap-4 text-caption text-black02/60">
+                      {t("nickname.hint")}
+                      <span className="shrink-0 font-mono tabular-nums">
+                        {nickname.length}/{MAX_NICKNAME}
+                      </span>
+                    </span>
+                  </label>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => fileInput.current?.click()}
+                      className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-6 py-3 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
+                    >
+                      <ImageSquare size={18} weight="bold" aria-hidden />
+                      {photo ? t("photo.replace") : t("photo.cta")}
+                    </button>
+                    {photo && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPhoto(null);
+                          setTransform(DEFAULT_TRANSFORM);
+                          setNotice(null);
+                        }}
+                        className="rounded-pill border-2 border-black02 px-5 py-3 font-sans text-body-m font-bold text-black02 hover:bg-halftone"
+                      >
+                        {t("photo.remove")}
+                      </button>
+                    )}
+                    <input
+                      ref={fileInput}
+                      type="file"
+                      accept={ACCEPTED_TYPES.join(",")}
+                      onChange={onPick}
+                      className="sr-only"
+                      aria-label={t("photo.cta")}
+                    />
+                  </div>
+                  <p className="mt-2 text-caption text-black02/60">
+                    {t("photo.hint")}
+                  </p>
+
+                  {error && (
+                    <p
+                      role="alert"
+                      className="mt-3 flex items-start gap-2 rounded-lg border-2 border-danger bg-danger-pastel p-4 text-body-m font-bold text-black02"
+                    >
+                      <Warning
+                        size={20}
+                        weight="bold"
+                        aria-hidden
+                        className="mt-0.5 shrink-0 text-danger"
+                      />
+                      {tError(error)}
+                    </p>
+                  )}
+                </Group>
+
+                {/* ============ 02 — look and feel ============ */}
+                <Group
+                  id={panelId("look")}
+                  step="02"
+                  title={t("groups.look")}
+                  active={tab === "look"}
+                >
+                  <Legend>{t("frames.legend")}</Legend>
+                  <div className="flex flex-wrap gap-2.5">
+                    {DP_FRAMES.map((option) => (
+                      <Choice
+                        key={option.id}
+                        name="dp-frame"
+                        value={option.id}
+                        checked={option.id === frameId}
+                        onChange={() => setFrameId(option.id)}
+                        label={option.label[lang]}
+                        swatch={
+                          <span
+                            aria-hidden
+                            className="flex h-7 w-7 items-center justify-center rounded-md border-2 border-black02"
+                            style={{ background: option.background }}
+                          >
+                            <span
+                              className={`h-3.5 w-3.5 border-2 ${
+                                option.mask === "circle"
+                                  ? "rounded-pill"
+                                  : "rounded-sm"
+                              }`}
+                              style={{ borderColor: option.accent }}
+                            />
+                          </span>
+                        }
+                      />
+                    ))}
+                  </div>
+
+                  <Legend className="mt-6">{t("tags.legend")}</Legend>
+                  <div className="flex flex-wrap gap-2.5">
+                    {DP_TAGS.map((option) => (
+                      <Choice
+                        key={option.id}
+                        name="dp-tag"
+                        value={option.id}
+                        checked={option.id === tagId}
+                        onChange={() => setTagId(option.id)}
+                        label={option.label[lang]}
+                      />
+                    ))}
+                  </div>
+
+                  <Legend className="mt-6">{t("looks.legend")}</Legend>
+                  <div className="flex flex-wrap gap-2.5">
+                    {LOOKS.map((option) => (
+                      <Choice
+                        key={option}
+                        name="dp-look"
+                        value={option}
+                        checked={effects.look === option}
+                        onChange={() =>
+                          setEffects((e) => ({ ...e, look: option }))
+                        }
+                        label={t(`looks.${option}`)}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap gap-5">
+                    {(["grain", "vignette"] as const).map((key) => (
+                      <label
+                        key={key}
+                        className="flex items-center gap-2.5 text-body-m font-bold text-black02"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={effects[key]}
+                          onChange={(e) =>
+                            setEffects((v) => ({
+                              ...v,
+                              [key]: e.target.checked,
+                            }))
+                          }
+                          className="h-5 w-5 rounded-sm border-2 border-black02 accent-[var(--color-primary)]"
+                        />
+                        {t(`textures.${key}`)}
+                      </label>
+                    ))}
+                  </div>
+                </Group>
+
+                {/* ============ 03 — crop ============ */}
+                <Group
+                  id={panelId("adjust")}
+                  step="03"
+                  title={t("groups.adjust")}
+                  active={tab === "adjust"}
+                >
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+                    <label
+                      htmlFor={zoomId}
+                      className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02"
+                    >
+                      {t("adjust.zoom")}
+                    </label>
+                    <input
+                      id={zoomId}
+                      type="range"
+                      className="dp-range w-full max-w-xs"
+                      min={MIN_SCALE}
+                      max={MAX_SCALE}
+                      step={0.01}
+                      value={transform.scale}
+                      disabled={!photo}
+                      onChange={(e) =>
+                        setTransform((current) =>
+                          photo
+                            ? clampTransform(photo, {
+                                ...current,
+                                scale: Number(e.target.value),
+                              })
+                            : current,
+                        )
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTransform(DEFAULT_TRANSFORM)}
+                      disabled={!photo}
+                      className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02 hover:bg-halftone disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <ArrowClockwise size={16} weight="bold" aria-hidden />
+                      {t("adjust.reset")}
+                    </button>
+                  </div>
+                  <p
+                    id={hintId}
+                    className="mt-3 max-w-md text-caption text-black02/70"
+                  >
+                    {photo ? t("adjust.hint") : t("adjust.waiting")}
+                  </p>
+                </Group>
+
+                {/* ============ 04 — save and share ============ */}
+                <Group
+                  id={panelId("share")}
+                  step="04"
+                  title={t("groups.share")}
+                  active={tab === "share"}
+                >
+                  <Legend>{t("export.legend")}</Legend>
+                  <div className="flex flex-wrap gap-2.5">
+                    {[DP_SIZE, DP_SIZE_HIGH].map((size) => (
+                      <Choice
+                        key={size}
+                        name="dp-size"
+                        value={String(size)}
+                        checked={exportSize === size}
+                        onChange={() => setExportSize(size)}
+                        label={t(
+                          size === DP_SIZE ? "export.standard" : "export.high",
+                          { px: size },
+                        )}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="mt-5 flex flex-col gap-3 sm:max-w-sm">
+                    <button
+                      type="button"
+                      onClick={() => void onDownload()}
+                      disabled={!photo || busy !== null}
+                      className="inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 bg-primary px-7 py-3.5 font-sans text-body-l font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 motion-reduce:transform-none"
+                    >
+                      <DownloadSimple size={20} weight="bold" aria-hidden />
+                      {busy === "download"
+                        ? t("actions.downloading")
+                        : t("actions.download")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void onShare()}
+                      disabled={!photo || busy !== null}
+                      className="inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 px-7 py-3 font-sans text-body-m font-bold text-black02 hover:bg-halftone disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <ShareNetwork size={18} weight="bold" aria-hidden />
+                      {busy === "share"
+                        ? t("actions.sharing")
+                        : t("actions.share")}
+                    </button>
+                  </div>
+
+                  {/*
+                    Only where the browser CANNOT put the image in a share
+                    sheet. Where it can, one tap already does the whole job and
+                    four buttons that do less would be clutter.
+                  */}
+                  {!canShareFile && (
+                    <div className="mt-6">
+                      <Legend>{t("networks.legend")}</Legend>
+                      <div className="flex flex-wrap gap-2.5">
+                        {SHARE_NETWORKS.map((network) => {
+                          const Icon = NETWORK_ICONS[network];
+                          return (
+                            <button
+                              key={network}
+                              type="button"
+                              onClick={() => void onNetwork(network)}
+                              disabled={!photo || busy !== null}
+                              className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-4 py-2 font-sans text-body-m font-bold text-black02 transition-colors hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              <Icon size={18} weight="fill" aria-hidden />
+                              {t(`networks.${network}`)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="mt-2 max-w-md text-caption text-black02/70">
+                        {t("networks.hint")}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* One live region for every outcome — saved, shared,
+                      copied, or the browser refusing all of it. Silence after
+                      a tap is the failure this prevents. */}
+                  <p
+                    aria-live="polite"
+                    className="mt-3 min-h-[1.5rem] text-body-m font-bold text-black02"
+                  >
+                    {noticeText}
+                  </p>
+
+                  <div className="mt-5 rounded-lg border-2 border-black02 bg-offwhite p-5">
+                    <p className="font-sans text-body-m font-bold text-black02">
+                      {t("caption.title")}
+                    </p>
+                    <p className="mt-2 whitespace-pre-line rounded-md bg-pastel p-3 font-mono text-caption text-black02">
+                      {caption}
+                    </p>
+                    <p className="mt-2 text-caption text-black02/70">
+                      {t("caption.hint")}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 rounded-lg border-2 border-black02 bg-pastel p-5">
+                    <p className="font-sans text-body-m font-bold text-black02">
+                      {t("privacy.title")}
+                    </p>
+                    <p className="mt-2 text-body-m text-black02/80">
+                      {t("privacy.body")}
+                    </p>
+                  </div>
+                </Group>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-/** A numbered control group. Numbered for orientation, not as a wizard step. */
-function Field({
+/**
+ * One control group.
+ *
+ * On a desktop every group is on screen at once and `active` means nothing.
+ * On a phone only the selected tab's group is displayed — done with
+ * `max-md:hidden` rather than by unmounting, so the state of a control you
+ * tabbed away from is still there when you come back, and there is still only
+ * one of each in the DOM.
+ */
+function Group({
+  id,
   step,
   title,
+  active,
   children,
 }: {
+  id: string;
   step: string;
   title: string;
-  children: React.ReactNode;
+  active: boolean;
+  children: ReactNode;
 }) {
   return (
-    <section>
-      <h2 className="mb-3 flex items-baseline gap-3">
+    <section
+      id={id}
+      aria-label={title}
+      className={active ? "" : "max-md:hidden"}
+    >
+      <h2 className="mb-3 hidden items-baseline gap-3 md:flex">
         <span className="font-mono text-mono-tag font-bold text-black02/50">
           {step}
         </span>
@@ -486,5 +797,66 @@ function Field({
       </h2>
       {children}
     </section>
+  );
+}
+
+function Legend({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <p
+      className={`mb-2.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60 ${className}`}
+    >
+      {children}
+    </p>
+  );
+}
+
+/**
+ * A radio drawn as a chip.
+ *
+ * A real `<input type="radio">` under an `sr-only` class, so arrow-key
+ * navigation within the group comes from the browser rather than from a
+ * hand-rolled roving tabindex. Selection is carried by weight, a fill AND a
+ * shadow — never by colour alone (DESIGN.md §2.6).
+ */
+function Choice({
+  name,
+  value,
+  checked,
+  onChange,
+  label,
+  swatch,
+}: {
+  name: string;
+  value: string;
+  checked: boolean;
+  onChange: () => void;
+  label: string;
+  swatch?: ReactNode;
+}) {
+  return (
+    <label className="cursor-pointer">
+      <input
+        type="radio"
+        name={name}
+        value={value}
+        checked={checked}
+        onChange={onChange}
+        className="peer sr-only"
+      />
+      <span
+        className={`flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite font-sans text-body-m text-black02 peer-checked:bg-primary peer-checked:font-bold peer-checked:shadow-[0_4px_0_0_var(--color-black02)] peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-[3px] peer-focus-visible:outline-[var(--color-primary)] ${
+          swatch ? "py-1.5 pl-1.5 pr-4" : "px-4 py-2"
+        }`}
+      >
+        {swatch}
+        {label}
+      </span>
+    </label>
   );
 }
