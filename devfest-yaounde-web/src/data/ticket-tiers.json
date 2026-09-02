@@ -2,79 +2,243 @@
   {
     "id": "haikyu",
     "name": "HAIKYU",
+    "label": {
+      "fr": "Pass gratuit",
+      "en": "Free pass"
+    },
     "priceXAF": 0,
     "onSale": true,
     "includesApparel": false,
+    "rsvpExternal": true,
     "description": {
-      "fr": "L'entrée simple. Gratuite, comme le DevFest l'a toujours été — prends ta place et viens.",
-      "en": "Plain entry. Free, the way DevFest has always been — claim your spot and show up."
+      "fr": "L'entrée simple, gratuite — comme le DevFest l'a toujours été. La réservation se fait sur notre page communautaire.",
+      "en": "Plain entry, free — the way DevFest has always been. You reserve it on our community page."
     },
     "perks": [
-      { "fr": "Accès à toutes les conférences", "en": "Access to every talk" },
       {
-        "fr": "Accès aux stands des partenaires",
-        "en": "Access to partner booths"
+        "fr": "Accès à toutes les conférences",
+        "en": "Access to every talk"
       },
-      { "fr": "Espace networking", "en": "Networking area" },
-      { "fr": "Badge nominatif", "en": "Named badge" }
-    ]
+      {
+        "fr": "Accès aux stands des sponsors",
+        "en": "Access to the sponsor stands"
+      },
+      {
+        "fr": "Déjeuner et pauses café",
+        "en": "Lunch and coffee breaks"
+      },
+      {
+        "fr": "Le badge de l'édition",
+        "en": "This edition's badge"
+      }
+    ],
+    "swag": []
   },
   {
     "id": "sonnet",
     "name": "SONNET",
-    "priceXAF": 10000,
+    "label": {
+      "fr": "Pass étudiant",
+      "en": "Student pass"
+    },
+    "priceXAF": 2000,
+    "quantityAvailable": 150,
     "onSale": true,
     "includesApparel": true,
-    "quantityAvailable": 150,
     "description": {
-      "fr": "Tout Haikyu, plus le t-shirt de l'édition et le kit de goodies. Pour ceux qui repartent avec un souvenir.",
-      "en": "Everything in Haikyu, plus this edition's tee and the swag kit. For people who leave with something."
+      "fr": "Pour les étudiants : tout le DevFest, plus le t-shirt de l'édition.",
+      "en": "For students: the whole of DevFest, plus this edition's tee."
     },
     "perks": [
-      { "fr": "Tout ce que contient Haikyu", "en": "Everything in Haikyu" },
       {
-        "fr": "T-shirt officiel de l'édition",
-        "en": "Official edition T-shirt"
+        "fr": "Tout ce que contient le pass gratuit",
+        "en": "Everything in the free pass"
       },
       {
-        "fr": "Kit de goodies (stickers, carnet)",
-        "en": "Swag kit (stickers, notebook)"
+        "fr": "Le t-shirt de l'édition",
+        "en": "This edition's t-shirt"
       },
       {
-        "fr": "Accès prioritaire aux ateliers",
-        "en": "Priority access to workshops"
+        "fr": "Autocollants",
+        "en": "Stickers"
+      }
+    ],
+    "swag": [
+      {
+        "fr": "T-shirt",
+        "en": "T-shirt"
       },
-      { "fr": "Déjeuner inclus", "en": "Lunch included" }
+      {
+        "fr": "Autocollants",
+        "en": "Sticker pack"
+      }
     ]
   },
   {
     "id": "opus",
     "name": "OPUS",
-    "priceXAF": 35000,
+    "label": {
+      "fr": "",
+      "en": ""
+    },
+    "priceXAF": 5000,
+    "quantityAvailable": 40,
     "onSale": true,
     "includesApparel": true,
-    "quantityAvailable": 40,
     "description": {
-      "fr": "L'expérience complète : masterclass, table ronde privée avec les speakers, et le pack merch entier.",
-      "en": "The full run: masterclass, a private roundtable with the speakers, and the complete merch pack."
+      "fr": "Le pass complet : le t-shirt, le kit, et de quoi repartir équipé.",
+      "en": "The full pass: the tee, the kit, and enough to leave properly equipped."
     },
     "perks": [
-      { "fr": "Tout ce que contient Sonnet", "en": "Everything in Sonnet" },
       {
-        "fr": "Masterclass technique en petit comité",
-        "en": "Small-group technical masterclass"
+        "fr": "Tout ce que contient le pass étudiant",
+        "en": "Everything in the student pass"
       },
       {
-        "fr": "Table ronde privée avec les speakers",
-        "en": "Private roundtable with the speakers"
+        "fr": "Tote bag de l'édition",
+        "en": "This edition's tote bag"
       },
       {
-        "fr": "Hoodie de l'édition en plus du t-shirt",
-        "en": "Edition hoodie on top of the tee"
+        "fr": "Carnet et stylo",
+        "en": "Notebook and pen"
+      }
+    ],
+    "swag": [
+      {
+        "fr": "T-shirt",
+        "en": "T-shirt"
       },
       {
-        "fr": "Place réservée au premier rang",
-        "en": "Reserved front-row seat"
+        "fr": "Tote bag",
+        "en": "Tote bag"
+      },
+      {
+        "fr": "Carnet",
+        "en": "Notebook"
+      },
+      {
+        "fr": "Autocollants",
+        "en": "Sticker pack"
+      }
+    ]
+  },
+  {
+    "id": "fable",
+    "name": "FABLE",
+    "label": {
+      "fr": "",
+      "en": ""
+    },
+    "priceXAF": 10000,
+    "quantityAvailable": 25,
+    "onSale": true,
+    "includesApparel": true,
+    "description": {
+      "fr": "Pour celles et ceux qui veulent le kit entier, bouteille et casquette comprises.",
+      "en": "For the ones who want the whole kit, bottle and cap included."
+    },
+    "perks": [
+      {
+        "fr": "Tout ce que contient OPUS",
+        "en": "Everything in OPUS"
+      },
+      {
+        "fr": "Bouteille isotherme",
+        "en": "Insulated bottle"
+      },
+      {
+        "fr": "Casquette de l'édition",
+        "en": "This edition's cap"
+      }
+    ],
+    "swag": [
+      {
+        "fr": "T-shirt",
+        "en": "T-shirt"
+      },
+      {
+        "fr": "Tote bag",
+        "en": "Tote bag"
+      },
+      {
+        "fr": "Carnet",
+        "en": "Notebook"
+      },
+      {
+        "fr": "Bouteille",
+        "en": "Bottle"
+      },
+      {
+        "fr": "Casquette",
+        "en": "Cap"
+      },
+      {
+        "fr": "Autocollants",
+        "en": "Sticker pack"
+      }
+    ]
+  },
+  {
+    "id": "mythos",
+    "name": "MYTHOS",
+    "label": {
+      "fr": "Pass légendaire",
+      "en": "Legendary pass"
+    },
+    "priceXAF": 25000,
+    "quantityAvailable": 10,
+    "onSale": true,
+    "includesApparel": true,
+    "description": {
+      "fr": "Le pass légendaire : tout le swag, et le hoodie que personne d'autre n'aura.",
+      "en": "The legendary pass: all the swag, and the hoodie nobody else is getting."
+    },
+    "perks": [
+      {
+        "fr": "Tout ce que contient FABLE",
+        "en": "Everything in FABLE"
+      },
+      {
+        "fr": "Hoodie de l'édition",
+        "en": "This edition's hoodie"
+      },
+      {
+        "fr": "Lanyard collector",
+        "en": "Collector lanyard"
+      }
+    ],
+    "swag": [
+      {
+        "fr": "Hoodie",
+        "en": "Hoodie"
+      },
+      {
+        "fr": "T-shirt",
+        "en": "T-shirt"
+      },
+      {
+        "fr": "Tote bag",
+        "en": "Tote bag"
+      },
+      {
+        "fr": "Carnet",
+        "en": "Notebook"
+      },
+      {
+        "fr": "Bouteille",
+        "en": "Bottle"
+      },
+      {
+        "fr": "Casquette",
+        "en": "Cap"
+      },
+      {
+        "fr": "Lanyard",
+        "en": "Lanyard"
+      },
+      {
+        "fr": "Autocollants",
+        "en": "Sticker pack"
       }
     ]
   }

@@ -894,6 +894,66 @@
   animation: df-spin 900ms linear infinite;
 }
 
+/*
+ * SWAG CUTOUTS — a row of small prints, alternating tilt, one lifting on
+ * hover with its name above it. Same family as the slider's polaroid: white
+ * card, dark border, soft corners.
+ *
+ * `overflow: visible` on the row is deliberate — the hover lift and the
+ * popover both reach outside the item's box, and a clipping ancestor would
+ * shave them (the same bug the speaker spotlight hit).
+ */
+.swag-cutout {
+  position: relative;
+  width: 3.5rem;
+  padding: 0.3rem 0.3rem 0.75rem;
+  background: var(--color-offwhite);
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-sm);
+  transform: rotate(var(--swag-tilt, 0deg));
+  transition:
+    transform 260ms var(--ease-bouncy),
+    box-shadow 260ms var(--ease-out-devfest);
+  cursor: pointer;
+}
+.swag-cutout:hover,
+.swag-cutout:focus-within {
+  transform: rotate(0deg) scale(1.18) translateY(-4px);
+  box-shadow: 0 6px 0 0 var(--color-black02);
+  z-index: 2;
+}
+.swag-thumb {
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: var(--color-pastel);
+}
+.swag-pop {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  white-space: nowrap;
+  padding: 0.25rem 0.6rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-black02);
+  color: var(--color-offwhite);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 200ms var(--ease-out-devfest),
+    transform 200ms var(--ease-out-devfest);
+}
+.swag-cutout:hover .swag-pop,
+.swag-cutout:focus-within .swag-pop {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 .anim-push-in {
   animation: df-drawer-left 320ms var(--ease-out-devfest) both;
 }
@@ -1284,6 +1344,21 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Swag cutouts keep the hover NAME — it is information — but drop the
+     lift and the tilt, which are not. */
+  .swag-cutout,
+  .swag-pop {
+    transition: none !important;
+    transform: none !important;
+  }
+  .swag-cutout:hover,
+  .swag-cutout:focus-within {
+    transform: none !important;
+  }
+  .swag-pop {
+    transform: translateX(-50%) !important;
+  }
+
   /* The push panel appears instantly, and the content reflows without a
      sliding width — a 320ms layout animation is the jarring kind. */
   .filter-section {

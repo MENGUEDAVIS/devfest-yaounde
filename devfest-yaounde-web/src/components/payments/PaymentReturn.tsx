@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { ConfettiBurst } from "@/components/global/ConfettiBurst";
 import { Button } from "@/components/ui/Button";
+import { BadgeCode } from "@/components/tickets/BadgeCode";
 
 /** How often to ask. The guide's range is 3–5s; 4s splits it. */
 const POLL_MS = 4000;
@@ -177,18 +178,13 @@ export function PaymentReturn({
             <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
               {t("badgeLabel")}
             </p>
-            <ul className="mt-4 flex flex-col gap-4">
+            <ul className="mt-4 flex flex-col gap-6">
               {tickets.slice(0, 5).map((ticket) => (
-                <li key={ticket.id} className="flex flex-col gap-1">
+                <li key={ticket.id} className="flex flex-col gap-2">
                   <span className="text-body-m text-black02/70">
                     {ticket.attendee_name}
                   </span>
-                  {/* Readable, deliberately large. A cracked screen or a dead
-                      battery still has to get someone through the door, so the
-                      code is never QR-only. */}
-                  <span className="select-all font-mono text-heading-m font-bold tracking-wide text-black02">
-                    {ticket.badge_code}
-                  </span>
+                  <BadgeCode code={ticket.badge_code} label={t("scanAtDoor")} />
                 </li>
               ))}
             </ul>

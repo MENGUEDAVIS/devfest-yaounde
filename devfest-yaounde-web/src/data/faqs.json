@@ -69,15 +69,15 @@
     }
   },
   {
-    "id": "faq-refund",
+    "id": "faq-refunds",
     "category": "tickets",
     "question": {
-      "fr": "Puis-je me faire rembourser ou transférer mon billet ?",
-      "en": "Can I refund or transfer my ticket?"
+      "fr": "Puis-je me faire rembourser un billet ?",
+      "en": "Can I get a refund on a ticket?"
     },
     "answer": {
-      "fr": "La politique sera publiée en même temps que la billetterie. En cas de doute, écris-nous — on est raisonnables.",
-      "en": "The policy goes up when ticket sales open. If you're stuck, message us — we're reasonable people."
+      "fr": "Non. Les billets ne sont ni remboursables ni annulables, une fois payés — ni en cas de changement de programme, ni après l'événement. En revanche, tu peux transférer ta place : donne-nous le nom de la personne avant le jour J et on met le billet à son nom.",
+      "en": "No. Tickets are non-refundable and non-cancellable once paid — not for a change of plans, and not after the event. You can pass yours on, though: tell us the new name before the day and we'll put the ticket in it."
     }
   },
   {

@@ -1,6 +1,6 @@
 # 0020 — Rendering the badge QR code
 
-- **Status:** PROPOSED — needs a decision before the QR can be drawn
+- **Status:** Accepted (2026-09-02)
 - **Date:** 2026-09-02
 
 ## Context
@@ -36,15 +36,26 @@ is the credential that gets them in. It would also fail on venue Wi-Fi, which
 leaks the credential. A small, single-purpose, dependency-free library is the
 proportionate answer.
 
-## Why this is not already done
+## Decision
 
-Adding a frontend dependency requires an ADR and an explicit go-ahead
-(PHASE14 standing rules). This record is the proposal; the decision is the
-human's.
+**Option A, approved 2026-09-02.** `qrcode` is installed and renders the
+badge QR.
 
-## What ships until then
+## The readable code stays
 
-The badge code renders as large, selectable text everywhere it appears. That
-is not a placeholder — the guide requires it regardless, precisely because a
-cracked screen or a dead battery still has to get someone in. What is missing
-is the convenience of scanning, not the ability to enter.
+The QR is drawn **alongside** the badge code as large, selectable text, not
+instead of it. That is not redundancy: a cracked screen, a dead battery or a
+scanner that will not focus still has to get someone in, and the door staff
+can type the code. `docs/guides/frontend-integration.md` asks for both for
+exactly this reason.
+
+## Notes for whoever uses this next
+
+- Rendering happens **client-side, into a canvas**. The badge code is the
+  credential that admits someone, so it is never sent anywhere to be turned
+  into an image.
+- Error-correction level **M** is the default and is right here: the code is
+  short, and a higher level would make the modules smaller on a phone screen
+  for no real gain.
+- This also unblocks the organiser check-in scanner, which needs to read the
+  same codes.

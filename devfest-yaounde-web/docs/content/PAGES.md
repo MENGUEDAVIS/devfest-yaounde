@@ -207,36 +207,81 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 ## 7. Tickets Page (`/tickets`)
 
-Inspired by the Lagos flow (date/tier select → details → summary → payment), adapted for tiered, swag-bundled, named tickets.
+> **Built in Phase 14** against the real backend. See
+> `docs/guides/frontend-integration.md` for the contract and
+> `docs/backend/GAPS.md` for what is wired versus pending.
 
-**Step 1 — Choose your ticket**
+### 7.1 The tiers
 
-- Tier cards laid out clearly (not crowded): **Haikyu** (free), **Sonnet** (basic paid), up through the top tier — each shows price, what's included (entry, swag items, perks), in the `mono-tag`-styled name treatment from DESIGN.md.
-- Quantity selector per tier.
+Currency is **XAF (FCFA)**. Data lives in `src/data/ticket-tiers.json`.
 
-**Step 2 — Attendee details**
+| Tier       | Label          | Price  | Sold here?            |
+| ---------- | -------------- | ------ | --------------------- |
+| **HAIKYU** | Free pass      | 0      | **No — RSVP on Bevy** |
+| **SONNET** | Student pass   | 2,000  | yes                   |
+| **OPUS**   | —              | 5,000  | yes                   |
+| **FABLE**  | —              | 10,000 | yes                   |
+| **MYTHOS** | Legendary pass | 25,000 | yes                   |
 
-- If quantity > 1, collect details **per person** (name, email, and — for apparel-bearing tiers — T-shirt size). Clear indication of "Ticket 1 of 3," etc., so it doesn't feel like a wall of a form.
+**The free tier is not sold on this site.** Selecting it links out to the
+community platform, which already enforces one free RSVP per person — so it
+has no quantity selector, never enters the basket, and never touches sign-in
+or payment. This is not a contradiction of the retired Bevy RSVP CTA
+(`docs/decisions/0008`): that was about the generic hero call to action. Paid
+ticketing is on-site; free RSVP is delegated.
 
-**Step 3 — Discount code**
+Every tier lists its **swag** as a row of small cutout-style prints —
+alternating tilt, hover lifts one and names it. Higher tiers show more. Images
+are placeholders; the names are real.
 
-- Optional field, applies before payment step, clearly shows the adjusted total.
+### 7.2 Checkout — three steps
 
-**Step 4 — Payment**
+**Choose → Who's coming → Payment.** The order summary is sticky throughout.
 
-- Mobile Money (MTN/Orange via Flutterwave or a Cameroon-focused gateway) as the lead option, card as secondary, per our earlier discussion.
+- **Choose** — quantity per paid tier, capped at 10 per order (the server's own
+  limit).
+- **Who's coming** — one entry per ticket, headed "Ticket N of M". Name and
+  email are required; **phone is collected but optional** (see below). A
+  **t-shirt size** is required on tiers that include apparel and enforced
+  before Continue. Each ticket can be marked **"this one's mine"**, which
+  prefills from the signed-in account and stays editable.
+- **Payment** — **Mobile Money only.** No card option is rendered at all: the
+  integration does not support cards, and a disabled control would read as a
+  bug rather than a decision. Card support would need a separate processor for
+  diaspora buyers — a future decision.
 
-**Step 5 — Confirmation**
+**Sign-in is offered at the start and is optional**, purely to prefill details.
+It becomes required only at payment. Google is the only provider (ADR 0014).
 
-- On-screen success state (a little celebratory animation — confetti burst, bouncy easing — this is a moment worth spending polish on).
-- Email receipt + ticket confirmation, each ticket carrying a **QR/badge code** for check-in.
+**The discount code is not a step.** It lives in the order summary as an
+"add a discount code" link that reveals a field with an Apply button. There is
+deliberately **no pre-validation endpoint** — one would be a free oracle for
+guessing codes — so Apply stages the code and the server's verdict arrives with
+the order. The copy says exactly that.
 
-**Account & tracking**
+### 7.3 Refunds — stated, and gated
 
-- Login required (shared account system with Shop, per your decision) so people can return to a **"My Tickets"** dashboard — view/download tickets, resend confirmation email, see order history.
-- Sticky order summary throughout steps 1–4 so the running total/what's-included is never out of sight.
+**Tickets are non-refundable and non-cancellable once paid.** A paid ticket can
+be **transferred** to another name before the day.
 
----
+Stated in body-sized text on the payment step, behind a **required
+acknowledgment checkbox that gates the pay button**, and again in the FAQ.
+Never small print. Full policy in `docs/content/refund-policy.md`.
+
+### 7.4 After paying
+
+`/{locale}/payments/return` is the confirmation screen — the route the backend
+sends every buyer to. It polls the status endpoint, which is what actually
+**issues the ticket** (settlement is by polling, ADR 0019). On success it shows
+confetti, the amount charged, and each **badge code as a scannable QR beside
+the readable code** — both, always, because a dead battery still has to get
+someone in (ADR 0020).
+
+### 7.5 Account
+
+`/{locale}/account` — **My Tickets** (badge QR + code, tier, check-in state)
+and **My Orders**, shared with the shop. Both are scoped to the signed-in
+person by the database itself.
 
 ## 8. Shop Page (`/shop`)
 

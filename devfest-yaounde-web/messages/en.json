@@ -216,7 +216,6 @@
       "steps": {
         "select": "Choose",
         "details": "Who's coming",
-        "discount": "Discount",
         "payment": "Payment"
       },
       "free": "Free",
@@ -229,15 +228,12 @@
       "attendeeName": "Full name",
       "attendeeEmail": "Email",
       "apparelSize": "T-shirt size",
-      "thisIsMe": "This one's me",
+      "thisIsMe": "This one's mine",
       "discountLabel": "Discount code",
-      "discountHint": "Got one? Add it here. We'll apply it when you place the order.",
       "momoTitle": "Mobile Money",
       "momoBody": "MTN MoMo or Orange Money. You'll finish the payment on a secure page, then land back here.",
       "phoneLabel": "Phone number (optional)",
       "phoneHint": "Format: 237XXXXXXXXX. Fill it in and the payment page is pre-filled; skip it and it'll ask.",
-      "freeTitle": "Nothing to pay",
-      "freeBody": "Your basket comes to zero, so there's no payment step. Claim it and your ticket is issued right away.",
       "signInRequired": "Sign in to place your order — it's how you find your tickets again later.",
       "continueWithGoogle": "Continue with Google",
       "summary": "Your order",
@@ -249,7 +245,17 @@
       "next": "Continue",
       "working": "One moment…",
       "payNow": "Pay with Mobile Money",
-      "claim": "Claim my ticket"
+      "rsvpFree": "RSVP free on Bevy",
+      "rsvpNote": "Free entry is handled on our community page, which keeps it to one RSVP per person. No account needed here.",
+      "swagLabel": "{count} things in the box",
+      "attendeePhone": "Phone (optional)",
+      "signInPrefill": "Signing in fills your details in for you. Optional — you can carry on without it.",
+      "addDiscount": "Add a discount code",
+      "apply": "Apply",
+      "discountStaged": "We'll apply this when you place the order, and show what came off.",
+      "refundTitle": "Tickets are non-refundable",
+      "refundBody": "Once a ticket is paid for it can't be refunded or cancelled — not for a change of plans, and not after the event. You can put someone else's name on it before the day.",
+      "refundAck": "I understand tickets are non-refundable."
     },
     "shop": {
       "title": "Shop",
@@ -278,7 +284,8 @@
       "missingTitle": "Nothing to confirm here",
       "missingBody": "This page needs a payment to look up, and there isn't one in the link you followed.",
       "backToTickets": "Go to tickets",
-      "viewAccount": "See my tickets"
+      "viewAccount": "See my tickets",
+      "scanAtDoor": "Scan at the door"
     },
     "account": {
       "title": "My account",

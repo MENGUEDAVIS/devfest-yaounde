@@ -41,7 +41,7 @@ export interface FilterLayoutProps {
  * | Viewport      | Surface      | Why                                        |
  * | ------------- | ------------ | ------------------------------------------ |
  * | >= 1760px     | Margin rail  | Real margin exists — use it, take no width |
- * | 1024-1759px   | Push panel   | No margin, so borrow width; content reflows |
+ * | 1024-1759px   | Floating panel | No margin, so borrow width; content reflows |
  * | 640-1023px    | Capped sheet | Too narrow to push; a sheet, not stretched  |
  * | < 640px       | Full sheet   | A phone                                     |
  *
@@ -49,7 +49,7 @@ export interface FilterLayoutProps {
  * hiding it behind a button would be a step for no reason. The other three
  * are opened by the Filters button.
  *
- * THE PUSH PANEL IS NOT A MODAL, and that is the point. It has no scrim, no
+ * THE FLOATING PANEL IS NOT A MODAL, and that is the point. It has no scrim, no
  * focus trap and no close-on-outside-click, because it is meant to stay open
  * while you scroll the results and keep adjusting filters — every one of
  * those behaviours would fight exactly that. Only its own toggle closes it.
@@ -117,25 +117,30 @@ export function FilterLayout({
         </div>
       )}
 
-      {/* ---- 1024-1759px: the persistent push panel ---- */}
+      {/* ---- 1024-1759px: the persistent floating panel ---- */}
       {isPush && open && (
-        <aside aria-label={heading} className="filter-push-panel anim-push-in">
-          <div className="mb-5 flex shrink-0 items-center justify-between gap-3">
-            <h2 className="font-sans text-heading-m font-bold text-black02">
-              {heading}
-            </h2>
-            <button
-              type="button"
-              onClick={close}
-              aria-label={t("close")}
-              className="rounded-pill border-2 border-black02 p-1.5 text-black02 transition-colors hover:bg-primary"
-            >
-              <X size={18} weight="bold" />
-            </button>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto">{body}</div>
-          {clearLink && <div className="mt-5 shrink-0">{clearLink}</div>}
-        </aside>
+        <div className="filter-float-track">
+          <aside
+            aria-label={heading}
+            className="filter-float-panel anim-push-in"
+          >
+            <div className="mb-5 flex shrink-0 items-center justify-between gap-3">
+              <h2 className="font-sans text-heading-m font-bold text-black02">
+                {heading}
+              </h2>
+              <button
+                type="button"
+                onClick={close}
+                aria-label={t("close")}
+                className="rounded-pill border-2 border-black02 p-1.5 text-black02 transition-colors hover:bg-primary"
+              >
+                <X size={18} weight="bold" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">{body}</div>
+            {clearLink && <div className="mt-5 shrink-0">{clearLink}</div>}
+          </aside>
+        </div>
       )}
 
       <div className="mb-10 flex flex-wrap items-center justify-between gap-4">

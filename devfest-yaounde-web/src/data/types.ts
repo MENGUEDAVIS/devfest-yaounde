@@ -149,8 +149,25 @@ export interface TicketTier {
   id: string;
   /** Proper-noun tier name, rendered mono-tag style. Language-neutral. */
   name: string;
+  /**
+   * Optional sub-title beside the name ("Free pass", "Student pass"). Empty
+   * strings for tiers whose name says enough on its own.
+   */
+  label?: LocalizedString;
   /** Whole XAF. 0 = free tier, which skips the payment provider entirely. */
   priceXAF: number;
+  /**
+   * True when this tier is NOT sold here at all: the RSVP is delegated to the
+   * community platform, which already enforces one free RSVP per person.
+   * Such a tier shows an outbound CTA instead of a quantity selector, and
+   * never touches checkout or sign-in.
+   */
+  rsvpExternal?: boolean;
+  /**
+   * What comes in the box, for the swag preview. Ordered biggest-first;
+   * higher tiers list more. Display only — the server does not read it.
+   */
+  swag?: LocalizedString[];
   description: LocalizedString;
   perks: LocalizedString[];
   /** When true, attendee details must collect an apparel size. */

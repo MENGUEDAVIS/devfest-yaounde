@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { BadgeCode } from "@/components/tickets/BadgeCode";
 import { signInWithGoogle, signOut, useSession } from "@/lib/use-session";
 
 interface Ticket {
@@ -189,14 +190,13 @@ export function AccountDashboard() {
                       {t("size", { size: ticket.apparel_size })}
                     </p>
                   )}
-                  <p className="mt-5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
-                    {t("badgeLabel")}
-                  </p>
-                  {/* Readable text, always. The QR is a convenience; a dead
-                      battery or a cracked screen still has to get someone in. */}
-                  <p className="mt-1 select-all font-mono text-heading-m font-bold tracking-wide text-black02">
-                    {ticket.badge_code}
-                  </p>
+                  <div className="mt-5">
+                    <BadgeCode
+                      code={ticket.badge_code}
+                      label={t("badgeLabel")}
+                      size={132}
+                    />
+                  </div>
                 </li>
               ))}
             </ul>

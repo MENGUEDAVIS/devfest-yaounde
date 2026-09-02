@@ -537,34 +537,47 @@ html:not(.has-custom-cursor) .cursor-layer {
 }
 
 /*
- * ---------------------------------------------------------- push panel ----
+ * -------------------------------------------------------- floating panel ---
  *
  * PERSISTENT AND NON-MODAL, which is the whole point: it stays open while you
  * scroll the results and keep adjusting filters. So, deliberately, it has
  * NO scrim, NO focus trap, and NO close-on-outside-click — every one of those
  * would fight the thing it exists to allow. Only its own toggle closes it.
  *
- * It PUSHES rather than overlays: the section gains left padding equal to the
- * panel's width, so the content narrows and its grid reflows to fewer columns
- * instead of hiding behind the panel.
+ * It also STILL PUSHES: the section gains left padding while it is open, so
+ * the content narrows and its grid reflows rather than hiding underneath.
+ * Floating and pushing are not in tension here — the panel is detached from
+ * the screen edges for looks, and the content is moved out from under it for
+ * legibility. That was the call when the two were weighed: a floating panel
+ * that overlapped the results would cost readability on exactly the 1512px
+ * screen this exists for.
  *
- * Square corners on the panel: it is flush to the viewport's left, top and
- * bottom edges, so there is no corner to round. `border-radius` would only
- * show as a gap against the screen edge. (DESIGN.md §5.2 bans sharp corners
- * on FLOATING objects — an edge-anchored surface is the standing exception,
- * the same as the announcement banner's top edge.)
+ * BOUNDED TO ITS SECTION, not the viewport. It is `sticky` inside a track
+ * that spans the filtered section, which is what stops it covering the footer
+ * — the same construction the margin rail uses at larger sizes. `position:
+ * fixed` cannot do this: it yields to nothing, which is exactly how it ended
+ * up sitting on top of the footer.
  */
-.filter-push-panel {
-  position: fixed;
+.filter-float-track {
+  position: absolute;
   left: 0;
-  top: var(--chrome-h);
+  top: 0;
   bottom: 0;
   width: 20rem;
   z-index: 40; /* under the chrome (50) — the navbar stays reachable */
+  pointer-events: none;
+}
+.filter-float-panel {
+  position: sticky;
+  top: calc(var(--chrome-h) + 1rem);
+  max-height: calc(100svh - var(--chrome-h) - 3rem);
   display: flex;
   flex-direction: column;
-  border-right: 2px solid var(--color-black02);
+  pointer-events: auto;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-lg);
   background: var(--color-offwhite);
+  box-shadow: 0 8px 0 0 var(--color-black02);
   padding: 1.5rem;
 }
 .filter-section {
@@ -572,7 +585,7 @@ html:not(.has-custom-cursor) .cursor-layer {
 }
 @media (min-width: 1024px) and (max-width: 1759px) {
   .filter-section[data-panel-open="true"] {
-    padding-left: 21.5rem;
+    padding-left: 22.5rem;
   }
 }
 

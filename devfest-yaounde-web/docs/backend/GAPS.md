@@ -117,6 +117,53 @@ scanning, not the ability to enter.
 **Needs a decision:** [ADR 0020](../decisions/0020-qr-rendering.md), which
 recommends the `qrcode` library.
 
+### G7 — No per-attendee phone; email is mandatory server-side
+
+The brief asked for "phone AND/OR email, at least one" per attendee. The server
+does not allow it: `attendeeSchema` **requires** `email` and has **no phone
+field at all**. Only the order-level `contact.phone` exists, and it is used
+solely to pre-fill the PawaPay page.
+
+**Phase 14 does:** requires the email (as the server does), and collects an
+optional phone per attendee for the buyer's own record — clearly labelled
+optional, and **not sent**, because there is nowhere to put it.
+
+**Needs a decision:** if identifying an attendee by phone alone matters, that
+is a schema change — `attendeeSchema`, the `tickets` table, and the email
+dispatch that currently assumes an address.
+
+### G8 — "This one's mine" is not a server field
+
+Self-assignment drives **prefill only**. Nothing records which ticket belongs
+to the buyer, so `/account` cannot distinguish "my ticket" from "a ticket I
+bought for someone".
+
+**Phase 14 does:** uses it to prefill name and email from the signed-in
+profile, and says nothing about ownership it cannot back up.
+
+### G9 — The non-refundable acknowledgment is not enforced server-side
+
+The checkbox gates the pay button in the browser. There is no field for it in
+`ticketCheckoutSchema`, so a request posted directly to the API succeeds
+without it.
+
+**Phase 14 does:** ships the gate, because it is the right UI. It does not
+pretend the consent is recorded.
+
+**Needs a decision:** whether the acknowledgment must be evidence (a stored
+`accepted_terms_at`) or is only an interface affordance. See
+`docs/content/refund-policy.md`.
+
+### G10 — The Bevy URL is still a placeholder
+
+The free tier now sends people off-site to RSVP, and `BEVY_URL` in
+`src/lib/site-config.ts` is `"#"`. **The free-pass CTA currently links
+nowhere.**
+
+**Phase 14 does:** builds the flow and points it at the constant. This is a
+one-line config fix, but it is on the critical path for the cheapest way into
+the event — a blocker, not a nicety.
+
 ---
 
 ## Content, not code

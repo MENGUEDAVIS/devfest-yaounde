@@ -216,7 +216,6 @@
       "steps": {
         "select": "Choisir",
         "details": "Qui vient",
-        "discount": "Réduction",
         "payment": "Paiement"
       },
       "free": "Gratuit",
@@ -229,15 +228,12 @@
       "attendeeName": "Nom complet",
       "attendeeEmail": "E-mail",
       "apparelSize": "Taille de t-shirt",
-      "thisIsMe": "C'est moi",
+      "thisIsMe": "Ce billet est pour moi",
       "discountLabel": "Code de réduction",
-      "discountHint": "Tu en as un ? Ajoute-le ici. On l'applique au moment de la commande.",
       "momoTitle": "Mobile Money",
       "momoBody": "MTN MoMo ou Orange Money. Tu finalises sur une page sécurisée, puis tu reviens ici.",
       "phoneLabel": "Numéro de téléphone (facultatif)",
       "phoneHint": "Format : 237XXXXXXXXX. Si tu le remplis, la page de paiement est pré-remplie ; sinon elle te le demandera.",
-      "freeTitle": "Rien à payer",
-      "freeBody": "Ton panier est à zéro, donc pas d'étape de paiement. Valide et ton billet est émis aussitôt.",
       "signInRequired": "Connecte-toi pour passer commande — c'est ce qui te permet de retrouver tes billets ensuite.",
       "continueWithGoogle": "Continuer avec Google",
       "summary": "Ta commande",
@@ -249,7 +245,17 @@
       "next": "Continuer",
       "working": "Un instant…",
       "payNow": "Payer avec Mobile Money",
-      "claim": "Obtenir mon billet"
+      "rsvpFree": "Réserver gratuitement sur Bevy",
+      "rsvpNote": "L'entrée gratuite se gère sur notre page communautaire, qui limite à une réservation par personne. Aucun compte nécessaire ici.",
+      "swagLabel": "{count} objets dans le pack",
+      "attendeePhone": "Téléphone (facultatif)",
+      "signInPrefill": "Te connecter remplit tes informations automatiquement. Facultatif — tu peux continuer sans.",
+      "addDiscount": "Ajouter un code de réduction",
+      "apply": "Appliquer",
+      "discountStaged": "On l'applique au moment de la commande, et on t'indique ce qui a été déduit.",
+      "refundTitle": "Les billets ne sont pas remboursables",
+      "refundBody": "Une fois payé, un billet ne peut être ni remboursé ni annulé — ni en cas de changement de programme, ni après l'événement. Tu peux en revanche y mettre le nom de quelqu'un d'autre avant le jour J.",
+      "refundAck": "Je comprends que les billets ne sont pas remboursables."
     },
     "shop": {
       "title": "Boutique",
@@ -278,7 +284,8 @@
       "missingTitle": "Rien à confirmer ici",
       "missingBody": "Cette page a besoin d'un paiement à retrouver, et le lien que tu as suivi n'en contient pas.",
       "backToTickets": "Voir les billets",
-      "viewAccount": "Voir mes billets"
+      "viewAccount": "Voir mes billets",
+      "scanAtDoor": "À scanner à l'entrée"
     },
     "account": {
       "title": "Mon compte",
