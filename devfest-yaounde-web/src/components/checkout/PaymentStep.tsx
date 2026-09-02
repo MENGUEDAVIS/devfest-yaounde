@@ -20,6 +20,12 @@ import type { Profile } from "@/lib/use-session";
  *    not a collapsed block, not small print. Money is involved; burying it
  *    would be a dark pattern. The gate lives here, in one place, so both
  *    checkouts inherit the version that was actually verified to block.
+ *
+ *    The COPY is per-surface, because the policies genuinely differ: a seat
+ *    on a day is non-refundable outright, while goods can be exchanged when
+ *    they arrive damaged or in the wrong size. Passing the strings in keeps
+ *    one gate with two honest descriptions, rather than one description
+ *    stretched over two different promises.
  */
 export function PaymentStep({
   phone,
@@ -29,6 +35,7 @@ export function PaymentStep({
   profile,
   sessionLoading,
   signInNext,
+  terms,
   extra,
 }: {
   phone: string;
@@ -38,7 +45,9 @@ export function PaymentStep({
   profile: Profile | null;
   sessionLoading: boolean;
   signInNext: string;
-  /** Anything the surface adds — e.g. the shop's fulfilment choice. */
+  /** Per-surface refund wording — see the note above. */
+  terms: { title: string; body: string; ack: string };
+  /** Anything the surface adds. */
   extra?: ReactNode;
 }) {
   const t = useTranslations("pages.tickets");
@@ -76,9 +85,9 @@ export function PaymentStep({
 
       <div className="rounded-lg border-2 border-black02 bg-pastel p-5">
         <p className="font-sans text-body-l font-bold text-black02">
-          {t("refundTitle")}
+          {terms.title}
         </p>
-        <p className="mt-2 text-body-m text-black02/80">{t("refundBody")}</p>
+        <p className="mt-2 text-body-m text-black02/80">{terms.body}</p>
         <label className="mt-4 flex items-start gap-3">
           <input
             type="checkbox"

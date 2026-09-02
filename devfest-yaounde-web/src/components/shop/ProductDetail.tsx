@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, ShoppingBag } from "@phosphor-icons/react";
+import { Check, ShoppingBag } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -11,7 +11,11 @@ import { BUYABLE, StatusPill } from "./StatusPill";
 import type { Product, ProductStatus } from "@/data/types";
 
 /**
- * `/shop/[product]` — one item (PAGES.md §8).
+ * One product's detail, rendered inside the right-hand drawer on `/shop`
+ * (PAGES.md §8).
+ *
+ * It has no back link or page heading of its own: the drawer supplies the
+ * close affordance, and the grid it opens over never went away.
  *
  * ON "OUT OF STOCK VARIANTS": the brief asks for individually disabled
  * variants, and the backend cannot support it — the catalog carries ONE
@@ -44,16 +48,8 @@ export function ProductDetail({ product }: { product: Product }) {
     new Intl.NumberFormat(locale === "fr" ? "fr-CM" : "en-CM").format(v);
 
   return (
-    <div>
-      <Link
-        href="/shop"
-        className="inline-flex items-center gap-2 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 underline decoration-2 underline-offset-4 hover:text-black02/60"
-      >
-        <ArrowLeft size={14} weight="bold" aria-hidden />
-        {t("backToShop")}
-      </Link>
-
-      <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
+    <div className="p-6 sm:p-8">
+      <div className="flex flex-col gap-8">
         <div>
           <div className="overflow-hidden rounded-lg border-2 border-black02 bg-pastel">
             <ProductImage
@@ -93,9 +89,9 @@ export function ProductDetail({ product }: { product: Product }) {
             status={product.status as ProductStatus}
             label={t(`status.${product.status}`)}
           />
-          <h1 className="mt-5 font-sans text-display-l font-bold leading-tight text-black02">
+          <h2 className="mt-5 font-sans text-display-l font-bold leading-tight text-black02">
             {product.name[locale]}
-          </h1>
+          </h2>
           <p className="mt-4 font-mono text-heading-m font-bold text-black02">
             {money(product.priceXAF)} XAF
           </p>

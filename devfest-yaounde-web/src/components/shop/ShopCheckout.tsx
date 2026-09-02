@@ -6,7 +6,6 @@ import {
   Package,
   ShoppingBag,
   Trash,
-  Truck,
   Warning,
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
@@ -65,7 +64,6 @@ export function ShopCheckout({ products }: { products: Product[] }) {
   const [discountError, setDiscountError] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [fulfilment, setFulfilment] = useState<"pickup" | "delivery">("pickup");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<CheckoutError | null>(null);
 
@@ -284,50 +282,39 @@ export function ShopCheckout({ products }: { products: Product[] }) {
             profile={profile}
             sessionLoading={sessionLoading}
             signInNext={`/${locale}/shop/cart`}
+            terms={{
+              title: t("returnsTitle"),
+              body: t("returnsBody"),
+              ack: t("returnsAck"),
+            }}
             extra={
               /*
-               * Pickup vs delivery. The UI exists because the brief asks for
-               * it; the choice is NOT sent, because the shop checkout schema
-               * has no fulfilment field — the order's `fulfilment` column is
-               * organiser-set through PATCH /api/orders/:id/status (GAPS.md
-               * G13). The copy therefore says the team will confirm, rather
-               * than implying the preference has been recorded.
+               * An INFORMATIONAL LINE, not a control.
+               *
+               * This was a pickup-vs-delivery radio group, and it was a fake
+               * control: the shop checkout schema has no fulfilment field
+               * (the order's column is organiser-set through PATCH), so the
+               * choice was collected and discarded. A control that changes
+               * nothing is worse than no control — it invites a decision and
+               * then ignores it. Buyer-settable fulfilment is a backend item
+               * (GAPS.md G13); until it exists, this says what will actually
+               * happen.
                */
-              <fieldset className="rounded-lg border-2 border-black02 bg-offwhite p-5">
-                <legend className="px-2 text-body-m font-bold text-black02">
-                  {t("fulfilmentTitle")}
-                </legend>
-                <div className="mt-2 flex flex-col gap-3">
-                  {(
-                    [
-                      ["pickup", Package, t("pickup"), t("pickupHint")],
-                      ["delivery", Truck, t("delivery"), t("deliveryHint")],
-                    ] as const
-                  ).map(([key, Icon, label, hint]) => (
-                    <label key={key} className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        name="fulfilment"
-                        checked={fulfilment === key}
-                        onChange={() => setFulfilment(key)}
-                        className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]"
-                      />
-                      <span>
-                        <span className="flex items-center gap-2 text-body-m font-bold text-black02">
-                          <Icon size={16} weight="bold" aria-hidden />
-                          {label}
-                        </span>
-                        <span className="mt-0.5 block text-body-m text-black02/70">
-                          {hint}
-                        </span>
-                      </span>
-                    </label>
-                  ))}
+              <div className="flex items-start gap-3 rounded-lg border-2 border-black02 bg-offwhite p-5">
+                <Package
+                  size={22}
+                  weight="bold"
+                  className="mt-0.5 shrink-0 text-black02"
+                />
+                <div>
+                  <p className="text-body-m font-bold text-black02">
+                    {t("fulfilmentTitle")}
+                  </p>
+                  <p className="mt-1 text-body-m text-black02/75">
+                    {t("fulfilmentBody")}
+                  </p>
                 </div>
-                <p className="mt-4 text-caption text-black02/60">
-                  {t("fulfilmentPending")}
-                </p>
-              </fieldset>
+              </div>
             }
           />
         )}

@@ -2,12 +2,13 @@
 
 import { MagnifyingGlass, ShoppingBag } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FilterGroup } from "@/components/ui/FilterGroup";
 import { FilterLayout } from "@/components/ui/FilterLayout";
 import { Reveal } from "@/components/ui/Reveal";
-import { Link } from "@/i18n/navigation";
 import { useCart } from "@/lib/use-cart";
+import { Modal } from "@/components/ui/Modal";
+import { ProductDetail } from "./ProductDetail";
 import { ProductImage } from "./ProductImage";
 import { BUYABLE, StatusPill } from "./StatusPill";
 import type { Product, ProductStatus } from "@/data/types";
@@ -24,10 +25,56 @@ import type { Product, ProductStatus } from "@/data/types";
  * Evergreen framing: the shop runs before, during and after the event, so
  * nothing here assumes the event is still upcoming.
  */
-export function ShopBrowser({ products }: { products: Product[] }) {
+export function ShopBrowser({
+  products,
+  initialProductId = null,
+}: {
+  products: Product[];
+  /** Set when arriving directly on /shop/[product] — opens with the drawer up. */
+  initialProductId?: string | null;
+}) {
   const t = useTranslations("pages.shop");
+  const tc = useTranslations("common.filters");
   const locale = useLocale() as "fr" | "en";
   const { count } = useCart();
+
+  /*
+   * DETAIL IS A DRAWER OVER THE GRID, and the URL still moves with it.
+   *
+   * Opening a product pushes /shop/{id} with `history.pushState` rather than
+   * a router navigation: the grid, its filters and its scroll position all
+   * stay exactly as they were, which is the entire reason for a drawer. The
+   * URL is nonetheless real and server-rendered — see the route — so it can
+   * be shared, bookmarked and indexed.
+   *
+   * `popstate` closes the drawer, so the browser Back button does what it
+   * looks like it should rather than leaving the page.
+   */
+  const [openId, setOpenId] = useState<string | null>(initialProductId);
+
+  const openProduct = useCallback(
+    (id: string) => {
+      setOpenId(id);
+      window.history.pushState(null, "", `/${locale}/shop/${id}`);
+    },
+    [locale],
+  );
+
+  const closeProduct = useCallback(() => {
+    setOpenId(null);
+    window.history.pushState(null, "", `/${locale}/shop`);
+  }, [locale]);
+
+  useEffect(() => {
+    function onPopState() {
+      const match = window.location.pathname.match(/\/shop\/([^/]+)$/);
+      setOpenId(match && match[1] !== "cart" ? match[1] : null);
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  const openProductData = products.find((p) => p.id === openId) ?? null;
 
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<string | null>(null);
@@ -88,8 +135,8 @@ export function ShopBrowser({ products }: { products: Product[] }) {
         setStatus(null);
       }}
       toolbar={
-        <Link
-          href="/shop/cart"
+        <a
+          href={`/${locale}/shop/cart`}
           className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
         >
           <ShoppingBag size={18} weight="bold" aria-hidden />
@@ -99,7 +146,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
               {count}
             </span>
           )}
-        </Link>
+        </a>
       }
     >
       <p className="mb-8 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
@@ -120,9 +167,17 @@ export function ShopBrowser({ products }: { products: Product[] }) {
         >
           {visible.map((product, i) => (
             <Reveal key={product.id} index={i % 3}>
-              <Link
-                href={`/shop/${product.id}`}
-                className="group block overflow-hidden rounded-lg border-2 border-black02 bg-offwhite shadow-[0_6px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-1 motion-reduce:transform-none"
+              {/*
+                A button, not a link: it opens a drawer rather than navigating.
+                The URL is still updated, so sharing and Back both work — but
+                rendering an <a> for something that does not navigate would
+                mislead assistive tech and offer a broken "open in new tab".
+              */}
+              <button
+                type="button"
+                onClick={() => openProduct(product.id)}
+                aria-haspopup="dialog"
+                className="group block w-full overflow-hidden rounded-lg border-2 border-black02 bg-offwhite text-left shadow-[0_6px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-1 motion-reduce:transform-none"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-pastel">
                   <ProductImage
@@ -156,11 +211,20 @@ export function ShopBrowser({ products }: { products: Product[] }) {
                     </p>
                   )}
                 </div>
-              </Link>
+              </button>
             </Reveal>
           ))}
         </div>
       )}
+      {/* ---- Product detail, in a right-hand drawer over the grid ---- */}
+      <Modal
+        open={openProductData !== null}
+        onClose={closeProduct}
+        variant="drawer-right"
+        closeLabel={tc("close")}
+      >
+        {openProductData && <ProductDetail product={openProductData} />}
+      </Modal>
     </FilterLayout>
   );
 }

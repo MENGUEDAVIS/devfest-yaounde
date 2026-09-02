@@ -1,4 +1,8 @@
-# Refund policy
+# Refund and exchange policy
+
+**Two policies, because a seat on a day and a hoodie are not the same thing.**
+
+## Tickets — non-refundable
 
 **Tickets are non-refundable and non-cancellable once paid.** Not for a change
 of plans, and not after the event.
@@ -29,28 +33,38 @@ to hunt for is a dark pattern.
 
 **The acknowledgment is a client-side gate only**, for tickets and shop
 alike. There is no field for it in either checkout schema, so a request posted
-directly to the API succeeds without it. Recorded as **G9** (tickets) and
-**G14** (shop) in `docs/backend/GAPS.md`.
+directly to the API succeeds without it. Recorded as **G9** in
+`docs/backend/GAPS.md`, and flagged there as a backend-phase priority.
+
+The _policies_ are settled; what is not recorded is the **consent**.
 
 This matters if the acknowledgment is ever needed as evidence of consent. As a
 UI affordance it does its job; as a legal record it does not exist. Deciding
 whether that is enough is a question for whoever owns the policy, not a bug to
 be quietly patched in the frontend.
 
-## Goods are not tickets — this is worth a second look
+## Shop — non-refundable, but exchangeable
 
-The same policy currently covers **shop orders**, and that is a copy decision
-rather than a settled one. A non-refundable rule is ordinary for an event
-ticket, whose value is the seat on the day. It is unusual for a physical
-product, where the normal expectation is a return window, and where "the wrong
-size arrived" is a different situation from "I changed my mind about coming".
+**Settled 2026-09-02.** Goods get their own terms:
 
-The FAQ (`faq-shop-returns`) currently says damaged or incorrect items are
-sorted out directly, which covers the worst case — but there is no stated
-exchange window for a size that does not fit, and apparel is most of the
-catalog.
+| Situation                 | What happens                      |
+| ------------------------- | --------------------------------- |
+| Changed your mind         | **No refund.** Same as tickets.   |
+| Arrived damaged or faulty | **Replaced.**                     |
+| Wrong item sent           | **Replaced.**                     |
+| Apparel, wrong size       | **Exchanged**, while stock lasts. |
 
-**This is flagged, not decided.** Recorded as gap **G14**.
+The reasoning: a non-refundable rule is ordinary for an event ticket, whose
+value is the seat on the day. It is unusual for a physical product, where "the
+wrong size arrived" is nothing like "I changed my mind about coming" — and
+apparel is most of the catalog.
+
+**Exchanges are handled manually, off-platform**: by getting in touch, or in
+person at the next event. Nothing in the product supports an exchange flow, and
+none was invented for one — this is a policy someone honours, not a feature.
+
+The shop's acknowledgment copy says exactly this rather than the flat
+"non-refundable" tickets use.
 
 ## If this changes
 

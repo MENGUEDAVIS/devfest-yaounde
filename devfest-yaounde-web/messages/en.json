@@ -302,12 +302,11 @@
         "bag": "Your bag",
         "payment": "Payment"
       },
-      "fulfilmentTitle": "How would you like to get it?",
-      "pickup": "Pick up at the venue",
-      "pickupHint": "Collect it from us on the day.",
-      "delivery": "Delivery",
-      "deliveryHint": "We arrange it with you after the order.",
-      "fulfilmentPending": "Delivery zones and pickup times are still being worked out, so the team will confirm the details with you directly."
+      "fulfilmentTitle": "Getting it to you",
+      "fulfilmentBody": "We'll coordinate pickup or delivery with you after checkout — the team gets in touch once the order is in.",
+      "returnsTitle": "Returns and exchanges",
+      "returnsBody": "We don't refund a change of mind. But if something arrives damaged, faulty or simply isn't what you ordered, we'll replace it — and apparel can be exchanged for a different size while stock lasts. Just get in touch, or find us at the next event.",
+      "returnsAck": "I understand: no refunds for a change of mind, and exchanges are handled directly with the team."
     },
     "dpGenerator": {
       "title": "DP Generator",

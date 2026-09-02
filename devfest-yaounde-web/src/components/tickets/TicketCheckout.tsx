@@ -601,6 +601,11 @@ export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
             profile={profile}
             sessionLoading={sessionLoading}
             signInNext={`/${locale}/tickets`}
+            terms={{
+              title: t("refundTitle"),
+              body: t("refundBody"),
+              ack: t("refundAck"),
+            }}
           />
         )}
 

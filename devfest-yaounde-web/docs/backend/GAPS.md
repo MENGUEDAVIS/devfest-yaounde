@@ -175,8 +175,8 @@ changes what someone can do, plus a search across name and description.
 Inventing categories client-side would mean filtering on data the server does
 not have, and they would drift the moment the catalog is edited.
 
-**Needs a decision:** if categories matter, they are a field on `products.json`
-(and the guide that maintains it), not a UI-side invention.
+**ACCEPTED 2026-09-02.** Availability + search is the filter. Categories are a
+backend item, left documented.
 
 ### G12 — No per-variant inventory
 
@@ -189,8 +189,9 @@ product is unbuyable the whole control set is disabled and says why, which is
 the truthful version of the same intent. It does not grey out individual sizes
 on a guess.
 
-**Needs a decision:** per-variant stock is a schema change — a per-variant
-row, and checkout validation against it.
+**ACCEPTED 2026-09-02.** Product-level enforcement stands. Per-variant stock is
+handed off: it is a schema change — a per-variant row, and checkout validation
+against it.
 
 ### G13 — Fulfilment cannot be chosen by the buyer
 
@@ -200,34 +201,42 @@ Orders **do** carry a `fulfilment` column — free-form JSON with
 `shopCheckoutSchema` has no fulfilment field, so a buyer's choice has nowhere
 to go.
 
-**Part B does:** renders the pickup-vs-delivery choice, because it is a real
-question someone wants answered — and the copy says the team will confirm the
-details, rather than implying the preference has been recorded. It is **not
-sent**. Logistics (zones, fees, pickup windows) are open anyway
-(`PAGES.md` §11), so there is no delivery logic to invent here even if the
-field existed.
+**DECIDED 2026-09-02:** the interactive choice was **removed**. A
+pickup-vs-delivery control that sends nothing is a fake control — it invites a
+decision and then discards it, which is worse than not asking. In its place is
+an honest line: the team coordinates pickup or delivery after checkout.
 
-**Needs a decision:** add `fulfilment` to the shop checkout schema so the
-buyer's preference reaches the order, or accept that the team asks afterwards.
+**Handed off:** buyer-settable fulfilment is a backend item — add `fulfilment`
+to `shopCheckoutSchema` and carry it onto the order. Logistics (zones, fees,
+pickup windows) are open anyway (`PAGES.md` §11).
 
-### G14 — Shop orders carry no refund acknowledgment either
+### G14 — Shop return policy — RESOLVED (consent persistence folded into G9)
 
-The same gap as G9, for goods: the acknowledgment gates the pay button in the
-browser and is not recorded anywhere. **And goods are not tickets** — a
-non-refundable policy is ordinary for an event ticket and unusual for a
-physical product, so this one may want a different policy rather than the
-same one enforced better. Flagged for the human;
-`docs/content/refund-policy.md` currently applies one policy to both.
+**DECIDED 2026-09-02:** goods get their **own** terms — no refund for a change
+of mind, but replacement for damaged, faulty or wrong items, and size exchange
+on apparel while stock lasts. Exchanges are handled manually, off-platform.
+Copy, FAQ and the shop's acknowledgment wording all say this;
+`docs/content/refund-policy.md` records it as settled.
+
+No backend was needed, and none was written: this is a policy someone honours,
+not a feature.
+
+What remains is **not** a shop-specific gap — the acknowledgment is a
+client-side gate with no server record for tickets and goods alike. That is
+**G9**, and it stays a backend-phase item.
 
 ### G15 — The bag is device-local
 
 There is no cart on the server: `POST /api/checkout/shop` takes the whole
 basket in one request. The bag therefore lives in `localStorage`.
 
-**Part B does:** persists across navigation and reload on that device, and
-syncs between tabs. A bag started on a phone does not appear on a laptop, and
-clearing site data empties it — so nothing in the UI calls it "saved to your
-account".
+**ACCEPTED 2026-09-02.** `localStorage` stands; a server cart is a
+low-priority backend item.
+
+It persists across navigation and reload on that device, and syncs between
+tabs. A bag started on a phone does not appear on a laptop, and clearing site
+data empties it — so nothing in the UI calls it "saved to your account", and
+nothing should start.
 
 ---
 

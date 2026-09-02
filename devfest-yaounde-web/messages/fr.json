@@ -302,12 +302,11 @@
         "bag": "Ton panier",
         "payment": "Paiement"
       },
-      "fulfilmentTitle": "Comment veux-tu le récupérer ?",
-      "pickup": "Retrait sur place",
-      "pickupHint": "Tu le récupères auprès de nous le jour J.",
-      "delivery": "Livraison",
-      "deliveryHint": "On l'organise avec toi après la commande.",
-      "fulfilmentPending": "Les zones de livraison et les horaires de retrait sont encore en cours de définition : l'équipe confirmera les détails avec toi directement."
+      "fulfilmentTitle": "La récupération",
+      "fulfilmentBody": "On organise le retrait ou la livraison avec toi après la commande — l'équipe te contacte dès qu'elle arrive.",
+      "returnsTitle": "Retours et échanges",
+      "returnsBody": "On ne rembourse pas un changement d'avis. En revanche, si un article arrive abîmé, défectueux ou ne correspond pas à ta commande, on le remplace — et les vêtements peuvent être échangés contre une autre taille, dans la limite des stocks. Écris-nous, ou retrouve-nous au prochain événement.",
+      "returnsAck": "J'ai compris : pas de remboursement en cas de changement d'avis, et les échanges se règlent directement avec l'équipe."
     },
     "dpGenerator": {
       "title": "Générateur de photo de profil",

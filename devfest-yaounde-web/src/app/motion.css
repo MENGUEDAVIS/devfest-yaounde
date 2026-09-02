@@ -865,6 +865,20 @@
  * open and close constantly) and the easing is the standard out-curve, not
  * the bouncy one: a filter panel that springs reads as a toy.
  */
+@keyframes df-drawer-right {
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.anim-drawer-right {
+  animation: df-drawer-right 320ms var(--ease-out-devfest) both;
+}
+
 @keyframes df-drawer-left {
   0% {
     opacity: 0;
@@ -1388,6 +1402,7 @@
   .anim-stamp,
   .anim-drawer-up,
   .anim-drawer-left,
+  .anim-drawer-right,
   .anim-push-in,
   .anim-contrib-stamp,
   .faq-glyph,

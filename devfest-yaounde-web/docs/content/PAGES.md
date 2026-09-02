@@ -316,9 +316,28 @@ server does not have (GAPS.md G11). It uses the **shared filter component**, so
 large screens, floating push panel on laptops, capped sheet on tablet,
 full-width sheet on mobile.
 
-### 8.2 Product (`/shop/[product]`)
+### 8.2 Product — a right-hand drawer (`/shop/[product]`)
 
-Large imagery, variant selection, quantity, add-to-bag, live status.
+Detail opens as a **drawer sliding in from the right** over the grid, with a
+scrim and the background scroll locked, dismissed by Escape, the close button
+or the scrim. Large imagery, variant selection, quantity and add-to-bag all
+live inside it. Clicking a card never navigates: the grid, its filters and its
+scroll position stay exactly where they were, which is the whole point.
+
+**It is still deep-linkable, and products keep their own URLs.** Opening a
+card pushes `/shop/{id}`; arriving at that URL directly renders the grid with
+the drawer already open; Back closes the drawer rather than leaving the page.
+
+**On SEO — the call made here.** A drawer alone would have cost every product
+its URL, and with it sharing, bookmarking and indexing, so the route stayed.
+Each product URL carries its own title, description, OpenGraph image and
+`Product` JSON-LD (name, description, price, availability), and the grid
+server-renders every product's name, description and price in the cards. What
+is _not_ in the server HTML is the drawer's own body — it is portalled, so it
+mounts in the browser. The indexable payload is therefore metadata plus
+structured data rather than drawer markup, which for a product page is the part
+search engines actually read. If rich-result coverage ever falls short, the fix
+is to server-render the detail beneath the drawer — not to abandon the drawer.
 
 **Availability is per PRODUCT, not per variant** — the catalog has one status
 per product and no per-variant stock (GAPS.md G12). Rather than greying out
@@ -346,12 +365,16 @@ per-person details.
 - **The bag is device-local.** There is no server cart — checkout posts the
   whole basket in one request — so it lives in `localStorage`, survives reload,
   syncs between tabs, and does not follow you to another device (GAPS.md G15).
-- **Pickup vs delivery** is offered, and **not sent**: the order's `fulfilment`
-  column is organiser-set only, and logistics are still open anyway (G13). The
-  copy says the team will confirm rather than implying it was recorded.
-- **Non-refundable, with the same required acknowledgment** as tickets. Whether
-  physical goods deserve a different stance is flagged, not decided — see
-  `docs/content/refund-policy.md` and G14.
+- **Fulfilment is stated, not asked.** A pickup-vs-delivery control was built
+  and then removed: the shop checkout schema has no fulfilment field, so the
+  choice was collected and discarded, and a control that changes nothing is
+  worse than no control. In its place, an honest line — the team coordinates
+  pickup or delivery after checkout (G13).
+- **Goods have their own return policy**, distinct from tickets: no refund for
+  a change of mind, but replacement for damaged, faulty or wrong items, and
+  size exchange on apparel while stock lasts, handled directly with the team.
+  The acknowledgment gate is the same shared component; only the wording
+  differs. See `docs/content/refund-policy.md`.
 
 ### 8.4 Orders
 

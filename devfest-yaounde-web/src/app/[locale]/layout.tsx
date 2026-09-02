@@ -25,6 +25,11 @@ const googleSansCode = Google_Sans_Code({
 });
 
 export const metadata: Metadata = {
+  /* Resolves relative OG/Twitter image paths. Without it Next falls back to
+     localhost, which would ship broken social previews. */
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_BASE_URL ?? "http://localhost:3000",
+  ),
   title: "DevFest Yaoundé",
   description: "DevFest Yaoundé — GDG Yaoundé",
 };
