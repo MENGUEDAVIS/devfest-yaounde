@@ -43,7 +43,8 @@ const SHARE_CTA = {
 export const DP_SHARE_URL = `${SITE_URL}/dp-generator`;
 export const DP_SHARE_LABEL = `${SITE_HOST}/dp-generator`;
 
-export type ShareOutcome = "shared" | "copied" | "unavailable";
+export type ShareOutcome =
+  "shared" | "copied" | "unavailable" | "imageCopied" | "copyUnsupported";
 
 export function shareCaption(locale: "fr" | "en"): string {
   return [
@@ -107,6 +108,33 @@ export async function copyCaption(locale: "fr" | "en"): Promise<ShareOutcome> {
     return "copied";
   } catch {
     return "unavailable";
+  }
+}
+
+/**
+ * Put the card itself on the clipboard.
+ *
+ * `ClipboardItem` with `image/png` is what lets someone paste a picture
+ * straight into a post, a chat or a document — no file to find afterwards.
+ * Support is real but not universal (Firefox has historically refused image
+ * writes), and it needs a secure context, so a refusal is reported rather
+ * than swallowed: the download is right there and still works.
+ *
+ * The Blob is passed rather than a Promise of one. Some browsers want the
+ * write to happen inside the user gesture, and awaiting the render first is
+ * what would break that — the caller renders, then calls this.
+ */
+export async function copyImage(blob: Blob): Promise<ShareOutcome> {
+  try {
+    if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) {
+      return "copyUnsupported";
+    }
+    await navigator.clipboard.write([
+      new ClipboardItem({ [blob.type || "image/png"]: blob }),
+    ]);
+    return "imageCopied";
+  } catch {
+    return "copyUnsupported";
   }
 }
 

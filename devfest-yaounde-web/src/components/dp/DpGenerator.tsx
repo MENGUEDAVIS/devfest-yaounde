@@ -2,7 +2,7 @@
 
 import {
   ArrowClockwise,
-  ClipboardText,
+  Copy,
   DownloadSimple,
   ImageSquare,
   InstagramLogo,
@@ -64,6 +64,7 @@ import {
   submitToGallery,
 } from "@/lib/dp/gallery";
 import {
+  copyImage,
   canShareImage,
   composerUrl,
   copyCaption,
@@ -115,6 +116,8 @@ type Notice =
   | "downloaded"
   | "failed"
   | "attach"
+  | "imageCopied"
+  | "copyUnsupported"
   | "wallSent"
   | "gallery_rate_limited"
   | "gallery_rejected"
@@ -388,11 +391,12 @@ export function DpGenerator() {
     setBusy(null);
   }
 
-  /** The caption on its own, for when only the words are wanted. */
-  async function onCopyCaption() {
+  /** The card itself on the clipboard, for pasting straight into a post. */
+  async function onCopyImage() {
     setBusy("share");
     setNotice(null);
-    setNotice(await copyCaption(lang));
+    const blob = await render();
+    if (blob) setNotice(await copyImage(blob));
     setBusy(null);
   }
 
@@ -430,7 +434,9 @@ export function DpGenerator() {
   /* Two namespaces: `errors.dp.*` is the shared vocabulary for what a share
      did (or could not do), `status.*` is this screen's own. The wall's
      outcomes are this screen's, since nothing else can produce them. */
-  const WALL_NOTICES = [
+  const OWN_NOTICES = [
+    "imageCopied",
+    "copyUnsupported",
     "wallSent",
     "gallery_rate_limited",
     "gallery_rejected",
@@ -441,7 +447,7 @@ export function DpGenerator() {
     : notice === "downloaded" ||
         notice === "failed" ||
         notice === "attach" ||
-        WALL_NOTICES.includes(notice)
+        OWN_NOTICES.includes(notice)
       ? t(`status.${notice}`)
       : tError(notice);
 
@@ -855,22 +861,13 @@ export function DpGenerator() {
                   title={t("groups.stickers")}
                   active={tab === "stickers"}
                 >
+                  {/* One row. The tech shapes had a heading of their own,
+                      which made a split where there is no real difference —
+                      they are shapes, they behave like shapes, and a second
+                      legend just cost a line of space. */}
                   <Legend>{t("stickers.shapes")}</Legend>
                   <div className="flex flex-wrap gap-2.5">
-                    {SHAPE_STICKERS.map((s) => (
-                      <StickerChip
-                        key={s.id}
-                        stickerId={s.id}
-                        label={s.label[lang]}
-                        locale={lang}
-                        onAdd={() => addSticker(s.id)}
-                      />
-                    ))}
-                  </div>
-
-                  <Legend className="mt-6">{t("stickers.tech")}</Legend>
-                  <div className="flex flex-wrap gap-2.5">
-                    {TECH_STICKERS.map((s) => (
+                    {[...SHAPE_STICKERS, ...TECH_STICKERS].map((s) => (
                       <StickerChip
                         key={s.id}
                         stickerId={s.id}
@@ -1002,31 +999,33 @@ export function DpGenerator() {
                         ? t("actions.downloading")
                         : t("actions.download")}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => void onShare()}
-                      disabled={!photo || busy !== null}
-                      className="inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 px-7 py-3 font-sans text-body-m font-bold text-black02 hover:bg-halftone disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <ShareNetwork size={18} weight="bold" aria-hidden />
-                      {busy === "share"
-                        ? t("actions.sharing")
-                        : t("actions.share")}
-                    </button>
-                    {/* The caption on its own. Share hands over the image and
-                        the words together where the browser allows it; this is
-                        for the times you only want the words — pasting into a
-                        post you have already started, or a caption box that
-                        takes no attachment. */}
-                    <button
-                      type="button"
-                      onClick={() => void onCopyCaption()}
-                      disabled={busy !== null}
-                      className="inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 px-7 py-3 font-sans text-body-m font-bold text-black02 hover:bg-halftone disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <ClipboardText size={18} weight="bold" aria-hidden />
-                      {t("actions.copyCaption")}
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => void onShare()}
+                        disabled={!photo || busy !== null}
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill border-2 border-black02 px-7 py-3 font-sans text-body-m font-bold text-black02 hover:bg-halftone disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <ShareNetwork size={18} weight="bold" aria-hidden />
+                        {busy === "share"
+                          ? t("actions.sharing")
+                          : t("actions.share")}
+                      </button>
+                      {/* The CARD on the clipboard, ready to paste straight
+                          into a post or a chat. Icon only: it sits beside a
+                          labelled button doing the neighbouring job, and the
+                          two together read as one pair of actions. */}
+                      <button
+                        type="button"
+                        onClick={() => void onCopyImage()}
+                        disabled={!photo || busy !== null}
+                        aria-label={t("actions.copyImage")}
+                        title={t("actions.copyImage")}
+                        className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-pill border-2 border-black02 text-black02 hover:bg-halftone disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <Copy size={18} weight="bold" aria-hidden />
+                      </button>
+                    </div>
                   </div>
 
                   {/* THE ONE WAY A CARD LEAVES THE DEVICE.

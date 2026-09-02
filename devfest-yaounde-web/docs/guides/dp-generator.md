@@ -108,7 +108,14 @@ like a mistake.
 misprint (channel offset), screen print (posterised).
 **Edges**: clean, torn, brushed — the edge is a mask, so a torn photo really
 does leave its own corner behind.
-**Textures** (independent): grain, paper, vignette, ripple.
+**Textures** (independent): grain, paper, vignette, ripple, fisheye.
+
+The fisheye distorts the picture rather than illustrating the idea of one: it
+pulls every sample toward the centre by `r^1.55`, which magnifies the middle
+and compresses the rim, like a door peephole. Because the radius is normalised
+against the half-diagonal it never exceeds 1, so every sample lands inside the
+photo — no stretched corners to paper over. An earlier version drew a
+magnifying glass on top of the card instead.
 
 All of it is 2D canvas: one geometric pass for the ripple and the channel
 offset, one colour pass that does the look, the grain, the paper and the
@@ -124,7 +131,9 @@ moment for an ADR.
 
 ## Stickers
 
-`SHAPE_STICKERS` and `TEXT_STICKERS` in `src/lib/dp/stickers.ts`. A shape is a
+`SHAPE_STICKERS`, `TECH_STICKERS` and `TEXT_STICKERS` in
+`src/lib/dp/stickers.ts`. The first two render in one row — they are both
+shapes and behave identically, so a second heading only cost space. A shape is a
 vector path in a 100×100 box; a word is a phrase in a rounded tag. Both get
 the same treatment — a flat ink shadow, a heavy ink outline, a flat fill —
 because that is what makes a sticker read as a sticker rather than as clip art
@@ -185,6 +194,10 @@ Two paths, and the difference between them is a platform limit, not a taste:
 
 - **Where the browser can share files** (`navigator.canShare({files})`), one
   tap hands the image _and_ the caption to whatever app the person picks.
+- **Copy** puts the card itself on the clipboard as PNG, for pasting straight
+  into a post or a chat. Support is real but not universal and it needs a
+  secure context, so a refusal is reported rather than swallowed — the
+  download is right there.
 - **Everywhere else**, no web API can attach an image to a post on someone's
   behalf. So the per-network buttons do the three things that _can_ be done —
   save the image, copy the caption, open the composer — and the screen says

@@ -389,7 +389,7 @@
         "paper": "Papier",
         "vignette": "Vignettage",
         "warp": "Ondulation",
-        "lens": "Loupe"
+        "lens": "Œil de poisson"
       },
       "stickers": {
         "shapes": "Formes",
@@ -400,8 +400,7 @@
         "size": "Taille",
         "turn": "Rotation",
         "remove": "Retirer le sticker",
-        "pick": "Touche un sticker sur la carte pour le déplacer, le redimensionner ou le retirer.",
-        "tech": "Tech"
+        "pick": "Touche un sticker sur la carte pour le déplacer, le redimensionner ou le retirer."
       },
       "adjust": {
         "zoom": "Zoom",
@@ -424,7 +423,7 @@
         "downloading": "On la dessine…",
         "share": "Partager",
         "sharing": "Ouverture…",
-        "copyCaption": "Copier la légende"
+        "copyImage": "Copier la carte"
       },
       "networks": {
         "legend": "Ou publie sur",
@@ -441,7 +440,9 @@
         "wallSent": "Envoyé au mur.",
         "gallery_rate_limited": "Ça fait plusieurs cartes d'affilée — attends une minute et réessaie.",
         "gallery_rejected": "Le mur n'a pas accepté celle-ci. Essaie avec une autre carte.",
-        "gallery_failed": "Elle n'est pas arrivée au mur. Ton téléchargement fonctionne toujours."
+        "gallery_failed": "Elle n'est pas arrivée au mur. Ton téléchargement fonctionne toujours.",
+        "imageCopied": "Carte copiée — colle-la directement dans ton post.",
+        "copyUnsupported": "Ce navigateur ne copie pas les images. Télécharge-la plutôt."
       },
       "caption": {
         "title": "Ce qui part avec",

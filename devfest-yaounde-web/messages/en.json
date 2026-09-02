@@ -389,7 +389,7 @@
         "paper": "Paper",
         "vignette": "Vignette",
         "warp": "Ripple",
-        "lens": "Magnifier"
+        "lens": "Fisheye"
       },
       "stickers": {
         "shapes": "Shapes",
@@ -400,8 +400,7 @@
         "size": "Size",
         "turn": "Turn",
         "remove": "Remove sticker",
-        "pick": "Tap a sticker on the card to move, resize or remove it.",
-        "tech": "Tech"
+        "pick": "Tap a sticker on the card to move, resize or remove it."
       },
       "adjust": {
         "zoom": "Zoom",
@@ -424,7 +423,7 @@
         "downloading": "Drawing it…",
         "share": "Share",
         "sharing": "Opening…",
-        "copyCaption": "Copy caption"
+        "copyImage": "Copy the card"
       },
       "networks": {
         "legend": "Or post it to",
@@ -441,7 +440,9 @@
         "wallSent": "Sent to the wall.",
         "gallery_rate_limited": "That's a few cards in a row — give it a minute and try again.",
         "gallery_rejected": "The wall wouldn't take that one. Try another card.",
-        "gallery_failed": "That didn't reach the wall. Your download still works."
+        "gallery_failed": "That didn't reach the wall. Your download still works.",
+        "imageCopied": "Card copied — paste it straight into your post.",
+        "copyUnsupported": "This browser won't copy images. Download it instead."
       },
       "caption": {
         "title": "What goes out with it",

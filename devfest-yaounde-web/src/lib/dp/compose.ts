@@ -102,7 +102,7 @@ export interface DpEffects {
   paper: boolean;
   /** A gentle horizontal ripple, like a misfed print. */
   warp: boolean;
-  /** A magnifying glass over one corner of the photo. */
+  /** Fisheye: the whole photo bulges, as though seen through a peephole. */
   lens: boolean;
 }
 
@@ -278,7 +278,7 @@ function geometricPass(
   h: number,
   effects: DpEffects,
 ) {
-  if (!effects.warp && effects.look !== "chromatic") return;
+  if (!effects.warp && !effects.lens && effects.look !== "chromatic") return;
 
   const image = ctx.getImageData(0, 0, w, h);
   const dst = image.data;
@@ -298,17 +298,49 @@ function geometricPass(
     return src[(cy * w + cx) * 4 + channel];
   };
 
+  /*
+   * FISHEYE — the whole photo bulging, as through a door peephole.
+   *
+   * For each output pixel, sample from a point pulled TOWARD the centre by
+   * `r^BULGE`. Since the radius is normalised against the half-diagonal, r is
+   * never above 1, so `r^BULGE` is never above r and every sample lands
+   * inside the photo — no stretched corners, no empty edges to paper over.
+   *
+   * Pulling inward magnifies the middle and compresses the rim, which is
+   * exactly what a wide lens does. An earlier version drew a magnifying glass
+   * ON the card instead; this distorts the picture rather than illustrating
+   * the idea of one.
+   */
+  const BULGE = 1.55;
+  const cx0 = (w - 1) / 2;
+  const cy0 = (h - 1) / 2;
+  const halfDiag = Math.hypot(cx0, cy0) || 1;
+
   for (let y = 0; y < h; y++) {
     const dx = amp ? Math.round(Math.sin((y / wl) * Math.PI * 2) * amp) : 0;
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
-      const sx = x + dx;
+      let bx = x;
+      let by = y;
+
+      if (effects.lens) {
+        const vx = x - cx0;
+        const vy = y - cy0;
+        const r = Math.hypot(vx, vy) / halfDiag;
+        if (r > 0) {
+          const k = Math.pow(r, BULGE) / r;
+          bx = Math.round(cx0 + vx * k);
+          by = Math.round(cy0 + vy * k);
+        }
+      }
+
+      const sx = bx + dx;
       // Channels pulled from three slightly different places is what
       // misregistered print looks like.
-      dst[i] = sample(sx - shift, y, 0);
-      dst[i + 1] = sample(sx, y, 1);
-      dst[i + 2] = sample(sx + shift, y, 2);
-      dst[i + 3] = sample(sx, y, 3);
+      dst[i] = sample(sx - shift, by, 0);
+      dst[i + 1] = sample(sx, by, 1);
+      dst[i + 2] = sample(sx + shift, by, 2);
+      dst[i + 3] = sample(sx, by, 3);
     }
   }
 
@@ -356,62 +388,6 @@ function pixelate(image: ImageData, w: number, h: number) {
       }
     }
   }
-}
-
-/**
- * A magnifying glass held over the photo.
- *
- * Drawn AFTER every other treatment, from the treated pixels, so the lens
- * magnifies what is actually on the card rather than the original photograph
- * — a duotone card shows a duotone lens. The rim and the stub of a handle are
- * what make it read as a magnifier rather than as a bubble.
- */
-function drawLens(
-  ctx: CanvasRenderingContext2D,
-  canvas: HTMLCanvasElement | OffscreenCanvas,
-  w: number,
-  h: number,
-) {
-  const r = Math.min(w, h) * 0.26;
-  const cx = w * 0.7;
-  const cy = h * 0.32;
-  const zoom = 1.9;
-  const ink = "#1E1E1E";
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.clip();
-  /* Scale about the lens centre: the point under the glass stays under it. */
-  ctx.translate(cx, cy);
-  ctx.scale(zoom, zoom);
-  ctx.translate(-cx, -cy);
-  ctx.drawImage(canvas as CanvasImageSource, 0, 0);
-  ctx.restore();
-
-  ctx.save();
-  ctx.lineCap = "round";
-  // Handle first, so the rim sits over where they meet.
-  ctx.strokeStyle = ink;
-  ctx.lineWidth = Math.max(3, r * 0.19);
-  ctx.beginPath();
-  const a = Math.PI * 0.28;
-  ctx.moveTo(cx - Math.cos(a) * r * 0.96, cy + Math.sin(a) * r * 0.96);
-  ctx.lineTo(cx - Math.cos(a) * r * 1.5, cy + Math.sin(a) * r * 1.5);
-  ctx.stroke();
-
-  ctx.lineWidth = Math.max(3, r * 0.13);
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // A single glint, so the circle reads as glass.
-  ctx.strokeStyle = "rgba(255,255,255,0.75)";
-  ctx.lineWidth = Math.max(2, r * 0.07);
-  ctx.beginPath();
-  ctx.arc(cx, cy, r * 0.74, Math.PI * 1.05, Math.PI * 1.42);
-  ctx.stroke();
-  ctx.restore();
 }
 
 /**
@@ -630,7 +606,6 @@ function renderPhotoLayer(
     );
   }
   colourPass(ctx, w, h, effects, frame);
-  if (effects.lens) drawLens(ctx, canvas, w, h);
   applyEdge(ctx, w, h, radius, effects.edge, frame.id);
   return canvas;
 }
