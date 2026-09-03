@@ -89,3 +89,48 @@ export function tierCapacities(): Record<string, number> {
  * enough that an abandoned tab does not sit on the last ticket all day.
  */
 export const RESERVATION_WINDOW_SECONDS = 1800;
+
+/**
+ * Per-variant stock (G12).
+ *
+ * Same split as ticket tiers: the number is declared in `products.json`, and
+ * the database counts what has actually been sold against it. A product with
+ * no `stock` entry, or a combination absent from it, is unlimited.
+ */
+
+/**
+ * The key a variant is counted under. Deterministic and shared by the JSON,
+ * the SQL and the UI — two spellings of the same combination would silently
+ * split one stock figure in half.
+ */
+export function variantKey(
+  productId: string,
+  variant?: { size?: string; color?: string },
+): string {
+  return `${productId}|${variant?.size ?? ""}|${variant?.color ?? ""}`;
+}
+
+/** Declared stock for every capped combination, keyed for the reservation. */
+export function variantCapacities(): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const product of products) {
+    for (const row of product.stock ?? []) {
+      out[variantKey(product.id, row)] = row.quantity;
+    }
+  }
+  return out;
+}
+
+/** What the catalog says about one combination. `undefined` = unlimited. */
+export function declaredStock(
+  productId: string,
+  variant?: { size?: string; color?: string },
+): number | undefined {
+  const product = findProduct(productId);
+  const row = product?.stock?.find(
+    (s) =>
+      (s.size ?? "") === (variant?.size ?? "") &&
+      (s.color ?? "") === (variant?.color ?? ""),
+  );
+  return row?.quantity;
+}

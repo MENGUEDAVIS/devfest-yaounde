@@ -16,7 +16,7 @@ import "server-only";
 import type { AttendeeInput, PricedBasket } from "@/data/types";
 import { COUNTRY } from "./catalog";
 import { CHECKOUT_ERRORS, CheckoutError } from "./errors";
-import { createPaymentIntent, logPaymentEvent } from "./intents";
+import { createPaymentIntent, logPaymentEvent, markFailed } from "./intents";
 import { fulfilFreeIntent } from "./apply";
 import { createDepositId, createPaymentPage } from "@/lib/pawapay/client";
 import { assertBadgeSecretConfigured } from "@/lib/security/badge-code";
@@ -82,6 +82,15 @@ export async function startCheckout(
     });
     throw new CheckoutError(CHECKOUT_ERRORS.TIER_SOLD_OUT, 409);
   }
+  if (created.status === "variant_sold_out") {
+    await logPaymentEvent(depositId, "reservation_refused", {
+      reason: "variant_sold_out",
+      productId: created.productId,
+      size: created.size ?? null,
+      color: created.color ?? null,
+    });
+    throw new CheckoutError(CHECKOUT_ERRORS.VARIANT_SOLD_OUT, 409);
+  }
   if (created.status === "discount_exhausted") {
     await logPaymentEvent(depositId, "reservation_refused", {
       reason: "discount_exhausted",
@@ -129,7 +138,19 @@ export async function startCheckout(
   if (!session.redirectUrl) {
     await logPaymentEvent(depositId, "payment_page_failed", {
       failureCode: session.failureReason?.failureCode ?? null,
+      // The message is what actually names the offending field; the code
+      // alone is just INVALID_PARAMETER and sends you guessing.
+      failureMessage: session.failureReason?.failureMessage ?? null,
     });
+    // Release what this intent was holding, now rather than in half an hour.
+    // PawaPay refused to open a page, so it will never be paid — leaving it
+    // `pending` keeps a seat, a size and a single-use discount code reserved
+    // against a checkout that cannot complete. Found by a live probe: one
+    // failed attempt made the next one fail with `discount_exhausted`.
+    await markFailed(
+      depositId,
+      session.failureReason?.failureCode ?? "payment_page_failed",
+    );
     throw new CheckoutError(CHECKOUT_ERRORS.PAYMENT_PAGE_FAILED, 502);
   }
 

@@ -459,11 +459,12 @@
       "metaDesc": "Build a DevFest Yaoundé profile picture in your browser — pick a style, crop it, sticker it, download it. Nothing is uploaded.",
       "wall": {
         "title": "Put it on the community wall",
-        "body": "A smaller copy goes to GDG Yaoundé, and appears on the DevFest community wall once the team has looked at it. Your full-size download stays yours alone, and nothing is posted anywhere else.",
+        "body": "A smaller copy goes to GDG Yaoundé and appears on the DevFest community wall straight away. Your own download stays full quality on your device.",
         "consent": "Yes — show this card, with my photo, on the public community wall.",
         "send": "Send to the wall",
         "sending": "Sending…",
-        "pending": "Sent. It appears on the wall once the team has reviewed it — you can ask us to take it down at any time."
+        "pending": "Sent. It appears on the wall once the team has reviewed it — you can ask us to take it down at any time.",
+        "live": "Sent, and it's on the wall. You can ask us to take it down at any time."
       }
     },
     "paymentReturn": {
@@ -524,8 +525,10 @@
       "unknown_product": "That item is no longer in the catalog. Reload the shop.",
       "product_unavailable": "That item can't be ordered online right now.",
       "invalid_variant": "Pick an available size and colour before you carry on.",
+      "variant_sold_out": "That size or colour has just gone. Try another combination.",
       "apparel_size_required": "This ticket comes with a tee — give us a size for each attendee.",
       "attendee_count_mismatch": "Ten tickets max per order. Need more? Write to us, we'll sort it.",
+      "multiple_self": "Only one ticket can be yours.",
       "empty_basket": "Your bag is empty — add something before checking out.",
       "terms_not_accepted": "You'll need to accept the terms before paying.",
       "discount_invalid": "That code doesn't work. Check the spelling, it's usually one letter.",

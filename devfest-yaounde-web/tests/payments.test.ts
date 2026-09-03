@@ -32,11 +32,14 @@ import {
 } from "@/lib/payments/schemas";
 import { CHECKOUT_ERRORS, CheckoutError } from "@/lib/payments/errors";
 import {
+  declaredStock,
   findProduct,
   findTier,
   isValidVariant,
   isPurchasable,
   sellableTiers,
+  variantCapacities,
+  variantKey,
 } from "@/lib/payments/catalog";
 import { dpFileName } from "@/lib/dp/compose";
 import { shareCaption } from "@/lib/dp/share";
@@ -44,6 +47,18 @@ import { eventDates, eventJsonLd, organizationJsonLd } from "@/lib/event";
 import { layoutCard, PAD, PLATE_INSET } from "@/lib/dp/geometry";
 import { ALL_STICKERS, TEXT_STICKERS, stickerName } from "@/lib/dp/stickers";
 import { galleryEnabled, GALLERY_MAX_EDGE } from "@/lib/dp/gallery";
+import {
+  hashToken,
+  mintDeletionToken,
+  tokensMatch,
+  MAX_EDGE,
+  MAX_BYTES,
+} from "@/lib/dp/gallery-server";
+import { galleryConsentText } from "@/lib/dp/gallery-consent";
+import {
+  DEFAULT_RETENTION_DAYS,
+  purgeExpiredCards,
+} from "@/lib/dp/gallery-retention";
 
 const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
@@ -770,5 +785,188 @@ describe("buyer-requested fulfilment", () => {
       !("fulfilment" in (parsed.success ? parsed.data : {})),
       "a fulfilment sent with tickets must not survive parsing",
     );
+  });
+});
+
+describe("per-variant stock", () => {
+  it("keys a combination the same way everywhere", () => {
+    // The JSON, the SQL and the UI all count under this string. Two spellings
+    // of one combination would silently split a stock figure in half.
+    assert.equal(
+      variantKey("tee-edition", { size: "M", color: "Noir" }),
+      "tee-edition|M|Noir",
+    );
+    assert.equal(variantKey("sticker-pack"), "sticker-pack||");
+    assert.equal(
+      variantKey("tee-edition", { size: "M" }),
+      variantKey("tee-edition", { size: "M", color: undefined }),
+    );
+  });
+
+  it("only caps the combinations the catalog names", () => {
+    const caps = variantCapacities();
+    assert.equal(typeof caps["tee-edition|M|Noir"], "number");
+    // A product with no variants and no stock entry stays unlimited.
+    assert.equal(caps["sticker-pack||"], undefined);
+    assert.equal(declaredStock("sticker-pack"), undefined);
+  });
+
+  it("refuses an order larger than a combination ever had", async () => {
+    // XXL/Blanc is stocked at 0 — the fixture's deliberately sold-out size.
+    assert.equal(
+      declaredStock("tee-edition", { size: "XXL", color: "Blanc" }),
+      0,
+    );
+
+    await rejectsWith(
+      quoteCart([
+        {
+          productId: "tee-edition",
+          quantity: 1,
+          variant: { size: "XXL", color: "Blanc" },
+        },
+      ]),
+      CHECKOUT_ERRORS.VARIANT_SOLD_OUT,
+    );
+  });
+
+  it("still prices a combination that has room", async () => {
+    const basket = await quoteCart([
+      {
+        productId: "tee-edition",
+        quantity: 2,
+        variant: { size: "M", color: "Noir" },
+      },
+    ]);
+    assert.equal(basket.charged, findProduct("tee-edition")!.priceXAF * 2);
+  });
+
+  it("leaves an unstocked product unlimited", async () => {
+    const basket = await quoteCart([
+      { productId: "sticker-pack", quantity: 10 },
+    ]);
+    assert.equal(basket.lines[0].quantity, 10);
+  });
+});
+
+describe("ticket ownership", () => {
+  const attendee = (over = {}) => ({
+    tierId: "sonnet",
+    name: "Ada Nkeng",
+    email: "ada@example.com",
+    apparelSize: "M",
+    ...over,
+  });
+  const order = (attendees: unknown[]) => ({
+    attendees,
+    acceptedTerms: true as const,
+    contact: { email: "ada@example.com" },
+    locale: "fr" as const,
+  });
+
+  it("accepts an order where nobody claims a ticket", () => {
+    // Buying for other people only is normal — a team lead, a parent.
+    assert.equal(
+      ticketCheckoutSchema.safeParse(order([attendee()])).success,
+      true,
+    );
+  });
+
+  it("records the one the buyer kept", () => {
+    const parsed = ticketCheckoutSchema.safeParse(
+      order([attendee({ isSelf: true }), attendee({ name: "Ben Fouda" })]),
+    );
+    assert.equal(parsed.success, true);
+    assert.equal(parsed.success && parsed.data.attendees[0].isSelf, true);
+    assert.equal(parsed.success && parsed.data.attendees[1].isSelf, undefined);
+  });
+
+  it("refuses two, because you can only be one person", () => {
+    // The screen prevents it by unsetting the others, so a body with two is
+    // either a bug or hand-written — either way it should not be stored.
+    assert.equal(
+      ticketCheckoutSchema.safeParse(
+        order([attendee({ isSelf: true }), attendee({ isSelf: true })]),
+      ).success,
+      false,
+    );
+  });
+});
+
+describe("community wall", () => {
+  it("keeps only a hash of the takedown token", () => {
+    const { token, hash } = mintDeletionToken();
+    // The token is returned to the browser once; the row keeps this instead,
+    // for the same reason a password is never stored in the clear.
+    assert.notEqual(token, hash);
+    assert.equal(hash, hashToken(token));
+    assert.match(hash, /^[0-9a-f]{64}$/);
+    assert.ok(token.length >= 30, "a guessable token is not proof of anything");
+  });
+
+  it("matches a token only against its own hash", () => {
+    const a = mintDeletionToken();
+    const b = mintDeletionToken();
+    assert.ok(tokensMatch(hashToken(a.token), a.hash));
+    assert.ok(!tokensMatch(hashToken(b.token), a.hash));
+    // Different lengths must not throw — timingSafeEqual would.
+    assert.ok(!tokensMatch("short", a.hash));
+  });
+
+  it("mints a different token every time", () => {
+    const seen = new Set(
+      Array.from({ length: 50 }, () => mintDeletionToken().token),
+    );
+    assert.equal(seen.size, 50);
+  });
+
+  it("records the wording the person was actually shown", () => {
+    // Not taken from the request: this record is what says someone agreed to
+    // their FACE being public, so a forged body must not be able to write it.
+    const fr = galleryConsentText("fr");
+    const en = galleryConsentText("en");
+    assert.notEqual(fr, en);
+    for (const text of [fr, en]) assert.ok(text.trim().length > 20);
+  });
+
+  it("fails loudly on a missing translation rather than storing a blank", () => {
+    assert.throws(() => galleryConsentText("de" as never), /wall consent copy/);
+  });
+
+  it("caps the server side above what the client sends", () => {
+    // The client downscales to 640; the server refuses anything over 800, so
+    // a hand-rolled upload cannot smuggle a full-resolution face in.
+    assert.ok(MAX_EDGE >= GALLERY_MAX_EDGE);
+    assert.ok(MAX_BYTES <= 400 * 1024);
+  });
+
+  it("stays dark until the flag is set", () => {
+    const saved = process.env.NEXT_PUBLIC_DP_GALLERY;
+    delete process.env.NEXT_PUBLIC_DP_GALLERY;
+    assert.equal(galleryEnabled(), false);
+    process.env.NEXT_PUBLIC_DP_GALLERY = "1";
+    assert.equal(galleryEnabled(), true);
+    if (saved === undefined) delete process.env.NEXT_PUBLIC_DP_GALLERY;
+    else process.env.NEXT_PUBLIC_DP_GALLERY = saved;
+  });
+});
+
+describe("wall retention", () => {
+  it("keeps a wall up for a full edition cycle, not forever", () => {
+    // 200 days: an edition's wall is still there months later, and faces from
+    // one year are gone before the next-but-one comes round.
+    assert.equal(DEFAULT_RETENTION_DAYS, 200);
+    assert.ok(DEFAULT_RETENTION_DAYS > 180, "must outlast the event itself");
+    assert.ok(DEFAULT_RETENTION_DAYS < 730, "must not become indefinite");
+  });
+
+  it("does nothing at all while the wall is switched off", async () => {
+    // No flag means no wall, so a purge would be touching a table nobody is
+    // using — and would need database access this test has no business having.
+    const saved = process.env.NEXT_PUBLIC_DP_GALLERY;
+    delete process.env.NEXT_PUBLIC_DP_GALLERY;
+    const report = await purgeExpiredCards();
+    assert.deepEqual(report, { expired: 0, errors: 0 });
+    if (saved !== undefined) process.env.NEXT_PUBLIC_DP_GALLERY = saved;
   });
 });

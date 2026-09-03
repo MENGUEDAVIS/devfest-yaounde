@@ -15,6 +15,7 @@ import type {
 } from "@/data/types";
 import {
   CURRENCY,
+  declaredStock,
   findProduct,
   findTier,
   isPurchasable,
@@ -188,6 +189,14 @@ export async function quoteCart(
     }
     if (line.quantity < 1 || line.quantity > MAX_QUANTITY_PER_LINE) {
       throw new CheckoutError(CHECKOUT_ERRORS.INVALID_BODY);
+    }
+    // Optimistic fast-fail, exactly like the tier check above: one order
+    // asking for more than this combination ever had. It says nothing about
+    // what is still free — a count taken here is stale by the time we insert.
+    // The binding check is the reservation in `create_payment_intent`.
+    const declared = declaredStock(product.id, line.variant);
+    if (declared !== undefined && line.quantity > declared) {
+      throw new CheckoutError(CHECKOUT_ERRORS.VARIANT_SOLD_OUT);
     }
 
     lines.push({

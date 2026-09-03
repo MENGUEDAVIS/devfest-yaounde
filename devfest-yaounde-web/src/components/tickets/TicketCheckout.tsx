@@ -52,7 +52,7 @@ interface AttendeeDraft {
    */
   phone: string;
   apparelSize: string;
-  /** "This one's mine" — drives prefill only; not a server field (G8). */
+  /** "This one's mine" — prefills the form AND is recorded (ADR 0025). */
   isSelf: boolean;
 }
 
@@ -176,6 +176,7 @@ export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
         name: a.name.trim(),
         email: a.email.trim(),
         ...(a.apparelSize ? { apparelSize: a.apparelSize } : {}),
+        ...(a.isSelf ? { isSelf: true } : {}),
       }));
       const result = await checkoutTickets({
         attendees: payload,

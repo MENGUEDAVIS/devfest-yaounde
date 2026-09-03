@@ -47,6 +47,54 @@ export type Database = {
         }
         Relationships: []
       }
+      dp_cards: {
+        Row: {
+          consent: boolean
+          consent_at: string
+          consent_text: string
+          created_at: string
+          deletion_hash: string
+          id: string
+          locale: string
+          nickname: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          storage_path: string
+          submitter_ip: unknown
+        }
+        Insert: {
+          consent?: boolean
+          consent_at: string
+          consent_text: string
+          created_at?: string
+          deletion_hash: string
+          id?: string
+          locale: string
+          nickname: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          storage_path: string
+          submitter_ip?: unknown
+        }
+        Update: {
+          consent?: boolean
+          consent_at?: string
+          consent_text?: string
+          created_at?: string
+          deletion_hash?: string
+          id?: string
+          locale?: string
+          nickname?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          storage_path?: string
+          submitter_ip?: unknown
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string
@@ -292,6 +340,7 @@ export type Database = {
           created_at: string
           deposit_id: string
           id: string
+          is_self: boolean
           tier_id: string
           user_id: string
         }
@@ -304,6 +353,7 @@ export type Database = {
           created_at?: string
           deposit_id: string
           id?: string
+          is_self?: boolean
           tier_id: string
           user_id: string
         }
@@ -316,6 +366,7 @@ export type Database = {
           created_at?: string
           deposit_id?: string
           id?: string
+          is_self?: boolean
           tier_id?: string
           user_id?: string
         }
@@ -369,6 +420,7 @@ export type Database = {
           p_terms_text?: string
           p_tier_capacities?: Json
           p_user_id: string
+          p_variant_capacities?: Json
         }
         Returns: string
       }
@@ -378,6 +430,15 @@ export type Database = {
       }
       get_vault_secret: { Args: { p_name: string }; Returns: string }
       is_organiser: { Args: { p_user_id?: string }; Returns: boolean }
+      variant_taken: {
+        Args: {
+          p_color: string
+          p_product_id: string
+          p_reservation_window?: number
+          p_size: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       order_status:

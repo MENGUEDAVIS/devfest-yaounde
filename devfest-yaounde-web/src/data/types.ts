@@ -188,6 +188,15 @@ export interface Product {
   priceXAF: number;
   images: string[];
   variants?: { size?: ApparelSize[]; color?: string[] };
+  /**
+   * Per-combination stock. Omit the whole field for unlimited, and omit a
+   * single combination to leave that one unlimited.
+   *
+   * Declared here, counted in the database — the same split as ticket tiers:
+   * an organiser changes a number in this file, and the server counts what
+   * has actually been sold against it. See ADR 0024.
+   */
+  stock?: Array<{ size?: string; color?: string; quantity: number }>;
   /** Always paired with a visible text label in the UI, never colour alone. */
   status: ProductStatus;
 }
@@ -205,6 +214,8 @@ export interface AttendeeInput {
   name: string;
   email: string;
   apparelSize?: ApparelSize;
+  /** The buyer kept this one. Recorded on the ticket — see ADR 0025. */
+  isSelf?: boolean;
 }
 
 /**

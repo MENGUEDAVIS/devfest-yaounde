@@ -66,10 +66,27 @@ export const attendeeSchema = z.object({
   name: attendeeNameSchema,
   email: emailSchema,
   apparelSize: z.enum(APPAREL_SIZES).optional(),
+  /**
+   * The buyer kept this one for themselves.
+   *
+   * Not a security claim — it grants nothing. It answers a question the
+   * server could not otherwise answer: among the tickets someone paid for,
+   * which is theirs to use. `tickets.user_id` already says who paid.
+   */
+  isSelf: z.boolean().optional(),
 });
 
 export const ticketCheckoutSchema = z.object({
-  attendees: z.array(attendeeSchema).min(1).max(10),
+  attendees: z
+    .array(attendeeSchema)
+    .min(1)
+    .max(10)
+    // You can only be one person. The UI already enforces this by unsetting
+    // the others, so a body with two is either a bug or hand-written.
+    .refine(
+      (list) => list.filter((a) => a.isSelf).length <= 1,
+      "at most one attendee can be the buyer",
+    ),
   /**
    * The refund acknowledgment. A literal `true` — anything else is refused.
    *

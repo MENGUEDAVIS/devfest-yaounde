@@ -9,6 +9,7 @@
  *      holds tier capacity and a discount redemption, so leaving them around
  *      slowly makes a tier look sold out when it is not.
  *   3. Drop rate-limit counters whose window has long passed.
+ *   4. Purge wall cards past their retention — 200 days (ADR 0026).
  *
  * Protected by a shared secret rather than a session, because the caller is
  * Vercel Cron, not a person. Without `CRON_SECRET` set the route refuses
@@ -19,6 +20,7 @@ import { NextRequest } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { logPaymentEvent } from "@/lib/payments/intents";
 import { reconcilePendingDeposits } from "@/lib/payments/reconcile";
+import { purgeExpiredCards } from "@/lib/dp/gallery-retention";
 
 /** Comfortably past the reservation window, so nothing live is touched. */
 const STALE_INTENT_SECONDS = 3600;
@@ -62,8 +64,13 @@ export async function GET(request: NextRequest) {
     return Response.json({ error: "cleanup_failed" }, { status: 500 });
   }
 
+  // Retention runs last: it touches no money, and a failure here must not
+  // stop a payment from being settled.
+  const wall = await purgeExpiredCards();
+
   const result = {
     reconciled,
+    wall,
     expiredIntents: Number(expired ?? 0),
     prunedRateLimits: Number(pruned ?? 0),
   };
