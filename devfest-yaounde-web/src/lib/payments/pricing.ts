@@ -15,6 +15,7 @@ import type {
 } from "@/data/types";
 import {
   CURRENCY,
+  declaredStock,
   findProduct,
   findTier,
   isPurchasable,
@@ -125,6 +126,13 @@ export async function quoteTickets(
     const tier = findTier(attendee.tierId);
     if (!tier) throw new CheckoutError(CHECKOUT_ERRORS.UNKNOWN_TIER);
     if (!tier.onSale) throw new CheckoutError(CHECKOUT_ERRORS.TIER_NOT_ON_SALE);
+    // `rsvpExternal` is not a display hint. The tier is not sold here at all:
+    // the RSVP is delegated to the community platform, which enforces one per
+    // person. Without this check a direct POST mints unlimited free tickets
+    // with valid badge codes and bypasses that rule entirely.
+    if (tier.rsvpExternal) {
+      throw new CheckoutError(CHECKOUT_ERRORS.TIER_RSVP_EXTERNAL);
+    }
     if (tier.includesApparel && !attendee.apparelSize) {
       throw new CheckoutError(CHECKOUT_ERRORS.APPAREL_SIZE_REQUIRED);
     }
@@ -181,6 +189,14 @@ export async function quoteCart(
     }
     if (line.quantity < 1 || line.quantity > MAX_QUANTITY_PER_LINE) {
       throw new CheckoutError(CHECKOUT_ERRORS.INVALID_BODY);
+    }
+    // Optimistic fast-fail, exactly like the tier check above: one order
+    // asking for more than this combination ever had. It says nothing about
+    // what is still free — a count taken here is stale by the time we insert.
+    // The binding check is the reservation in `create_payment_intent`.
+    const declared = declaredStock(product.id, line.variant);
+    if (declared !== undefined && line.quantity > declared) {
+      throw new CheckoutError(CHECKOUT_ERRORS.VARIANT_SOLD_OUT);
     }
 
     lines.push({

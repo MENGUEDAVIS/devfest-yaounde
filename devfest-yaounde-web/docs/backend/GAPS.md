@@ -44,8 +44,8 @@ hold a ticket and does not is a problem at the door, not on the screen.
 Money only, and whether PawaPay covers cards or a second gateway is needed
 **has not been investigated** (`remaining-work.md` §2).
 
-**DECIDED 2026-09-02:** Mobile Money only. **No card option is rendered at
-all** — not even disabled. A greyed-out button that never works reads as a bug
+**CLOSED 2026-09-03: Mobile Money only, definitively.** Nothing to remove —
+no card option is rendered at all, not even disabled. A greyed-out button that never works reads as a bug
 on someone's phone rather than a decision.
 
 Card support would need a separate processor aimed at diaspora buyers. That is
@@ -55,8 +55,9 @@ a future decision, explicitly not this phase.
 
 <!-- Deferred 2026-09-02 to a future phase. -->
 
-Cancelling an order moves no money; refunds are manual in the PawaPay
-dashboard, and `amount_mismatch` needs a human either way.
+**CLOSED 2026-09-03: there are no refunds.** That is the policy, and it is now
+recorded as evidence on every order (ADR 0022). Cancelling moves no money;
+`amount_mismatch` still needs a human.
 
 **Phase 14 does:** no cancel/refund control in `/account`. Orders are
 read-only. The `amount_mismatch` state gets copy that says the team is looking
@@ -118,7 +119,7 @@ scanning, not the ability to enter.
 approved; `qrcode` renders the badge client-side, with the readable code kept
 alongside it.
 
-### G7 — No per-attendee phone; email is mandatory server-side
+### G7 — No per-attendee phone — CLOSED, no change wanted
 
 The brief asked for "phone AND/OR email, at least one" per attendee. The server
 does not allow it: `attendeeSchema` **requires** `email` and has **no phone
@@ -129,31 +130,42 @@ solely to pre-fill the PawaPay page.
 optional phone per attendee for the buyer's own record — clearly labelled
 optional, and **not sent**, because there is nowhere to put it.
 
-**Needs a decision:** if identifying an attendee by phone alone matters, that
-is a schema change — `attendeeSchema`, the `tickets` table, and the email
-dispatch that currently assumes an address.
+**DECIDED 2026-09-02: leave it.** Receipts go by email, which is the normal
+way to reach a ticket holder, so email stays mandatory and no per-attendee
+phone column is added. The optional phone the UI collects for the buyer's own
+record is still not sent, and that remains correct.
 
-### G8 — "This one's mine" is not a server field
+### G8 — "This one's mine" — RESOLVED
 
 Self-assignment drives **prefill only**. Nothing records which ticket belongs
 to the buyer, so `/account` cannot distinguish "my ticket" from "a ticket I
 bought for someone".
 
-**Phase 14 does:** uses it to prefill name and email from the signed-in
-profile, and says nothing about ownership it cannot back up.
+**RESOLVED 2026-09-03** (migration 0008,
+[ADR 0025](../decisions/0025-ticket-ownership.md)). `tickets.is_self` records
+which ticket the buyer kept. `user_id` says who paid; this says which one is
+theirs to use. At most one per order, zero is valid, and it is not a security
+claim — it grants nothing and is not checked against the signed-in address,
+because paying with one email and wanting another on the badge is a real case.
 
-### G9 — The non-refundable acknowledgment is not enforced server-side
+Verified live: an order with one self and one other produced exactly one
+ticket flagged.
+
+### G9 — The non-refundable acknowledgment — RESOLVED
 
 The checkbox gates the pay button in the browser. There is no field for it in
 `ticketCheckoutSchema`, so a request posted directly to the API succeeds
 without it.
 
-**Phase 14 does:** ships the gate, because it is the right UI. It does not
-pretend the consent is recorded.
+**Phase 14 did:** ship the gate, because it is the right UI, without
+pretending the consent was recorded.
 
-**Needs a decision:** whether the acknowledgment must be evidence (a stored
-`accepted_terms_at`) or is only an interface affordance. See
-`docs/content/refund-policy.md`.
+**RESOLVED 2026-09-02** — decided that it must be evidence.
+[ADR 0022](../decisions/0022-terms-consent-record.md): both schemas now
+require `acceptedTerms: true`, and `payment_intents` stores
+`terms_accepted_at` (the server's clock) and `terms_text` (the exact wording,
+re-read server-side from the messages for that locale — never from the request
+body). Tickets and goods record their own separate wording.
 
 ### G10 — The Bevy URL — RESOLVED
 
@@ -178,7 +190,10 @@ not have, and they would drift the moment the catalog is edited.
 **ACCEPTED 2026-09-02.** Availability + search is the filter. Categories are a
 backend item, left documented.
 
-### G12 — No per-variant inventory
+**Deferred again 2026-09-02:** they will be packages rather than plain
+categories, and the shape is not settled. Nothing to build until it is.
+
+### G12 — No per-variant inventory — RESOLVED
 
 The brief asked for out-of-stock variants to be individually disabled. The
 catalog has **one `status` per product** and no per-variant stock, so there is
@@ -189,11 +204,19 @@ product is unbuyable the whole control set is disabled and says why, which is
 the truthful version of the same intent. It does not grey out individual sizes
 on a guess.
 
-**ACCEPTED 2026-09-02.** Product-level enforcement stands. Per-variant stock is
-handed off: it is a schema change — a per-variant row, and checkout validation
-against it.
+**RESOLVED 2026-09-02** (migration 0007,
+[ADR 0024](../decisions/0024-per-variant-stock.md)). `Product.stock` lists
+combinations with a quantity, declared in JSON and counted in the database —
+the same split as tier capacity. Checkout reserves per combination under an
+advisory lock, and refuses with `variant_sold_out:<product>|<size>|<color>`.
 
-### G13 — Fulfilment cannot be chosen by the buyer
+Verified live: a combination stocked at 8 took 8 and refused the 9th.
+
+**The UI half is now possible and not done.** `variant_taken()` gives the
+remaining count per combination, so greying out a single size is no longer a
+guess — it is a frontend change with real data behind it.
+
+### G13 — Fulfilment cannot be chosen by the buyer — RESOLVED
 
 Orders **do** carry a `fulfilment` column — free-form JSON with
 `method: "pickup" | "shipping"`, a note and a reference. But it is written
@@ -206,9 +229,20 @@ pickup-vs-delivery control that sends nothing is a fake control — it invites a
 decision and then discards it, which is worse than not asking. In its place is
 an honest line: the team coordinates pickup or delivery after checkout.
 
-**Handed off:** buyer-settable fulfilment is a backend item — add `fulfilment`
-to `shopCheckoutSchema` and carry it onto the order. Logistics (zones, fees,
-pickup windows) are open anyway (`PAGES.md` §11).
+**RESOLVED 2026-09-02** (migration 0006, [ADR 0023](../decisions/0023-buyer-requested-fulfilment.md)).
+`shopCheckoutSchema.fulfilment` accepts a method (`pickup` | `shipping` — the
+same two words organisers already write) and an optional note, capped at 300
+characters. It rides on the intent and is copied onto the order under
+`requested` at fulfilment.
+
+The control is back on the screen, and this time it is real. Still a
+**preference, not a shipping engine**: no zones, no fees, no windows — those
+remain open (`PAGES.md` §11) and the copy still says the team follows up.
+
+One thing that had to change alongside it: `PATCH /api/orders/:id/status`
+used to **replace** the whole `fulfilment` column, which would have erased the
+buyer's request the first time an organiser added a courier reference. It now
+merges.
 
 ### G14 — Shop return policy — RESOLVED (consent persistence folded into G9)
 
@@ -269,7 +303,7 @@ exists.
 needs no edit, because the picker renders whatever `DP_FRAMES` contains and the
 swatch already draws each frame's mask shape.
 
-### G20 — The community wall has no backend
+### G20 — The community wall — BACKEND BUILT
 
 Asked for in this phase: people save their creations, and the chapter shows
 what the community made. The frontend is written and switched OFF — with
@@ -277,9 +311,22 @@ what the community made. The frontend is written and switched OFF — with
 because a button that quietly fails is worse than no button (the same rule
 that removed the fake fulfilment picker in G13).
 
-**What does not exist:** `POST /api/dp/gallery`, `DELETE /api/dp/gallery/:id`,
-`GET /api/dp/gallery`, the `dp_cards` table, the storage bucket, the
-moderation queue, and the wall page itself.
+**BUILT 2026-09-03** (migration 0009, [ADR 0026](../decisions/0026-dp-community-wall-backend.md)):
+`POST /api/dp/gallery`, `GET /api/dp/gallery`, `DELETE /api/dp/gallery/:id`,
+plus the queue — `GET /api/dp/gallery/pending` and
+`PATCH /api/dp/gallery/:id` — the `dp_cards` table and the private
+`dp-cards` bucket.
+
+Verified against the live project: a real JPEG is accepted and re-encoded,
+text claiming to be an image is refused, oversized dimensions are refused, a
+pending card is invisible, **anonymous reads return nothing approved or not**,
+approval publishes it behind a signed URL, the right takedown token matches
+and a different one does not, and a removed object stops being served.
+
+**Still missing: the wall PAGE itself**, and any screen for the queue. The
+queue is workable from any HTTP client, which is what lets the flag be turned
+on safely; a reviewing interface built before a single card exists would be
+guessing at what a reviewer needs.
 
 **Fully specified** in `docs/backend/dp-gallery-contract.md`: the table with
 its consent record, the three endpoints, validation order, rate limiting
@@ -293,12 +340,23 @@ decision record, not a quiet feature addition". That record is ADR 0021, and
 it also un-annotates the "Uploads (DP Generator)" section of the security
 checklist, which applies again.
 
-**The blocking item is not code.** The wall publishes photographs of people's
-faces on a public page. Review before publication, a takedown path and a
+**Timing decided 2026-09-02:** the wall goes on once people are actually
+producing cards — not before. Building the endpoints ahead of that is fine;
+turning the flag on is what waits.
+
+**The blocking item is still not code.** The wall publishes photographs of
+people's faces on a public page. Review before publication, a takedown path and a
 retention rule all have to exist, and someone has to run the queue. If that is
 not in place, the honest move is to leave the flag off.
 
-### G19 — Role badges cannot be verified
+**Retention settled 2026-09-03: 200 days**, purged by the existing cron —
+image first, row second. Pending and rejected cards are swept too: a card
+nobody reviewed in two hundred days is not a reason to keep a photograph.
+
+**What is still not code:** someone has to work the queue, and there has to be
+a way to honour a takedown from a person who lost their token.
+
+### G19 — Role badges — CLOSED, not wanted
 
 The DP generator offers attendance badges only — "I'll be there", "Count me
 in", "My first one", "Back again". **"Speaker", "Organiser" and "Volunteer"
@@ -312,7 +370,12 @@ the people who actually earned it — worse than not offering it at all.
 **DECIDED 2026-09-02: attendance only.** No verification method was supplied,
 and the phase's instruction was to default to this.
 
-**OPEN — two routes if role badges are ever wanted:**
+**CLOSED 2026-09-03: not wanted, now or later.** The attendance badges — "I'll
+be there", "Count me in", "My first one", "Back again" — are the whole set, in
+both languages. If a role badge is ever needed, the team will hand out a
+dedicated link rather than add a selectable one here.
+
+Kept for the record, the two routes that would have existed:
 
 1. **A per-role unlock code** handed to real speakers and organisers. Weak
    security — one leak and it is worthless — but arguably enough for a vanity
@@ -332,7 +395,8 @@ The eight styles are compositor primitives arranged by hand — patterns,
 stickers, edge treatments and photo effects, all honest, on-brand and flat per
 DESIGN.md §2.6. Nobody with a design tool has looked at them.
 
-**OPEN — worth a designer's pass, not a blocker.** If real frame artwork is
+**CLOSED 2026-09-03: accepted as they are.** No designer pass is wanted. If
+real frame artwork is
 ever supplied as images, it needs a new decoration kind (an image layer) in
 `compose.ts` and an asset pipeline — the current vocabulary is vector drawing
 only. That is a bigger change than adding another entry to `DP_FRAMES`, so it

@@ -31,6 +31,12 @@ export const RATE_LIMITS = {
    * organiser session cannot walk the badge-code space.
    */
   checkIn: { bucket: "check-in", limit: 300, windowSeconds: 300 },
+  /**
+   * Community wall submissions, by IP. There is no account to attribute them
+   * to (ADR 0015), so the address is all there is. Five an hour is generous
+   * for a person and tedious for a script.
+   */
+  dpGallery: { bucket: "dp_gallery", limit: 5, windowSeconds: 3600 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export interface RateLimitResult {

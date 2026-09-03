@@ -9,7 +9,11 @@ import "server-only";
 import type { AttendeeInput, PricedBasket } from "@/data/types";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { toJson } from "@/lib/supabase/json";
-import { RESERVATION_WINDOW_SECONDS, tierCapacities } from "./catalog";
+import {
+  RESERVATION_WINDOW_SECONDS,
+  tierCapacities,
+  variantCapacities,
+} from "./catalog";
 
 export type PaymentKind = "tickets" | "shop";
 export type PaymentStatus =
@@ -30,6 +34,9 @@ export interface PaymentIntentRow {
   contact: { email: string; phone?: string };
   locale: string;
   failure_code: string | null;
+  terms_text: string | null;
+  terms_accepted_at: string | null;
+  fulfilment: { method: string; note?: string } | null;
   created_at: string;
   activated_at: string | null;
 }
@@ -42,6 +49,10 @@ export interface CreateIntentInput {
   attendees?: AttendeeInput[];
   contact: { email: string; phone?: string };
   locale: string;
+  /** The exact acknowledgment wording, resolved server-side. */
+  termsText: string;
+  /** Shop only: what the buyer asked for. Copied onto the order. */
+  fulfilment?: { method: string; note?: string };
 }
 
 /**
@@ -51,6 +62,12 @@ export interface CreateIntentInput {
 export type CreateIntentOutcome =
   | { status: "created" }
   | { status: "sold_out"; tierId: string }
+  | {
+      status: "variant_sold_out";
+      productId: string;
+      size?: string;
+      color?: string;
+    }
   | { status: "discount_exhausted" };
 
 /**
@@ -84,6 +101,9 @@ export async function createPaymentIntent(
     p_locale: input.locale,
     p_tier_capacities: toJson(tierCapacities()),
     p_reservation_window: RESERVATION_WINDOW_SECONDS,
+    p_terms_text: input.termsText,
+    p_fulfilment: input.fulfilment ? toJson(input.fulfilment) : undefined,
+    p_variant_capacities: toJson(variantCapacities()),
   });
 
   if (error) {
@@ -93,6 +113,17 @@ export async function createPaymentIntent(
   const result = String(data);
   if (result === "created") return { status: "created" };
   if (result === "discount_exhausted") return { status: "discount_exhausted" };
+  if (result.startsWith("variant_sold_out:")) {
+    const [productId, size, color] = result
+      .slice("variant_sold_out:".length)
+      .split("|");
+    return {
+      status: "variant_sold_out",
+      productId,
+      ...(size ? { size } : {}),
+      ...(color ? { color } : {}),
+    };
+  }
   if (result.startsWith("sold_out:")) {
     return { status: "sold_out", tierId: result.slice("sold_out:".length) };
   }

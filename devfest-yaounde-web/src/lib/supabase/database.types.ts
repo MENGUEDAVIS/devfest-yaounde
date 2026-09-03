@@ -47,6 +47,54 @@ export type Database = {
         }
         Relationships: []
       }
+      dp_cards: {
+        Row: {
+          consent: boolean
+          consent_at: string
+          consent_text: string
+          created_at: string
+          deletion_hash: string
+          id: string
+          locale: string
+          nickname: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          storage_path: string
+          submitter_ip: unknown
+        }
+        Insert: {
+          consent?: boolean
+          consent_at: string
+          consent_text: string
+          created_at?: string
+          deletion_hash: string
+          id?: string
+          locale: string
+          nickname: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          storage_path: string
+          submitter_ip?: unknown
+        }
+        Update: {
+          consent?: boolean
+          consent_at?: string
+          consent_text?: string
+          created_at?: string
+          deletion_hash?: string
+          id?: string
+          locale?: string
+          nickname?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          storage_path?: string
+          submitter_ip?: unknown
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string
@@ -180,11 +228,14 @@ export type Database = {
           discount_amount: number
           discount_code: string | null
           failure_code: string | null
+          fulfilment: Json | null
           kind: Database["public"]["Enums"]["payment_kind"]
           line_items: Json
           locale: string
           net_amount: number
           status: Database["public"]["Enums"]["payment_status"]
+          terms_accepted_at: string | null
+          terms_text: string | null
           updated_at: string
           user_id: string
         }
@@ -199,11 +250,14 @@ export type Database = {
           discount_amount?: number
           discount_code?: string | null
           failure_code?: string | null
+          fulfilment?: Json | null
           kind: Database["public"]["Enums"]["payment_kind"]
           line_items: Json
           locale?: string
           net_amount: number
           status?: Database["public"]["Enums"]["payment_status"]
+          terms_accepted_at?: string | null
+          terms_text?: string | null
           updated_at?: string
           user_id: string
         }
@@ -218,11 +272,14 @@ export type Database = {
           discount_amount?: number
           discount_code?: string | null
           failure_code?: string | null
+          fulfilment?: Json | null
           kind?: Database["public"]["Enums"]["payment_kind"]
           line_items?: Json
           locale?: string
           net_amount?: number
           status?: Database["public"]["Enums"]["payment_status"]
+          terms_accepted_at?: string | null
+          terms_text?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -283,6 +340,7 @@ export type Database = {
           created_at: string
           deposit_id: string
           id: string
+          is_self: boolean
           tier_id: string
           user_id: string
         }
@@ -295,6 +353,7 @@ export type Database = {
           created_at?: string
           deposit_id: string
           id?: string
+          is_self?: boolean
           tier_id: string
           user_id: string
         }
@@ -307,6 +366,7 @@ export type Database = {
           created_at?: string
           deposit_id?: string
           id?: string
+          is_self?: boolean
           tier_id?: string
           user_id?: string
         }
@@ -351,13 +411,16 @@ export type Database = {
           p_deposit_id: string
           p_discount_amount: number
           p_discount_code: string
+          p_fulfilment?: Json
           p_kind: Database["public"]["Enums"]["payment_kind"]
           p_line_items: Json
           p_locale: string
           p_net_amount: number
           p_reservation_window?: number
+          p_terms_text?: string
           p_tier_capacities?: Json
           p_user_id: string
+          p_variant_capacities?: Json
         }
         Returns: string
       }
@@ -367,6 +430,15 @@ export type Database = {
       }
       get_vault_secret: { Args: { p_name: string }; Returns: string }
       is_organiser: { Args: { p_user_id?: string }; Returns: boolean }
+      variant_taken: {
+        Args: {
+          p_color: string
+          p_product_id: string
+          p_reservation_window?: number
+          p_size: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       order_status:
@@ -392,12 +464,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -421,11 +493,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -446,11 +518,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -471,11 +543,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -488,11 +560,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

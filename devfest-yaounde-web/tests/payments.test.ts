@@ -24,12 +24,22 @@ import {
 } from "@/lib/security/badge-code";
 import { verifyCallback } from "@/lib/pawapay/verify";
 import { quoteTickets, quoteCart } from "@/lib/payments/pricing";
+import { refundAcknowledgment } from "@/lib/payments/terms";
+import {
+  ticketCheckoutSchema,
+  shopCheckoutSchema,
+  fulfilmentRequestSchema,
+} from "@/lib/payments/schemas";
 import { CHECKOUT_ERRORS, CheckoutError } from "@/lib/payments/errors";
 import {
+  declaredStock,
   findProduct,
   findTier,
   isValidVariant,
   isPurchasable,
+  sellableTiers,
+  variantCapacities,
+  variantKey,
 } from "@/lib/payments/catalog";
 import { dpFileName } from "@/lib/dp/compose";
 import { shareCaption } from "@/lib/dp/share";
@@ -37,6 +47,18 @@ import { eventDates, eventJsonLd, organizationJsonLd } from "@/lib/event";
 import { layoutCard, PAD, PLATE_INSET } from "@/lib/dp/geometry";
 import { ALL_STICKERS, TEXT_STICKERS, stickerName } from "@/lib/dp/stickers";
 import { galleryEnabled, GALLERY_MAX_EDGE } from "@/lib/dp/gallery";
+import {
+  hashToken,
+  mintDeletionToken,
+  tokensMatch,
+  MAX_EDGE,
+  MAX_BYTES,
+} from "@/lib/dp/gallery-server";
+import { galleryConsentText } from "@/lib/dp/gallery-consent";
+import {
+  DEFAULT_RETENTION_DAYS,
+  purgeExpiredCards,
+} from "@/lib/dp/gallery-retention";
 
 const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
@@ -351,11 +373,38 @@ describe("server-side pricing", () => {
     assert.equal(basket.currency, "XAF");
   });
 
-  it("charges nothing for the free tier", async () => {
-    const basket = await quoteTickets([
-      { tierId: "haikyu", name: "Ada Nkeng", email: "ada@example.com" },
-    ]);
-    assert.equal(basket.charged, 0);
+  it("refuses a tier whose RSVP is delegated off-site", async () => {
+    // haikyu carries rsvpExternal: the community platform enforces one free
+    // RSVP per person. Without a server check, a direct POST would mint
+    // unlimited free tickets with valid badge codes and bypass that entirely.
+    const free = findTier("haikyu")!;
+    assert.equal(free.rsvpExternal, true, "fixture assumption");
+    assert.equal(free.priceXAF, 0, "fixture assumption");
+
+    await rejectsWith(
+      quoteTickets([
+        { tierId: "haikyu", name: "Ada Nkeng", email: "ada@example.com" },
+      ]),
+      CHECKOUT_ERRORS.TIER_RSVP_EXTERNAL,
+    );
+  });
+
+  it("has no tier that is both free and sold here", () => {
+    // This used to assert that haikyu checked out at 0 XAF. It no longer can:
+    // the free pass became `rsvpExternal` when the RSVP moved to the community
+    // platform, so nothing purchasable costs nothing.
+    //
+    // The zero-charge path in `startCheckout` is still live and still needed —
+    // a 100%-off discount reaches it — which is why `fulfilFreeIntent` stays.
+    // It just cannot be reached through a tier price any more.
+    const sellableFree = sellableTiers().filter(
+      (tier) => tier.priceXAF === 0 && !tier.rsvpExternal,
+    );
+    assert.deepEqual(
+      sellableFree.map((tier) => tier.id),
+      [],
+      "a free, non-external tier would need the checkout path re-tested",
+    );
   });
 
   it("ignores any price the caller tries to smuggle in", async () => {
@@ -595,5 +644,329 @@ describe("dp generator helpers", () => {
         `caption names an account: ${caption}`,
       );
     }
+  });
+});
+
+describe("refund acknowledgment as evidence", () => {
+  it("is required by both checkout schemas", () => {
+    const ticket = {
+      attendees: [
+        {
+          tierId: "sonnet",
+          name: "Ada Nkeng",
+          email: "ada@example.com",
+          apparelSize: "M",
+        },
+      ],
+      contact: { email: "ada@example.com" },
+      locale: "fr",
+    };
+    // A body without the acknowledgment is refused outright — the checkbox
+    // used to gate only the button, so a direct POST simply skipped it.
+    assert.equal(ticketCheckoutSchema.safeParse(ticket).success, false);
+    assert.equal(
+      ticketCheckoutSchema.safeParse({ ...ticket, acceptedTerms: true })
+        .success,
+      true,
+    );
+
+    // `false` is not "declined and continue" — it is refused like an absence.
+    assert.equal(
+      ticketCheckoutSchema.safeParse({ ...ticket, acceptedTerms: false })
+        .success,
+      false,
+    );
+
+    const shop = {
+      cart: [{ productId: "sticker-pack", quantity: 1 }],
+      contact: { email: "ada@example.com" },
+      locale: "en",
+    };
+    assert.equal(shopCheckoutSchema.safeParse(shop).success, false);
+    assert.equal(
+      shopCheckoutSchema.safeParse({ ...shop, acceptedTerms: true }).success,
+      true,
+    );
+  });
+
+  it("records the wording the screen actually showed, per kind and locale", () => {
+    // Tickets and goods carry different terms, and always did: a ticket is
+    // not refundable at all, goods can be replaced when they arrive wrong.
+    // Storing the ticket wording against a shop order would be false evidence.
+    const ticketsFr = refundAcknowledgment("tickets", "fr");
+    const ticketsEn = refundAcknowledgment("tickets", "en");
+    const shopFr = refundAcknowledgment("shop", "fr");
+
+    assert.notEqual(
+      ticketsFr,
+      ticketsEn,
+      "each locale records its own wording",
+    );
+    assert.notEqual(ticketsFr, shopFr, "tickets and goods differ");
+    for (const text of [ticketsFr, ticketsEn, shopFr]) {
+      assert.ok(text.trim().length > 10, "wording must be the real sentence");
+    }
+  });
+
+  it("fails loudly rather than recording a placeholder", () => {
+    assert.throws(
+      () => refundAcknowledgment("tickets", "de" as never),
+      /refund acknowledgment copy/,
+    );
+  });
+});
+
+describe("buyer-requested fulfilment", () => {
+  const base = {
+    cart: [{ productId: "sticker-pack", quantity: 1 }],
+    acceptedTerms: true as const,
+    contact: { email: "ada@example.com" },
+    locale: "fr" as const,
+  };
+
+  it("is optional — an order without a preference is still valid", () => {
+    assert.equal(shopCheckoutSchema.safeParse(base).success, true);
+  });
+
+  it("accepts the two methods organisers already write", () => {
+    // `shipping`, not `delivery`: PATCH /api/orders/:id/status has used these
+    // two words since 0001, and two vocabularies for one column would drift.
+    for (const method of ["pickup", "shipping"]) {
+      assert.equal(
+        shopCheckoutSchema.safeParse({ ...base, fulfilment: { method } })
+          .success,
+        true,
+        method,
+      );
+    }
+    assert.equal(
+      shopCheckoutSchema.safeParse({ ...base, fulfilment: { method: "drone" } })
+        .success,
+      false,
+    );
+  });
+
+  it("bounds the note instead of taking whatever is pasted in", () => {
+    assert.equal(
+      fulfilmentRequestSchema.safeParse({
+        method: "shipping",
+        note: "x".repeat(300),
+      }).success,
+      true,
+    );
+    assert.equal(
+      fulfilmentRequestSchema.safeParse({
+        method: "shipping",
+        note: "x".repeat(301),
+      }).success,
+      false,
+    );
+  });
+
+  it("is not offered on the ticket flow", () => {
+    // Nothing is delivered for a ticket, and startCheckout drops the field
+    // for that kind anyway — so the schema should not invite it either.
+    const parsed = ticketCheckoutSchema.safeParse({
+      attendees: [
+        {
+          tierId: "sonnet",
+          name: "Ada Nkeng",
+          email: "ada@example.com",
+          apparelSize: "M",
+        },
+      ],
+      acceptedTerms: true,
+      contact: { email: "ada@example.com" },
+      locale: "fr",
+      fulfilment: { method: "shipping" },
+    });
+    assert.equal(parsed.success, true, "unknown keys are stripped, not fatal");
+    assert.ok(
+      !("fulfilment" in (parsed.success ? parsed.data : {})),
+      "a fulfilment sent with tickets must not survive parsing",
+    );
+  });
+});
+
+describe("per-variant stock", () => {
+  it("keys a combination the same way everywhere", () => {
+    // The JSON, the SQL and the UI all count under this string. Two spellings
+    // of one combination would silently split a stock figure in half.
+    assert.equal(
+      variantKey("tee-edition", { size: "M", color: "Noir" }),
+      "tee-edition|M|Noir",
+    );
+    assert.equal(variantKey("sticker-pack"), "sticker-pack||");
+    assert.equal(
+      variantKey("tee-edition", { size: "M" }),
+      variantKey("tee-edition", { size: "M", color: undefined }),
+    );
+  });
+
+  it("only caps the combinations the catalog names", () => {
+    const caps = variantCapacities();
+    assert.equal(typeof caps["tee-edition|M|Noir"], "number");
+    // A product with no variants and no stock entry stays unlimited.
+    assert.equal(caps["sticker-pack||"], undefined);
+    assert.equal(declaredStock("sticker-pack"), undefined);
+  });
+
+  it("refuses an order larger than a combination ever had", async () => {
+    // XXL/Blanc is stocked at 0 — the fixture's deliberately sold-out size.
+    assert.equal(
+      declaredStock("tee-edition", { size: "XXL", color: "Blanc" }),
+      0,
+    );
+
+    await rejectsWith(
+      quoteCart([
+        {
+          productId: "tee-edition",
+          quantity: 1,
+          variant: { size: "XXL", color: "Blanc" },
+        },
+      ]),
+      CHECKOUT_ERRORS.VARIANT_SOLD_OUT,
+    );
+  });
+
+  it("still prices a combination that has room", async () => {
+    const basket = await quoteCart([
+      {
+        productId: "tee-edition",
+        quantity: 2,
+        variant: { size: "M", color: "Noir" },
+      },
+    ]);
+    assert.equal(basket.charged, findProduct("tee-edition")!.priceXAF * 2);
+  });
+
+  it("leaves an unstocked product unlimited", async () => {
+    const basket = await quoteCart([
+      { productId: "sticker-pack", quantity: 10 },
+    ]);
+    assert.equal(basket.lines[0].quantity, 10);
+  });
+});
+
+describe("ticket ownership", () => {
+  const attendee = (over = {}) => ({
+    tierId: "sonnet",
+    name: "Ada Nkeng",
+    email: "ada@example.com",
+    apparelSize: "M",
+    ...over,
+  });
+  const order = (attendees: unknown[]) => ({
+    attendees,
+    acceptedTerms: true as const,
+    contact: { email: "ada@example.com" },
+    locale: "fr" as const,
+  });
+
+  it("accepts an order where nobody claims a ticket", () => {
+    // Buying for other people only is normal — a team lead, a parent.
+    assert.equal(
+      ticketCheckoutSchema.safeParse(order([attendee()])).success,
+      true,
+    );
+  });
+
+  it("records the one the buyer kept", () => {
+    const parsed = ticketCheckoutSchema.safeParse(
+      order([attendee({ isSelf: true }), attendee({ name: "Ben Fouda" })]),
+    );
+    assert.equal(parsed.success, true);
+    assert.equal(parsed.success && parsed.data.attendees[0].isSelf, true);
+    assert.equal(parsed.success && parsed.data.attendees[1].isSelf, undefined);
+  });
+
+  it("refuses two, because you can only be one person", () => {
+    // The screen prevents it by unsetting the others, so a body with two is
+    // either a bug or hand-written — either way it should not be stored.
+    assert.equal(
+      ticketCheckoutSchema.safeParse(
+        order([attendee({ isSelf: true }), attendee({ isSelf: true })]),
+      ).success,
+      false,
+    );
+  });
+});
+
+describe("community wall", () => {
+  it("keeps only a hash of the takedown token", () => {
+    const { token, hash } = mintDeletionToken();
+    // The token is returned to the browser once; the row keeps this instead,
+    // for the same reason a password is never stored in the clear.
+    assert.notEqual(token, hash);
+    assert.equal(hash, hashToken(token));
+    assert.match(hash, /^[0-9a-f]{64}$/);
+    assert.ok(token.length >= 30, "a guessable token is not proof of anything");
+  });
+
+  it("matches a token only against its own hash", () => {
+    const a = mintDeletionToken();
+    const b = mintDeletionToken();
+    assert.ok(tokensMatch(hashToken(a.token), a.hash));
+    assert.ok(!tokensMatch(hashToken(b.token), a.hash));
+    // Different lengths must not throw — timingSafeEqual would.
+    assert.ok(!tokensMatch("short", a.hash));
+  });
+
+  it("mints a different token every time", () => {
+    const seen = new Set(
+      Array.from({ length: 50 }, () => mintDeletionToken().token),
+    );
+    assert.equal(seen.size, 50);
+  });
+
+  it("records the wording the person was actually shown", () => {
+    // Not taken from the request: this record is what says someone agreed to
+    // their FACE being public, so a forged body must not be able to write it.
+    const fr = galleryConsentText("fr");
+    const en = galleryConsentText("en");
+    assert.notEqual(fr, en);
+    for (const text of [fr, en]) assert.ok(text.trim().length > 20);
+  });
+
+  it("fails loudly on a missing translation rather than storing a blank", () => {
+    assert.throws(() => galleryConsentText("de" as never), /wall consent copy/);
+  });
+
+  it("caps the server side above what the client sends", () => {
+    // The client downscales to 640; the server refuses anything over 800, so
+    // a hand-rolled upload cannot smuggle a full-resolution face in.
+    assert.ok(MAX_EDGE >= GALLERY_MAX_EDGE);
+    assert.ok(MAX_BYTES <= 400 * 1024);
+  });
+
+  it("stays dark until the flag is set", () => {
+    const saved = process.env.NEXT_PUBLIC_DP_GALLERY;
+    delete process.env.NEXT_PUBLIC_DP_GALLERY;
+    assert.equal(galleryEnabled(), false);
+    process.env.NEXT_PUBLIC_DP_GALLERY = "1";
+    assert.equal(galleryEnabled(), true);
+    if (saved === undefined) delete process.env.NEXT_PUBLIC_DP_GALLERY;
+    else process.env.NEXT_PUBLIC_DP_GALLERY = saved;
+  });
+});
+
+describe("wall retention", () => {
+  it("keeps a wall up for a full edition cycle, not forever", () => {
+    // 200 days: an edition's wall is still there months later, and faces from
+    // one year are gone before the next-but-one comes round.
+    assert.equal(DEFAULT_RETENTION_DAYS, 200);
+    assert.ok(DEFAULT_RETENTION_DAYS > 180, "must outlast the event itself");
+    assert.ok(DEFAULT_RETENTION_DAYS < 730, "must not become indefinite");
+  });
+
+  it("does nothing at all while the wall is switched off", async () => {
+    // No flag means no wall, so a purge would be touching a table nobody is
+    // using — and would need database access this test has no business having.
+    const saved = process.env.NEXT_PUBLIC_DP_GALLERY;
+    delete process.env.NEXT_PUBLIC_DP_GALLERY;
+    const report = await purgeExpiredCards();
+    assert.deepEqual(report, { expired: 0, errors: 0 });
+    if (saved !== undefined) process.env.NEXT_PUBLIC_DP_GALLERY = saved;
   });
 });

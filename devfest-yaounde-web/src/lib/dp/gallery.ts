@@ -104,8 +104,13 @@ export async function galleryCopy(card: Blob): Promise<Blob> {
 export interface GallerySubmission {
   /** What was returned so this browser can take the card down again. */
   deletionToken: string;
-  /** Cards are reviewed before they appear — never live on submit. */
-  status: "pending";
+  /**
+   * What actually happened. `approved` means it is on the wall now;
+   * `pending` means a reviewer has to see it first. Which one you get is a
+   * deployment decision (ADR 0027), so the screen must read this rather than
+   * assume.
+   */
+  status: "approved" | "pending";
 }
 
 /**
@@ -144,11 +149,15 @@ export async function submitToGallery(input: {
 
   const data = (await response.json().catch(() => null)) as {
     deletionToken?: string;
+    status?: "approved" | "pending";
   } | null;
   if (!data?.deletionToken) throw new GallerySubmitError("gallery_failed");
 
   rememberToken(data.deletionToken);
-  return { deletionToken: data.deletionToken, status: "pending" };
+  return {
+    deletionToken: data.deletionToken,
+    status: data.status === "pending" ? "pending" : "approved",
+  };
 }
 
 /**

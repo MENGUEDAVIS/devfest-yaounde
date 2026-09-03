@@ -61,7 +61,7 @@ export async function PATCH(
 
   const { data: order, error: readError } = await supabase
     .from("orders")
-    .select("id, status")
+    .select("id, status, fulfilment")
     .eq("id", id)
     .maybeSingle();
 
@@ -91,8 +91,17 @@ export async function PATCH(
     .from("orders")
     .update({
       status: to,
+      // MERGE, never replace. The buyer's own request lives under
+      // `requested` (migration 0006); overwriting the column would erase
+      // what they asked for the moment an organiser adds a courier
+      // reference.
       ...(parsed.data.fulfilment
-        ? { fulfilment: toJson(parsed.data.fulfilment) }
+        ? {
+            fulfilment: toJson({
+              ...((order.fulfilment as Record<string, unknown> | null) ?? {}),
+              ...parsed.data.fulfilment,
+            }),
+          }
         : {}),
     })
     .eq("id", id)

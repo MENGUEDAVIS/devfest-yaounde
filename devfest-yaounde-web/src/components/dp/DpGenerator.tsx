@@ -171,7 +171,7 @@ export function DpGenerator() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [busy, setBusy] = useState<"download" | "share" | "wall" | null>(null);
   const [wallConsent, setWallConsent] = useState(false);
-  const [wallSent, setWallSent] = useState(false);
+  const [wallSent, setWallSent] = useState<"approved" | "pending" | null>(null);
   const [dropping, setDropping] = useState(false);
   const [tab, setTab] = useState<Group>("info");
   const [sheetOpen, setSheetOpen] = useState(true);
@@ -376,8 +376,15 @@ export function DpGenerator() {
     const blob = await render();
     if (blob) {
       try {
-        await submitToGallery({ card: blob, nickname, locale: lang });
-        setWallSent(true);
+        const sent = await submitToGallery({
+          card: blob,
+          nickname,
+          locale: lang,
+        });
+        // Read what the server actually did. Whether a card is reviewed first
+        // is a deployment decision (ADR 0027), so the screen must not promise
+        // a review that is not happening.
+        setWallSent(sent.status);
         setWallConsent(false);
         setNotice("wallSent");
       } catch (err) {
@@ -1063,7 +1070,9 @@ export function DpGenerator() {
                       </button>
                       {wallSent && (
                         <p className="mt-3 text-body-m font-bold text-black02">
-                          {t("wall.pending")}
+                          {wallSent === "pending"
+                            ? t("wall.pending")
+                            : t("wall.live")}
                         </p>
                       )}
                     </div>

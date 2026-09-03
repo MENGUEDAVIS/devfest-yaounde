@@ -66,10 +66,36 @@ export const attendeeSchema = z.object({
   name: attendeeNameSchema,
   email: emailSchema,
   apparelSize: z.enum(APPAREL_SIZES).optional(),
+  /**
+   * The buyer kept this one for themselves.
+   *
+   * Not a security claim — it grants nothing. It answers a question the
+   * server could not otherwise answer: among the tickets someone paid for,
+   * which is theirs to use. `tickets.user_id` already says who paid.
+   */
+  isSelf: z.boolean().optional(),
 });
 
 export const ticketCheckoutSchema = z.object({
-  attendees: z.array(attendeeSchema).min(1).max(10),
+  attendees: z
+    .array(attendeeSchema)
+    .min(1)
+    .max(10)
+    // You can only be one person. The UI already enforces this by unsetting
+    // the others, so a body with two is either a bug or hand-written.
+    .refine(
+      (list) => list.filter((a) => a.isSelf).length <= 1,
+      "at most one attendee can be the buyer",
+    ),
+  /**
+   * The refund acknowledgment. A literal `true` — anything else is refused.
+   *
+   * Only the FACT is taken from the client. The wording and the timestamp are
+   * resolved server-side (`terms.ts`), because a body that supplies its own
+   * text could record agreement to something never shown.
+   */
+  acceptedTerms: z.literal(true),
+
   discountCode: discountCodeSchema,
   contact: z.object({ email: emailSchema, phone: phoneSchema }),
   locale: localeSchema.default("fr"),
@@ -86,8 +112,33 @@ export const cartLineSchema = z.object({
     .optional(),
 });
 
+/**
+ * What the buyer asks for. A PREFERENCE and a note — not a shipping engine:
+ * zones, fees and pickup windows are still undecided (PAGES.md §11), and the
+ * screen still says the team coordinates afterwards. Recording it here just
+ * saves someone having to ask every buyer the same two questions.
+ *
+ * `shipping` rather than `delivery` to match what organisers already write
+ * through PATCH /api/orders/:id/status.
+ */
+export const fulfilmentRequestSchema = z.object({
+  method: z.enum(["pickup", "shipping"]),
+  /** Free text: a neighbourhood, a landmark, when they are around. */
+  note: z.string().trim().max(300).optional(),
+});
+
 export const shopCheckoutSchema = z.object({
   cart: z.array(cartLineSchema).min(1).max(20),
+  fulfilment: fulfilmentRequestSchema.optional(),
+  /**
+   * The refund acknowledgment. A literal `true` — anything else is refused.
+   *
+   * Only the FACT is taken from the client. The wording and the timestamp are
+   * resolved server-side (`terms.ts`), because a body that supplies its own
+   * text could record agreement to something never shown.
+   */
+  acceptedTerms: z.literal(true),
+
   discountCode: discountCodeSchema,
   contact: z.object({ email: emailSchema, phone: phoneSchema }),
   locale: localeSchema.default("fr"),

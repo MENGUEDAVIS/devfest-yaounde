@@ -15,11 +15,66 @@
       "size": ["S", "M", "L", "XL", "XXL"],
       "color": ["Noir", "Blanc"]
     },
-    "status": "pre-order"
+    "status": "pre-order",
+    "stock": [
+      {
+        "size": "S",
+        "color": "Noir",
+        "quantity": 12
+      },
+      {
+        "size": "M",
+        "color": "Noir",
+        "quantity": 30
+      },
+      {
+        "size": "L",
+        "color": "Noir",
+        "quantity": 30
+      },
+      {
+        "size": "XL",
+        "color": "Noir",
+        "quantity": 18
+      },
+      {
+        "size": "XXL",
+        "color": "Noir",
+        "quantity": 6
+      },
+      {
+        "size": "S",
+        "color": "Blanc",
+        "quantity": 8
+      },
+      {
+        "size": "M",
+        "color": "Blanc",
+        "quantity": 20
+      },
+      {
+        "size": "L",
+        "color": "Blanc",
+        "quantity": 20
+      },
+      {
+        "size": "XL",
+        "color": "Blanc",
+        "quantity": 10
+      },
+      {
+        "size": "XXL",
+        "color": "Blanc",
+        "quantity": 0
+      }
+    ]
   },
   {
     "id": "hoodie-edition",
-    "name": { "fr": "Hoodie DevFest Yaoundé", "en": "DevFest Yaoundé hoodie" },
+    "name": {
+      "fr": "Hoodie DevFest Yaoundé",
+      "en": "DevFest Yaoundé hoodie"
+    },
     "description": {
       "fr": "Molleton gratté, broderie du logo sur la poitrine. Tient chaud aux nuits de Yaoundé.",
       "en": "Brushed fleece, embroidered logo on the chest. Handles a Yaoundé night."
@@ -30,11 +85,41 @@
       "size": ["S", "M", "L", "XL", "XXL"],
       "color": ["Noir"]
     },
-    "status": "pre-order"
+    "status": "pre-order",
+    "stock": [
+      {
+        "size": "S",
+        "color": "Noir",
+        "quantity": 6
+      },
+      {
+        "size": "M",
+        "color": "Noir",
+        "quantity": 14
+      },
+      {
+        "size": "L",
+        "color": "Noir",
+        "quantity": 14
+      },
+      {
+        "size": "XL",
+        "color": "Noir",
+        "quantity": 8
+      },
+      {
+        "size": "XXL",
+        "color": "Noir",
+        "quantity": 3
+      }
+    ]
   },
   {
     "id": "sticker-pack",
-    "name": { "fr": "Pack de stickers", "en": "Sticker pack" },
+    "name": {
+      "fr": "Pack de stickers",
+      "en": "Sticker pack"
+    },
     "description": {
       "fr": "Douze stickers vinyle découpés, résistants aux coups de sac à dos.",
       "en": "Twelve die-cut vinyl stickers that survive a backpack."
@@ -45,7 +130,10 @@
   },
   {
     "id": "mug-community",
-    "name": { "fr": "Mug GDG Yaoundé", "en": "GDG Yaoundé mug" },
+    "name": {
+      "fr": "Mug GDG Yaoundé",
+      "en": "GDG Yaoundé mug"
+    },
     "description": {
       "fr": "Céramique 350 ml, logo quadricolore. À récupérer sur place le jour de l'événement.",
       "en": "350 ml ceramic, four-colour logo. Collected at the venue on the day."
@@ -56,7 +144,10 @@
   },
   {
     "id": "tote-bag",
-    "name": { "fr": "Tote bag", "en": "Tote bag" },
+    "name": {
+      "fr": "Tote bag",
+      "en": "Tote bag"
+    },
     "description": {
       "fr": "Toile épaisse, anses longues. Sérigraphie une couleur.",
       "en": "Heavy canvas, long handles. One-colour screen print."
