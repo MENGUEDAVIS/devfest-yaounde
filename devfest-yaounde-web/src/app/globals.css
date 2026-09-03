@@ -730,9 +730,17 @@ body:has([data-admin]) [data-preloader] {
   margin-left: -14%;
 }
 .wall-column {
-  /* Each column is its own clipping window; the track inside is what moves. */
+  /*
+   * NOT `overflow: hidden`, and that is the fix for a real bug: a spotlit card
+   * scales up, and a clipping column sliced the enlarged edges off — worst on
+   * the very cards nearest a column boundary, which is most of them.
+   *
+   * Clipping belongs at the viewport, not per column. The wall's outer box is
+   * `overflow: hidden` and carries the edge mask, so the track's overspill is
+   * cut where it should be — at the screen edge — and a lifted card is free to
+   * cross its neighbours on the way up.
+   */
   height: 130vh;
-  overflow: hidden;
 }
 
 /*
@@ -768,6 +776,8 @@ body:has([data-admin]) [data-preloader] {
 }
 
 .wall-tile {
+  /* Positioned so the spotlit card has a z-index to raise. */
+  position: relative;
   transition:
     opacity 260ms var(--ease-out-devfest),
     transform 260ms var(--ease-bouncy);
@@ -775,8 +785,9 @@ body:has([data-admin]) [data-preloader] {
 /* Pointing at one card lifts it and pushes everything else back — the still
    cards in its own column as well as the ones still moving elsewhere. */
 .wall-tile.is-spotlit {
-  transform: scale(1.06) rotate(1.6deg);
-  z-index: 2;
+  transform: scale(1.08) rotate(1.6deg);
+  /* Above every other column, not just its own siblings. */
+  z-index: 5;
 }
 .wall-tile.is-dimmed {
   opacity: 0.28;
@@ -790,7 +801,6 @@ body:has([data-admin]) [data-preloader] {
   }
   .wall-column {
     height: auto;
-    overflow: visible;
   }
   /* Nothing moves on its own, so the wall becomes an ordinary scrollable
      list — "no motion" must not mean "no access". */

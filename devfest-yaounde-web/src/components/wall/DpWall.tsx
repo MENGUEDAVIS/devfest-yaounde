@@ -47,10 +47,9 @@ export function DpWall({
   const widest = useMediaQuery("(min-width: 1280px)");
   const huge = useMediaQuery("(min-width: 1700px)");
   /* The wall is ~1.56x the viewport once the bleed and the tilt's scale are
-     applied, so these are higher than they look: nine columns at 1280px is
-     about a 200px card, which is the size a name is still readable at while
-     it drifts past. Fewer, larger cards read as a slideshow, not a wall. */
-  const columnCount = huge ? 11 : widest ? 9 : wider ? 7 : wide ? 5 : 4;
+     applied, so these are lower than they look: seven columns at 1440px is
+     about a 320px card. Nine was a swatch; six was a poster. */
+  const columnCount = huge ? 8 : widest ? 7 : wider ? 6 : wide ? 4 : 3;
 
   const [hovered, setHovered] = useState<{ column: number; id: string } | null>(
     null,
@@ -227,14 +226,15 @@ function WallTile({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={card.imageUrl}
+        /* The name left the surface but not the page: it is the only thing
+           that identifies whose card this is, so it stays in the alt text. */
         alt={placeholder ? label : `${card.nickname} — ${label}`}
         loading="lazy"
         decoding="async"
-        className="block aspect-square w-full rounded-md border-2 border-black02 bg-pastel object-cover"
+        className={`block w-full rounded-md border-2 border-black02 bg-pastel object-cover ${
+          card.ratio === "3:4" ? "aspect-[3/4]" : "aspect-square"
+        }`}
       />
-      <figcaption className="truncate px-1 pt-2 font-sans text-body-m font-bold text-black02">
-        {card.nickname}
-      </figcaption>
     </figure>
   );
 }

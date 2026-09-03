@@ -14,6 +14,12 @@ export interface WallCard {
   id: string;
   nickname: string;
   imageUrl: string;
+  /**
+   * The card's shape. The DP generator makes both, so a wall of nothing but
+   * squares would be a wall of a thing that does not exist — and the ragged
+   * column edges are half of why masonry reads as a wall rather than a grid.
+   */
+  ratio?: "1:1" | "3:4";
 }
 
 /** Invented names, clearly not attributable to anyone. */
@@ -57,4 +63,6 @@ export const WALL_PLACEHOLDERS: WallCard[] = NAMES.map((nickname, i) => ({
   id: `placeholder-${i}`,
   nickname,
   imageUrl: PHOTOS[i % PHOTOS.length],
+  // Roughly a third tall, in no repeating pattern down any one column.
+  ratio: i % 3 === 1 ? "3:4" : "1:1",
 }));

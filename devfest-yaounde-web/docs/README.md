@@ -14,6 +14,7 @@ Start from what you are trying to do.
 | **Change the DP generator's frames**               | [`guides/dp-generator.md`](guides/dp-generator.md) — the frame catalog, and why it has no backend                              |
 | **Fix how a link previews, or a search result**    | [`guides/seo.md`](guides/seo.md) — metadata, hreflang, the social image, structured data                                       |
 | **Scan a badge, or move an order along**           | [`guides/check-in-and-orders.md`](guides/check-in-and-orders.md)                                                               |
+| **Get into the admin dashboard**                   | [`guides/admin-dashboard.md`](guides/admin-dashboard.md) — the URL, the env vars, and the `organisers` row                     |
 | **Know how something should look or move**         | [`design/DESIGN.md`](design/DESIGN.md), [`content/PAGES.md`](content/PAGES.md)                                                 |
 | **Check a release**                                | [`setup/security-checklist.md`](setup/security-checklist.md)                                                                   |
 
