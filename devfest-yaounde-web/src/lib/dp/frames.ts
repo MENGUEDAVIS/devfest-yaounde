@@ -1,70 +1,163 @@
 /**
- * DP generator — frame catalog.
+ * DP generator — the style catalog.
  *
- * Colours come from DESIGN.md §2 (Yellow 600 leads, halftones for energy).
+ * A style is DATA: colours, a background pattern, and the plate the branding
+ * sits on. Adding one for next year's edition is an entry in `DP_FRAMES` and
+ * nothing else — the picker, the swatches and the compositor all read it.
  *
- * On the shape: PAGES.md §9 asks for the morphed-shape motif, but DESIGN.md
- * §4.2 carries a standing instruction not to fake it until the real asset is
- * supplied — a clean rounded rectangle or circle beats a broken morph. So
- * `mask` is deliberately limited to honest shapes, and the union mask can be
- * added here later without touching the compositor's callers.
+ * Colours come from DESIGN.md §2 (the four Google families, their halftones
+ * and pastels). Every fill is FLAT (§2.6): the craft comes from shape and
+ * repetition, never from a colour ramp.
  */
 
-export type DpMask = "rounded" | "circle";
+/**
+ * The background patterns. Each is a drawing routine in `compose.ts` that
+ * reads its colours from the style, so any style can use any of them.
+ *
+ * `confetti`  — flat shapes and chevrons scattered across the ground
+ * `terrazzo`  — chips of the four brand families, speckled like terrazzo
+ * `halftone`  — a dot field that thins across the card (§2.4)
+ * `checker`   — a bold offset checkerboard of rounded squares
+ * `waves`     — repeated brush arcs, like a printed pattern
+ * `grid`      — a drafting grid with heavier rules and corner ticks
+ * `rays`      — flat wedges radiating from a corner, no colour ramp
+ * `tiles`     — two-tone rounded tiling, quietly dense
+ */
+export type DpPattern =
+  | "confetti"
+  | "terrazzo"
+  | "halftone"
+  | "checker"
+  | "waves"
+  | "grid"
+  | "rays"
+  | "tiles";
 
 export interface DpFrame {
   id: string;
   /** Shown in the picker. Both languages, per the i18n rule. */
   label: { fr: string; en: string };
-  /** Page background behind the photo. */
+  /** The card's ground. */
   background: string;
-  /** Ring drawn around the photo. */
+  /** The pattern drawn over it, and the plate's fill. */
   accent: string;
-  /** Nickname + wordmark colour. */
+  /** Type colour on the plate. */
   foreground: string;
-  mask: DpMask;
+  /** The plate the branding sits on. */
+  plate: string;
+  pattern: DpPattern;
+  /** Pattern colours. Defaults to the accent alone. */
+  palette?: string[];
+  /** [shadow, highlight] for the duotone and halftone photo effects. */
+  duotone?: [string, string];
 }
+
+const INK = "#1E1E1E";
+const PAPER = "#F0F0F0";
+const YELLOW = "#F9AB00";
+const YELLOW_LIGHT = "#FFD427";
+const YELLOW_PASTEL = "#FFE7A5";
+const BLUE = "#4285F4";
+const BLUE_LIGHT = "#57CAFF";
+const BLUE_PASTEL = "#C3ECF6";
+const GREEN = "#34A853";
+const GREEN_LIGHT = "#5CDB6D";
+const GREEN_PASTEL = "#CCF6C5";
+const RED = "#EA4335";
+const RED_LIGHT = "#FF7DAF";
+const RED_PASTEL = "#F8D8D8";
+
+/** The four families together — the DevFest mark's own palette. */
+const BRAND_FOUR = [YELLOW, BLUE, GREEN, RED];
 
 export const DP_FRAMES: DpFrame[] = [
   {
-    id: "sunrise",
-    label: { fr: "Lever de soleil", en: "Sunrise" },
-    background: "#FFE7A5",
-    accent: "#F9AB00",
-    foreground: "#1E1E1E",
-    mask: "rounded",
+    id: "confetti",
+    label: { fr: "Confettis", en: "Confetti" },
+    background: YELLOW_PASTEL,
+    accent: YELLOW,
+    foreground: INK,
+    plate: YELLOW,
+    pattern: "confetti",
+    palette: BRAND_FOUR,
+    duotone: [INK, YELLOW_LIGHT],
+  },
+  {
+    id: "terrazzo",
+    label: { fr: "Terrazzo", en: "Terrazzo" },
+    background: PAPER,
+    accent: INK,
+    foreground: INK,
+    plate: YELLOW_PASTEL,
+    pattern: "terrazzo",
+    palette: BRAND_FOUR,
+    duotone: [INK, YELLOW],
   },
   {
     id: "midnight",
     label: { fr: "Minuit", en: "Midnight" },
-    background: "#1E1E1E",
-    accent: "#FFD427",
-    foreground: "#F0F0F0",
-    mask: "rounded",
+    background: INK,
+    accent: YELLOW_LIGHT,
+    foreground: INK,
+    plate: YELLOW_LIGHT,
+    pattern: "halftone",
+    palette: [YELLOW_LIGHT, YELLOW],
+    duotone: [INK, YELLOW_LIGHT],
+  },
+  {
+    id: "checker",
+    label: { fr: "Damier", en: "Checker" },
+    background: YELLOW,
+    accent: INK,
+    foreground: INK,
+    plate: PAPER,
+    pattern: "checker",
+    palette: [YELLOW_LIGHT],
+    duotone: [INK, YELLOW_PASTEL],
   },
   {
     id: "lagoon",
     label: { fr: "Lagune", en: "Lagoon" },
-    background: "#C3ECF6",
-    accent: "#4285F4",
-    foreground: "#1E1E1E",
-    mask: "circle",
+    background: BLUE_PASTEL,
+    accent: BLUE,
+    foreground: INK,
+    plate: BLUE,
+    pattern: "waves",
+    palette: [BLUE, BLUE_LIGHT],
+    duotone: [INK, BLUE_LIGHT],
+  },
+  {
+    id: "blueprint",
+    label: { fr: "Plan", en: "Blueprint" },
+    background: "#0B2545",
+    accent: BLUE_LIGHT,
+    foreground: PAPER,
+    plate: "#0B2545",
+    pattern: "grid",
+    palette: [BLUE_LIGHT, BLUE],
+    duotone: ["#0B2545", BLUE_LIGHT],
   },
   {
     id: "grove",
     label: { fr: "Bosquet", en: "Grove" },
-    background: "#CCF6C5",
-    accent: "#34A853",
-    foreground: "#1E1E1E",
-    mask: "circle",
+    background: GREEN_PASTEL,
+    accent: GREEN,
+    foreground: INK,
+    plate: GREEN_LIGHT,
+    pattern: "tiles",
+    palette: [GREEN, GREEN_LIGHT],
+    duotone: [INK, GREEN_LIGHT],
   },
   {
     id: "hibiscus",
     label: { fr: "Hibiscus", en: "Hibiscus" },
-    background: "#F8D8D8",
-    accent: "#EA4335",
-    foreground: "#1E1E1E",
-    mask: "rounded",
+    background: RED_PASTEL,
+    accent: RED,
+    foreground: INK,
+    plate: RED_LIGHT,
+    pattern: "rays",
+    palette: [RED, RED_LIGHT],
+    duotone: [INK, RED_LIGHT],
   },
 ];
 
@@ -73,3 +166,53 @@ export function findFrame(id: string): DpFrame | undefined {
 }
 
 export const DEFAULT_FRAME_ID = DP_FRAMES[0].id;
+
+/**
+ * The badge that hangs off the branding plate.
+ *
+ * ATTENDANCE ONLY, AND THAT IS A DECISION (PHASE16 §4). "Speaker",
+ * "Organiser" and "Volunteer" are claims about a role, and with no login and
+ * no backend there is nothing to check them against — a self-selectable
+ * Speaker badge means anyone can wear one, which devalues it for the people
+ * who actually earned it. Everything here is a statement about yourself that
+ * costs nobody anything if it is wrong.
+ *
+ * Role badges are recorded as a backend item (GAPS.md G19). If a soft
+ * unlock code is ever wanted, this array and one input are where it lands.
+ */
+export interface DpBadge {
+  id: string;
+  label: { fr: string; en: string };
+  /** Empty for `none`; what actually gets printed otherwise. */
+  text: { fr: string; en: string };
+}
+
+export const DP_BADGES: DpBadge[] = [
+  { id: "none", label: { fr: "Aucun", en: "None" }, text: { fr: "", en: "" } },
+  {
+    id: "attending",
+    label: { fr: "J'y serai", en: "I'll be there" },
+    text: { fr: "J'Y SERAI", en: "I'LL BE THERE" },
+  },
+  {
+    id: "countmein",
+    label: { fr: "J'en suis", en: "Count me in" },
+    text: { fr: "J'EN SUIS", en: "COUNT ME IN" },
+  },
+  {
+    id: "firsttime",
+    label: { fr: "Première fois", en: "First timer" },
+    text: { fr: "MA PREMIÈRE FOIS", en: "MY FIRST ONE" },
+  },
+  {
+    id: "backagain",
+    label: { fr: "J'y retourne", en: "Back again" },
+    text: { fr: "J'Y RETOURNE", en: "BACK AGAIN" },
+  },
+];
+
+export const DEFAULT_BADGE_ID = DP_BADGES[0].id;
+
+export function findBadge(id: string): DpBadge | undefined {
+  return DP_BADGES.find((badge) => badge.id === id);
+}

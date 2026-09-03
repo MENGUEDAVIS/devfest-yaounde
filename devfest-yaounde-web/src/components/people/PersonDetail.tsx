@@ -8,6 +8,7 @@ import {
   XLogo,
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
+import { realSocials } from "@/lib/people-socials";
 import { Badge } from "@/components/ui/Badge";
 import type { LocalizedString } from "@/data/types";
 
@@ -28,30 +29,14 @@ export interface PersonLike {
   social?: { x?: string; linkedin?: string; website?: string };
 }
 
+/** The person's real profile links, with the client-side icon for each. */
+const SOCIAL_ICONS = { x: XLogo, linkedin: LinkedinLogo, website: GlobeSimple };
+
 export function personSocials(p: PersonLike) {
-  const out: {
-    key: string;
-    href: string;
-    Icon: typeof XLogo;
-    label: string;
-  }[] = [];
-  if (p.social?.x)
-    out.push({ key: "x", href: p.social.x, Icon: XLogo, label: "X" });
-  if (p.social?.linkedin)
-    out.push({
-      key: "in",
-      href: p.social.linkedin,
-      Icon: LinkedinLogo,
-      label: "LinkedIn",
-    });
-  if (p.social?.website)
-    out.push({
-      key: "web",
-      href: p.social.website,
-      Icon: GlobeSimple,
-      label: "Website",
-    });
-  return out;
+  return realSocials(p).map((social) => ({
+    ...social,
+    Icon: SOCIAL_ICONS[social.key],
+  }));
 }
 
 export interface PersonDetailProps {
@@ -207,7 +192,7 @@ export function PersonDetail({
               aria-label={`${person.name} — ${label}`}
               tabIndex={interactive ? undefined : -1}
               onClick={(e) => e.stopPropagation()}
-              className={`flex h-10 w-10 items-center justify-center rounded-pill border-2 transition-[background-color,color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary hover:text-black02 motion-reduce:transform-none ${
+              className={`flex h-11 w-11 items-center justify-center rounded-pill border-2 transition-[background-color,color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary hover:text-black02 motion-reduce:transform-none ${
                 dark
                   ? "border-offwhite/30 text-offwhite"
                   : "border-black02 text-black02"

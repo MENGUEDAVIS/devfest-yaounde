@@ -147,17 +147,17 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 >
 > **Available on mobile too.** It was desktop-only while the slider was an in-page section with no room on a phone; as a full-screen lockup it fits a phone at least as well as a desktop. The mobile composition is different, not a squeeze: a **single vertical column**, a **circle avatar** instead of the polaroid (it costs a fraction of the height, which is what leaves room for the whole detail), and the **controls overlaid at the bottom-right** with the counter beside them rather than stacked under the stage. Verified with no scrollbars from 360×640 up.
 >
-> Search and filters live in a **floating rail** on wide desktops and a **bottom drawer** everywhere else, grouped under labelled headings — one shared pattern across `/speakers`, `/schedule`, `/team` and `/faqs` (`FilterLayout` + `FilterGroup`).
+> Search and filters open from a **Filters button** into one of three surfaces, chosen by viewport — one shared pattern across `/speakers`, `/schedule`, `/team`, `/faqs` and `/shop` (`FilterLayout` + `FilterGroup`).
 >
-> **Updated in Phase 10 — the rail takes no width from the content.** The main column stays exactly as wide and as centred as it would be with no filters at all; the rail floats in the leftover margin whitespace beside it (reference: fonts.google.com), vertically centred in the viewport and clear of the fixed navbar. The speakers grid therefore keeps its **4 columns** — it loses no column to the filters.
+> **Updated in Phase 14 §1 — the margin rail is gone.**
 >
-> The consequence worth knowing: the rail only appears from **1760px** up, because that is the width at which margin whitespace actually exists (`50vw − half the content column − a gutter − the rail's own width`). Below it, the drawer. Narrowing the content to make the rail fit at more widths is exactly what this rework removed.
+> | Viewport                    | Surface                                               |
+> | --------------------------- | ----------------------------------------------------- |
+> | Laptop & desktop (>=1024px) | A panel that **slides in from the left** over a scrim |
+> | Tablet (640-1023px)         | The bottom sheet, **width-capped and centred**        |
+> | Mobile (<640px)             | The bottom sheet, full width                          |
 >
-> **Updated in Phase 12 §1 — the rail TRAVELS DOWN its section as you scroll.** It is a sticky element pinned just under the chrome inside a track that spans exactly its owning section, so it moves down the page with you and is clamped at both ends: it never rises above the section's start, and when the section ends it scrolls out with the content (passing behind the navbar) instead of running into the footer.
->
-> Two earlier attempts, both measured and rejected: `position: fixed` (Phase 10) never yielded and sat on top of the footer; sticky-but-centred-in-a-viewport-tall-box (Phase 11) fixed the footer overlap but froze the rail mid-screen and released it while a screenful of grid was still visible.
->
-> Speakers also carry `icebreakerQuestion`, `icebreakerAnswer` and an optional `funnyMoment`, surfaced in the detail reveal as a warm quote moment rather than a data row.
+> Phases 10-12 floated the rail in the page's left margin so the content column kept its full width. That needed ~1760px of viewport — a 14" laptop is ~1512px, so on the most common machine the filters did not render at all. A panel that opens on demand costs one click and works at every size. All three surfaces are the shared overlay components, so the focus trap, Escape, scrim dismissal and scroll lock have one implementation between them (ADR 0012).
 
 ### 4.1 Grid
 
@@ -182,7 +182,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 ## 5. FAQs Page (`/faqs`)
 
-> **Updated in Phase 10.** Search and the category list moved out of the content column and into the **shared floating rail** (the same `FilterLayout` as `/speakers`, `/schedule` and `/team`), so they stay put while you read instead of scrolling away. The category list is a **scrollspy**: it highlights whichever group you're currently reading, and jumps to a group when clicked.
+> **Updated in Phase 10, revised in Phase 14.** Search and the category list live in the **shared filter panel** (the same `FilterLayout` as `/speakers`, `/schedule`, `/team` and `/shop`) rather than in the content column, so they don't scroll away with the questions. The category list is a **scrollspy**: it highlights whichever group you're currently reading, and jumps to a group when clicked. On this page the panel's heading is "Jump to" rather than "Filters", since it is a search + nav rather than a filter set.
 
 - Grouped accordions by category: **General**, **Tickets & Pricing**, **Venue & Logistics**, **Shop/Swag**, **Code of Conduct**.
 - Search filters questions and answers live as you type; empty categories drop out entirely.
@@ -207,47 +207,181 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 ## 7. Tickets Page (`/tickets`)
 
-Inspired by the Lagos flow (date/tier select → details → summary → payment), adapted for tiered, swag-bundled, named tickets.
+> **Built in Phase 14** against the real backend. See
+> `docs/guides/frontend-integration.md` for the contract and
+> `docs/backend/GAPS.md` for what is wired versus pending.
 
-**Step 1 — Choose your ticket**
+### 7.1 The tiers
 
-- Tier cards laid out clearly (not crowded): **Haikyu** (free), **Sonnet** (basic paid), up through the top tier — each shows price, what's included (entry, swag items, perks), in the `mono-tag`-styled name treatment from DESIGN.md.
-- Quantity selector per tier.
+Currency is **XAF (FCFA)**. Data lives in `src/data/ticket-tiers.json`.
 
-**Step 2 — Attendee details**
+| Tier       | Label          | Price  | Sold here?            |
+| ---------- | -------------- | ------ | --------------------- |
+| **HAIKYU** | Free pass      | 0      | **No — RSVP on Bevy** |
+| **SONNET** | Student pass   | 2,000  | yes                   |
+| **OPUS**   | —              | 5,000  | yes                   |
+| **FABLE**  | —              | 10,000 | yes                   |
+| **MYTHOS** | Legendary pass | 25,000 | yes                   |
 
-- If quantity > 1, collect details **per person** (name, email, and — for apparel-bearing tiers — T-shirt size). Clear indication of "Ticket 1 of 3," etc., so it doesn't feel like a wall of a form.
+**The free tier is not sold on this site.** Selecting it links out to the
+community platform, which already enforces one free RSVP per person — so it
+has no quantity selector, never enters the basket, and never touches sign-in
+or payment. This is not a contradiction of the retired Bevy RSVP CTA
+(`docs/decisions/0008`): that was about the generic hero call to action. Paid
+ticketing is on-site; free RSVP is delegated.
 
-**Step 3 — Discount code**
+Every tier lists its **swag** as a row of small cutout-style prints —
+alternating tilt, hover lifts one and names it. Higher tiers show more. Images
+are placeholders; the names are real.
 
-- Optional field, applies before payment step, clearly shows the adjusted total.
+### 7.2 Checkout — three steps
 
-**Step 4 — Payment**
+**Choose → Who's coming → Payment.** The order summary is sticky throughout.
 
-- Mobile Money (MTN/Orange via Flutterwave or a Cameroon-focused gateway) as the lead option, card as secondary, per our earlier discussion.
+- **Choose** — quantity per paid tier, capped at 10 per order (the server's own
+  limit).
+- **Who's coming** — one entry per ticket, headed "Ticket N of M". Name and
+  email are required; **phone is collected but optional** (see below). A
+  **t-shirt size** is required on tiers that include apparel and enforced
+  before Continue. Each ticket can be marked **"this one's mine"**, which
+  prefills from the signed-in account and stays editable.
+- **Payment** — **Mobile Money only.** No card option is rendered at all: the
+  integration does not support cards, and a disabled control would read as a
+  bug rather than a decision. Card support would need a separate processor for
+  diaspora buyers — a future decision.
 
-**Step 5 — Confirmation**
+**Sign-in is offered at the start and is optional**, purely to prefill details.
+It becomes required only at payment. Google is the only provider (ADR 0014).
 
-- On-screen success state (a little celebratory animation — confetti burst, bouncy easing — this is a moment worth spending polish on).
-- Email receipt + ticket confirmation, each ticket carrying a **QR/badge code** for check-in.
+**The discount code is not a step.** It lives in the order summary as an
+"add a discount code" link that reveals a field with an Apply button. There is
+deliberately **no pre-validation endpoint** — one would be a free oracle for
+guessing codes — so Apply stages the code and the server's verdict arrives with
+the order. The copy says exactly that.
 
-**Account & tracking**
+### 7.3 Refunds — stated, and gated
 
-- Login required (shared account system with Shop, per your decision) so people can return to a **"My Tickets"** dashboard — view/download tickets, resend confirmation email, see order history.
-- Sticky order summary throughout steps 1–4 so the running total/what's-included is never out of sight.
+**Tickets are non-refundable and non-cancellable once paid.** A paid ticket can
+be **transferred** to another name before the day.
 
----
+Stated in body-sized text on the payment step, behind a **required
+acknowledgment checkbox that gates the pay button**, and again in the FAQ.
+Never small print. Full policy in `docs/content/refund-policy.md`.
+
+### 7.4 After paying
+
+`/{locale}/payments/return` is the confirmation screen — the route the backend
+sends every buyer to. It polls the status endpoint, which is what actually
+**issues the ticket** (settlement is by polling, ADR 0019). On success it shows
+confetti, the amount charged, and each **badge code as a scannable QR beside
+the readable code** — both, always, because a dead battery still has to get
+someone in (ADR 0020).
+
+### 7.5 Account
+
+`/{locale}/account` — **My Tickets** (badge QR + code, tier, check-in state)
+and **My Orders**, shared with the shop. Both are scoped to the signed-in
+person by the database itself.
 
 ## 8. Shop Page (`/shop`)
 
-- **Standalone and evergreen** — live before, during, and after the event, independent of ticket sale windows.
-- **Product grid**: big imagery (mockups get to shine here, per your note), each product shows a status pill: `Pre-order`, `In Stock`, `Available at venue only`, `Sold Out` — always paired with text, never color alone (DESIGN.md §2.6).
-- Product detail: variant selection (size/color where applicable), quantity, add to cart.
-- **Checkout reuses the Tickets payment layout/components** — same steps pattern (cart → details → discount code → payment → confirmation), same shared login/account.
-- **Image protection**: disable right-click context menu and text/image selection via CSS (`user-select: none`, `pointer-events` tricks) and a `contextmenu` JS handler on product images. Worth setting expectations here — this deters casual copying but isn't a hard technical barrier (screenshots always remain possible); if stronger protection matters, a visible watermark on preview images is the more reliable option.
-- **Order tracking**: "My Orders" in the shared account dashboard — status per item (processing, ready for pickup, shipped, etc.).
+> **Built in Phase 14 Part B** against the real backend. Contract in
+> `docs/guides/frontend-integration.md`; what is wired versus pending in
+> `docs/backend/GAPS.md`.
 
----
+**Evergreen.** The shop runs before, during and after the event — no copy
+assumes the event is still upcoming.
+
+### 8.1 Catalog (`/shop`)
+
+Products come from `src/data/products.json`, which is also what the server
+prices against by id, so display and charge cannot drift.
+
+Every card carries a **status pill — text + Phosphor icon + colour, never
+colour alone** (DESIGN.md §2.6):
+
+| `status`     | Pill         | Buyable |
+| ------------ | ------------ | ------- |
+| `in-stock`   | In stock     | yes     |
+| `pre-order`  | Pre-order    | yes     |
+| `venue-only` | At the venue | **no**  |
+| `sold-out`   | Sold out     | **no**  |
+
+The last two are enforced server-side too, so a stale tab cannot buy them.
+
+**Filtering is by availability and search, not category** — the product model
+has no `category` field, and inventing one client-side would filter on data the
+server does not have (GAPS.md G11). It uses the **shared filter component**, so
+`/shop` gets the same four surfaces as the content pages: margin rail on very
+large screens, floating push panel on laptops, capped sheet on tablet,
+full-width sheet on mobile.
+
+### 8.2 Product — a right-hand drawer (`/shop/[product]`)
+
+Detail opens as a **drawer sliding in from the right** over the grid, with a
+scrim and the background scroll locked, dismissed by Escape, the close button
+or the scrim. Large imagery, variant selection, quantity and add-to-bag all
+live inside it. Clicking a card never navigates: the grid, its filters and its
+scroll position stay exactly where they were, which is the whole point.
+
+**It is still deep-linkable, and products keep their own URLs.** Opening a
+card pushes `/shop/{id}`; arriving at that URL directly renders the grid with
+the drawer already open; Back closes the drawer rather than leaving the page.
+
+**On SEO — the call made here.** A drawer alone would have cost every product
+its URL, and with it sharing, bookmarking and indexing, so the route stayed.
+Each product URL carries its own title, description, OpenGraph image and
+`Product` JSON-LD (name, description, price, availability), and the grid
+server-renders every product's name, description and price in the cards. What
+is _not_ in the server HTML is the drawer's own body — it is portalled, so it
+mounts in the browser. The indexable payload is therefore metadata plus
+structured data rather than drawer markup, which for a product page is the part
+search engines actually read. If rich-result coverage ever falls short, the fix
+is to server-render the detail beneath the drawer — not to abandon the drawer.
+
+**Availability is per PRODUCT, not per variant** — the catalog has one status
+per product and no per-variant stock (GAPS.md G12). Rather than greying out
+individual sizes on a guess, an unbuyable product disables the whole control
+set and says why. A sized product will not add to the bag until a size is
+chosen, because the server rejects it otherwise.
+
+**Image protection** — no context menu, no dragging, no selection, confined to
+product imagery. It is a **soft deterrent and nothing more**: the file is still
+in the network tab and a screenshot takes one keystroke. §8 already settles
+this; the documented stronger option is a watermark.
+
+### 8.3 Bag and checkout (`/shop/cart`)
+
+**This is the ticket checkout**, not a second one. The step chrome, the sticky
+order summary with its inline discount field, and the whole payment step —
+Mobile Money only, the phone field, the refund acknowledgment that gates the
+pay button — are shared components under `src/components/checkout/`. What
+differs is genuinely different: line items are products with variants rather
+than attendees with names.
+
+Fewer steps than tickets (**Your bag → Payment**), deliberately: a bag needs no
+per-person details.
+
+- **The bag is device-local.** There is no server cart — checkout posts the
+  whole basket in one request — so it lives in `localStorage`, survives reload,
+  syncs between tabs, and does not follow you to another device (GAPS.md G15).
+- **Fulfilment is stated, not asked.** A pickup-vs-delivery control was built
+  and then removed: the shop checkout schema has no fulfilment field, so the
+  choice was collected and discarded, and a control that changes nothing is
+  worse than no control. In its place, an honest line — the team coordinates
+  pickup or delivery after checkout (G13).
+- **Goods have their own return policy**, distinct from tickets: no refund for
+  a change of mind, but replacement for damaged, faulty or wrong items, and
+  size exchange on apparel while stock lasts, handled directly with the team.
+  The acknowledgment gate is the same shared component; only the wording
+  differs. See `docs/content/refund-policy.md`.
+
+### 8.4 Orders
+
+`/account` → **My Orders**, shared with tickets: real status
+(`processing` / `ready_for_pickup` / `shipped` / `delivered` / `cancelled`),
+line items, and totals. Items use the order's `name_snapshot`, not a catalog
+lookup, so a past order still reads correctly after the catalog changes.
 
 ## 9. DP Generator (`/dp-generator` or standalone subdomain)
 

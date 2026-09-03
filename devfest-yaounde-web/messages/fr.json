@@ -62,7 +62,7 @@
     "getInvolved": {
       "title": "S'impliquer",
       "shop": "Boutique",
-      "dpGenerator": "Générateur de DP",
+      "dpGenerator": "Générateur de PP",
       "community": "Rejoindre la communauté"
     },
     "legal": {
@@ -151,7 +151,8 @@
       "title": "Questions rapides",
       "cta": "D'autres questions ?",
       "toggleHint": "Touche une question"
-    }
+    },
+    "metaDesc": "DevFest Yaoundé, la conférence tech du GDG Yaoundé — deux jours de talks, d'ateliers et d'une communauté qui se serre les coudes."
   },
   "pages": {
     "schedule": {
@@ -212,15 +213,299 @@
     },
     "tickets": {
       "title": "Billets",
-      "placeholder": "La billetterie n'est pas encore ouverte — le fournisseur de paiement n'a pas encore été choisi."
+      "lead": "Choisis ta formule, dis-nous qui vient, et c'est réglé. Paiement Mobile Money.",
+      "steps": {
+        "select": "Choisir",
+        "details": "Qui vient",
+        "payment": "Paiement"
+      },
+      "free": "Gratuit",
+      "includesApparel": "T-shirt inclus",
+      "addOne": "Ajouter un billet {tier}",
+      "removeOne": "Retirer un billet {tier}",
+      "maxReached": "Ça fait {max} billets — le maximum pour une seule commande.",
+      "detailsIntro": "Un nom par billet. Ce sont les noms qui figureront sur les badges.",
+      "ticketOfN": "Billet {current} sur {total}",
+      "attendeeName": "Nom complet",
+      "attendeeEmail": "E-mail",
+      "apparelSize": "Taille de t-shirt",
+      "thisIsMe": "Ce billet est pour moi",
+      "discountLabel": "Code de réduction",
+      "momoTitle": "Mobile Money",
+      "momoBody": "MTN MoMo ou Orange Money. Tu finalises sur une page sécurisée, puis tu reviens ici.",
+      "phoneLabel": "Numéro de téléphone (facultatif)",
+      "phoneHint": "Format : 237XXXXXXXXX. Si tu le remplis, la page de paiement est pré-remplie ; sinon elle te le demandera.",
+      "signInRequired": "Connecte-toi pour passer commande — c'est ce qui te permet de retrouver tes billets ensuite.",
+      "continueWithGoogle": "Continuer avec Google",
+      "summary": "Ta commande",
+      "summaryEmpty": "Rien de choisi pour l'instant.",
+      "total": "Total",
+      "totalNote": "Le montant final est confirmé par le serveur au moment de la commande.",
+      "retryIn": "Réessaie dans environ {seconds} secondes.",
+      "back": "Retour",
+      "next": "Continuer",
+      "working": "Un instant…",
+      "payNow": "Payer avec Mobile Money",
+      "rsvpFree": "Réserver gratuitement sur Bevy",
+      "rsvpNote": "L'entrée gratuite se gère sur notre page communautaire, qui limite à une réservation par personne. Aucun compte nécessaire ici.",
+      "swagLabel": "{count} objets dans le pack",
+      "attendeePhone": "Téléphone (facultatif)",
+      "signInPrefill": "Te connecter remplit tes informations automatiquement. Facultatif — tu peux continuer sans.",
+      "addDiscount": "Ajouter un code de réduction",
+      "apply": "Appliquer",
+      "discountStaged": "On l'applique au moment de la commande, et on t'indique ce qui a été déduit.",
+      "refundTitle": "Les billets ne sont pas remboursables",
+      "refundBody": "Une fois payé, un billet ne peut être ni remboursé ni annulé — ni en cas de changement de programme, ni après l'événement. Tu peux en revanche y mettre le nom de quelqu'un d'autre avant le jour J.",
+      "refundAck": "Je comprends que les billets ne sont pas remboursables.",
+      "metaDesc": "Choisis ton pass et paie en Mobile Money. Tous les tarifs, ce qu'ils incluent, et comment entrer."
     },
     "shop": {
       "title": "Boutique",
-      "placeholder": "La boutique arrive bientôt."
+      "lead": "Le merch DevFest Yaoundé — avant l'événement, pendant, et longtemps après. Paiement Mobile Money.",
+      "bagTitle": "Ton panier",
+      "bag": "Panier",
+      "results": "{count} articles",
+      "noResults": "Rien ne correspond. Essaie une autre recherche.",
+      "searchPlaceholder": "Rechercher dans la boutique",
+      "searchLabel": "Rechercher un article",
+      "availability": "Disponibilité",
+      "allItems": "Tout",
+      "status": {
+        "in-stock": "En stock",
+        "pre-order": "Précommande",
+        "venue-only": "Sur place",
+        "sold-out": "Épuisé"
+      },
+      "unbuyable": {
+        "venue-only": "Vendu uniquement sur place — viens nous voir le jour J.",
+        "sold-out": "Épuisé. S'il y a un réassort, il apparaîtra ici.",
+        "in-stock": "",
+        "pre-order": ""
+      },
+      "backToShop": "Retour à la boutique",
+      "size": "Taille",
+      "colour": "Couleur",
+      "quantity": "Quantité",
+      "decrease": "Diminuer la quantité",
+      "increase": "Augmenter la quantité",
+      "removeLine": "Retirer cet article",
+      "addToBag": "Ajouter au panier",
+      "addedToBag": "Ajouté",
+      "addedHint": "C'est dans ton panier.",
+      "viewBag": "Voir le panier",
+      "pickSizeFirst": "Choisis d'abord une taille.",
+      "viewImage": "Voir l'image {n}",
+      "emptyBagTitle": "Ton panier est bien léger",
+      "emptyBagBody": "Rien dedans pour l'instant. Le merch est juste là, et il ne mord pas.",
+      "browseShop": "Voir la boutique",
+      "keepShopping": "Continuer mes achats",
+      "lineUnavailable": "Cet article n'est plus disponible — retire-le pour continuer.",
+      "steps": {
+        "bag": "Ton panier",
+        "payment": "Paiement"
+      },
+      "fulfilmentTitle": "La récupération",
+      "fulfilmentBody": "On organise le retrait ou la livraison avec toi après la commande — l'équipe te contacte dès qu'elle arrive.",
+      "returnsTitle": "Retours et échanges",
+      "returnsBody": "On ne rembourse pas un changement d'avis. En revanche, si un article arrive abîmé, défectueux ou ne correspond pas à ta commande, on le remplace — et les vêtements peuvent être échangés contre une autre taille, dans la limite des stocks. Écris-nous, ou retrouve-nous au prochain événement.",
+      "returnsAck": "J'ai compris : pas de remboursement en cas de changement d'avis, et les échanges se règlent directement avec l'équipe.",
+      "bagCount": "{count, plural, one {# article} other {# articles}}",
+      "emptyAll": "Vider le panier",
+      "emptyAllConfirm": "Tout retirer du panier ?",
+      "emptyAllYes": "Oui, vider",
+      "emptyAllCancel": "Garder",
+      "metaDesc": "T-shirts, hoodies et tout le kit DevFest Yaoundé. Paiement Mobile Money, retrait sur place."
     },
     "dpGenerator": {
-      "title": "Générateur de photo de profil",
-      "placeholder": "Le générateur de DP arrive bientôt."
+      "title": "Générateur de PP",
+      "lead": "Crée ta photo de profil DevFest Yaoundé. Ton nom, ton style, tes stickers, et tu télécharges — tout se passe ici, sur ton appareil.",
+      "tabs": {
+        "info": "Toi",
+        "style": "Style",
+        "effects": "Effets",
+        "stickers": "Stickers",
+        "share": "Garder"
+      },
+      "groups": {
+        "info": "Toi et ta photo",
+        "style": "Choisis un style",
+        "effects": "Textures et effets",
+        "stickers": "Colle des trucs",
+        "share": "Garder et partager"
+      },
+      "sheet": {
+        "show": "Modifier",
+        "hide": "Masquer"
+      },
+      "nickname": {
+        "label": "Nom affiché",
+        "placeholder": "Le nom qu'on te donne",
+        "hint": "Le nom que tu utilises vraiment. Pas besoin du vrai."
+      },
+      "photo": {
+        "cta": "Choisir une photo",
+        "replace": "En choisir une autre",
+        "remove": "Retirer",
+        "drop": "ou dépose-la ici",
+        "dropActive": "Lâche.",
+        "hint": "JPEG, PNG ou WebP, 12 Mo maximum."
+      },
+      "ratio": {
+        "legend": "Format",
+        "square": "Carré",
+        "portrait": "Portrait"
+      },
+      "corners": {
+        "legend": "Coins",
+        "rounded": "Arrondis",
+        "square": "Nets",
+        "mixed": "Mixte"
+      },
+      "frames": {
+        "legend": "Style"
+      },
+      "badges": {
+        "legend": "Badge"
+      },
+      "looks": {
+        "legend": "Photo",
+        "none": "Telle quelle",
+        "duotone": "Duotone",
+        "halftone": "Trame",
+        "mono": "Noir et blanc",
+        "chromatic": "Décalage",
+        "poster": "Sérigraphie",
+        "pixel": "Pixel art"
+      },
+      "edges": {
+        "legend": "Bord",
+        "clean": "Net",
+        "torn": "Déchiré",
+        "brush": "Au pinceau"
+      },
+      "textures": {
+        "legend": "Texture",
+        "grain": "Grain",
+        "paper": "Papier",
+        "vignette": "Vignettage",
+        "warp": "Ondulation",
+        "lens": "Œil de poisson"
+      },
+      "stickers": {
+        "shapes": "Formes",
+        "words": "Mots",
+        "hint": "Touche pour ajouter, puis fais glisser sur la carte. Sélectionne-en un pour le redimensionner ou le tourner — au clavier : les flèches pour déplacer, + et − pour la taille, [ et ] pour tourner, Suppr pour retirer.",
+        "full": "C'est tout ce qu'une carte peut porter. Retires-en un pour en ajouter un autre.",
+        "selected": "Sticker sélectionné",
+        "size": "Taille",
+        "turn": "Rotation",
+        "remove": "Retirer le sticker",
+        "pick": "Touche un sticker sur la carte pour le déplacer, le redimensionner ou le retirer."
+      },
+      "adjust": {
+        "zoom": "Zoom",
+        "reset": "Recentrer",
+        "hint": "Fais glisser la photo pour la déplacer. Au clavier : les flèches pour déplacer, + et − pour zoomer, Maj pour avancer plus finement.",
+        "waiting": "Ajoute d'abord une photo — il n'y a rien à cadrer."
+      },
+      "export": {
+        "legend": "Taille",
+        "standard": "Standard · {px} px",
+        "high": "Grand · {px} px"
+      },
+      "preview": {
+        "empty": "Ta carte apparaît ici",
+        "label": "Ta carte DevFest : {nickname}, style {frame}.",
+        "labelAnonymous": "Ta carte DevFest, style {frame}."
+      },
+      "actions": {
+        "download": "Télécharger",
+        "downloading": "On la dessine…",
+        "share": "Partager",
+        "sharing": "Ouverture…",
+        "copyImage": "Copier la carte"
+      },
+      "networks": {
+        "legend": "Ou publie sur",
+        "hint": "Aucun de ces réseaux ne peut joindre l'image à ta place : chacun enregistre l'image, copie la légende et ouvre la fenêtre de publication — tu n'as plus qu'à glisser l'image. Instagram n'a pas de publication sur le web du tout, donc là c'est enregistrer, puis publier depuis l'appli.",
+        "whatsapp": "WhatsApp",
+        "x": "X",
+        "linkedin": "LinkedIn",
+        "instagram": "Instagram"
+      },
+      "status": {
+        "downloaded": "Enregistré. Va changer ta photo.",
+        "failed": "Le rendu a échoué. Réessaie, ou prends une autre photo.",
+        "attach": "Image enregistrée et légende copiée — il ne reste qu'à joindre l'image au post.",
+        "wallSent": "Envoyé au mur.",
+        "gallery_rate_limited": "Ça fait plusieurs cartes d'affilée — attends une minute et réessaie.",
+        "gallery_rejected": "Le mur n'a pas accepté celle-ci. Essaie avec une autre carte.",
+        "gallery_failed": "Elle n'est pas arrivée au mur. Ton téléchargement fonctionne toujours.",
+        "imageCopied": "Carte copiée — colle-la directement dans ton post.",
+        "copyUnsupported": "Ce navigateur ne copie pas les images. Télécharge-la plutôt."
+      },
+      "caption": {
+        "title": "Ce qui part avec",
+        "hint": "Le partage envoie l'image avec cette légende. Si ton navigateur ne le permet pas, la légende atterrit dans ton presse-papiers — tu n'as plus qu'à coller."
+      },
+      "privacy": {
+        "title": "La photo ne quitte jamais ton appareil",
+        "body": "Rien n'est envoyé, rien n'est stocké. La carte est dessinée dans ton navigateur et enregistrée directement dans tes téléchargements — on ne la voit jamais."
+      },
+      "metaDesc": "Crée ta photo de profil DevFest Yaoundé dans ton navigateur — un style, un recadrage, des stickers, et tu télécharges. Rien n'est envoyé.",
+      "wall": {
+        "title": "Mets-la sur le mur de la communauté",
+        "body": "Une copie plus légère part chez GDG Yaoundé et apparaît sur le mur DevFest une fois que l'équipe l'a regardée. Ton téléchargement pleine taille reste à toi, et rien n'est publié ailleurs.",
+        "consent": "Oui — affichez cette carte, avec ma photo, sur le mur public de la communauté.",
+        "send": "Envoyer au mur",
+        "sending": "Envoi…",
+        "pending": "Envoyé. Elle apparaîtra sur le mur après relecture de l'équipe — tu peux nous demander de la retirer à tout moment."
+      }
+    },
+    "paymentReturn": {
+      "title": "Confirmation de ton paiement",
+      "waitingTitle": "Un instant — on confirme ton paiement",
+      "waitingHint": "Garde cette page ouverte. C'est elle qui transforme ton paiement en billet, et ça prend généralement quelques secondes.",
+      "successTitle": "C'est bon, tu es des nôtres.",
+      "charged": "Débité : {amount} {currency}",
+      "badgeLabel": "Ton code de badge",
+      "badgeHint": "À présenter à l'entrée. Note-le aussi — une batterie vide ne devrait pas te bloquer dehors.",
+      "emailSent": "Un reçu arrive dans ta boîte mail.",
+      "noEmail": "Ton billet est dans ton compte — c'est lui qui te fait entrer.",
+      "slowEmail": "Ça prend plus de temps que d'habitude. Rien n'est perdu : on t'écrit dès que c'est réglé, et ça apparaîtra dans ton compte.",
+      "slowNoEmail": "Ça prend plus de temps que d'habitude. Rien n'est perdu — ça apparaîtra dans ton compte dès que c'est réglé.",
+      "failedTitle": "Le paiement n'est pas passé",
+      "tryAgain": "Réessayer",
+      "mismatchTitle": "Il y a un souci sur le montant",
+      "notFoundTitle": "Paiement introuvable",
+      "missingTitle": "Rien à confirmer ici",
+      "missingBody": "Cette page a besoin d'un paiement à retrouver, et le lien que tu as suivi n'en contient pas.",
+      "backToTickets": "Voir les billets",
+      "viewAccount": "Voir mes billets",
+      "scanAtDoor": "À scanner à l'entrée",
+      "metaDesc": "Confirmation de ton paiement."
+    },
+    "account": {
+      "title": "Mon compte",
+      "loading": "Chargement…",
+      "signedInAs": "Connecté en tant que",
+      "signOut": "Se déconnecter",
+      "signedOutTitle": "Connecte-toi pour voir tes billets",
+      "signedOutBody": "Tes billets et tes commandes sont ici. C'est la connexion qui te permet de les retrouver.",
+      "continueWithGoogle": "Continuer avec Google",
+      "myTickets": "Mes billets",
+      "myOrders": "Mes commandes",
+      "badgeLabel": "Code de badge",
+      "valid": "Valide",
+      "checkedIn": "Enregistré",
+      "size": "Taille {size}",
+      "noTicketsTitle": "Pas encore de billet",
+      "noTicketsBody": "Dès que tu en prends un, il apparaît ici avec le code qui te fait entrer.",
+      "browseTickets": "Voir les formules",
+      "noOrdersTitle": "Pas encore de commande",
+      "noOrdersBody": "Tout ce que tu achètes à la boutique arrive ici, avec son état d'avancement.",
+      "browseShop": "Voir la boutique",
+      "metaDesc": "Tes billets, tes commandes, tes codes de badge."
     }
   },
   "errors": {
@@ -242,7 +527,8 @@
       "discount_exhausted": "Ce code a déjà été utilisé le nombre de fois prévu.",
       "discount_not_applicable": "Ce code ne s'applique pas à ce que tu achètes ici.",
       "payment_page_failed": "Impossible d'ouvrir la page de paiement. Réessaie dans un instant — rien n'a été débité.",
-      "server_error": "Quelque chose a cassé de notre côté. Réessaie — et si ça persiste, dis-le-nous."
+      "server_error": "Quelque chose a cassé de notre côté. Réessaie — et si ça persiste, dis-le-nous.",
+      "network": "Impossible de joindre le serveur, donc rien n'a été débité. Vérifie ta connexion et réessaie."
     },
     "payment": {
       "pending": "Paiement en cours de confirmation…",
@@ -258,6 +544,24 @@
       "shared": "Partagé.",
       "copied": "Légende copiée — il ne reste qu'à coller.",
       "unavailable": "Ton navigateur ne permet pas le partage direct. Télécharge l'image et publie-la à la main."
+    },
+    "notFound": {
+      "title": "Cette page a pris un café",
+      "body": "Le lien que tu as suivi ne mène nulle part — une faute de frappe, ou quelque chose qu'on a déplacé. Rien de grave. Voilà où tout le monde va.",
+      "linksLabel": "Où aller à la place",
+      "links": {
+        "home": "Accueil",
+        "schedule": "Programme",
+        "tickets": "Billets",
+        "shop": "Boutique"
+      }
+    },
+    "crash": {
+      "title": "Quelque chose a lâché chez nous",
+      "body": "C'est de notre faute, pas de la tienne. Réessaie — et si ça recommence, dis-le-nous en citant la référence ci-dessous.",
+      "retry": "Réessayer",
+      "home": "Retour à l'accueil",
+      "reference": "Référence"
     }
   }
 }

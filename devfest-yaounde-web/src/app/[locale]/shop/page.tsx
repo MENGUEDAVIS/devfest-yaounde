@@ -1,6 +1,37 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { ShopBrowser } from "@/components/shop/ShopBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
+import { SectionContainer } from "@/components/ui/SectionContainer";
+import products from "@/data/products.json";
+import type { Product } from "@/data/types";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "pages.shop" });
+  return pageMetadata({
+    locale,
+    path: "/shop",
+    title: t("title"),
+    description: t("metaDesc"),
+  });
+}
+
+/**
+ * `/{locale}/shop` — the catalog (PAGES.md §8).
+ *
+ * Products come from `src/data/products.json`, which is also what the server
+ * prices against by id — so what is displayed and what is charged cannot
+ * drift, and no price is ever sent from the browser.
+ *
+ * The shop is EVERGREEN: it runs before, during and after the event, so
+ * nothing here is written as though the event were still upcoming.
+ */
 export default async function ShopPage({
   params,
 }: {
@@ -11,16 +42,18 @@ export default async function ShopPage({
   const t = await getTranslations("pages.shop");
 
   return (
-    <main
-      id="main-content"
-      className="flex flex-1 items-center justify-center px-5 pb-24 pt-48"
-    >
-      <div className="text-center max-w-2xl">
-        <h1 className="text-display-l font-bold text-black02">
+    <main id="main-content" className="flex-1 pt-32 sm:pt-28">
+      <SectionContainer background="yellow-wash" maxWidth="6xl">
+        <h1 className="font-sans text-display-hero font-bold leading-[0.9] text-black02">
           <ScrambleText text={t("title")} />
         </h1>
-        <p className="text-body-l mt-4 text-black02">{t("placeholder")}</p>
-      </div>
+        <p className="mt-6 max-w-2xl text-body-l text-black02/80">
+          {t("lead")}
+        </p>
+        <div className="mt-16">
+          <ShopBrowser products={products as Product[]} />
+        </div>
+      </SectionContainer>
     </main>
   );
 }

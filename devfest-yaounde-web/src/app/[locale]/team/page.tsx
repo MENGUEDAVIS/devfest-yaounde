@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { TeamCardStatic } from "@/components/team/TeamCardStatic";
 import { TeamBrowser } from "@/components/team/TeamBrowser";
@@ -17,14 +18,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.team" });
-  return {
-    title: `${t("title")} · DevFest Yaoundé`,
+  return pageMetadata({
+    locale,
+    path: "/team",
+    title: t("title"),
     description: t("metaDesc"),
-    openGraph: {
-      title: `${t("title")} · DevFest Yaoundé`,
-      description: t("metaDesc"),
-    },
-  };
+  });
 }
 
 /**

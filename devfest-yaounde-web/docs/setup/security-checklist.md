@@ -39,18 +39,37 @@ A plain-language checklist to skim before every release — not exhaustive, but 
 
 - [ ] Do auth/payment logs avoid recording full card numbers, passwords, or other PII in plaintext?
 
-## Uploads (DP Generator) — NO LONGER APPLICABLE
+## Uploads (DP Generator) — APPLIES AGAIN IF THE COMMUNITY WALL IS SWITCHED ON
 
-The DP generator composites entirely in the browser and **never uploads a
-photo** (`docs/decisions/0015-dp-generator-client-side.md`). There is no
-upload endpoint, no stored copy, so there is nothing to validate
-server-side and no EXIF to strip — the threat surface is gone rather than
-mitigated.
+The generator still composites entirely in the browser and, **as shipped,
+uploads nothing** (`docs/decisions/0015-dp-generator-client-side.md`). With
+`NEXT_PUBLIC_DP_GALLERY` unset there is no upload endpoint and no stored copy,
+so this section is dormant.
 
-- [x] ~~Are uploaded photos validated for file type and size on the server?~~
-- [x] ~~Is EXIF metadata stripped from uploaded photos before storing/serving them?~~
-- [ ] Still true that the generator performs no upload? (Adding a public
-      gallery would reverse this and bring both boxes back.)
+**The community wall (ADR 0021) reverses that, narrowly**, and the boxes below
+come back the moment the flag is set. The contract in
+`docs/backend/dp-gallery-contract.md` covers each one; this checklist is where
+they are signed off.
+
+- [ ] Are uploaded images validated by **sniffing the bytes**, not trusting
+      `Content-Type` — type, size and dimensions?
+- [ ] Are they **re-encoded server-side** before being stored or served?
+      (The client's canvas output carries no EXIF, but bytes a stranger
+      supplied should not be served back untouched.)
+- [ ] Is the upload **rate limited**? (`bump_rate_limit`, bucket
+      `dp_gallery`.)
+- [ ] Is the bucket **private**, with reads through a signed URL or a proxy,
+      so a rejected or withdrawn card stops being reachable?
+- [ ] Does every row carry a **consent record** — the flag, the timestamp and
+      the exact wording shown?
+- [ ] Is nothing public before a **human review**, and does rejection actually
+      **delete the image**?
+- [ ] Is there a **takedown path** that works both from the deletion token and
+      from a person simply asking?
+- [ ] Is a **retention rule** written down?
+
+If any box is unticked, the flag should stay off — the feature degrades to
+today's behaviour, which is safe.
 
 ## Data handling
 

@@ -67,6 +67,15 @@ and now ticket tiers and shop products. The tier names (`HAIKYU`, `SONNET`,
 `OPUS`), prices and perks are **invented mock data**. Only the shape comes from
 `PAGES.md` §7. See `docs/guides/updating-tickets-and-shop.md`.
 
+**The date and the venue block one more thing than they look like.** Setting
+`EVENT_BASE_DATE` in `src/lib/calendar.ts` does three jobs at once: it reveals
+the add-to-calendar buttons, it fills the hero's dates, and it switches on the
+`Event` structured data that makes the site eligible for rich results in
+search. Until then that block is deliberately absent rather than published
+with an invented date — see `docs/guides/seo.md`. The venue lives beside it in
+`src/lib/event.ts` (`venue`, `venueStreet`), and fills in the address in the
+same block.
+
 ---
 
 ## 3. Deliberately not built

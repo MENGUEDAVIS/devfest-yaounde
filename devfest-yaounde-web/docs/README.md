@@ -11,6 +11,8 @@ Start from what you are trying to do.
 | **Understand or debug payments**                   | [`guides/payments-runbook.md`](guides/payments-runbook.md) — how a payment settles, and what to do when one looks wrong        |
 | **Change ticket prices, tiers or shop products**   | [`guides/updating-tickets-and-shop.md`](guides/updating-tickets-and-shop.md) — file edits, no developer needed                 |
 | **Change speakers, sessions, FAQs, team**          | [`guides/updating-content.md`](guides/updating-content.md)                                                                     |
+| **Change the DP generator's frames**               | [`guides/dp-generator.md`](guides/dp-generator.md) — the frame catalog, and why it has no backend                              |
+| **Fix how a link previews, or a search result**    | [`guides/seo.md`](guides/seo.md) — metadata, hreflang, the social image, structured data                                       |
 | **Scan a badge, or move an order along**           | [`guides/check-in-and-orders.md`](guides/check-in-and-orders.md)                                                               |
 | **Know how something should look or move**         | [`design/DESIGN.md`](design/DESIGN.md), [`content/PAGES.md`](content/PAGES.md)                                                 |
 | **Check a release**                                | [`setup/security-checklist.md`](setup/security-checklist.md)                                                                   |

@@ -11,6 +11,11 @@
  * `/auth` is excluded from the matcher on purpose: the OAuth redirect URI is
  * registered once with Google, so it must not acquire a `/fr` prefix
  * depending on where the person happened to be browsing.
+ *
+ * `/og` is excluded for a related reason: it renders the social card image,
+ * and it is fetched by crawlers and chat apps that follow no redirects and
+ * carry no locale. Left in, every unfurl got a 307 to `/fr/og` and, from the
+ * stricter clients, no image at all.
  */
 import createMiddleware from "next-intl/middleware";
 import { createServerClient } from "@supabase/ssr";
@@ -56,5 +61,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|auth|trpc|_next|_vercel|.*\\..*).*)"],
+  matcher: ["/((?!api|auth|og|trpc|_next|_vercel|.*\\..*).*)"],
 };

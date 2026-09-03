@@ -493,33 +493,33 @@ html:not(.has-custom-cursor) .cursor-layer {
 }
 
 /*
- * FILTER RAIL — PHASE11 §3. Sticky inside its own section, not fixed to the
- * viewport, so the footer pushes it up instead of being covered by it.
+ * FILTER SURFACES — PHASE14 §1, four of them.
  *
- * The track is one gutter left of the content column and spans exactly the
- * section's height; the rail sticks within it.
+ * The surface changes with how much room there is, because the constraints
+ * genuinely differ at each size, not for variety's sake:
  *
- * PHASE12 §1: the rail TRAVELS DOWN the section as you scroll, rather than
- * sitting frozen at the viewport's vertical centre.
+ *   >= 1760px   margin rail   — real margin exists; use it, take no content width
+ *   1024-1759   push panel    — no margin to spare, so borrow width instead
+ *   640-1023    capped sheet  — too narrow to push; a sheet, but not stretched
+ *   < 640       full sheet    — a phone
  *
- * The construction that does this is a sticky box pinned near the TOP of the
- * viewport (just under the chrome), sized to its own content. Scrolling then
- * carries it down the page with you, and the track — an absolutely positioned
- * column spanning exactly this section — clamps it at both ends: it can never
- * travel above the section's start, and when the section ends it scrolls out
- * with the content instead of running on into the footer.
+ * ---------------------------------------------------------------- rail ----
  *
- * Two earlier attempts and why they were wrong:
- *  - `position: fixed` (PHASE10): never yielded to anything, so it sat on top
- *    of the footer at the end of /schedule.
- *  - Sticky, but centred in a viewport-tall box (PHASE11): fixed the footer
- *    overlap, but froze the rail mid-screen and — because the box was a whole
- *    viewport tall — released it while a screenful of grid was still visible
- *    on short sections. Both were measured, not guessed.
+ * Sticky inside its own section, not fixed to the viewport, so the footer
+ * pushes it up instead of being covered by it. The track is one gutter left
+ * of the content column and spans exactly the section's height; the rail
+ * sticks within it and TRAVELS DOWN the section as you scroll.
  *
- * A content-height box pinned near the top has neither problem: nothing is
- * frozen mid-viewport, and the box releases only when the section itself
- * genuinely runs out.
+ * Two earlier attempts and why they were wrong, both measured:
+ *  - `position: fixed`: never yielded, so it sat on top of the footer.
+ *  - Sticky but centred in a viewport-tall box: fixed that, then froze the
+ *    rail mid-screen and released it while a screenful of grid was still
+ *    visible on short sections.
+ * A content-height box pinned near the top has neither problem.
+ *
+ * The 1760px threshold is arithmetic, not taste: the rail needs
+ * `50vw - 38rem (half the column) - 1.5rem - 14rem >= 1.5rem`, i.e. 110rem.
+ * Below it there is no margin to float in.
  */
 .filter-rail-track {
   right: calc(100% + 1.5rem);
@@ -534,6 +534,138 @@ html:not(.has-custom-cursor) .cursor-layer {
 .filter-rail-sticky > div {
   width: 100%;
   max-height: 100%;
+}
+
+/*
+ * -------------------------------------------------------- floating panel ---
+ *
+ * PERSISTENT AND NON-MODAL, which is the whole point: it stays open while you
+ * scroll the results and keep adjusting filters. So, deliberately, it has
+ * NO scrim, NO focus trap, and NO close-on-outside-click — every one of those
+ * would fight the thing it exists to allow. Only its own toggle closes it.
+ *
+ * It also STILL PUSHES: the section gains left padding while it is open, so
+ * the content narrows and its grid reflows rather than hiding underneath.
+ * Floating and pushing are not in tension here — the panel is detached from
+ * the screen edges for looks, and the content is moved out from under it for
+ * legibility. That was the call when the two were weighed: a floating panel
+ * that overlapped the results would cost readability on exactly the 1512px
+ * screen this exists for.
+ *
+ * BOUNDED TO ITS SECTION, not the viewport. It is `sticky` inside a track
+ * that spans the filtered section, which is what stops it covering the footer
+ * — the same construction the margin rail uses at larger sizes. `position:
+ * fixed` cannot do this: it yields to nothing, which is exactly how it ended
+ * up sitting on top of the footer.
+ */
+.filter-float-track {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 20rem;
+  z-index: 40; /* under the chrome (50) — the navbar stays reachable */
+  pointer-events: none;
+}
+.filter-float-panel {
+  position: sticky;
+  top: calc(var(--chrome-h) + 1rem);
+  max-height: calc(100svh - var(--chrome-h) - 3rem);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-lg);
+  background: var(--color-offwhite);
+  box-shadow: 0 8px 0 0 var(--color-black02);
+  padding: 1.5rem;
+}
+.filter-section {
+  transition: padding-left 320ms var(--ease-out-devfest);
+}
+@media (min-width: 1024px) and (max-width: 1759px) {
+  .filter-section[data-panel-open="true"] {
+    padding-left: 22.5rem;
+  }
+}
+
+/*
+ * CARD GRIDS SIZE THEMSELVES FROM AVAILABLE WIDTH — PHASE14 §1.
+ *
+ * They used Tailwind's `sm:/lg:/xl:grid-cols-*`, which respond to the
+ * VIEWPORT. That is wrong here: when the push panel opens it narrows the
+ * content without changing the viewport, so the grid kept four columns and
+ * simply squeezed each card thinner. Measured: 4 -> 4 columns at 1512px with
+ * the panel open.
+ *
+ * `auto-fill` + `minmax` fixes it at the source — the column count is derived
+ * from the space the grid actually has, so it reflows when the panel opens,
+ * when the window resizes, and in any future layout, with no breakpoint list
+ * to keep in sync. `min(100%, ...)` keeps a single column from overflowing on
+ * a narrow phone.
+ *
+ * `--card-min` is the dial: bigger min, fewer columns.
+ */
+[data-card-grid] {
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, var(--card-min, 16rem)), 1fr)
+  );
+}
+
+/*
+ * ZOOM SLIDER — the DP generator's crop control.
+ *
+ * The only range input on the site, and the native one does not belong on a
+ * page built out of 2px black borders and flat fills. Both vendor track/thumb
+ * pairs are written out because a browser drops the ENTIRE rule when it meets
+ * a selector it cannot parse, so `-webkit-` and `-moz-` cannot be combined
+ * into one selector list.
+ *
+ * The thumb is the theme colour on a black ring, so it re-colours with the
+ * theme switcher rather than pinning yellow into a page that might be blue.
+ */
+.dp-range {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 1.5rem;
+  background: transparent;
+  cursor: pointer;
+}
+.dp-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+.dp-range::-webkit-slider-runnable-track {
+  height: 0.5rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-offwhite);
+}
+.dp-range::-moz-range-track {
+  height: 0.5rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-offwhite);
+}
+.dp-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  /* Half the thumb, minus half the track, pulls it back onto the centre
+     line — WebKit positions the thumb from the top of the track box. */
+  margin-top: -0.5rem;
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+.dp-range::-moz-range-thumb {
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
 }
 
 /* Focus ring, yellow-family and always visible for keyboard users */

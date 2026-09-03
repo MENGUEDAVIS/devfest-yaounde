@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
 import { SpeakerBrowser } from "@/components/speakers/SpeakerBrowser";
@@ -16,14 +17,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.speakers" });
-  return {
-    title: `${t("title")} · DevFest Yaoundé`,
+  return pageMetadata({
+    locale,
+    path: "/speakers",
+    title: t("title"),
     description: t("metaDesc"),
-    openGraph: {
-      title: `${t("title")} · DevFest Yaoundé`,
-      description: t("metaDesc"),
-    },
-  };
+  });
 }
 
 export default async function SpeakersPage({

@@ -33,6 +33,10 @@ import {
 } from "@/lib/payments/catalog";
 import { dpFileName } from "@/lib/dp/compose";
 import { shareCaption } from "@/lib/dp/share";
+import { eventDates, eventJsonLd, organizationJsonLd } from "@/lib/event";
+import { layoutCard, PAD, PLATE_INSET } from "@/lib/dp/geometry";
+import { ALL_STICKERS, TEXT_STICKERS, stickerName } from "@/lib/dp/stickers";
+import { galleryEnabled, GALLERY_MAX_EDGE } from "@/lib/dp/gallery";
 
 const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
@@ -433,6 +437,132 @@ describe("server-side pricing", () => {
   });
 });
 
+describe("event structured data", () => {
+  it("stays silent while the date is unconfirmed", () => {
+    // startDate is REQUIRED by schema.org. An Event block without one is
+    // invalid data that Search Console reports, and inventing a date would
+    // publish a wrong one to every crawler that read it.
+    assert.equal(eventDates(null), null);
+    assert.equal(eventJsonLd("fr", "x", null), null);
+  });
+
+  it("switches itself on the moment a date lands", () => {
+    const data = eventJsonLd("en", "Two days in Yaoundé", "2026-11-14");
+    assert.ok(data, "a dated event must produce a block");
+    assert.equal(data!["@type"], "Event");
+    assert.equal(data!.startDate, "2026-11-14T09:00:00");
+    // Two days, so the end is the FOLLOWING day — the same assumption the
+    // add-to-calendar links make.
+    assert.equal(data!.endDate, "2026-11-15T18:00:00");
+    assert.ok(String(data!.url).endsWith("/en"));
+  });
+
+  it("always describes the organiser, since none of that is speculative", () => {
+    const org = organizationJsonLd();
+    assert.equal(org["@type"], "Organization");
+    assert.equal(org.name, "GDG Yaoundé");
+    assert.ok(org.url.startsWith("https://"));
+  });
+});
+
+describe("dp stickers", () => {
+  it("keeps every word sticker to one hashtag token", () => {
+    for (const sticker of TEXT_STICKERS) {
+      for (const locale of ["fr", "en"] as const) {
+        const text = sticker.text[locale];
+        assert.ok(text.startsWith("#"), `${sticker.id}/${locale}: ${text}`);
+        // A hashtag breaks at the first space, so a multi-word phrase would
+        // silently post as one word plus loose text.
+        assert.ok(
+          !/\s/.test(text),
+          `${sticker.id}/${locale} has a space: ${text}`,
+        );
+      }
+    }
+  });
+
+  it("gives every sticker a distinct id", () => {
+    const ids = ALL_STICKERS.map((s) => s.id);
+    assert.equal(new Set(ids).size, ids.length);
+  });
+
+  it("names every sticker in both languages", () => {
+    for (const sticker of ALL_STICKERS) {
+      for (const locale of ["fr", "en"] as const) {
+        assert.ok(stickerName(sticker.id, locale).length > 0);
+      }
+    }
+  });
+});
+
+describe("dp community wall", () => {
+  it("is off unless the deployment switches it on", () => {
+    // The endpoint does not exist (GAPS.md G20). Dark by default is what
+    // keeps a button that would quietly fail off the screen entirely.
+    assert.equal(process.env.NEXT_PUBLIC_DP_GALLERY, undefined);
+    assert.equal(galleryEnabled(), false);
+  });
+
+  it("uploads a thumbnail, not the download", () => {
+    assert.ok(GALLERY_MAX_EDGE < 1080);
+  });
+});
+
+describe("dp card geometry", () => {
+  it("decreases nested radii by exactly the padding between them", () => {
+    for (const ratio of ["1:1", "3:4"] as const) {
+      const l = layoutCard(1080, ratio);
+      // The standard nested-radius rule: outer = inner + padding. Matching
+      // radii at every level is what makes concentric rounded shapes look
+      // wrong, so this is a correctness property, not a preference.
+      assert.ok(
+        l.radius.card > l.radius.photo && l.radius.photo > l.radius.plate,
+        `radii must decrease inward: ${JSON.stringify(l.radius)}`,
+      );
+      assert.ok(Math.abs(l.radius.card - l.radius.photo - PAD * 1080) < 0.51);
+      assert.ok(
+        Math.abs(l.radius.photo - l.radius.plate - PLATE_INSET * 1080) < 0.51,
+      );
+      assert.ok(l.radius.plate > 0, "no corner may be sharp");
+    }
+  });
+
+  it("centres the photo on the card, in both directions", () => {
+    for (const ratio of ["1:1", "3:4"] as const) {
+      const l = layoutCard(1080, ratio);
+      const right = l.width - (l.photo.x + l.photo.w);
+      const bottom = l.height - (l.photo.y + l.photo.h);
+      assert.ok(
+        Math.abs(l.photo.x - right) < 0.51,
+        `left ${l.photo.x} vs right ${right}`,
+      );
+      assert.ok(
+        Math.abs(l.photo.y - bottom) < 0.51,
+        `top ${l.photo.y} vs bottom ${bottom}`,
+      );
+    }
+  });
+
+  it("keeps the plate inside the photo, on the same centreline", () => {
+    const l = layoutCard(1080, "1:1");
+    const plateCentre = l.plate.x + l.plate.w / 2;
+    assert.ok(Math.abs(plateCentre - l.width / 2) < 0.51);
+    assert.ok(l.plate.x >= l.photo.x);
+    assert.ok(l.plate.y + l.plate.h <= l.photo.y + l.photo.h + 0.51);
+  });
+
+  it("makes a tall card taller without changing its margins or type", () => {
+    const square = layoutCard(1080, "1:1");
+    const tall = layoutCard(1080, "3:4");
+    assert.equal(tall.height, 1440);
+    // Every length is a fraction of WIDTH, so a 3:4 card keeps the same
+    // margins and the same type size and simply gets a taller photo.
+    assert.equal(square.photo.x, tall.photo.x);
+    assert.equal(square.plate.h, tall.plate.h);
+    assert.ok(tall.photo.h > square.photo.h);
+  });
+});
+
 describe("dp generator helpers", () => {
   it("builds a safe filename from any nickname", () => {
     assert.equal(dpFileName("Ada Nkeng"), "devfest-yaounde-ada-nkeng.png");
@@ -445,10 +575,25 @@ describe("dp generator helpers", () => {
   });
 
   it("writes a share caption in both languages", () => {
-    const fr = shareCaption("fr", "https://devfestyaounde.org");
-    const en = shareCaption("en", "https://devfestyaounde.org");
+    const fr = shareCaption("fr");
+    const en = shareCaption("en");
     assert.ok(fr.includes("#DevFestYaounde"));
     assert.ok(en.includes("#DevFestYaounde"));
     assert.notEqual(fr, en, "the two locales must not share one string");
+  });
+
+  it("points the caption at the generator, and names no accounts", () => {
+    for (const caption of [shareCaption("fr"), shareCaption("en")]) {
+      assert.ok(
+        caption.includes("/dp-generator"),
+        "the CTA has to name the page people are being sent to",
+      );
+      // Handles are deliberately absent — none are confirmed (GAPS.md G16),
+      // and a wrong one tags a stranger on every post.
+      assert.ok(
+        !/(^|\s)@\w/.test(caption),
+        `caption names an account: ${caption}`,
+      );
+    }
   });
 });

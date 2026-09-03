@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 
-export type ButtonTone = "primary" | "black02" | "offwhite" | "blue" | "success";
+export type ButtonTone =
+  "primary" | "black02" | "offwhite" | "blue" | "success";
 export type ButtonVariant = "primary" | "secondary";
 export type ButtonSize = "lg" | "md";
 export type ButtonRadius = "pill" | "lg";
@@ -17,7 +18,8 @@ const FILLED_CLASSES: Record<ButtonTone, string> = {
   black02: "bg-black02 text-offwhite hover:bg-black02/90",
   offwhite: "bg-offwhite text-black02 hover:bg-halftone",
   blue: "bg-blue text-offwhite hover:bg-blue-halftone hover:text-black02",
-  success: "bg-success text-offwhite hover:bg-green-halftone hover:text-black02",
+  success:
+    "bg-success text-offwhite hover:bg-green-halftone hover:text-black02",
 };
 
 const OUTLINE_CLASSES: Record<ButtonTone, string> = {
@@ -54,6 +56,8 @@ interface ButtonAsLink extends CommonProps {
   external?: boolean;
   onClick?: () => void;
   type?: never;
+  /** `never`, so the union destructures — see the note on the button variant. */
+  disabled?: never;
 }
 
 interface ButtonAsButton extends CommonProps {
@@ -61,6 +65,12 @@ interface ButtonAsButton extends CommonProps {
   external?: never;
   onClick?: () => void;
   type?: "button" | "submit";
+  /**
+   * Buttons only. A link cannot be meaningfully disabled — `aria-disabled` on
+   * an anchor still navigates — so the link variant deliberately has no such
+   * prop: if an action is unavailable, don't render a link to it.
+   */
+  disabled?: boolean;
 }
 
 export type ButtonProps = ButtonAsLink | ButtonAsButton;
@@ -79,6 +89,7 @@ export function Button({
   className = "",
   children,
   href,
+  disabled,
   external,
   onClick,
   type = "button",
@@ -100,7 +111,13 @@ export function Button({
       ? FILLED_CLASSES[tone]
       : `border-2 bg-transparent ${OUTLINE_CLASSES[tone]}`;
 
-  const classes = `${base} ${toneClasses} ${className}`;
+  /* Disabled buttons drop the lift and the press, because a control that
+     animates but does nothing reads as broken rather than unavailable. */
+  const disabledClasses = disabled
+    ? "cursor-not-allowed opacity-40 hover:translate-y-0 hover:shadow-none active:translate-y-0 active:scale-100"
+    : "";
+
+  const classes = `${base} ${toneClasses} ${disabledClasses} ${className}`;
 
   if (href) {
     if (external) {
@@ -118,7 +135,12 @@ export function Button({
   }
 
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={classes}
+    >
       {children}
     </button>
   );

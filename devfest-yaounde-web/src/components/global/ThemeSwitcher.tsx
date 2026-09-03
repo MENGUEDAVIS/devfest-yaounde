@@ -88,14 +88,20 @@ export function ThemeSwitcher() {
               aria-checked={active}
               onClick={() => select(name)}
               title={t(name)}
-              className={`h-7 w-7 rounded-pill border-2 border-offwhite/40 transition-[transform,box-shadow] duration-200 ease-bouncy hover:scale-110 motion-reduce:transform-none ${
-                SWATCH[name]
-              } ${
-                active
-                  ? "ring-2 ring-offwhite ring-offset-2 ring-offset-black02"
-                  : ""
-              }`}
+              /* Same 28px swatch, in a 44px button — the target grows, the
+                 design does not. */
+              className="grid h-11 w-11 place-items-center rounded-pill"
             >
+              <span
+                aria-hidden
+                className={`h-7 w-7 rounded-pill border-2 border-offwhite/40 transition-[transform,box-shadow] duration-200 ease-bouncy hover:scale-110 motion-reduce:transform-none ${
+                  SWATCH[name]
+                } ${
+                  active
+                    ? "ring-2 ring-offwhite ring-offset-2 ring-offset-black02"
+                    : ""
+                }`}
+              />
               <span className="sr-only">{t(name)}</span>
             </button>
           );

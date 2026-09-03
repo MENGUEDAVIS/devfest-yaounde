@@ -9,6 +9,7 @@ import {
 import { getTranslations } from "next-intl/server";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { Button } from "@/components/ui/Button";
+import { MaybeLink } from "@/components/ui/MaybeLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -17,9 +18,18 @@ import {
   BEVY_URL,
   CODE_OF_CONDUCT_URL,
   PRIVACY_POLICY_URL,
+  isPlaceholderUrl,
   SOCIAL_LINKS,
 } from "@/lib/site-config";
 
+/*
+ * Only the profiles that actually exist.
+ *
+ * Every entry is still `"#"`, so today this renders nothing at all — which is
+ * the right answer: six icons that do nothing when tapped are worse than no
+ * icons, and a crawler reads each one as a link to nowhere. They appear on
+ * their own the moment real URLs land in `site-config.ts`.
+ */
 const SOCIALS = [
   { href: SOCIAL_LINKS.x, Icon: XLogo, label: "X" },
   { href: SOCIAL_LINKS.instagram, Icon: InstagramLogo, label: "Instagram" },
@@ -27,10 +37,13 @@ const SOCIALS = [
   { href: SOCIAL_LINKS.youtube, Icon: YoutubeLogo, label: "YouTube" },
   { href: SOCIAL_LINKS.facebook, Icon: FacebookLogo, label: "Facebook" },
   { href: SOCIAL_LINKS.whatsapp, Icon: WhatsappLogo, label: "WhatsApp" },
-];
+].filter(({ href }) => !isPlaceholderUrl(href));
 
+/* `py-1.5` is not decoration: it takes a footer link from a 29px box to a
+   44px one, which is the difference between a comfortable tap and a miss.
+   The lists drop to `gap-1` so the visual rhythm is unchanged. */
 const LINK_CLASS =
-  "link-item inline-block text-body-l text-offwhite/85 transition-colors duration-200 hover:text-primary";
+  "link-item inline-block py-1.5 text-body-l text-offwhite/85 transition-colors duration-200 hover:text-primary";
 
 const GROUP_TITLE_CLASS =
   "font-mono text-mono-tag font-bold uppercase tracking-[0.01em] text-primary";
@@ -89,7 +102,7 @@ export async function Footer() {
             <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:pt-6">
               <div className="link-group">
                 <h3 className={GROUP_TITLE_CLASS}>{t("event.title")}</h3>
-                <ul className="mt-5 flex flex-col gap-3">
+                <ul className="mt-5 flex flex-col gap-1">
                   <li>
                     <Link href="/schedule" className={LINK_CLASS}>
                       {t("event.schedule")}
@@ -115,7 +128,7 @@ export async function Footer() {
 
               <div className="link-group">
                 <h3 className={GROUP_TITLE_CLASS}>{t("getInvolved.title")}</h3>
-                <ul className="mt-5 flex flex-col gap-3">
+                <ul className="mt-5 flex flex-col gap-1">
                   <li>
                     <Link href="/shop" className={LINK_CLASS}>
                       {t("getInvolved.shop")}
@@ -137,16 +150,27 @@ export async function Footer() {
 
               <div className="link-group">
                 <h3 className={GROUP_TITLE_CLASS}>{t("legal.title")}</h3>
-                <ul className="mt-5 flex flex-col gap-3">
+                <ul className="mt-5 flex flex-col gap-1">
+                  {/* Named even before the documents exist, because people
+                      look for them — but as text, not as a link that goes
+                      nowhere. They become links with no other edit. */}
                   <li>
-                    <a href={PRIVACY_POLICY_URL} className={LINK_CLASS}>
+                    <MaybeLink
+                      href={PRIVACY_POLICY_URL}
+                      className={LINK_CLASS}
+                      placeholderClassName="cursor-default opacity-60"
+                    >
                       {t("legal.privacy")}
-                    </a>
+                    </MaybeLink>
                   </li>
                   <li>
-                    <a href={CODE_OF_CONDUCT_URL} className={LINK_CLASS}>
+                    <MaybeLink
+                      href={CODE_OF_CONDUCT_URL}
+                      className={LINK_CLASS}
+                      placeholderClassName="cursor-default opacity-60"
+                    >
                       {t("legal.codeOfConduct")}
-                    </a>
+                    </MaybeLink>
                   </li>
                 </ul>
               </div>
@@ -180,18 +204,20 @@ export async function Footer() {
           <div className="flex flex-wrap items-center justify-center gap-6">
             <ThemeSwitcher />
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
-            {SOCIALS.map(({ href, Icon, label }) => (
-              <a
-                key={label}
-                href={href}
-                aria-label={label}
-                className={SOCIAL_CLASS}
-              >
-                <Icon size={24} />
-              </a>
-            ))}
-          </div>
+          {SOCIALS.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-3">
+              {SOCIALS.map(({ href, Icon, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  className={SOCIAL_CLASS}
+                >
+                  <Icon size={24} />
+                </a>
+              ))}
+            </div>
+          )}
           <p className="font-mono text-caption text-offwhite/55">
             © {year} {t("copyright")}
           </p>

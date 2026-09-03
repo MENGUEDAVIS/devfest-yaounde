@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { isPlaceholderUrl, RECAP_URL } from "@/lib/site-config";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 import { ScrollStage } from "@/components/ui/ScrollStage";
 import { SectionContainer } from "@/components/ui/SectionContainer";
@@ -47,12 +48,17 @@ export async function MemoryLane() {
                 {t("body")}
               </p>
             </div>
-            <a
-              href="#"
-              className="whitespace-nowrap font-sans text-body-m font-bold text-black02 underline decoration-2 underline-offset-4 transition-colors duration-200 hover:text-black02/60"
-            >
-              {t("recapCta")}
-            </a>
+            {/* The recap has no URL yet, and a link to "#" is a link to
+                nowhere — for a visitor and for a crawler alike. It appears
+                the moment RECAP_URL is real. */}
+            {!isPlaceholderUrl(RECAP_URL) && (
+              <a
+                href={RECAP_URL}
+                className="whitespace-nowrap font-sans text-body-m font-bold text-black02 underline decoration-2 underline-offset-4 transition-colors duration-200 hover:text-black02/60"
+              >
+                {t("recapCta")}
+              </a>
+            )}
           </div>
         </div>
 
