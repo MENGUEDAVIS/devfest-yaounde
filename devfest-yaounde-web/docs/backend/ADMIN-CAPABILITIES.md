@@ -4,7 +4,8 @@ Written before any dashboard code, by reading the backend rather than trusting
 the summary. G5 said "organiser back-office backend ready"; this is what that
 turns out to mean, feature by feature.
 
-**The headline: access control is real, and the content store is not.**
+**The headline: access control is real, and the content store is now Postgres
+(ADR 0031), with the JSON files as seed and fallback.**
 
 ---
 
@@ -46,7 +47,11 @@ already wired for the public account area.
 
 ---
 
-## 2. The content store — THE BLOCKING FINDING
+## 2. The content store — resolved by ADR 0031
+
+> **Updated 2026-09-03.** The finding below was true when the dashboard
+> shipped. `editorial_documents` and `site_settings` are now the writable
+> store; JSON files remain the seed until a collection is published.
 
 Two different things live in two different places, and the difference decides
 what the dashboard can do.
@@ -85,12 +90,12 @@ so. Nothing offers a save button that would discard what you typed.
 | Order fulfilment                             | `PATCH /api/orders/:id/status` — exists, organiser-guarded         | **Wire for real** (the one real write)   |
 | DP wall queue                                | `GET /api/dp/gallery/pending`, `PATCH /api/dp/gallery/:id` — exist | **Wire for real**                        |
 | Users who signed in                          | `profiles` table                                                   | **Wire for real** (read, PII-restrained) |
-| Discount codes                               | `discount_codes` **table exists**, but **no write endpoint**       | **Read-only + pending** — see below      |
-| Speakers / team / sessions / sponsors / FAQs | JSON in repo                                                       | **Read-only + pending**                  |
-| Product catalogue                            | JSON in repo                                                       | **Read-only + pending**                  |
-| Info-bar message                             | `messages/{fr,en}.json` in repo                                    | **Read-only + pending**                  |
-| Privacy / CoC URLs                           | `src/lib/site-config.ts` in repo                                   | **Read-only + pending**                  |
-| CSV bulk import                              | No writable target for content                                     | **Validate + preview only**              |
+| Discount codes                               | `discount_codes` + `POST/PATCH /api/admin/discounts`               | **Writable — ADR 0031**                  |
+| Speakers / team / sessions / sponsors / FAQs | `editorial_documents` (JSON files until first publish)             | **Writable — ADR 0031**                  |
+| Product catalogue                            | same store; checkout reads it                                      | **Writable — ADR 0031**                  |
+| Info-bar message                             | `site_settings.announcement`                                       | **Writable — ADR 0031**                  |
+| Privacy / CoC URLs                           | `site_settings`                                                    | **Writable — ADR 0031**                  |
+| CSV bulk import                              | Validate + preview; publish is JSON                                | **Validate + JSON publish**              |
 | CSV export                                   | Reads that already exist                                           | **Wire for real**                        |
 | Free-pass RSVPs                              | Bevy, off-platform                                                 | **Not shown at all** — see below         |
 | Audit log                                    | No table, no endpoint                                              | **Gap**                                  |

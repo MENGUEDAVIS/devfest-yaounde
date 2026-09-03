@@ -6,10 +6,8 @@ import { TeamBrowser } from "@/components/team/TeamBrowser";
 import { Reveal } from "@/components/ui/Reveal";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import team from "@/data/team.json";
+import { getTeam } from "@/lib/content/store";
 import type { TeamMember } from "@/data/types";
-
-const members = team as TeamMember[];
 
 export async function generateMetadata({
   params,
@@ -47,6 +45,7 @@ export default async function TeamPage({
   setRequestLocale(routeLocale);
   const t = await getTranslations("pages.team");
   const locale = (await getLocale()) as "fr" | "en";
+  const members: TeamMember[] = await getTeam();
 
   const current = members.filter((m) => !m.alumni);
   const alumni = members.filter((m) => m.alumni);

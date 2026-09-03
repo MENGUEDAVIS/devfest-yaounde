@@ -6,10 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import faqs from "@/data/faqs.json";
 import type { FaqItem } from "@/data/types";
-
-const faqList = faqs as FaqItem[];
 
 /**
  * Casual accordions (PHASE5 §6) — friendly rounded rows with a bouncy
@@ -17,9 +14,10 @@ const faqList = faqs as FaqItem[];
  * grid-template-rows 1fr -> 0fr technique used elsewhere in the project,
  * which animates auto-height content smoothly without measuring it in JS.
  */
-export function FaqPreview() {
+export function FaqPreview({ faqs }: { faqs: FaqItem[] }) {
   const t = useTranslations("home.faq");
   const locale = useLocale() as "fr" | "en";
+  const faqList = faqs;
   const [openId, setOpenId] = useState<string | null>(faqList[0]?.id ?? null);
 
   return (

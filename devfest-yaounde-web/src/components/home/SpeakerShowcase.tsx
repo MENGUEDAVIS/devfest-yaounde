@@ -6,10 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { SpeakerCard } from "@/components/speakers/SpeakerCard";
-import speakers from "@/data/speakers.json";
 import type { Speaker } from "@/data/types";
-
-const featured = (speakers as Speaker[]).filter((s) => s.featured);
 
 /** Alternating resting tilt so the spotlight rotation isn't uniform. */
 const CARD_TILT = [-2.5, 2, -1.5, 2.5];
@@ -44,8 +41,9 @@ const AUTO_ADVANCE_MS = 3800;
  * never reaches the clip edge. There is no `overflow-x: hidden;
  * overflow-y: visible` combination that works here.
  */
-export function SpeakerShowcase() {
+export function SpeakerShowcase({ speakers }: { speakers: Speaker[] }) {
   const t = useTranslations("home.speakers");
+  const featured = speakers.filter((s) => s.featured);
 
   const [focused, setFocused] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -86,7 +84,7 @@ export function SpeakerShowcase() {
   const go = useCallback((dir: 1 | -1) => {
     setOpenId(null);
     setFocused((i) => (i + dir + featured.length) % featured.length);
-  }, []);
+  }, [featured.length]);
 
   /*
    * Drag / swipe — PHASE11 §7. Matches the page slider's input handling:
@@ -177,7 +175,7 @@ export function SpeakerShowcase() {
       setFocused((i) => (i + 1) % featured.length);
     }, AUTO_ADVANCE_MS);
     return () => clearInterval(id);
-  }, [reduceMotion, paused, userTookOver, openId]);
+  }, [reduceMotion, paused, userTookOver, openId, featured.length]);
 
   return (
     <section className="overflow-hidden bg-pastel py-24 sm:py-32 lg:py-40">

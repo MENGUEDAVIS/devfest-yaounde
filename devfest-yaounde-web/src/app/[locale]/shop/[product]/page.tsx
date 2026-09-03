@@ -4,14 +4,13 @@ import { pageMetadata } from "@/lib/seo";
 import { ShopBrowser } from "@/components/shop/ShopBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import products from "@/data/products.json";
+import productsJson from "@/data/products.json";
+import { getProducts } from "@/lib/content/store";
 import type { Product } from "@/data/types";
 
-const catalog = products as Product[];
-
-/** Pre-renders every product in both locales — the catalog is small and static. */
+/** Seed from the repo file so a build without the database still prerenders. */
 export function generateStaticParams() {
-  return catalog.map((p) => ({ product: p.id }));
+  return (productsJson as Product[]).map((p) => ({ product: p.id }));
 }
 
 export async function generateMetadata({
@@ -20,6 +19,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; product: string }>;
 }) {
   const { locale, product } = await params;
+  const catalog = await getProducts();
   const found = catalog.find((p) => p.id === product);
   if (!found) return {};
   const l = locale as "fr" | "en";
@@ -71,6 +71,7 @@ export default async function ProductPage({
 }) {
   const { locale, product } = await params;
   setRequestLocale(locale);
+  const catalog = await getProducts();
   const found = catalog.find((p) => p.id === product);
   // A mistyped or retired product id is a 404, not an empty page.
   if (!found) notFound();

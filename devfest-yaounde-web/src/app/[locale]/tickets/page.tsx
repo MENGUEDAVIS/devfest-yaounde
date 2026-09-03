@@ -4,8 +4,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { TicketCheckout } from "@/components/tickets/TicketCheckout";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import tiers from "@/data/ticket-tiers.json";
-import type { TicketTier } from "@/data/types";
+import { loadSettings } from "@/lib/content/settings";
+import { getTiers } from "@/lib/content/store";
 
 export async function generateMetadata({
   params,
@@ -42,6 +42,10 @@ export default async function TicketsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.tickets");
+  const [tiers, settings] = await Promise.all([
+    getTiers(),
+    loadSettings(),
+  ]);
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
@@ -54,7 +58,7 @@ export default async function TicketsPage({
         </p>
 
         <div className="mt-16">
-          <TicketCheckout tiers={tiers as TicketTier[]} />
+          <TicketCheckout tiers={tiers} bevyUrl={settings.bevyUrl} />
         </div>
       </SectionContainer>
     </main>

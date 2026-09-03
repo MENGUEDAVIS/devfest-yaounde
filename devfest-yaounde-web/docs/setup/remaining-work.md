@@ -94,9 +94,9 @@ Not oversights — decisions, each with a record.
 - **No second sign-in method.** Google only: a second provider splits accounts,
   so someone signing in differently next year would have two accounts and half
   their tickets (ADR 0014).
-- **No admin UI for discount codes.** They are rows in `discount_codes`, managed
-  in the Supabase dashboard. Who issues them is still an open question
-  (`PAGES.md` §11).
+- **Discount codes are created in `/admin`.** The table was always there;
+  the write endpoint is ADR 0031. Who is allowed to issue them is still an
+  organiser-row question (`PAGES.md` §11).
 - **No morphed photo frames in the DP generator.** DESIGN.md §4.2 forbids
   faking the signature shape until the real asset is supplied.
 - **Secrets are not mirrored from GitHub to Vercel.** Runtime secrets live in

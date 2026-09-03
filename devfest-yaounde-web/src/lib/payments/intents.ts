@@ -11,6 +11,8 @@ import { createAdminSupabase } from "@/lib/supabase/server";
 import { toJson } from "@/lib/supabase/json";
 import {
   RESERVATION_WINDOW_SECONDS,
+  loadProducts,
+  loadTiers,
   tierCapacities,
   variantCapacities,
 } from "./catalog";
@@ -99,11 +101,11 @@ export async function createPaymentIntent(
     p_attendees: toJson(input.attendees ?? null),
     p_contact: toJson(input.contact),
     p_locale: input.locale,
-    p_tier_capacities: toJson(tierCapacities()),
+    p_tier_capacities: toJson(tierCapacities(await loadTiers())),
     p_reservation_window: RESERVATION_WINDOW_SECONDS,
     p_terms_text: input.termsText,
     p_fulfilment: input.fulfilment ? toJson(input.fulfilment) : undefined,
-    p_variant_capacities: toJson(variantCapacities()),
+    p_variant_capacities: toJson(variantCapacities(await loadProducts())),
   });
 
   if (error) {

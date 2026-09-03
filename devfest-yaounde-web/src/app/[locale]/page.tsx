@@ -9,6 +9,7 @@ import { QuotesInterstitial } from "@/components/home/QuotesInterstitial";
 import { ScheduleOverviewPreview } from "@/components/home/ScheduleOverviewPreview";
 import { SpeakerShowcase } from "@/components/home/SpeakerShowcase";
 import { StatsInterstitial } from "@/components/home/StatsInterstitial";
+import { getFaqs, getQuotes, getSpeakers } from "@/lib/content/store";
 import { eventJsonLd } from "@/lib/event";
 import { JsonLd, pageMetadata } from "@/lib/seo";
 
@@ -39,6 +40,11 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
+  const [speakers, quotes, faqs] = await Promise.all([
+    getSpeakers(),
+    getQuotes(),
+    getFaqs(),
+  ]);
 
   return (
     <main id="main-content" className="flex-1">
@@ -56,12 +62,12 @@ export default async function HomePage({
       <Hero />
       <About />
       <StatsInterstitial />
-      <SpeakerShowcase />
+      <SpeakerShowcase speakers={speakers} />
       <ScheduleOverviewPreview />
-      <QuotesInterstitial />
+      <QuotesInterstitial quotes={quotes} />
       <MemoryLane />
       <CommunityCta />
-      <FaqPreview />
+      <FaqPreview faqs={faqs} />
     </main>
   );
 }

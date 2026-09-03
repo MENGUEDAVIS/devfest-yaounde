@@ -315,13 +315,11 @@ For a back-office several volunteers can reach, where the state being changed
 is money-adjacent and the moderation decisions are about people's faces, "who
 marked this delivered?" and "who deleted that card?" have no answer.
 
-**Needs a table and one write per privileged action** — actor, action, target,
-before/after, timestamp — so it is backend, not this phase. The dashboard is
-built assuming it will arrive: every write it performs goes through an
-existing endpoint, so adding the log there covers the UI too, with no
-dashboard change.
-
-Worth doing before the event rather than after the first dispute.
+**RESOLVED 2026-09-03** (migration 0011, ADR 0031). `admin_audit` records
+actor, action, target, before/after, timestamp. Order status, check-in, wall
+moderation, content publish, settings and discount writes all insert a row
+after they succeed. An audit failure is logged and swallowed so a door scan
+is never blocked by the log.
 
 ### G21 — The wall has no report path for visitors
 

@@ -101,13 +101,13 @@ What is real, what is read-only and why is in
 [`docs/backend/ADMIN-CAPABILITIES.md`](../backend/ADMIN-CAPABILITIES.md). The
 short version:
 
-- **Real:** metrics, tickets, transactions, orders, discount codes, users,
-  wall status, CSV export.
-- **The one write:** moving a shop order along.
-- **Read-only:** everything editorial (speakers, sessions, team, sponsors,
-  FAQs, products, tiers), the announcement message, and the config URLs —
-  they live in files in the repo, and a running site cannot write to its own
-  source. See ADR 0029.
+- **Real:** metrics, tickets, transactions, orders, discount codes (create and
+  disable), users, wall status, CSV export, content publish, settings.
+- **Writes:** moving a shop order along, publishing a collection as JSON or
+  CSV, attaching a photo per remaining profile, saving the announcement and
+  legal URLs, creating a discount code.
+- **Fallback:** until a collection is published, the public site still reads
+  `src/data/*.json`. See ADR 0031.
 
 ## Still 404 after all three?
 

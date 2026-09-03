@@ -14,13 +14,8 @@ import { Reveal } from "@/components/ui/Reveal";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { Link } from "@/i18n/navigation";
-import {
-  BEVY_URL,
-  CODE_OF_CONDUCT_URL,
-  PRIVACY_POLICY_URL,
-  isPlaceholderUrl,
-  SOCIAL_LINKS,
-} from "@/lib/site-config";
+import { loadSettings } from "@/lib/content/settings";
+import { isPlaceholderUrl, SOCIAL_LINKS } from "@/lib/site-config";
 
 /*
  * Only the profiles that actually exist.
@@ -75,6 +70,10 @@ const SOCIAL_CLASS =
 export async function Footer() {
   const t = await getTranslations("footer");
   const year = new Date().getFullYear();
+  const settings = await loadSettings();
+  const BEVY_URL = settings.bevyUrl;
+  const PRIVACY_POLICY_URL = settings.privacyUrl;
+  const CODE_OF_CONDUCT_URL = settings.cocUrl;
 
   return (
     <footer className="flex min-h-svh flex-col justify-between bg-black02 text-offwhite">

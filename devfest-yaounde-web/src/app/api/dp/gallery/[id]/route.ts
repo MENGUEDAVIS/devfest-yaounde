@@ -11,6 +11,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { createAdminSupabase } from "@/lib/supabase/server";
+import { recordAudit } from "@/lib/admin/audit";
 import { currentOrganiser } from "@/lib/security/organisers";
 import { hashToken, removeCard, tokensMatch } from "@/lib/dp/gallery-server";
 
@@ -117,6 +118,14 @@ export async function PATCH(
     console.error("[dp-gallery] moderation failed", error.message);
     return Response.json({ error: "server_error" }, { status: 500 });
   }
+
+  await recordAudit({
+    actor: organiser.userId,
+    action: "wall.moderate",
+    target: id,
+    before: { status: card.status },
+    after: { status: parsed.data.status },
+  });
 
   return Response.json({ id, status: parsed.data.status });
 }

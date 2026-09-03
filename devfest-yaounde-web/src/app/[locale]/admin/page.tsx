@@ -1,12 +1,14 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { loadAdminData } from "@/lib/admin/data";
-import speakers from "@/data/speakers.json";
-import team from "@/data/team.json";
-import sessions from "@/data/sessions.json";
-import sponsors from "@/data/sponsors.json";
-import faqs from "@/data/faqs.json";
-import products from "@/data/products.json";
-import tiers from "@/data/ticket-tiers.json";
+import type { MissingPhoto } from "@/lib/admin/shape";
+import { isPlaceholderPhoto } from "@/lib/content/photos";
+import { loadSettings } from "@/lib/content/settings";
+import {
+  collectionCounts,
+  getSpeakers,
+  getSponsors,
+  getTeam,
+} from "@/lib/content/store";
 
 /**
  * `/{locale}/admin` — the whole dashboard, in one server render.
@@ -27,19 +29,57 @@ import tiers from "@/data/ticket-tiers.json";
  * DISPLAYS is still bilingual data, shown in both languages where it has two.
  */
 export default async function AdminPage() {
-  const data = await loadAdminData();
+  const [data, counts, settings, speakers, team, sponsors] = await Promise.all(
+    [
+      loadAdminData(),
+      collectionCounts(),
+      loadSettings(),
+      getSpeakers(),
+      getTeam(),
+      getSponsors(),
+    ],
+  );
+
+  const missingPhotos: MissingPhoto[] = [
+    ...speakers
+      .filter((row) => isPlaceholderPhoto(row.photoUrl))
+      .map((row) => ({
+        collection: "speakers",
+        collectionLabel: "Speakers",
+        id: row.id,
+        name: row.name,
+      })),
+    ...team
+      .filter((row) => isPlaceholderPhoto(row.photoUrl))
+      .map((row) => ({
+        collection: "team",
+        collectionLabel: "Team",
+        id: row.id,
+        name: row.name,
+      })),
+    ...sponsors
+      .filter((row) => isPlaceholderPhoto(row.logoUrl))
+      .map((row) => ({
+        collection: "sponsors",
+        collectionLabel: "Sponsors",
+        id: row.id,
+        name: row.name,
+      })),
+  ];
 
   return (
     <AdminShell
       data={data}
+      settings={settings}
+      missingPhotos={missingPhotos}
       content={{
-        speakers: speakers.length,
-        team: team.length,
-        sessions: sessions.length,
-        sponsors: sponsors.length,
-        faqs: faqs.length,
-        products: products.length,
-        tiers: tiers.length,
+        speakers: counts.speakers,
+        team: counts.team,
+        sessions: counts.sessions,
+        sponsors: counts.sponsors,
+        faqs: counts.faqs,
+        products: counts.products,
+        tiers: counts["ticket-tiers"],
       }}
     />
   );

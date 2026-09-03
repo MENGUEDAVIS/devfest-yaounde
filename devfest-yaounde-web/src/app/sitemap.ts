@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
-import products from "@/data/products.json";
+import { getProducts } from "@/lib/content/store";
 import { SITE_URL } from "@/lib/site-config";
 
 /**
@@ -29,7 +29,8 @@ const ROUTES = [
   "/dp-generator",
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const products = await getProducts();
   const paths = [
     ...ROUTES,
     ...products.map((product) => `/shop/${product.id}`),

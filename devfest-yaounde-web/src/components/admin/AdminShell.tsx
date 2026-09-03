@@ -12,7 +12,11 @@ import {
   Gear,
 } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
-import type { AdminData } from "@/lib/admin/shape";
+import type {
+  AdminData,
+  AdminSettings,
+  MissingPhoto,
+} from "@/lib/admin/shape";
 import { AdminOverview } from "./views/AdminOverview";
 import { AdminTickets } from "./views/AdminTickets";
 import { AdminTransactions } from "./views/AdminTransactions";
@@ -62,9 +66,13 @@ type ViewId = (typeof VIEWS)[number]["id"];
 export function AdminShell({
   data,
   content,
+  settings,
+  missingPhotos,
 }: {
   data: AdminData;
   content: ContentCounts;
+  settings: AdminSettings;
+  missingPhotos: MissingPhoto[];
 }) {
   const [view, setView] = useState<ViewId>("overview");
 
@@ -118,8 +126,10 @@ export function AdminShell({
           {view === "discounts" && <AdminDiscounts data={data} />}
           {view === "wall" && <AdminWall data={data} />}
           {view === "users" && <AdminUsers data={data} />}
-          {view === "content" && <AdminContent content={content} />}
-          {view === "config" && <AdminConfig />}
+          {view === "content" && (
+            <AdminContent content={content} initialMissing={missingPhotos} />
+          )}
+          {view === "config" && <AdminConfig settings={settings} />}
         </main>
       </div>
     </div>

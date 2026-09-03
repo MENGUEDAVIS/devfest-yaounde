@@ -4,10 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ScheduleBoard } from "@/components/schedule/ScheduleBoard";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import sessions from "@/data/sessions.json";
-import type { Session } from "@/data/types";
-
-const allSessions = sessions as Session[];
+import { getSessions, getSpeakers } from "@/lib/content/store";
 
 export async function generateMetadata({
   params,
@@ -32,6 +29,10 @@ export default async function SchedulePage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.schedule");
+  const [allSessions, speakers] = await Promise.all([
+    getSessions(),
+    getSpeakers(),
+  ]);
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
@@ -45,7 +46,12 @@ export default async function SchedulePage({
 
         <div className="mt-16">
           {/* Same board as the Home preview, with filters and calendar on */}
-          <ScheduleBoard sessions={allSessions} showFilters showCalendar />
+          <ScheduleBoard
+            sessions={allSessions}
+            speakers={speakers}
+            showFilters
+            showCalendar
+          />
         </div>
       </SectionContainer>
     </main>

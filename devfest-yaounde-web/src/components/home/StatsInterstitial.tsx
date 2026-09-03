@@ -2,13 +2,12 @@ import { getLocale } from "next-intl/server";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { StatCounter } from "@/components/ui/StatCounter";
-import stats from "@/data/stats.json";
+import { getStats } from "@/lib/content/store";
 import type { Stat } from "@/data/types";
-
-const statList = stats as Stat[];
 
 export async function StatsInterstitial() {
   const locale = (await getLocale()) as "fr" | "en";
+  const statList: Stat[] = await getStats();
 
   return (
     <SectionContainer background="yellow" maxWidth="6xl">

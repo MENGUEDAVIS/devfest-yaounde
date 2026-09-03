@@ -16,7 +16,7 @@ import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { PaymentStep } from "@/components/checkout/PaymentStep";
 import { Badge } from "@/components/ui/Badge";
 import { SwagPreview } from "./SwagPreview";
-import { BEVY_URL } from "@/lib/site-config";
+
 import { Button } from "@/components/ui/Button";
 import {
   CheckoutError,
@@ -56,7 +56,13 @@ interface AttendeeDraft {
   isSelf: boolean;
 }
 
-export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
+export function TicketCheckout({
+  tiers,
+  bevyUrl,
+}: {
+  tiers: TicketTier[];
+  bevyUrl: string;
+}) {
   const t = useTranslations("pages.tickets");
   const te = useTranslations("errors.checkout");
   const locale = useLocale();
@@ -347,7 +353,7 @@ export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
                   ))}
                 </ul>
                 <a
-                  href={BEVY_URL}
+                  href={bevyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-7 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"

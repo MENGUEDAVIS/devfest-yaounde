@@ -3,14 +3,13 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import quotes from "@/data/quotes.json";
 import { fadeInUp } from "@/lib/motion";
 import type { Quote } from "@/data/types";
 
-const quoteList = quotes as Quote[];
 const ROTATE_MS = 6000;
 
-export function QuotesInterstitial() {
+export function QuotesInterstitial({ quotes }: { quotes: Quote[] }) {
+  const quoteList = quotes;
   const t = useTranslations("home.quotes");
   const locale = useLocale() as "fr" | "en";
   const [index, setIndex] = useState(0);
@@ -28,7 +27,7 @@ export function QuotesInterstitial() {
       setIndex((i) => (i + 1) % quoteList.length);
     }, ROTATE_MS);
     return () => clearInterval(interval);
-  }, []);
+  }, [quoteList.length]);
 
   const quote = quoteList[index];
 

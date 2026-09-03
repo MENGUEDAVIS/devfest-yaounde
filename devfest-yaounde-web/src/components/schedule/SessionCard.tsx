@@ -14,10 +14,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Link } from "@/i18n/navigation";
 import { EVENT_BASE_DATE, googleCalendarUrl, icsDataUrl } from "@/lib/calendar";
-import speakers from "@/data/speakers.json";
 import type { Session, Speaker, SessionKind } from "@/data/types";
-
-const speakerById = new Map((speakers as Speaker[]).map((s) => [s.id, s]));
 
 export const KIND_ICON: Record<SessionKind, typeof Microphone> = {
   talk: Microphone,
@@ -43,6 +40,7 @@ export interface SessionCardProps {
   tilt?: number;
   /** Show add-to-calendar actions (full /schedule route only). */
   showCalendar?: boolean;
+  speakers?: Speaker[];
 }
 
 /**
@@ -65,10 +63,12 @@ export function SessionCard({
   variant = "timeline",
   tilt = 0,
   showCalendar = false,
+  speakers = [],
 }: SessionCardProps) {
   const t = useTranslations("home.schedule");
   const locale = useLocale() as "fr" | "en";
   const Icon = KIND_ICON[session.kind];
+  const speakerById = new Map(speakers.map((s) => [s.id, s]));
   const sessionSpeakers = session.speakerIds
     .map((id) => speakerById.get(id))
     .filter((s): s is Speaker => Boolean(s));

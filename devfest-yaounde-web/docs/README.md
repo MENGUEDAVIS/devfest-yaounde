@@ -55,7 +55,9 @@ or amend an earlier one.
 | [0018](decisions/0018-secrets-in-supabase-vault.md)      | Supabase Vault as secret store          | Accepted — **current default**               |
 | [0019](decisions/0019-settle-by-polling-not-callback.md) | Settle by polling, not callback         | Accepted, **amended by 0028**                |
 | [0028](decisions/0028-cleanup-sweep-from-supabase.md)    | Sweep invoked by Supabase cron          | Accepted — **Hobby cannot use Vercel `*/5`** |
-| [0029](decisions/0029-editorial-content-store.md)        | Editorial content has no writable store | **Open — a decision for the humans**         |
+| [0029](decisions/0029-editorial-content-store.md)        | Editorial content has no writable store | **Accepted by 0031**                         |
+| [0031](decisions/0031-editorial-store-in-postgres.md)    | Postgres store, JSON fallback           | Accepted, **amended by 0032**                |
+| [0032](decisions/0032-editorial-photo-upload.md)         | Photos attached per profile after sheet | Accepted                                     |
 | [0030](decisions/0030-wall-page-and-what-it-shows.md)    | What the community wall shows           | Accepted — placeholders until the flag is on |
 
 **Site and design**

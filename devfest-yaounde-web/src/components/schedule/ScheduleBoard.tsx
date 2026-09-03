@@ -8,13 +8,14 @@ import { FilterLayout } from "@/components/ui/FilterLayout";
 import { Reveal } from "@/components/ui/Reveal";
 import { sessionIn, sessionStyle } from "@/lib/motion";
 import { SessionCard } from "./SessionCard";
-import type { Session } from "@/data/types";
+import type { Session, Speaker } from "@/data/types";
 
 /** Slight per-card tilt so the timeline reads as pinned notes, not a table. */
 const CARD_TILT = [-0.8, 0.6, -0.5, 0.9, -0.7];
 
 export interface ScheduleBoardProps {
   sessions: Session[];
+  speakers?: Speaker[];
   /** Full route shows track/room filters; the Home preview keeps it simple. */
   showFilters?: boolean;
   /** Full route offers add-to-calendar per session. */
@@ -34,6 +35,7 @@ export interface ScheduleBoardProps {
  */
 export function ScheduleBoard({
   sessions,
+  speakers = [],
   showFilters = false,
   showCalendar = false,
 }: ScheduleBoardProps) {
@@ -238,6 +240,7 @@ export function ScheduleBoard({
                       <SessionCard
                         key={s.id}
                         session={s}
+                        speakers={speakers}
                         open={openId === s.id}
                         onToggle={() =>
                           setOpenId(openId === s.id ? null : s.id)
@@ -278,6 +281,7 @@ export function ScheduleBoard({
                         <li key={s.id}>
                           <SessionCard
                             session={s}
+                            speakers={speakers}
                             open={openId === s.id}
                             onToggle={() =>
                               setOpenId(openId === s.id ? null : s.id)
