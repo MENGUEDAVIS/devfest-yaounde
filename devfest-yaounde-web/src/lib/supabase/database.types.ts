@@ -180,6 +180,7 @@ export type Database = {
           discount_amount: number
           discount_code: string | null
           failure_code: string | null
+          fulfilment: Json | null
           kind: Database["public"]["Enums"]["payment_kind"]
           line_items: Json
           locale: string
@@ -201,6 +202,7 @@ export type Database = {
           discount_amount?: number
           discount_code?: string | null
           failure_code?: string | null
+          fulfilment?: Json | null
           kind: Database["public"]["Enums"]["payment_kind"]
           line_items: Json
           locale?: string
@@ -222,6 +224,7 @@ export type Database = {
           discount_amount?: number
           discount_code?: string | null
           failure_code?: string | null
+          fulfilment?: Json | null
           kind?: Database["public"]["Enums"]["payment_kind"]
           line_items?: Json
           locale?: string
@@ -357,6 +360,7 @@ export type Database = {
           p_deposit_id: string
           p_discount_amount: number
           p_discount_code: string
+          p_fulfilment?: Json
           p_kind: Database["public"]["Enums"]["payment_kind"]
           p_line_items: Json
           p_locale: string

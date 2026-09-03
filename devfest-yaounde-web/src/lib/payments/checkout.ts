@@ -45,6 +45,8 @@ export interface StartCheckoutInput {
   attendees?: AttendeeInput[];
   contact: { email: string; phone?: string };
   locale: "fr" | "en";
+  /** Shop only. Ignored for tickets — there is nothing to deliver. */
+  fulfilment?: { method: "pickup" | "shipping"; note?: string };
 }
 
 export async function startCheckout(
@@ -70,6 +72,7 @@ export async function startCheckout(
     // Evidence, not a claim: the wording comes from our own messages for the
     // locale the buyer was served, never from the request body.
     termsText: refundAcknowledgment(input.kind, input.locale),
+    fulfilment: input.kind === "shop" ? input.fulfilment : undefined,
   });
 
   if (created.status === "sold_out") {

@@ -41,6 +41,7 @@ function intent(overrides: Partial<PaymentIntentRow> = {}): PaymentIntentRow {
     failure_code: null,
     terms_text: "Je comprends que les billets ne sont pas remboursables.",
     terms_accepted_at: new Date().toISOString(),
+    fulfilment: null,
     created_at: new Date().toISOString(),
     activated_at: null,
     ...overrides,

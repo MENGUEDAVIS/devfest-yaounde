@@ -200,7 +200,7 @@ on a guess.
 handed off: it is a schema change — a per-variant row, and checkout validation
 against it.
 
-### G13 — Fulfilment cannot be chosen by the buyer
+### G13 — Fulfilment cannot be chosen by the buyer — RESOLVED
 
 Orders **do** carry a `fulfilment` column — free-form JSON with
 `method: "pickup" | "shipping"`, a note and a reference. But it is written
@@ -213,9 +213,20 @@ pickup-vs-delivery control that sends nothing is a fake control — it invites a
 decision and then discards it, which is worse than not asking. In its place is
 an honest line: the team coordinates pickup or delivery after checkout.
 
-**Handed off:** buyer-settable fulfilment is a backend item — add `fulfilment`
-to `shopCheckoutSchema` and carry it onto the order. Logistics (zones, fees,
-pickup windows) are open anyway (`PAGES.md` §11).
+**RESOLVED 2026-09-02** (migration 0006, [ADR 0023](../decisions/0023-buyer-requested-fulfilment.md)).
+`shopCheckoutSchema.fulfilment` accepts a method (`pickup` | `shipping` — the
+same two words organisers already write) and an optional note, capped at 300
+characters. It rides on the intent and is copied onto the order under
+`requested` at fulfilment.
+
+The control is back on the screen, and this time it is real. Still a
+**preference, not a shipping engine**: no zones, no fees, no windows — those
+remain open (`PAGES.md` §11) and the copy still says the team follows up.
+
+One thing that had to change alongside it: `PATCH /api/orders/:id/status`
+used to **replace** the whole `fulfilment` column, which would have erased the
+buyer's request the first time an organiser added a courier reference. It now
+merges.
 
 ### G14 — Shop return policy — RESOLVED (consent persistence folded into G9)
 

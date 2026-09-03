@@ -28,6 +28,7 @@ import { refundAcknowledgment } from "@/lib/payments/terms";
 import {
   ticketCheckoutSchema,
   shopCheckoutSchema,
+  fulfilmentRequestSchema,
 } from "@/lib/payments/schemas";
 import { CHECKOUT_ERRORS, CheckoutError } from "@/lib/payments/errors";
 import {
@@ -696,6 +697,78 @@ describe("refund acknowledgment as evidence", () => {
     assert.throws(
       () => refundAcknowledgment("tickets", "de" as never),
       /refund acknowledgment copy/,
+    );
+  });
+});
+
+describe("buyer-requested fulfilment", () => {
+  const base = {
+    cart: [{ productId: "sticker-pack", quantity: 1 }],
+    acceptedTerms: true as const,
+    contact: { email: "ada@example.com" },
+    locale: "fr" as const,
+  };
+
+  it("is optional — an order without a preference is still valid", () => {
+    assert.equal(shopCheckoutSchema.safeParse(base).success, true);
+  });
+
+  it("accepts the two methods organisers already write", () => {
+    // `shipping`, not `delivery`: PATCH /api/orders/:id/status has used these
+    // two words since 0001, and two vocabularies for one column would drift.
+    for (const method of ["pickup", "shipping"]) {
+      assert.equal(
+        shopCheckoutSchema.safeParse({ ...base, fulfilment: { method } })
+          .success,
+        true,
+        method,
+      );
+    }
+    assert.equal(
+      shopCheckoutSchema.safeParse({ ...base, fulfilment: { method: "drone" } })
+        .success,
+      false,
+    );
+  });
+
+  it("bounds the note instead of taking whatever is pasted in", () => {
+    assert.equal(
+      fulfilmentRequestSchema.safeParse({
+        method: "shipping",
+        note: "x".repeat(300),
+      }).success,
+      true,
+    );
+    assert.equal(
+      fulfilmentRequestSchema.safeParse({
+        method: "shipping",
+        note: "x".repeat(301),
+      }).success,
+      false,
+    );
+  });
+
+  it("is not offered on the ticket flow", () => {
+    // Nothing is delivered for a ticket, and startCheckout drops the field
+    // for that kind anyway — so the schema should not invite it either.
+    const parsed = ticketCheckoutSchema.safeParse({
+      attendees: [
+        {
+          tierId: "sonnet",
+          name: "Ada Nkeng",
+          email: "ada@example.com",
+          apparelSize: "M",
+        },
+      ],
+      acceptedTerms: true,
+      contact: { email: "ada@example.com" },
+      locale: "fr",
+      fulfilment: { method: "shipping" },
+    });
+    assert.equal(parsed.success, true, "unknown keys are stripped, not fatal");
+    assert.ok(
+      !("fulfilment" in (parsed.success ? parsed.data : {})),
+      "a fulfilment sent with tickets must not survive parsing",
     );
   });
 });

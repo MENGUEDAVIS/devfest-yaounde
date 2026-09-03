@@ -32,6 +32,7 @@ export interface PaymentIntentRow {
   failure_code: string | null;
   terms_text: string | null;
   terms_accepted_at: string | null;
+  fulfilment: { method: string; note?: string } | null;
   created_at: string;
   activated_at: string | null;
 }
@@ -46,6 +47,8 @@ export interface CreateIntentInput {
   locale: string;
   /** The exact acknowledgment wording, resolved server-side. */
   termsText: string;
+  /** Shop only: what the buyer asked for. Copied onto the order. */
+  fulfilment?: { method: string; note?: string };
 }
 
 /**
@@ -89,6 +92,7 @@ export async function createPaymentIntent(
     p_tier_capacities: toJson(tierCapacities()),
     p_reservation_window: RESERVATION_WINDOW_SECONDS,
     p_terms_text: input.termsText,
+    p_fulfilment: input.fulfilment ? toJson(input.fulfilment) : undefined,
   });
 
   if (error) {

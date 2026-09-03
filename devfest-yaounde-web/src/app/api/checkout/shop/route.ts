@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
       quote,
       contact: input.contact,
       locale: input.locale,
+      fulfilment: input.fulfilment,
     });
     return Response.json({ ...result, quote });
   } catch (err) {

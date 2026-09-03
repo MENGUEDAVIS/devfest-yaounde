@@ -305,7 +305,7 @@
         "payment": "Payment"
       },
       "fulfilmentTitle": "Getting it to you",
-      "fulfilmentBody": "We'll coordinate pickup or delivery with you after checkout — the team gets in touch once the order is in.",
+      "fulfilmentBody": "Tell us what suits you. The team follows up after the order to sort the details.",
       "returnsTitle": "Returns and exchanges",
       "returnsBody": "We don't refund a change of mind. But if something arrives damaged, faulty or simply isn't what you ordered, we'll replace it — and apparel can be exchanged for a different size while stock lasts. Just get in touch, or find us at the next event.",
       "returnsAck": "I understand: no refunds for a change of mind, and exchanges are handled directly with the team.",
@@ -314,7 +314,11 @@
       "emptyAllConfirm": "Clear the whole bag?",
       "emptyAllYes": "Yes, empty it",
       "emptyAllCancel": "Keep it",
-      "metaDesc": "Tees, hoodies and the rest of the DevFest Yaoundé kit. Pay with Mobile Money, collect at the event."
+      "metaDesc": "Tees, hoodies and the rest of the DevFest Yaoundé kit. Pay with Mobile Money, collect at the event.",
+      "fulfilmentPickup": "I'll collect it",
+      "fulfilmentShipping": "I'd rather have it delivered",
+      "fulfilmentNoteLabel": "A landmark to help us (optional)",
+      "fulfilmentNotePlaceholder": "Neighbourhood, landmark, when you're around…"
     },
     "dpGenerator": {
       "title": "DP Generator",

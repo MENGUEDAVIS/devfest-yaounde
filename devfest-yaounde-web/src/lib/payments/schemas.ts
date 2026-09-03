@@ -95,8 +95,24 @@ export const cartLineSchema = z.object({
     .optional(),
 });
 
+/**
+ * What the buyer asks for. A PREFERENCE and a note — not a shipping engine:
+ * zones, fees and pickup windows are still undecided (PAGES.md §11), and the
+ * screen still says the team coordinates afterwards. Recording it here just
+ * saves someone having to ask every buyer the same two questions.
+ *
+ * `shipping` rather than `delivery` to match what organisers already write
+ * through PATCH /api/orders/:id/status.
+ */
+export const fulfilmentRequestSchema = z.object({
+  method: z.enum(["pickup", "shipping"]),
+  /** Free text: a neighbourhood, a landmark, when they are around. */
+  note: z.string().trim().max(300).optional(),
+});
+
 export const shopCheckoutSchema = z.object({
   cart: z.array(cartLineSchema).min(1).max(20),
+  fulfilment: fulfilmentRequestSchema.optional(),
   /**
    * The refund acknowledgment. A literal `true` — anything else is refused.
    *

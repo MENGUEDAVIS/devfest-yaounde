@@ -112,6 +112,11 @@ export function checkoutShop(input: {
   }[];
   /** As for tickets — goods carry their own wording, recorded server-side. */
   acceptedTerms: true;
+  /**
+   * How the buyer would like the order. Optional, and a PREFERENCE only —
+   * the team still coordinates. Recorded on the order so nobody has to ask.
+   */
+  fulfilment?: { method: "pickup" | "shipping"; note?: string };
   discountCode?: string;
   contact: CheckoutContact;
   locale: string;

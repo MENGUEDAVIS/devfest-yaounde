@@ -305,7 +305,7 @@
         "payment": "Paiement"
       },
       "fulfilmentTitle": "La récupération",
-      "fulfilmentBody": "On organise le retrait ou la livraison avec toi après la commande — l'équipe te contacte dès qu'elle arrive.",
+      "fulfilmentBody": "Dis-nous ce qui t'arrange. L'équipe te recontacte après la commande pour caler les détails.",
       "returnsTitle": "Retours et échanges",
       "returnsBody": "On ne rembourse pas un changement d'avis. En revanche, si un article arrive abîmé, défectueux ou ne correspond pas à ta commande, on le remplace — et les vêtements peuvent être échangés contre une autre taille, dans la limite des stocks. Écris-nous, ou retrouve-nous au prochain événement.",
       "returnsAck": "J'ai compris : pas de remboursement en cas de changement d'avis, et les échanges se règlent directement avec l'équipe.",
@@ -314,7 +314,11 @@
       "emptyAllConfirm": "Tout retirer du panier ?",
       "emptyAllYes": "Oui, vider",
       "emptyAllCancel": "Garder",
-      "metaDesc": "T-shirts, hoodies et tout le kit DevFest Yaoundé. Paiement Mobile Money, retrait sur place."
+      "metaDesc": "T-shirts, hoodies et tout le kit DevFest Yaoundé. Paiement Mobile Money, retrait sur place.",
+      "fulfilmentPickup": "Je récupère sur place",
+      "fulfilmentShipping": "Je préfère être livré",
+      "fulfilmentNoteLabel": "Un repère pour nous aider (facultatif)",
+      "fulfilmentNotePlaceholder": "Quartier, point de repère, quand tu es dispo…"
     },
     "dpGenerator": {
       "title": "Générateur de PP",

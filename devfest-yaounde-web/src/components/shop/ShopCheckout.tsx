@@ -65,6 +65,12 @@ export function ShopCheckout({ products }: { products: Product[] }) {
   const [discountError, setDiscountError] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  // A preference, not a commitment: the team still coordinates. Defaults to
+  // pickup because that is what most people do at a one-city event.
+  const [fulfilmentMethod, setFulfilmentMethod] = useState<
+    "pickup" | "shipping"
+  >("pickup");
+  const [fulfilmentNote, setFulfilmentNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<CheckoutError | null>(null);
 
@@ -105,6 +111,10 @@ export function ShopCheckout({ products }: { products: Product[] }) {
       const result = await checkoutShop({
         // Same gate as tickets; goods carry their own wording server-side.
         acceptedTerms: true,
+        fulfilment: {
+          method: fulfilmentMethod,
+          ...(fulfilmentNote.trim() ? { note: fulfilmentNote.trim() } : {}),
+        },
         cart: lines.map((line) => ({
           productId: line.productId,
           quantity: line.quantity,
@@ -340,31 +350,69 @@ export function ShopCheckout({ products }: { products: Product[] }) {
             }}
             extra={
               /*
-               * An INFORMATIONAL LINE, not a control.
+               * A real control again.
                *
-               * This was a pickup-vs-delivery radio group, and it was a fake
-               * control: the shop checkout schema has no fulfilment field
-               * (the order's column is organiser-set through PATCH), so the
-               * choice was collected and discarded. A control that changes
-               * nothing is worse than no control — it invites a decision and
-               * then ignores it. Buyer-settable fulfilment is a backend item
-               * (GAPS.md G13); until it exists, this says what will actually
-               * happen.
+               * This was a pickup-vs-delivery radio group, then an
+               * informational line, because the schema had no field for it and
+               * the choice was collected and discarded. Migration 0006 gives
+               * it somewhere to go: `shopCheckoutSchema.fulfilment` is carried
+               * onto the order under `requested`, where an organiser sees it
+               * and their own edits sit beside it rather than on top.
+               *
+               * Still a PREFERENCE, not a shipping engine — no zones, no fees,
+               * no windows (PAGES.md §11). The copy says the team follows up,
+               * because it does.
                */
-              <div className="flex items-start gap-3 rounded-lg border-2 border-black02 bg-offwhite p-5">
-                <Package
-                  size={22}
-                  weight="bold"
-                  className="mt-0.5 shrink-0 text-black02"
-                />
-                <div>
-                  <p className="text-body-m font-bold text-black02">
-                    {t("fulfilmentTitle")}
-                  </p>
-                  <p className="mt-1 text-body-m text-black02/75">
-                    {t("fulfilmentBody")}
-                  </p>
+              <div className="rounded-lg border-2 border-black02 bg-offwhite p-5">
+                <div className="flex items-start gap-3">
+                  <Package
+                    size={22}
+                    weight="bold"
+                    className="mt-0.5 shrink-0 text-black02"
+                  />
+                  <div>
+                    <p className="text-body-m font-bold text-black02">
+                      {t("fulfilmentTitle")}
+                    </p>
+                    <p className="mt-1 text-body-m text-black02/75">
+                      {t("fulfilmentBody")}
+                    </p>
+                  </div>
                 </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {(["pickup", "shipping"] as const).map((method) => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setFulfilmentMethod(method)}
+                      aria-pressed={fulfilmentMethod === method}
+                      className={`rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold transition-transform duration-200 ease-bouncy motion-reduce:transform-none ${
+                        fulfilmentMethod === method
+                          ? "bg-black02 text-offwhite"
+                          : "bg-white text-black02 hover:-translate-y-0.5"
+                      }`}
+                    >
+                      {method === "pickup"
+                        ? t("fulfilmentPickup")
+                        : t("fulfilmentShipping")}
+                    </button>
+                  ))}
+                </div>
+
+                <label className="mt-4 block">
+                  <span className="text-body-s font-bold text-black02">
+                    {t("fulfilmentNoteLabel")}
+                  </span>
+                  <input
+                    type="text"
+                    value={fulfilmentNote}
+                    maxLength={300}
+                    onChange={(e) => setFulfilmentNote(e.target.value)}
+                    placeholder={t("fulfilmentNotePlaceholder")}
+                    className="mt-1.5 w-full rounded-lg border-2 border-black02 bg-white px-4 py-2.5 font-sans text-body-m text-black02 placeholder:text-black02/40"
+                  />
+                </label>
               </div>
             }
           />
