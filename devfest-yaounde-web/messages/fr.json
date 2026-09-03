@@ -523,6 +523,7 @@
       "apparel_size_required": "Ce billet inclut un t-shirt : indique une taille pour chaque participant.",
       "attendee_count_mismatch": "Dix billets maximum par commande. Au-delà, écris-nous, on s'arrange.",
       "empty_basket": "Ton panier est vide — ajoute quelque chose avant de payer.",
+      "terms_not_accepted": "Il faut accepter les conditions avant de payer.",
       "discount_invalid": "Ce code ne fonctionne pas. Vérifie l'orthographe, ça se joue souvent à une lettre.",
       "discount_expired": "Ce code a expiré. Dommage — le tarif normal reste valable.",
       "discount_exhausted": "Ce code a déjà été utilisé le nombre de fois prévu.",

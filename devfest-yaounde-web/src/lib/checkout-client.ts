@@ -91,6 +91,12 @@ async function post(path: string, body: unknown): Promise<CheckoutResult> {
 
 export function checkoutTickets(input: {
   attendees: AttendeeInput[];
+  /**
+   * The refund acknowledgment. Required by the server, which records WHEN it
+   * was accepted and the exact wording it showed — see ADR 0022. The literal
+   * type means a call site cannot forget it or pass `false`.
+   */
+  acceptedTerms: true;
   discountCode?: string;
   contact: CheckoutContact;
   locale: string;
@@ -104,6 +110,8 @@ export function checkoutShop(input: {
     quantity: number;
     variant?: Record<string, string>;
   }[];
+  /** As for tickets — goods carry their own wording, recorded server-side. */
+  acceptedTerms: true;
   discountCode?: string;
   contact: CheckoutContact;
   locale: string;

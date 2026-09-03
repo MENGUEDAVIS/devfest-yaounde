@@ -39,6 +39,8 @@ function intent(overrides: Partial<PaymentIntentRow> = {}): PaymentIntentRow {
     contact: { email: "ada@example.com" },
     locale: "fr",
     failure_code: null,
+    terms_text: "Je comprends que les billets ne sont pas remboursables.",
+    terms_accepted_at: new Date().toISOString(),
     created_at: new Date().toISOString(),
     activated_at: null,
     ...overrides,

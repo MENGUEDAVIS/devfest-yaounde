@@ -70,6 +70,15 @@ export const attendeeSchema = z.object({
 
 export const ticketCheckoutSchema = z.object({
   attendees: z.array(attendeeSchema).min(1).max(10),
+  /**
+   * The refund acknowledgment. A literal `true` — anything else is refused.
+   *
+   * Only the FACT is taken from the client. The wording and the timestamp are
+   * resolved server-side (`terms.ts`), because a body that supplies its own
+   * text could record agreement to something never shown.
+   */
+  acceptedTerms: z.literal(true),
+
   discountCode: discountCodeSchema,
   contact: z.object({ email: emailSchema, phone: phoneSchema }),
   locale: localeSchema.default("fr"),
@@ -88,6 +97,15 @@ export const cartLineSchema = z.object({
 
 export const shopCheckoutSchema = z.object({
   cart: z.array(cartLineSchema).min(1).max(20),
+  /**
+   * The refund acknowledgment. A literal `true` — anything else is refused.
+   *
+   * Only the FACT is taken from the client. The wording and the timestamp are
+   * resolved server-side (`terms.ts`), because a body that supplies its own
+   * text could record agreement to something never shown.
+   */
+  acceptedTerms: z.literal(true),
+
   discountCode: discountCodeSchema,
   contact: z.object({ email: emailSchema, phone: phoneSchema }),
   locale: localeSchema.default("fr"),

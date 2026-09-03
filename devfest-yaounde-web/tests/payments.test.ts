@@ -24,6 +24,11 @@ import {
 } from "@/lib/security/badge-code";
 import { verifyCallback } from "@/lib/pawapay/verify";
 import { quoteTickets, quoteCart } from "@/lib/payments/pricing";
+import { refundAcknowledgment } from "@/lib/payments/terms";
+import {
+  ticketCheckoutSchema,
+  shopCheckoutSchema,
+} from "@/lib/payments/schemas";
 import { CHECKOUT_ERRORS, CheckoutError } from "@/lib/payments/errors";
 import {
   findProduct,
@@ -623,5 +628,74 @@ describe("dp generator helpers", () => {
         `caption names an account: ${caption}`,
       );
     }
+  });
+});
+
+describe("refund acknowledgment as evidence", () => {
+  it("is required by both checkout schemas", () => {
+    const ticket = {
+      attendees: [
+        {
+          tierId: "sonnet",
+          name: "Ada Nkeng",
+          email: "ada@example.com",
+          apparelSize: "M",
+        },
+      ],
+      contact: { email: "ada@example.com" },
+      locale: "fr",
+    };
+    // A body without the acknowledgment is refused outright — the checkbox
+    // used to gate only the button, so a direct POST simply skipped it.
+    assert.equal(ticketCheckoutSchema.safeParse(ticket).success, false);
+    assert.equal(
+      ticketCheckoutSchema.safeParse({ ...ticket, acceptedTerms: true })
+        .success,
+      true,
+    );
+
+    // `false` is not "declined and continue" — it is refused like an absence.
+    assert.equal(
+      ticketCheckoutSchema.safeParse({ ...ticket, acceptedTerms: false })
+        .success,
+      false,
+    );
+
+    const shop = {
+      cart: [{ productId: "sticker-pack", quantity: 1 }],
+      contact: { email: "ada@example.com" },
+      locale: "en",
+    };
+    assert.equal(shopCheckoutSchema.safeParse(shop).success, false);
+    assert.equal(
+      shopCheckoutSchema.safeParse({ ...shop, acceptedTerms: true }).success,
+      true,
+    );
+  });
+
+  it("records the wording the screen actually showed, per kind and locale", () => {
+    // Tickets and goods carry different terms, and always did: a ticket is
+    // not refundable at all, goods can be replaced when they arrive wrong.
+    // Storing the ticket wording against a shop order would be false evidence.
+    const ticketsFr = refundAcknowledgment("tickets", "fr");
+    const ticketsEn = refundAcknowledgment("tickets", "en");
+    const shopFr = refundAcknowledgment("shop", "fr");
+
+    assert.notEqual(
+      ticketsFr,
+      ticketsEn,
+      "each locale records its own wording",
+    );
+    assert.notEqual(ticketsFr, shopFr, "tickets and goods differ");
+    for (const text of [ticketsFr, ticketsEn, shopFr]) {
+      assert.ok(text.trim().length > 10, "wording must be the real sentence");
+    }
+  });
+
+  it("fails loudly rather than recording a placeholder", () => {
+    assert.throws(
+      () => refundAcknowledgment("tickets", "de" as never),
+      /refund acknowledgment copy/,
+    );
   });
 });

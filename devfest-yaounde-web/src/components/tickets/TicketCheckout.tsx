@@ -179,6 +179,9 @@ export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
       }));
       const result = await checkoutTickets({
         attendees: payload,
+        // The pay button is disabled until the box is ticked, so reaching
+        // here means it was. The server records when, and what wording.
+        acceptedTerms: true,
         ...(discountCode.trim() ? { discountCode: discountCode.trim() } : {}),
         contact: {
           email: profile?.email ?? attendees[0]?.email ?? "",

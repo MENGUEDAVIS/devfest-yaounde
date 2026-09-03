@@ -103,6 +103,8 @@ export function ShopCheckout({ products }: { products: Product[] }) {
     setError(null);
     try {
       const result = await checkoutShop({
+        // Same gate as tickets; goods carry their own wording server-side.
+        acceptedTerms: true,
         cart: lines.map((line) => ({
           productId: line.productId,
           quantity: line.quantity,

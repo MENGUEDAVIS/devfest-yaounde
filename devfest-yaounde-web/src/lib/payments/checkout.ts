@@ -20,6 +20,7 @@ import { createPaymentIntent, logPaymentEvent } from "./intents";
 import { fulfilFreeIntent } from "./apply";
 import { createDepositId, createPaymentPage } from "@/lib/pawapay/client";
 import { assertBadgeSecretConfigured } from "@/lib/security/badge-code";
+import { refundAcknowledgment } from "./terms";
 
 export interface CheckoutResult {
   depositId: string;
@@ -66,6 +67,9 @@ export async function startCheckout(
     attendees: input.attendees,
     contact: input.contact,
     locale: input.locale,
+    // Evidence, not a claim: the wording comes from our own messages for the
+    // locale the buyer was served, never from the request body.
+    termsText: refundAcknowledgment(input.kind, input.locale),
   });
 
   if (created.status === "sold_out") {

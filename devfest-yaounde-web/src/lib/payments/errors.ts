@@ -22,6 +22,7 @@ export const CHECKOUT_ERRORS = {
   APPAREL_SIZE_REQUIRED: "apparel_size_required",
   ATTENDEE_COUNT_MISMATCH: "attendee_count_mismatch",
   EMPTY_BASKET: "empty_basket",
+  TERMS_NOT_ACCEPTED: "terms_not_accepted",
   DISCOUNT_INVALID: "discount_invalid",
   DISCOUNT_EXPIRED: "discount_expired",
   DISCOUNT_EXHAUSTED: "discount_exhausted",

@@ -30,6 +30,8 @@ export interface PaymentIntentRow {
   contact: { email: string; phone?: string };
   locale: string;
   failure_code: string | null;
+  terms_text: string | null;
+  terms_accepted_at: string | null;
   created_at: string;
   activated_at: string | null;
 }
@@ -42,6 +44,8 @@ export interface CreateIntentInput {
   attendees?: AttendeeInput[];
   contact: { email: string; phone?: string };
   locale: string;
+  /** The exact acknowledgment wording, resolved server-side. */
+  termsText: string;
 }
 
 /**
@@ -84,6 +88,7 @@ export async function createPaymentIntent(
     p_locale: input.locale,
     p_tier_capacities: toJson(tierCapacities()),
     p_reservation_window: RESERVATION_WINDOW_SECONDS,
+    p_terms_text: input.termsText,
   });
 
   if (error) {

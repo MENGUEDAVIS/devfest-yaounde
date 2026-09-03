@@ -523,6 +523,7 @@
       "apparel_size_required": "This ticket comes with a tee — give us a size for each attendee.",
       "attendee_count_mismatch": "Ten tickets max per order. Need more? Write to us, we'll sort it.",
       "empty_basket": "Your bag is empty — add something before checking out.",
+      "terms_not_accepted": "You'll need to accept the terms before paying.",
       "discount_invalid": "That code doesn't work. Check the spelling, it's usually one letter.",
       "discount_expired": "That code has expired. Shame — the standard price still stands.",
       "discount_exhausted": "That code has already been used as many times as it allows.",

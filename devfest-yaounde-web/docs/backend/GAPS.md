@@ -118,7 +118,7 @@ scanning, not the ability to enter.
 approved; `qrcode` renders the badge client-side, with the readable code kept
 alongside it.
 
-### G7 — No per-attendee phone; email is mandatory server-side
+### G7 — No per-attendee phone — CLOSED, no change wanted
 
 The brief asked for "phone AND/OR email, at least one" per attendee. The server
 does not allow it: `attendeeSchema` **requires** `email` and has **no phone
@@ -129,9 +129,10 @@ solely to pre-fill the PawaPay page.
 optional phone per attendee for the buyer's own record — clearly labelled
 optional, and **not sent**, because there is nowhere to put it.
 
-**Needs a decision:** if identifying an attendee by phone alone matters, that
-is a schema change — `attendeeSchema`, the `tickets` table, and the email
-dispatch that currently assumes an address.
+**DECIDED 2026-09-02: leave it.** Receipts go by email, which is the normal
+way to reach a ticket holder, so email stays mandatory and no per-attendee
+phone column is added. The optional phone the UI collects for the buyer's own
+record is still not sent, and that remains correct.
 
 ### G8 — "This one's mine" is not a server field
 
@@ -142,18 +143,21 @@ bought for someone".
 **Phase 14 does:** uses it to prefill name and email from the signed-in
 profile, and says nothing about ownership it cannot back up.
 
-### G9 — The non-refundable acknowledgment is not enforced server-side
+### G9 — The non-refundable acknowledgment — RESOLVED
 
 The checkbox gates the pay button in the browser. There is no field for it in
 `ticketCheckoutSchema`, so a request posted directly to the API succeeds
 without it.
 
-**Phase 14 does:** ships the gate, because it is the right UI. It does not
-pretend the consent is recorded.
+**Phase 14 did:** ship the gate, because it is the right UI, without
+pretending the consent was recorded.
 
-**Needs a decision:** whether the acknowledgment must be evidence (a stored
-`accepted_terms_at`) or is only an interface affordance. See
-`docs/content/refund-policy.md`.
+**RESOLVED 2026-09-02** — decided that it must be evidence.
+[ADR 0022](../decisions/0022-terms-consent-record.md): both schemas now
+require `acceptedTerms: true`, and `payment_intents` stores
+`terms_accepted_at` (the server's clock) and `terms_text` (the exact wording,
+re-read server-side from the messages for that locale — never from the request
+body). Tickets and goods record their own separate wording.
 
 ### G10 — The Bevy URL — RESOLVED
 
@@ -177,6 +181,9 @@ not have, and they would drift the moment the catalog is edited.
 
 **ACCEPTED 2026-09-02.** Availability + search is the filter. Categories are a
 backend item, left documented.
+
+**Deferred again 2026-09-02:** they will be packages rather than plain
+categories, and the shape is not settled. Nothing to build until it is.
 
 ### G12 — No per-variant inventory
 
@@ -293,8 +300,12 @@ decision record, not a quiet feature addition". That record is ADR 0021, and
 it also un-annotates the "Uploads (DP Generator)" section of the security
 checklist, which applies again.
 
-**The blocking item is not code.** The wall publishes photographs of people's
-faces on a public page. Review before publication, a takedown path and a
+**Timing decided 2026-09-02:** the wall goes on once people are actually
+producing cards — not before. Building the endpoints ahead of that is fine;
+turning the flag on is what waits.
+
+**The blocking item is still not code.** The wall publishes photographs of
+people's faces on a public page. Review before publication, a takedown path and a
 retention rule all have to exist, and someone has to run the queue. If that is
 not in place, the honest move is to leave the flag off.
 
