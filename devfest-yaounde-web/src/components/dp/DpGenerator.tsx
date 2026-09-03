@@ -170,7 +170,6 @@ export function DpGenerator() {
   const [error, setError] = useState<ErrorCode | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [busy, setBusy] = useState<"download" | "share" | "wall" | null>(null);
-  const [wallConsent, setWallConsent] = useState(false);
   const [wallSent, setWallSent] = useState<"approved" | "pending" | null>(null);
   const [dropping, setDropping] = useState(false);
   const [tab, setTab] = useState<Group>("info");
@@ -370,7 +369,6 @@ export function DpGenerator() {
    * consent to publish the next one.
    */
   async function onSendToWall() {
-    if (!wallConsent) return;
     setBusy("wall");
     setNotice(null);
     const blob = await render();
@@ -385,7 +383,6 @@ export function DpGenerator() {
         // is a deployment decision (ADR 0027), so the screen must not promise
         // a review that is not happening.
         setWallSent(sent.status);
-        setWallConsent(false);
         setNotice("wallSent");
       } catch (err) {
         setNotice(
@@ -994,7 +991,15 @@ export function DpGenerator() {
                     ))}
                   </div>
 
-                  <div className="mt-5 flex flex-col gap-3 sm:max-w-sm">
+                  {/* Said once, where the actions are, rather than as a tick
+                      nobody reads. It has to be visible BEFORE the buttons,
+                      or it is not a term someone accepted — it is a notice
+                      they were shown afterwards. */}
+                  <p className="mt-5 max-w-md text-caption text-black02/70">
+                    {t("terms")}
+                  </p>
+
+                  <div className="mt-3 flex flex-col gap-3 sm:max-w-sm">
                     <button
                       type="button"
                       onClick={() => void onDownload()}
@@ -1048,21 +1053,21 @@ export function DpGenerator() {
                       <p className="mt-2 text-body-m text-black02/80">
                         {t("wall.body")}
                       </p>
-                      <label className="mt-4 flex items-start gap-3">
-                        <input
-                          type="checkbox"
-                          checked={wallConsent}
-                          onChange={(e) => setWallConsent(e.target.checked)}
-                          className="mt-0.5 h-5 w-5 shrink-0 rounded-sm border-2 border-black02 accent-[var(--color-primary)]"
-                        />
-                        <span className="text-body-m font-bold text-black02">
-                          {t("wall.consent")}
-                        </span>
-                      </label>
+                      {/*
+                        THE BUTTON IS THE CONSENT.
+                        The wording sits directly above it and is what the
+                        server records as `consent_text`, so the record still
+                        says exactly what was on screen when someone pressed
+                        it — it is just no longer gated behind a second click
+                        that only ever had one sensible answer.
+                      */}
+                      <p className="mt-4 text-body-m font-bold text-black02">
+                        {t("wall.consent")}
+                      </p>
                       <button
                         type="button"
                         onClick={() => void onSendToWall()}
-                        disabled={!photo || !wallConsent || busy !== null}
+                        disabled={!photo || busy !== null}
                         className="mt-4 inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-6 py-3 font-sans text-body-m font-bold text-black02 hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <UsersThree size={18} weight="bold" aria-hidden />

@@ -118,10 +118,7 @@ export async function POST(request: NextRequest) {
   // 201 with the token, exactly once. Only its hash is kept.
   // The status is whatever actually happened — auto-approved or queued —
   // so the screen can tell the truth (ADR 0027).
-  return Response.json(
-    { deletionToken: token, status },
-    { status: 201 },
-  );
+  return Response.json({ deletionToken: token, status }, { status: 201 });
 }
 
 export async function GET(request: NextRequest) {
