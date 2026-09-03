@@ -325,7 +325,7 @@ Worth doing before the event rather than after the first dispute.
 
 ### G21 — The wall has no report path for visitors
 
-The wall page is built (ADR 0028) and the backend behind it exists (ADR 0026),
+The wall page is built (ADR 0030) and the backend behind it exists (ADR 0026),
 with publication defaulting to no review (ADR 0027). Retro-moderation is real:
 `PATCH /api/dp/gallery/:id` with `rejected` deletes the image.
 

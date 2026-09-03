@@ -10,7 +10,7 @@ export function AdminWall({ data }: { data: AdminData }) {
         <ReadOnlyNotice>
           `NEXT_PUBLIC_DP_GALLERY` is not set, so no card can be submitted and
           the endpoints answer 404. The public wall shows labelled placeholders
-          until it is on. See ADR 0021, 0026 and 0028.
+          until it is on. See ADR 0021, 0026 and 0030.
         </ReadOnlyNotice>
         <p className="text-body-m text-black02/80">
           Before switching it on: someone has to watch the wall (cards publish

@@ -1,4 +1,4 @@
-# 0028 — What the community wall page shows, and what it does not
+# 0030 — What the community wall page shows, and what it does not
 
 Date: 2026-09-03
 Status: Accepted
