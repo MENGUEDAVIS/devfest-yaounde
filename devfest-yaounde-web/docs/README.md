@@ -25,8 +25,8 @@ Start from what you are trying to do.
    server-side from `src/data/*.json` by id. A `priceXAF` in a request body is
    ignored.
 2. **We ask PawaPay; we are never told.** There is no callback in this flow —
-   settlement happens by polling and by a five-minute sweep. `CRON_SECRET` is
-   therefore load-bearing, not optional.
+   settlement happens by polling and by a five-minute sweep from Supabase
+   `pg_cron` (ADR 0028). `CRON_SECRET` is therefore load-bearing, not optional.
 3. **Delivery is one guarded transaction.** `apply_paid_deposit` claims the
    intent `FOR UPDATE` behind a `status = 'pending'` guard, so any number of
    concurrent callers deliver exactly once.
@@ -52,7 +52,8 @@ or amend an earlier one.
 | [0016](decisions/0016-capacity-reservations.md)          | Capacity & discount reservations | Accepted                                 |
 | [0017](decisions/0017-pawapay-token-from-ssm.md)         | Token from AWS SSM               | Accepted, **not the default — see 0018** |
 | [0018](decisions/0018-secrets-in-supabase-vault.md)      | Supabase Vault as secret store   | Accepted — **current default**           |
-| [0019](decisions/0019-settle-by-polling-not-callback.md) | Settle by polling, not callback  | Accepted — **current model**             |
+| [0019](decisions/0019-settle-by-polling-not-callback.md) | Settle by polling, not callback  | Accepted, **amended by 0028**            |
+| [0028](decisions/0028-cleanup-sweep-from-supabase.md)    | Sweep invoked by Supabase cron   | Accepted — **Hobby cannot use Vercel */5** |
 
 **Site and design**
 
