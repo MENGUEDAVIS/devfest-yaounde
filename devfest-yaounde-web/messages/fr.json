@@ -488,7 +488,10 @@
       "backToTickets": "Voir les billets",
       "viewAccount": "Voir mes billets",
       "scanAtDoor": "À scanner à l'entrée",
-      "metaDesc": "Confirmation de ton paiement."
+      "metaDesc": "Confirmation de ton paiement.",
+      "awaitingTitle": "On n'a pas encore vu ton paiement",
+      "awaitingBody": "Rien n'a été débité. Si tu as annulé, tu peux reprendre quand tu veux — et si tu viens juste de valider sur ton téléphone, laisse-nous une minute puis recharge.",
+      "refresh": "Recharger"
     },
     "account": {
       "title": "Mon compte",
