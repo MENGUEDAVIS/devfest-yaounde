@@ -690,6 +690,23 @@ body:has(main[data-wall]) footer {
 }
 
 /*
+ * The admin dashboard is not the public site.
+ *
+ * It lives under `[locale]` because this app has no second root layout, and
+ * adding one would restructure every route for the sake of one. So the shared
+ * chrome is suppressed here instead: no navbar, no announcement, no footer, no
+ * splash screen on an internal tool someone opens forty times a day.
+ *
+ * Keyed on `[data-admin]`, which only the admin layout renders — and that
+ * layout only renders at all for an organiser.
+ */
+body:has([data-admin]) header,
+body:has([data-admin]) footer,
+body:has([data-admin]) [data-preloader] {
+  display: none;
+}
+
+/*
  * ---------------------------------------------------- the community wall ---
  *
  * The wall is WIDER THAN THE SCREEN and pulled left, so the outermost columns

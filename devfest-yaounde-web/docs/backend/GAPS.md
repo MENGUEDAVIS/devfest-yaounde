@@ -303,6 +303,26 @@ exists.
 needs no edit, because the picker renders whatever `DP_FRAMES` contains and the
 swatch already draws each frame's mask shape.
 
+### G22 — Nothing records what an organiser did
+
+`payment_events` logs the payment lifecycle. It does not log **people**. The
+two privileged writes that exist — moving a shop order along
+(`PATCH /api/orders/:id/status`) and moderating a card
+(`PATCH /api/dp/gallery/:id`) — change a row and leave no actor, no before,
+and no history.
+
+For a back-office several volunteers can reach, where the state being changed
+is money-adjacent and the moderation decisions are about people's faces, "who
+marked this delivered?" and "who deleted that card?" have no answer.
+
+**Needs a table and one write per privileged action** — actor, action, target,
+before/after, timestamp — so it is backend, not this phase. The dashboard is
+built assuming it will arrive: every write it performs goes through an
+existing endpoint, so adding the log there covers the UI too, with no
+dashboard change.
+
+Worth doing before the event rather than after the first dispute.
+
 ### G21 — The wall has no report path for visitors
 
 The wall page is built (ADR 0028) and the backend behind it exists (ADR 0026),

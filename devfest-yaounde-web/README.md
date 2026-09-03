@@ -49,6 +49,7 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 - **One shared overlay shell** (`Modal`) powering both the classic dialog and the slider's full-page takeover, and **one shared bottom sheet** (`BottomSheet`) powering both the mobile filter drawer and mobile card details.
 - **No link that goes nowhere** — placeholder URLs are never rendered as anchors: icon-only links are filtered at source, expected labels degrade to plain text. That removed 164 dead anchors, the site's biggest SEO defect.
 - **Launch-grade SEO** — per-page, per-locale titles and descriptions, canonical URLs, `hreflang` alternates both ways, OpenGraph and Twitter cards, branded OG images rendered on demand by `next/og`, `sitemap.xml`, `robots.txt` and `Organization`/`Product` structured data. See `docs/guides/seo.md`.
+- **Admin dashboard** (`/{locale}/admin`) — organiser-gated server-side, `noindex`, linked from nowhere. Real reads for tickets, transactions, orders, discounts and users; the one write goes through the existing organiser endpoint. See `docs/backend/ADMIN-CAPABILITIES.md`.
 - **Branded preloader** — a looping text-scramble over a drifting dot field on first load only, theme-aware, static under reduced motion. See `docs/components/preloader.md`.
 - **Custom desktop cursor** — a trailing rounded arrow in the theme's contrasting colour, disabled entirely on touch and under reduced motion. See `docs/guides/custom-cursor.md`.
 

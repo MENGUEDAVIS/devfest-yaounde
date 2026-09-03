@@ -48,6 +48,13 @@ import { layoutCard, PAD, PLATE_INSET } from "@/lib/dp/geometry";
 import { ALL_STICKERS, TEXT_STICKERS, stickerName } from "@/lib/dp/stickers";
 import { galleryEnabled, GALLERY_MAX_EDGE } from "@/lib/dp/gallery";
 import {
+  csvCell,
+  toCsv,
+  parseCsv,
+  dryRun,
+  looksLikeFormula,
+} from "@/lib/admin/csv";
+import {
   hashToken,
   mintDeletionToken,
   tokensMatch,
@@ -554,6 +561,77 @@ describe("dp community wall", () => {
 
   it("uploads a thumbnail, not the download", () => {
     assert.ok(GALLERY_MAX_EDGE < 1080);
+  });
+});
+
+describe("admin csv safety", () => {
+  it("neutralises every character a spreadsheet would execute", () => {
+    // The nickname field is free text typed by strangers, and it ends up in
+    // an organiser's Excel. OWASP CSV injection.
+    for (const attack of [
+      '=HYPERLINK("http://evil","Click")',
+      "+1+1",
+      "-2+3",
+      "@SUM(A1:A9)",
+      "\tcmd",
+      "\rcmd",
+    ]) {
+      const cell = csvCell(attack);
+      assert.ok(
+        cell.startsWith("'") || cell.startsWith("\"'"),
+        `not neutralised: ${JSON.stringify(cell)}`,
+      );
+    }
+  });
+
+  it("quotes before it can hide the formula marker", () => {
+    // Order matters: quoting first would bury the leading `=` behind a quote
+    // and the check would stop matching.
+    const cell = csvCell('=1+1,"x"');
+    assert.ok(cell.includes("'=1+1"), cell);
+    assert.ok(cell.startsWith('"'), cell);
+  });
+
+  it("leaves ordinary values alone", () => {
+    assert.equal(csvCell("Ada Nkeng"), "Ada Nkeng");
+    assert.equal(csvCell(2000), "2000");
+    assert.equal(csvCell(null), "");
+    assert.equal(csvCell("with, comma"), '"with, comma"');
+  });
+
+  it("round-trips quoted fields, doubled quotes and embedded newlines", () => {
+    const csv = toCsv(["a", "b"], [['say "hi"', "two\nlines"]]);
+    const parsed = parseCsv(csv);
+    assert.deepEqual(parsed.headers, ["a", "b"]);
+    assert.deepEqual(parsed.rows, [['say "hi"', "two\nlines"]]);
+  });
+
+  it("reports every problem in a sheet, not just the first", () => {
+    const csv = "id,name\n,Ada\nb2,\nb3,=cmd()";
+    const result = dryRun(parseCsv(csv), [
+      { column: "id", required: true },
+      { column: "name", required: true, maxLength: 10 },
+    ]);
+    assert.equal(result.rows.length, 3);
+    // missing id, missing name, and a formula — three separate rows
+    assert.ok(result.issues.length >= 3, JSON.stringify(result.issues));
+    assert.ok(result.issues.some((i) => /formula/.test(i.problem)));
+    // Row numbers are 1-based WITH the header, so they match the spreadsheet.
+    assert.equal(result.issues[0].row, 2);
+  });
+
+  it("names columns it does not know and required ones it cannot find", () => {
+    const result = dryRun(parseCsv("id,nickname\nx,y"), [
+      { column: "id", required: true },
+      { column: "name", required: true },
+    ]);
+    assert.deepEqual(result.missingColumns, ["name"]);
+    assert.deepEqual(result.unknownColumns, ["nickname"]);
+  });
+
+  it("flags formulas on the way in as well as out", () => {
+    assert.ok(looksLikeFormula("=1+1"));
+    assert.ok(!looksLikeFormula("Ada"));
   });
 });
 
