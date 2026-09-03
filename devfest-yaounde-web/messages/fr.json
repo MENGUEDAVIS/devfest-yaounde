@@ -515,6 +515,7 @@
       "rate_limited": "Doucement — trop de tentatives d'un coup. Reprends dans quelques minutes.",
       "unknown_tier": "Ce type de billet n'existe plus. Recharge la page pour voir ceux qui restent.",
       "tier_not_on_sale": "Ce billet n'est plus en vente. Il en reste d'autres, jette un œil.",
+      "tier_rsvp_external": "Ce pass ne se prend pas ici — il passe par la page de la communauté.",
       "tier_sold_out": "Plus de place sur ce billet — il est parti vite. Essaie une autre catégorie.",
       "unknown_product": "Cet article n'est plus au catalogue. Recharge la boutique.",
       "product_unavailable": "Cet article n'est pas commandable en ligne pour l'instant.",

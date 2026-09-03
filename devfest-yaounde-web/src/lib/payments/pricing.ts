@@ -125,6 +125,13 @@ export async function quoteTickets(
     const tier = findTier(attendee.tierId);
     if (!tier) throw new CheckoutError(CHECKOUT_ERRORS.UNKNOWN_TIER);
     if (!tier.onSale) throw new CheckoutError(CHECKOUT_ERRORS.TIER_NOT_ON_SALE);
+    // `rsvpExternal` is not a display hint. The tier is not sold here at all:
+    // the RSVP is delegated to the community platform, which enforces one per
+    // person. Without this check a direct POST mints unlimited free tickets
+    // with valid badge codes and bypasses that rule entirely.
+    if (tier.rsvpExternal) {
+      throw new CheckoutError(CHECKOUT_ERRORS.TIER_RSVP_EXTERNAL);
+    }
     if (tier.includesApparel && !attendee.apparelSize) {
       throw new CheckoutError(CHECKOUT_ERRORS.APPAREL_SIZE_REQUIRED);
     }

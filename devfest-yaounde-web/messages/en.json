@@ -515,6 +515,7 @@
       "rate_limited": "Easy there — too many tries at once. Give it a few minutes.",
       "unknown_tier": "That ticket type is gone. Reload the page to see what's left.",
       "tier_not_on_sale": "That ticket isn't on sale any more. There are others — take a look.",
+      "tier_rsvp_external": "This pass isn't taken here — it goes through the community page.",
       "tier_sold_out": "That one's sold out — it went fast. Try another tier.",
       "unknown_product": "That item is no longer in the catalog. Reload the shop.",
       "product_unavailable": "That item can't be ordered online right now.",

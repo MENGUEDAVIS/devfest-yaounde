@@ -30,6 +30,7 @@ import {
   findTier,
   isValidVariant,
   isPurchasable,
+  sellableTiers,
 } from "@/lib/payments/catalog";
 import { dpFileName } from "@/lib/dp/compose";
 import { shareCaption } from "@/lib/dp/share";
@@ -351,11 +352,38 @@ describe("server-side pricing", () => {
     assert.equal(basket.currency, "XAF");
   });
 
-  it("charges nothing for the free tier", async () => {
-    const basket = await quoteTickets([
-      { tierId: "haikyu", name: "Ada Nkeng", email: "ada@example.com" },
-    ]);
-    assert.equal(basket.charged, 0);
+  it("refuses a tier whose RSVP is delegated off-site", async () => {
+    // haikyu carries rsvpExternal: the community platform enforces one free
+    // RSVP per person. Without a server check, a direct POST would mint
+    // unlimited free tickets with valid badge codes and bypass that entirely.
+    const free = findTier("haikyu")!;
+    assert.equal(free.rsvpExternal, true, "fixture assumption");
+    assert.equal(free.priceXAF, 0, "fixture assumption");
+
+    await rejectsWith(
+      quoteTickets([
+        { tierId: "haikyu", name: "Ada Nkeng", email: "ada@example.com" },
+      ]),
+      CHECKOUT_ERRORS.TIER_RSVP_EXTERNAL,
+    );
+  });
+
+  it("has no tier that is both free and sold here", () => {
+    // This used to assert that haikyu checked out at 0 XAF. It no longer can:
+    // the free pass became `rsvpExternal` when the RSVP moved to the community
+    // platform, so nothing purchasable costs nothing.
+    //
+    // The zero-charge path in `startCheckout` is still live and still needed —
+    // a 100%-off discount reaches it — which is why `fulfilFreeIntent` stays.
+    // It just cannot be reached through a tier price any more.
+    const sellableFree = sellableTiers().filter(
+      (tier) => tier.priceXAF === 0 && !tier.rsvpExternal,
+    );
+    assert.deepEqual(
+      sellableFree.map((tier) => tier.id),
+      [],
+      "a free, non-external tier would need the checkout path re-tested",
+    );
   });
 
   it("ignores any price the caller tries to smuggle in", async () => {

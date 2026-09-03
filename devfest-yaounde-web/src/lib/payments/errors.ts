@@ -14,6 +14,7 @@ export const CHECKOUT_ERRORS = {
   RATE_LIMITED: "rate_limited",
   UNKNOWN_TIER: "unknown_tier",
   TIER_NOT_ON_SALE: "tier_not_on_sale",
+  TIER_RSVP_EXTERNAL: "tier_rsvp_external",
   TIER_SOLD_OUT: "tier_sold_out",
   UNKNOWN_PRODUCT: "unknown_product",
   PRODUCT_UNAVAILABLE: "product_unavailable",
