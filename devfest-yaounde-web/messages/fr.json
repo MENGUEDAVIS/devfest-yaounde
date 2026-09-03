@@ -459,11 +459,12 @@
       "metaDesc": "Crée ta photo de profil DevFest Yaoundé dans ton navigateur — un style, un recadrage, des stickers, et tu télécharges. Rien n'est envoyé.",
       "wall": {
         "title": "Mets-la sur le mur de la communauté",
-        "body": "Une copie plus légère part chez GDG Yaoundé et apparaît sur le mur DevFest une fois que l'équipe l'a regardée. Ton téléchargement pleine taille reste à toi, et rien n'est publié ailleurs.",
+        "body": "Une copie plus légère part chez GDG Yaoundé et apparaît aussitôt sur le mur DevFest. Ton téléchargement, lui, reste en pleine qualité sur ton appareil.",
         "consent": "Oui — affichez cette carte, avec ma photo, sur le mur public de la communauté.",
         "send": "Envoyer au mur",
         "sending": "Envoi…",
-        "pending": "Envoyé. Elle apparaîtra sur le mur après relecture de l'équipe — tu peux nous demander de la retirer à tout moment."
+        "pending": "Envoyée. Elle apparaîtra sur le mur après relecture de l'équipe — tu peux nous demander de la retirer à tout moment.",
+        "live": "Envoyée, elle est sur le mur. Tu peux nous demander de la retirer à tout moment."
       }
     },
     "paymentReturn": {
@@ -524,8 +525,10 @@
       "unknown_product": "Cet article n'est plus au catalogue. Recharge la boutique.",
       "product_unavailable": "Cet article n'est pas commandable en ligne pour l'instant.",
       "invalid_variant": "Choisis une taille et une couleur disponibles avant de continuer.",
+      "variant_sold_out": "Cette taille ou cette couleur vient de partir. Essaie une autre combinaison.",
       "apparel_size_required": "Ce billet inclut un t-shirt : indique une taille pour chaque participant.",
       "attendee_count_mismatch": "Dix billets maximum par commande. Au-delà, écris-nous, on s'arrange.",
+      "multiple_self": "Un seul billet peut être le tien.",
       "empty_basket": "Ton panier est vide — ajoute quelque chose avant de payer.",
       "terms_not_accepted": "Il faut accepter les conditions avant de payer.",
       "discount_invalid": "Ce code ne fonctionne pas. Vérifie l'orthographe, ça se joue souvent à une lettre.",

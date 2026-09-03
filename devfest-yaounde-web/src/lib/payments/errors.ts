@@ -19,6 +19,7 @@ export const CHECKOUT_ERRORS = {
   UNKNOWN_PRODUCT: "unknown_product",
   PRODUCT_UNAVAILABLE: "product_unavailable",
   INVALID_VARIANT: "invalid_variant",
+  VARIANT_SOLD_OUT: "variant_sold_out",
   APPAREL_SIZE_REQUIRED: "apparel_size_required",
   ATTENDEE_COUNT_MISMATCH: "attendee_count_mismatch",
   EMPTY_BASKET: "empty_basket",

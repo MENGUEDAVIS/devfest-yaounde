@@ -17,7 +17,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("tickets")
     .select(
-      "id, tier_id, attendee_name, attendee_email, apparel_size, badge_code, checked_in_at, created_at",
+      "id, tier_id, attendee_name, attendee_email, apparel_size, badge_code, checked_in_at, created_at, is_self",
     )
     .order("created_at", { ascending: false });
 

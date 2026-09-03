@@ -20,6 +20,12 @@ export interface AttendeeInput {
   name: string;
   email: string;
   apparelSize?: string;
+  /**
+   * "This one's mine". At most one per order — the server refuses two.
+   * Recorded on the ticket so `/account` and the door can tell which ticket
+   * belongs to the person who paid.
+   */
+  isSelf?: boolean;
 }
 
 export interface CheckoutContact {
