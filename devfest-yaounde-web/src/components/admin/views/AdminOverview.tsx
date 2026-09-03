@@ -76,7 +76,7 @@ export function AdminOverview({
                 content.products +
                 content.tiers,
             )}
-            note="Across every data file"
+            note="Across every collection"
           />
         </div>
       </Panel>

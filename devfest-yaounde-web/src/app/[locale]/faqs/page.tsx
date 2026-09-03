@@ -4,10 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { FaqBrowser } from "@/components/faqs/FaqBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import faqs from "@/data/faqs.json";
-import type { FaqItem } from "@/data/types";
-
-const allFaqs = faqs as FaqItem[];
+import { getFaqs } from "@/lib/content/store";
 
 export async function generateMetadata({
   params,
@@ -32,6 +29,7 @@ export default async function FaqsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.faqs");
+  const allFaqs = await getFaqs();
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">

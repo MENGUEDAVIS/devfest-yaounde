@@ -37,6 +37,8 @@ export const RATE_LIMITS = {
    * for a person and tedious for a script.
    */
   dpGallery: { bucket: "dp_gallery", limit: 5, windowSeconds: 3600 },
+  /** Dashboard writes. Generous for a person, useless for a script. */
+  adminWrite: { bucket: "admin-write", limit: 60, windowSeconds: 300 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export interface RateLimitResult {

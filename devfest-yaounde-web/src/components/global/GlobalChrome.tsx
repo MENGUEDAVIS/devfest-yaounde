@@ -22,7 +22,11 @@ const DISMISS_KEY = "devfest-announcement-dismissed";
  * height to zero via the grid-template-rows 1fr->0fr technique, so the nav
  * smoothly reclaims the space instead of hard-jumping.
  */
-export function GlobalChrome() {
+export function GlobalChrome({
+  announcementMessage,
+}: {
+  announcementMessage?: string;
+} = {}) {
   const [dismissed, dismiss] = useSessionDismissed(DISMISS_KEY);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -103,6 +107,7 @@ export function GlobalChrome() {
               hidden={!bannerOpen}
               dismissible={!onWall}
               messageKey={onWall ? "wall" : undefined}
+              messageOverride={onWall ? undefined : announcementMessage}
             />
           </div>
         </div>

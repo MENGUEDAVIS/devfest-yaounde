@@ -20,6 +20,8 @@ import {
   findTier,
   isPurchasable,
   isValidVariant,
+  loadProducts,
+  loadTiers,
 } from "./catalog";
 import { CHECKOUT_ERRORS, CheckoutError } from "./errors";
 import { createAdminSupabase } from "@/lib/supabase/server";
@@ -121,9 +123,10 @@ export async function quoteTickets(
     throw new CheckoutError(CHECKOUT_ERRORS.ATTENDEE_COUNT_MISMATCH);
   }
 
+  const tiers = await loadTiers();
   const counts = new Map<string, AttendeeInput[]>();
   for (const attendee of attendees) {
-    const tier = findTier(attendee.tierId);
+    const tier = findTier(attendee.tierId, tiers);
     if (!tier) throw new CheckoutError(CHECKOUT_ERRORS.UNKNOWN_TIER);
     if (!tier.onSale) throw new CheckoutError(CHECKOUT_ERRORS.TIER_NOT_ON_SALE);
     // `rsvpExternal` is not a display hint. The tier is not sold here at all:
@@ -143,7 +146,7 @@ export async function quoteTickets(
 
   const lines: PricedLine[] = [];
   for (const [tierId, group] of counts) {
-    const tier = findTier(tierId)!;
+    const tier = findTier(tierId, tiers)!;
     // Optimistic fast-fail only: one order asking for more than the tier ever
     // had. It says nothing about what is still free, because a count taken
     // here would be stale by the time we insert. The binding check is the
@@ -176,9 +179,10 @@ export async function quoteCart(
 ): Promise<PricedBasket> {
   if (cart.length === 0) throw new CheckoutError(CHECKOUT_ERRORS.EMPTY_BASKET);
 
+  const products = await loadProducts();
   const lines: PricedLine[] = [];
   for (const line of cart) {
-    const product = findProduct(line.productId);
+    const product = findProduct(line.productId, products);
     if (!product) throw new CheckoutError(CHECKOUT_ERRORS.UNKNOWN_PRODUCT);
     if (!isPurchasable(product)) {
       // "venue-only" and "sold-out" are both real states a stale tab can hit.
@@ -194,7 +198,7 @@ export async function quoteCart(
     // asking for more than this combination ever had. It says nothing about
     // what is still free — a count taken here is stale by the time we insert.
     // The binding check is the reservation in `create_payment_intent`.
-    const declared = declaredStock(product.id, line.variant);
+    const declared = declaredStock(product.id, line.variant, products);
     if (declared !== undefined && line.quantity > declared) {
       throw new CheckoutError(CHECKOUT_ERRORS.VARIANT_SOLD_OUT);
     }

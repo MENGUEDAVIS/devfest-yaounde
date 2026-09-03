@@ -1,12 +1,7 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { loadAdminData } from "@/lib/admin/data";
-import speakers from "@/data/speakers.json";
-import team from "@/data/team.json";
-import sessions from "@/data/sessions.json";
-import sponsors from "@/data/sponsors.json";
-import faqs from "@/data/faqs.json";
-import products from "@/data/products.json";
-import tiers from "@/data/ticket-tiers.json";
+import { loadSettings } from "@/lib/content/settings";
+import { collectionCounts } from "@/lib/content/store";
 
 /**
  * `/{locale}/admin` — the whole dashboard, in one server render.
@@ -27,19 +22,24 @@ import tiers from "@/data/ticket-tiers.json";
  * DISPLAYS is still bilingual data, shown in both languages where it has two.
  */
 export default async function AdminPage() {
-  const data = await loadAdminData();
+  const [data, counts, settings] = await Promise.all([
+    loadAdminData(),
+    collectionCounts(),
+    loadSettings(),
+  ]);
 
   return (
     <AdminShell
       data={data}
+      settings={settings}
       content={{
-        speakers: speakers.length,
-        team: team.length,
-        sessions: sessions.length,
-        sponsors: sponsors.length,
-        faqs: faqs.length,
-        products: products.length,
-        tiers: tiers.length,
+        speakers: counts.speakers,
+        team: counts.team,
+        sessions: counts.sessions,
+        sponsors: counts.sponsors,
+        faqs: counts.faqs,
+        products: counts.products,
+        tiers: counts["ticket-tiers"],
       }}
     />
   );

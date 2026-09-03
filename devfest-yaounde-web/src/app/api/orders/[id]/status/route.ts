@@ -16,6 +16,7 @@ import {
   canTransition,
   type OrderStatus,
 } from "@/lib/payments/order-lifecycle";
+import { recordAudit } from "@/lib/admin/audit";
 import { currentOrganiser } from "@/lib/security/organisers";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { toJson } from "@/lib/supabase/json";
@@ -122,6 +123,13 @@ export async function PATCH(
     from,
     to,
     organiserId: organiser.userId,
+  });
+  await recordAudit({
+    actor: organiser.userId,
+    action: "order.status",
+    target: id,
+    before: { status: from },
+    after: { status: to },
   });
 
   return Response.json({ status: updated.status, changed: true });

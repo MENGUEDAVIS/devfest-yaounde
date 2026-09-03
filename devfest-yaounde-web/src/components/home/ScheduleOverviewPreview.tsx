@@ -3,10 +3,7 @@ import { ScheduleBoard } from "@/components/schedule/ScheduleBoard";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import sessions from "@/data/sessions.json";
-import type { Session } from "@/data/types";
-
-const allSessions = sessions as Session[];
+import { getSessions, getSpeakers } from "@/lib/content/store";
 
 /**
  * Home schedule preview. The board itself (day tabs, view toggle, expandable
@@ -16,6 +13,10 @@ const allSessions = sessions as Session[];
  */
 export async function ScheduleOverviewPreview() {
   const t = await getTranslations("home.schedule");
+  const [sessions, speakers] = await Promise.all([
+    getSessions(),
+    getSpeakers(),
+  ]);
 
   return (
     <SectionContainer background="offwhite" maxWidth="6xl">
@@ -37,7 +38,7 @@ export async function ScheduleOverviewPreview() {
       </Reveal>
 
       <div className="mt-12">
-        <ScheduleBoard sessions={allSessions} />
+        <ScheduleBoard sessions={sessions} speakers={speakers} />
       </div>
 
       <Button

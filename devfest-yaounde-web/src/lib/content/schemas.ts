@@ -1,0 +1,256 @@
+/**
+ * Zod for every editorial collection and for site settings.
+ *
+ * A PUT that fails here never reaches the database. Shapes match
+ * `src/data/types.ts` — the same records the public pages already render.
+ */
+import { z } from "zod";
+
+const slug = z
+  .string()
+  .trim()
+  .min(1)
+  .max(80)
+  .regex(/^[a-z0-9][a-z0-9-]*$/, "id must be a lowercase slug");
+
+const localized = z.object({
+  fr: z.string().max(4000),
+  en: z.string().max(4000),
+});
+
+const localizedRequired = z.object({
+  fr: z.string().trim().min(1).max(4000),
+  en: z.string().trim().min(1).max(4000),
+});
+
+const social = z
+  .object({
+    x: z.string().max(300).optional(),
+    linkedin: z.string().max(300).optional(),
+    website: z.string().max(300).optional(),
+  })
+  .optional();
+
+function uniqueIds<T extends { id: string }>(list: T[]): boolean {
+  return new Set(list.map((row) => row.id)).size === list.length;
+}
+
+export const speakerSchema = z.object({
+  id: slug,
+  name: z.string().trim().min(1).max(120),
+  role: localizedRequired,
+  company: z.string().max(120),
+  photoUrl: z.string().max(400),
+  bio: localizedRequired,
+  track: localizedRequired,
+  day: z.number().int().min(1).max(14),
+  sessionIds: z.array(slug).max(40),
+  social,
+  icebreakerQuestion: localizedRequired,
+  icebreakerAnswer: localizedRequired,
+  funnyMoment: localized.optional(),
+  featured: z.boolean().optional(),
+});
+
+export const teamSchema = z.object({
+  id: slug,
+  name: z.string().trim().min(1).max(120),
+  role: localizedRequired,
+  oneLiner: localizedRequired,
+  contribution: localizedRequired,
+  photoUrl: z.string().max(400),
+  social,
+  icebreakerQuestion: localizedRequired,
+  icebreakerAnswer: localizedRequired,
+  funnyMoment: localized.optional(),
+  alumni: z.boolean().optional(),
+  years: z.string().max(40).optional(),
+});
+
+export const sessionSchema = z.object({
+  id: slug,
+  time: z.string().regex(/^\d{2}:\d{2}$/),
+  durationMin: z.number().int().min(1).max(24 * 60),
+  day: z.number().int().min(1).max(14),
+  kind: z.enum(["talk", "workshop", "panel", "break"]),
+  title: localizedRequired,
+  description: localized,
+  track: localizedRequired,
+  room: localizedRequired,
+  tags: z.array(localized).max(20),
+  bring: localized.optional(),
+  provided: localized.optional(),
+  speakerIds: z.array(slug).max(20),
+});
+
+export const sponsorSchema = z.object({
+  id: slug,
+  name: z.string().trim().min(1).max(120),
+  logoUrl: z.string().max(400),
+  tier: z.enum(["platinum", "gold", "silver", "community"]).optional(),
+  websiteUrl: z.string().max(400).optional(),
+});
+
+export const faqSchema = z.object({
+  id: slug,
+  category: z.enum([
+    "general",
+    "tickets",
+    "venue",
+    "shop",
+    "code-of-conduct",
+  ]),
+  question: localizedRequired,
+  answer: localizedRequired,
+  cta: z
+    .object({
+      label: localizedRequired,
+      href: z.string().max(400),
+      external: z.boolean().optional(),
+    })
+    .optional(),
+});
+
+export const productSchema = z.object({
+  id: slug,
+  name: localizedRequired,
+  description: localizedRequired,
+  priceXAF: z.number().int().min(0).max(10_000_000),
+  images: z.array(z.string().max(400)).max(12),
+  variants: z
+    .object({
+      size: z.array(z.enum(["XS", "S", "M", "L", "XL", "XXL"])).optional(),
+      color: z.array(z.string().trim().min(1).max(32)).max(20).optional(),
+    })
+    .optional(),
+  stock: z
+    .array(
+      z.object({
+        size: z.string().max(16).optional(),
+        color: z.string().max(32).optional(),
+        quantity: z.number().int().min(0).max(100_000),
+      }),
+    )
+    .max(80)
+    .optional(),
+  status: z.enum(["pre-order", "in-stock", "venue-only", "sold-out"]),
+});
+
+export const ticketTierSchema = z.object({
+  id: slug,
+  name: z.string().trim().min(1).max(40),
+  label: localized.optional(),
+  priceXAF: z.number().int().min(0).max(10_000_000),
+  rsvpExternal: z.boolean().optional(),
+  swag: z.array(localized).max(20).optional(),
+  description: localizedRequired,
+  perks: z.array(localizedRequired).max(30),
+  includesApparel: z.boolean(),
+  quantityAvailable: z.number().int().min(0).max(100_000).optional(),
+  onSale: z.boolean(),
+});
+
+export const quoteSchema = z.object({
+  id: slug,
+  text: localizedRequired,
+  author: z.string().trim().min(1).max(120),
+  role: localized.optional(),
+});
+
+export const statSchema = z.object({
+  id: slug,
+  value: z.number(),
+  suffix: z.string().max(8).optional(),
+  label: localizedRequired,
+});
+
+export const pastEditionSchema = z.object({
+  id: slug,
+  imageUrl: z.string().max(400),
+  alt: localizedRequired,
+  year: z.number().int().min(2000).max(2100).optional(),
+});
+
+const MAX_ROWS = 500;
+
+function collection<T extends z.ZodType<{ id: string }>>(item: T) {
+  return z
+    .array(item)
+    .max(MAX_ROWS)
+    .refine(uniqueIds, "duplicate id");
+}
+
+export const COLLECTIONS = [
+  "speakers",
+  "team",
+  "sessions",
+  "sponsors",
+  "faqs",
+  "products",
+  "ticket-tiers",
+  "quotes",
+  "stats",
+  "past-editions",
+] as const;
+
+export type CollectionId = (typeof COLLECTIONS)[number];
+
+export const collectionSchemas = {
+  speakers: collection(speakerSchema),
+  team: collection(teamSchema),
+  sessions: collection(sessionSchema),
+  sponsors: collection(sponsorSchema),
+  faqs: collection(faqSchema),
+  products: collection(productSchema),
+  "ticket-tiers": collection(ticketTierSchema),
+  quotes: collection(quoteSchema),
+  stats: collection(statSchema),
+  "past-editions": collection(pastEditionSchema),
+} as const;
+
+export function isCollectionId(value: string): value is CollectionId {
+  return (COLLECTIONS as readonly string[]).includes(value);
+}
+
+const urlOrEmpty = z
+  .string()
+  .trim()
+  .max(400)
+  .refine(
+    (value) =>
+      value === "" ||
+      value === "#" ||
+      value.startsWith("/") ||
+      value.startsWith("https://"),
+    "expected a path, an https URL, or empty",
+  );
+
+export const settingsSchema = z.object({
+  announcement: localized.optional().nullable(),
+  privacyUrl: urlOrEmpty.optional().nullable(),
+  cocUrl: urlOrEmpty.optional().nullable(),
+  bevyUrl: urlOrEmpty.optional().nullable(),
+});
+
+export const discountWriteSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(3)
+    .max(32)
+    .regex(/^[A-Z0-9-]+$/),
+  kind: z.enum(["percent", "fixed"]),
+  value: z.number().int().min(1).max(1_000_000),
+  appliesTo: z.enum(["tickets", "shop", "both"]).default("both"),
+  maxRedemptions: z.number().int().min(1).max(1_000_000).optional().nullable(),
+  expiresAt: z
+    .string()
+    .refine((value) => !Number.isNaN(Date.parse(value)), "invalid date")
+    .optional()
+    .nullable(),
+  active: z.boolean().default(true),
+});
+
+export type DiscountWrite = z.infer<typeof discountWriteSchema>;
+export type SettingsWrite = z.infer<typeof settingsSchema>;
