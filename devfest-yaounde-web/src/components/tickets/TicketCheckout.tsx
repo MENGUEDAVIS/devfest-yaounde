@@ -81,6 +81,7 @@ export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
   const [step, setStep] = useState<Step>("select");
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [attendees, setAttendees] = useState<AttendeeDraft[]>([]);
+
   const [discountCode, setDiscountCode] = useState("");
   const [discountOpen, setDiscountOpen] = useState(false);
   const [discountApplied, setDiscountApplied] = useState(false);
@@ -136,6 +137,29 @@ export function TicketCheckout({ tiers }: { tiers: TicketTier[] }) {
         );
       }
     }
+    // Prefill the first ticket from the signed-in profile.
+    //
+    // Someone who just signed in should not retype the name and address they
+    // signed in with. Done HERE rather than in an effect: the list is built
+    // when they reach this step, which is after sign-in, and syncing state
+    // from an effect afterwards would cascade renders for no gain.
+    //
+    // Three rules keep it from being annoying: only EMPTY fields are filled,
+    // no ticket is claimed if another already is, and everything — including
+    // the checkbox — stays editable, because buying only for other people is
+    // perfectly normal.
+    if (profile && built.length > 0) {
+      const someoneClaimed = built.some((a) => a.isSelf);
+      built[0] = {
+        ...built[0],
+        name: built[0].name.trim()
+          ? built[0].name
+          : (profile.displayName ?? ""),
+        email: built[0].email.trim() ? built[0].email : (profile.email ?? ""),
+        isSelf: someoneClaimed ? built[0].isSelf : true,
+      };
+    }
+
     return built;
   }
 

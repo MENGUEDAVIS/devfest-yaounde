@@ -13,7 +13,12 @@ const POLL_MS = 4000;
 const GIVE_UP_MS = 120_000;
 
 type Status =
-  "pending" | "activated" | "failed" | "amount_mismatch" | "not_found";
+  | "pending"
+  | "activated"
+  | "failed"
+  | "amount_mismatch"
+  | "awaiting_payment"
+  | "not_found";
 
 interface StatusResponse {
   status?: Status;
@@ -200,6 +205,34 @@ export function PaymentReturn({
         <div className="flex flex-wrap gap-3">
           <Button href="/account" size="md">
             {t("viewAccount")}
+          </Button>
+        </div>
+      </Shell>
+    );
+  }
+
+  // Distinct from `failed` on purpose. PawaPay has no record of a deposit,
+  // which means nothing was charged — but the intent is still claimable, so
+  // this must not be dressed up as a failure. Someone slow at typing a PIN
+  // reloads and lands on the confirmation.
+  if (status === "awaiting_payment") {
+    return (
+      <Shell
+        tone="waiting"
+        icon={<Warning size={40} weight="fill" />}
+        title={t("awaitingTitle")}
+      >
+        <p className="text-body-l text-black02/80">{t("awaitingBody")}</p>
+        <div className="flex flex-wrap gap-3">
+          <Button href="/tickets" size="md">
+            {t("tryAgain")}
+          </Button>
+          <Button
+            href={`/payments/return?depositId=${encodeURIComponent(depositId ?? "")}`}
+            size="md"
+            variant="secondary"
+          >
+            {t("refresh")}
           </Button>
         </div>
       </Shell>

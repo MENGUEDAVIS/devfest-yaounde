@@ -490,7 +490,10 @@
       "backToTickets": "Go to tickets",
       "viewAccount": "See my tickets",
       "scanAtDoor": "Scan at the door",
-      "metaDesc": "Confirming your payment."
+      "metaDesc": "Confirming your payment.",
+      "awaitingTitle": "We haven't seen your payment yet",
+      "awaitingBody": "Nothing was charged. If you cancelled, you can start again whenever you like — and if you've just confirmed on your phone, give us a minute and reload.",
+      "refresh": "Reload"
     },
     "account": {
       "title": "My account",
