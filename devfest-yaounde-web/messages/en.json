@@ -48,7 +48,8 @@
   },
   "announcement": {
     "message": "🎟️ Early bird tickets end soon — grab yours before prices go up!",
-    "dismiss": "Dismiss announcement"
+    "dismiss": "Dismiss announcement",
+    "wall": "Every card here was made by somebody in this community, in a browser, probably instead of doing something more productive. Look at them all. Genuinely, thank you — this wall is just you lot."
   },
   "footer": {
     "rsvpCta": "Come build with us",
@@ -460,12 +461,13 @@
       "wall": {
         "title": "Put it on the community wall",
         "body": "A smaller copy goes to GDG Yaoundé and appears on the DevFest community wall straight away. Your own download stays full quality on your device.",
-        "consent": "Yes — show this card, with my photo, on the public community wall.",
-        "send": "Send to the wall",
+        "consent": "Sending this card puts it, and your photo, on the public community wall. You can ask us to take it down at any time.",
+        "send": "Put it on the wall",
         "sending": "Sending…",
         "pending": "Sent. It appears on the wall once the team has reviewed it — you can ask us to take it down at any time.",
         "live": "Sent, and it's on the wall. You can ask us to take it down at any time."
-      }
+      },
+      "terms": "Downloading, copying or sharing your card means you accept how the generator works: the photo stays on your device, and the card is yours to post. Sending it to the community wall is a separate, deliberate step."
     },
     "paymentReturn": {
       "title": "Confirming your payment",
@@ -514,6 +516,12 @@
       "noOrdersBody": "Anything you buy from the shop lands here, with where it is in the process.",
       "browseShop": "Browse the shop",
       "metaDesc": "Your tickets, your orders, your badge codes."
+    },
+    "wall": {
+      "title": "Community wall",
+      "metaDesc": "Cards made by the DevFest Yaoundé community, built in the DP generator and shared by the people who made them.",
+      "cardLabel": "DevFest card",
+      "placeholderNotice": "Placeholder cards — not real people"
     }
   },
   "errors": {

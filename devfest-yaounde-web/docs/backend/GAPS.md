@@ -303,6 +303,45 @@ exists.
 needs no edit, because the picker renders whatever `DP_FRAMES` contains and the
 swatch already draws each frame's mask shape.
 
+### G22 — Nothing records what an organiser did
+
+`payment_events` logs the payment lifecycle. It does not log **people**. The
+two privileged writes that exist — moving a shop order along
+(`PATCH /api/orders/:id/status`) and moderating a card
+(`PATCH /api/dp/gallery/:id`) — change a row and leave no actor, no before,
+and no history.
+
+For a back-office several volunteers can reach, where the state being changed
+is money-adjacent and the moderation decisions are about people's faces, "who
+marked this delivered?" and "who deleted that card?" have no answer.
+
+**Needs a table and one write per privileged action** — actor, action, target,
+before/after, timestamp — so it is backend, not this phase. The dashboard is
+built assuming it will arrive: every write it performs goes through an
+existing endpoint, so adding the log there covers the UI too, with no
+dashboard change.
+
+Worth doing before the event rather than after the first dispute.
+
+### G21 — The wall has no report path for visitors
+
+The wall page is built (ADR 0030) and the backend behind it exists (ADR 0026),
+with publication defaulting to no review (ADR 0027). Retro-moderation is real:
+`PATCH /api/dp/gallery/:id` with `rejected` deletes the image.
+
+**What is missing is the way anyone tells the organisers.** A visitor who sees
+something that should not be on a public page — an image that is not a DP, a
+face that is not the submitter's, a child — has no button. The only routes are
+knowing an organiser, or having submitted the card yourself.
+
+With review-before-publication this mattered less, because a human saw every
+card. Auto-approval moves protection from before publication to after it
+(ADR 0027 says so plainly), and "after" only works if someone can raise a hand.
+
+**Small, and frontend-plus-one-endpoint:** a report control on each card, and
+somewhere for the report to land. Worth closing before
+`NEXT_PUBLIC_DP_GALLERY` is switched on, not after.
+
 ### G20 — The community wall — BACKEND BUILT
 
 Asked for in this phase: people save their creations, and the chapter shows

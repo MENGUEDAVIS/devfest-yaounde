@@ -668,6 +668,167 @@ html:not(.has-custom-cursor) .cursor-layer {
   background: var(--color-primary);
 }
 
+/*
+ * The wall page is a single screen: it does not scroll, and it has no footer.
+ *
+ * Both are done from CSS rather than by restructuring the shared layout,
+ * because only this one route out of a dozen wants either — and `:has()`
+ * scopes it exactly, with nothing to remember to undo on the way out. A
+ * footer below a wall that never scrolls is unreachable anyway.
+ *
+ * Reduced motion is the exception: there the wall stops moving on its own,
+ * so scrolling is the only way to see the rest of it.
+ */
+@media not (prefers-reduced-motion: reduce) {
+  html:has(main[data-wall]),
+  html:has(main[data-wall]) body {
+    overflow: hidden;
+  }
+}
+body:has(main[data-wall]) footer {
+  display: none;
+}
+
+/*
+ * The admin dashboard is not the public site.
+ *
+ * It lives under `[locale]` because this app has no second root layout, and
+ * adding one would restructure every route for the sake of one. So the shared
+ * chrome is suppressed here instead: no navbar, no announcement, no footer, no
+ * splash screen on an internal tool someone opens forty times a day.
+ *
+ * Keyed on `[data-admin]`, which only the admin layout renders — and that
+ * layout only renders at all for an organiser.
+ */
+body:has([data-admin]) header,
+body:has([data-admin]) footer,
+body:has([data-admin]) [data-preloader] {
+  display: none;
+}
+
+/*
+ * ---------------------------------------------------- the community wall ---
+ *
+ * The wall is WIDER THAN THE SCREEN and pulled left, so the outermost columns
+ * run off both edges and the grid never lines up with the viewport. With the
+ * tilt, nothing about it reads as a rectangle of cards that happens to be
+ * moving.
+ *
+ * `scale` on the tilt is not decoration: rotating a rectangle leaves bare
+ * triangles at the corners, and the scale pushes them back out of sight.
+ */
+.wall-tilt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  transform: rotate(var(--wall-tilt, -4deg)) scale(1.22);
+  transform-origin: center;
+}
+.wall-tilt > * {
+  width: 128%;
+  margin-left: -14%;
+}
+.wall-column {
+  /*
+   * NOT `overflow: hidden`, and that is the fix for a real bug: a spotlit card
+   * scales up, and a clipping column sliced the enlarged edges off — worst on
+   * the very cards nearest a column boundary, which is most of them.
+   *
+   * Clipping belongs at the viewport, not per column. The wall's outer box is
+   * `overflow: hidden` and carries the edge mask, so the track's overspill is
+   * cut where it should be — at the screen edge — and a lifted card is free to
+   * cross its neighbours on the way up.
+   */
+  height: 130vh;
+}
+
+/*
+ * THE EDGE FADE IS A MASK, NOT A GRADIENT FILL.
+ *
+ * It sits on the OUTER, UNROTATED box — the one that is exactly the viewport.
+ * On the tilted track inside it the percentages resolve against 130vh and
+ * then get scaled and rotated, so the fade landed off-screen entirely and the
+ * cards were hard-cut at the top and bottom edges.
+ *
+ * DESIGN.md §2.6 bans gradients as design surfaces, and this is deliberately
+ * not one: `mask-image` paints no colour at all. It varies ALPHA, so the cards
+ * fade to transparent and whatever the page background happens to be shows
+ * through. That is also why it needs no theme wiring — a colour scrim would
+ * have to be re-matched every time the theme changed, and this re-blends by
+ * construction, because it never had a colour of its own.
+ */
+.wall-fade {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+}
+
+.wall-tile {
+  /* Positioned so the spotlit card has a z-index to raise. */
+  position: relative;
+  transition:
+    opacity 260ms var(--ease-out-devfest),
+    transform 260ms var(--ease-bouncy);
+}
+/* Pointing at one card lifts it and pushes everything else back — the still
+   cards in its own column as well as the ones still moving elsewhere. */
+.wall-tile.is-spotlit {
+  transform: scale(1.08) rotate(1.6deg);
+  /* Above every other column, not just its own siblings. */
+  z-index: 5;
+}
+.wall-tile.is-dimmed {
+  opacity: 0.28;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wall-tile {
+    transition: none;
+  }
+  .wall-tile.is-spotlit {
+    transform: none;
+  }
+  .wall-column {
+    height: auto;
+  }
+  /* Nothing moves on its own, so the wall becomes an ordinary scrollable
+     list — "no motion" must not mean "no access". */
+  .wall-tilt {
+    position: static;
+    transform: rotate(var(--wall-tilt, -4deg)) scale(1.04);
+  }
+}
+
+/*
+ * SCROLL LOCK WHILE THE PRELOADER IS UP — from the very first paint.
+ *
+ * The loader is server-rendered, so it is on screen before any JavaScript
+ * runs. `lockScroll()` cannot be: it lives in an effect, which measured ~120ms
+ * after paint, and for that window the page could still be scrolled behind a
+ * screen that is supposed to be covering it.
+ *
+ * `:has()` closes the gap with no JS at all, and unlocks itself the instant
+ * React removes the node — there is no timer to get wrong and no state to
+ * leave stuck. The effect's `lockScroll()` stays, because it does the other
+ * half of the job: stopping Lenis, which owns its own scroll loop and ignores
+ * `overflow` entirely.
+ */
+html:has([data-preloader]),
+html:has([data-preloader]) body {
+  overflow: hidden;
+}
+
 /* Focus ring, yellow-family and always visible for keyboard users */
 :focus-visible {
   outline: 3px solid var(--color-primary);

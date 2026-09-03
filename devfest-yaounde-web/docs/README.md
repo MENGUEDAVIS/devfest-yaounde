@@ -14,6 +14,7 @@ Start from what you are trying to do.
 | **Change the DP generator's frames**               | [`guides/dp-generator.md`](guides/dp-generator.md) — the frame catalog, and why it has no backend                              |
 | **Fix how a link previews, or a search result**    | [`guides/seo.md`](guides/seo.md) — metadata, hreflang, the social image, structured data                                       |
 | **Scan a badge, or move an order along**           | [`guides/check-in-and-orders.md`](guides/check-in-and-orders.md)                                                               |
+| **Get into the admin dashboard**                   | [`guides/admin-dashboard.md`](guides/admin-dashboard.md) — the URL, the env vars, and the `organisers` row                     |
 | **Know how something should look or move**         | [`design/DESIGN.md`](design/DESIGN.md), [`content/PAGES.md`](content/PAGES.md)                                                 |
 | **Check a release**                                | [`setup/security-checklist.md`](setup/security-checklist.md)                                                                   |
 
@@ -44,16 +45,18 @@ or amend an earlier one.
 
 **Payments and commerce**
 
-| #                                                        | Subject                          | Status                                   |
-| -------------------------------------------------------- | -------------------------------- | ---------------------------------------- |
-| [0003](decisions/0003-payments-and-auth.md)              | Payments & auth provider         | Superseded by 0013 / 0014                |
-| [0013](decisions/0013-payments-pawapay.md)               | PawaPay, Mobile Money            | Accepted, **amended by 0019**            |
-| [0014](decisions/0014-persistence-and-auth-supabase.md)  | Supabase, Google-only sign-in    | Accepted                                 |
-| [0016](decisions/0016-capacity-reservations.md)          | Capacity & discount reservations | Accepted                                 |
-| [0017](decisions/0017-pawapay-token-from-ssm.md)         | Token from AWS SSM               | Accepted, **not the default — see 0018** |
-| [0018](decisions/0018-secrets-in-supabase-vault.md)      | Supabase Vault as secret store   | Accepted — **current default**           |
-| [0019](decisions/0019-settle-by-polling-not-callback.md) | Settle by polling, not callback  | Accepted, **amended by 0028**            |
-| [0028](decisions/0028-cleanup-sweep-from-supabase.md)    | Sweep invoked by Supabase cron   | Accepted — **Hobby cannot use Vercel */5** |
+| #                                                        | Subject                                 | Status                                       |
+| -------------------------------------------------------- | --------------------------------------- | -------------------------------------------- |
+| [0003](decisions/0003-payments-and-auth.md)              | Payments & auth provider                | Superseded by 0013 / 0014                    |
+| [0013](decisions/0013-payments-pawapay.md)               | PawaPay, Mobile Money                   | Accepted, **amended by 0019**                |
+| [0014](decisions/0014-persistence-and-auth-supabase.md)  | Supabase, Google-only sign-in           | Accepted                                     |
+| [0016](decisions/0016-capacity-reservations.md)          | Capacity & discount reservations        | Accepted                                     |
+| [0017](decisions/0017-pawapay-token-from-ssm.md)         | Token from AWS SSM                      | Accepted, **not the default — see 0018**     |
+| [0018](decisions/0018-secrets-in-supabase-vault.md)      | Supabase Vault as secret store          | Accepted — **current default**               |
+| [0019](decisions/0019-settle-by-polling-not-callback.md) | Settle by polling, not callback         | Accepted, **amended by 0028**                |
+| [0028](decisions/0028-cleanup-sweep-from-supabase.md)    | Sweep invoked by Supabase cron          | Accepted — **Hobby cannot use Vercel `*/5`** |
+| [0029](decisions/0029-editorial-content-store.md)        | Editorial content has no writable store | **Open — a decision for the humans**         |
+| [0030](decisions/0030-wall-page-and-what-it-shows.md)    | What the community wall shows           | Accepted — placeholders until the flag is on |
 
 **Site and design**
 

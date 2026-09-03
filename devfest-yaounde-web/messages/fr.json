@@ -48,7 +48,8 @@
   },
   "announcement": {
     "message": "🎟️ Les billets early bird se terminent bientôt — réservez le vôtre avant l'augmentation des prix !",
-    "dismiss": "Fermer l'annonce"
+    "dismiss": "Fermer l'annonce",
+    "wall": "Chaque carte ici a été faite par quelqu'un de cette communauté, dans un navigateur, probablement au lieu de faire quelque chose de plus productif. Regarde-moi ça. Sincèrement, merci — ce mur, c'est juste vous."
   },
   "footer": {
     "rsvpCta": "Viens construire avec nous",
@@ -460,12 +461,13 @@
       "wall": {
         "title": "Mets-la sur le mur de la communauté",
         "body": "Une copie plus légère part chez GDG Yaoundé et apparaît aussitôt sur le mur DevFest. Ton téléchargement, lui, reste en pleine qualité sur ton appareil.",
-        "consent": "Oui — affichez cette carte, avec ma photo, sur le mur public de la communauté.",
-        "send": "Envoyer au mur",
+        "consent": "Envoyer cette carte la place, avec ta photo, sur le mur public de la communauté. Tu peux nous demander de la retirer à tout moment.",
+        "send": "Mettre sur le mur",
         "sending": "Envoi…",
         "pending": "Envoyée. Elle apparaîtra sur le mur après relecture de l'équipe — tu peux nous demander de la retirer à tout moment.",
         "live": "Envoyée, elle est sur le mur. Tu peux nous demander de la retirer à tout moment."
-      }
+      },
+      "terms": "Télécharger, copier ou partager ta carte vaut acceptation du fonctionnement du générateur : la photo reste sur ton appareil, et la carte est à toi. L'envoyer au mur de la communauté est une étape à part, volontaire."
     },
     "paymentReturn": {
       "title": "Confirmation de ton paiement",
@@ -514,6 +516,12 @@
       "noOrdersBody": "Tout ce que tu achètes à la boutique arrive ici, avec son état d'avancement.",
       "browseShop": "Voir la boutique",
       "metaDesc": "Tes billets, tes commandes, tes codes de badge."
+    },
+    "wall": {
+      "title": "Mur de la communauté",
+      "metaDesc": "Les cartes créées par la communauté DevFest Yaoundé, faites dans le générateur de PP et partagées par celles et ceux qui les ont créées.",
+      "cardLabel": "Carte DevFest",
+      "placeholderNotice": "Cartes d'exemple — pas de vraies personnes"
     }
   },
   "errors": {

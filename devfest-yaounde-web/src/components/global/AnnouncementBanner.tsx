@@ -18,12 +18,22 @@ import { marqueeLoop, marqueeTrack } from "@/lib/motion";
 export function AnnouncementBanner({
   onDismiss,
   hidden,
+  dismissible = true,
+  messageKey = "message",
 }: {
   onDismiss: () => void;
   hidden: boolean;
+  /**
+   * The wall sets this false. There the bar is the page's ONLY chrome — it
+   * carries the way back — so letting it be closed would strand someone on a
+   * screen with nothing but faces on it.
+   */
+  dismissible?: boolean;
+  /** Which announcement to run. The wall thanks the community instead. */
+  messageKey?: string;
 }) {
   const t = useTranslations("announcement");
-  const message = t("message");
+  const message = t(messageKey as "message");
 
   const trackRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLSpanElement>(null);
@@ -83,15 +93,17 @@ export function AnnouncementBanner({
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={onDismiss}
-        aria-label={t("dismiss")}
-        tabIndex={hidden ? -1 : undefined}
-        className="-m-3.5 shrink-0 rounded-pill p-3.5 transition-[background-color,transform] duration-200 ease-bouncy hover:scale-110 hover:bg-black02/10 active:scale-90"
-      >
-        <X size={16} weight="bold" />
-      </button>
+      {dismissible && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label={t("dismiss")}
+          tabIndex={hidden ? -1 : undefined}
+          className="-m-3.5 shrink-0 rounded-pill p-3.5 transition-[background-color,transform] duration-200 ease-bouncy hover:scale-110 hover:bg-black02/10 active:scale-90"
+        >
+          <X size={16} weight="bold" />
+        </button>
+      )}
     </div>
   );
 }

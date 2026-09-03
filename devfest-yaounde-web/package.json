@@ -10,7 +10,8 @@
     "verify": "npm run lint && tsc --noEmit && npm test",
     "lint": "eslint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:browser": "node tests/browser/run.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.1122.0",

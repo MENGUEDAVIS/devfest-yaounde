@@ -37,8 +37,24 @@ let cached: ScrollSnapshot = SERVER_SNAPSHOT;
 let activeLenis: Lenis | null = null;
 const listeners = new Set<() => void>();
 
+/**
+ * How many overlays currently hold the scroll locked.
+ *
+ * A COUNT, not a boolean, for two reasons. Overlays nest — a modal can open
+ * over the preloader — and releasing the inner one must not hand scrolling
+ * back while the outer one is still up. And Lenis can be created AFTER a lock
+ * is taken, which is exactly what happened: the preloader's effect runs before
+ * `SmoothScrollProvider`'s, so `lockScroll()` called `activeLenis?.stop()` on
+ * a null, and the Lenis created a moment later was never stopped at all. A
+ * wheel then scrolled the page 586px behind a screen that was covering it —
+ * intermittently, because it depended on which effect won the race.
+ */
+let lockCount = 0;
+
 export function setActiveLenis(instance: Lenis | null) {
   activeLenis = instance;
+  // A Lenis that arrives while a lock is held starts stopped.
+  if (instance && lockCount > 0) instance.stop();
   // Thumb geometry may differ the instant the driver changes
   listeners.forEach((fn) => fn());
 }
@@ -148,15 +164,20 @@ export function lockScroll(): () => void {
    * "locked" overlay.
    */
   document.documentElement.style.overflow = "hidden";
+  lockCount++;
   activeLenis?.stop();
 
   let released = false;
   return () => {
     if (released) return;
     released = true;
+    lockCount = Math.max(0, lockCount - 1);
     document.body.style.overflow = previousOverflow;
     document.documentElement.style.overflow = previousRootOverflow;
     document.body.style.paddingRight = previousPaddingRight;
+    // Only the LAST release hands scrolling back; an inner overlay closing
+    // must not unlock the page under an outer one.
+    if (lockCount > 0) return;
     activeLenis?.start();
     // `instant` so releasing never animates the page back into place.
     if (activeLenis) activeLenis.scrollTo(y, { immediate: true });
