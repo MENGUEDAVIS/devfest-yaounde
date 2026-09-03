@@ -1,0 +1,143 @@
+/**
+ * Organiser photo uploads for editorial collections.
+ *
+ * The public site shows these pictures, so the bucket is public. The bytes
+ * are still decoded and re-encoded — a Content-Type header is a claim, and
+ * EXIF can leak a location from a speaker's phone.
+ */
+import "server-only";
+import { createAdminSupabase } from "@/lib/supabase/server";
+import type { CollectionId } from "./schemas";
+
+export const EDITORIAL_BUCKET = "editorial";
+
+/** Incoming file cap. Re-encoding usually lands well under this. */
+export const PHOTO_MAX_BYTES = 2.5 * 1024 * 1024;
+/** Longest edge after decode. Speaker cards crop; 1600 is plenty. */
+export const PHOTO_MAX_EDGE = 1600;
+
+export type PhotoKind = "url" | "images";
+
+export interface PhotoField {
+  kind: PhotoKind;
+  field: string;
+}
+
+/** Collections that have a picture the organiser attaches by hand. */
+export const PHOTO_FIELDS: Partial<Record<CollectionId, PhotoField>> = {
+  speakers: { kind: "url", field: "photoUrl" },
+  team: { kind: "url", field: "photoUrl" },
+  sponsors: { kind: "url", field: "logoUrl" },
+  products: { kind: "images", field: "images" },
+  "past-editions": { kind: "url", field: "imageUrl" },
+};
+
+export function isPhotoCollection(
+  id: string,
+): id is keyof typeof PHOTO_FIELDS {
+  return id in PHOTO_FIELDS;
+}
+
+export class PhotoRejected extends Error {
+  constructor(
+    readonly reason: "not_an_image" | "too_large" | "too_big_dimensions",
+  ) {
+    super(reason);
+    this.name = "PhotoRejected";
+  }
+}
+
+export function isPlaceholderPhoto(url: unknown): boolean {
+  if (typeof url !== "string") return true;
+  const value = url.trim();
+  if (!value || value === "#" || value.startsWith("javascript:")) return true;
+  return value.includes("/placeholders/");
+}
+
+export function entryNeedsPhoto(
+  entry: Record<string, unknown>,
+  spec: PhotoField,
+): boolean {
+  if (spec.kind === "images") {
+    const images = entry[spec.field];
+    if (!Array.isArray(images) || images.length === 0) return true;
+    return isPlaceholderPhoto(images[0]);
+  }
+  return isPlaceholderPhoto(entry[spec.field]);
+}
+
+export function publicPhotoUrl(
+  collection: CollectionId,
+  entryId: string,
+): string {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
+  const path = `${collection}/${entryId}.jpg`;
+  return `${base}/storage/v1/object/public/${EDITORIAL_BUCKET}/${path}?v=${Date.now()}`;
+}
+
+export function storagePath(collection: CollectionId, entryId: string): string {
+  return `${collection}/${entryId}.jpg`;
+}
+
+export async function normalisePhoto(file: Blob): Promise<Buffer> {
+  if (file.size > PHOTO_MAX_BYTES) throw new PhotoRejected("too_large");
+
+  const input = Buffer.from(await file.arrayBuffer());
+  const sharp = (await import("sharp")).default;
+
+  let image;
+  let meta;
+  try {
+    image = sharp(input, { failOn: "error" });
+    meta = await image.metadata();
+  } catch {
+    throw new PhotoRejected("not_an_image");
+  }
+
+  if (!meta.width || !meta.height) throw new PhotoRejected("not_an_image");
+  if (meta.width > 8000 || meta.height > 8000) {
+    throw new PhotoRejected("too_big_dimensions");
+  }
+
+  return image
+    .rotate()
+    .resize({
+      width: PHOTO_MAX_EDGE,
+      height: PHOTO_MAX_EDGE,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 85, mozjpeg: true })
+    .toBuffer();
+}
+
+export async function storePhoto(
+  path: string,
+  bytes: Buffer,
+): Promise<void> {
+  const supabase = createAdminSupabase();
+  const { error } = await supabase.storage
+    .from(EDITORIAL_BUCKET)
+    .upload(path, bytes, {
+      contentType: "image/jpeg",
+      upsert: true,
+      cacheControl: "3600",
+    });
+  if (error) throw new Error(`could not store the photo: ${error.message}`);
+}
+
+export function applyPhotoUrl(
+  entry: Record<string, unknown>,
+  spec: PhotoField,
+  url: string,
+): Record<string, unknown> {
+  if (spec.kind === "images") {
+    const images = Array.isArray(entry[spec.field])
+      ? [...(entry[spec.field] as unknown[])]
+      : [];
+    if (images.length === 0) images.push(url);
+    else images[0] = url;
+    return { ...entry, [spec.field]: images };
+  }
+  return { ...entry, [spec.field]: url };
+}

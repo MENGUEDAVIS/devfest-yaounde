@@ -9,19 +9,16 @@ import {
   MAX_CSV_ROWS,
   type DryRun,
 } from "@/lib/admin/csv";
+import {
+  SPEAKER_CSV_SPEC,
+  TEAM_CSV_SPEC,
+  speakersFromCsv,
+  teamFromCsv,
+} from "@/lib/content/from-csv";
+import type { Speaker, TeamMember } from "@/data/types";
+import type { MissingPhoto } from "@/lib/admin/shape";
 import type { ContentCounts } from "../AdminShell";
 import { DataTable, Panel } from "./shared";
-
-const SPEAKER_SPEC = [
-  { column: "id", required: true, maxLength: 60 },
-  { column: "name", required: true, maxLength: 120 },
-  { column: "role_en", required: true, maxLength: 160 },
-  { column: "role_fr", required: true, maxLength: 160 },
-  { column: "company", maxLength: 120 },
-  { column: "bio_en", maxLength: 600 },
-  { column: "bio_fr", maxLength: 600 },
-  { column: "photoUrl", maxLength: 300 },
-];
 
 const FILES: {
   label: string;
@@ -37,14 +34,61 @@ const FILES: {
   { label: "Ticket tiers", id: "ticket-tiers", count: (c) => c.tiers },
 ];
 
-export function AdminContent({ content }: { content: ContentCounts }) {
+const PHOTO_LIST: { id: string; label: string; field: "photoUrl" | "logoUrl" }[] =
+  [
+    { id: "speakers", label: "Speakers", field: "photoUrl" },
+    { id: "team", label: "Team", field: "photoUrl" },
+    { id: "sponsors", label: "Sponsors", field: "logoUrl" },
+  ];
+
+function needsPhoto(url: unknown): boolean {
+  if (typeof url !== "string") return true;
+  const value = url.trim();
+  if (!value || value === "#") return true;
+  return value.includes("/placeholders/");
+}
+
+export function AdminContent({
+  content,
+  initialMissing,
+}: {
+  content: ContentCounts;
+  initialMissing: MissingPhoto[];
+}) {
   const [result, setResult] = useState<DryRun | null>(null);
+  const [csvKind, setCsvKind] = useState<"speakers" | "team">("speakers");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [missing, setMissing] = useState<MissingPhoto[]>(initialMissing);
   const input = useRef<HTMLInputElement>(null);
   const jsonInput = useRef<HTMLInputElement>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
   const [jsonTarget, setJsonTarget] = useState<string | null>(null);
+  const [photoTarget, setPhotoTarget] = useState<MissingPhoto | null>(null);
+
+  async function refreshMissing() {
+    const rows: MissingPhoto[] = [];
+    for (const col of PHOTO_LIST) {
+      const res = await fetch(`/api/admin/content/${col.id}`);
+      if (!res.ok) continue;
+      const body = (await res.json()) as {
+        payload?: { id?: unknown; name?: unknown }[];
+      };
+      for (const entry of body.payload ?? []) {
+        if (typeof entry.id !== "string") continue;
+        const record = entry as Record<string, unknown>;
+        if (!needsPhoto(record[col.field])) continue;
+        rows.push({
+          collection: col.id,
+          collectionLabel: col.label,
+          id: entry.id,
+          name: typeof entry.name === "string" ? entry.name : entry.id,
+        });
+      }
+    }
+    setMissing(rows);
+  }
 
   async function check(file: File | undefined) {
     setResult(null);
@@ -65,7 +109,8 @@ export function AdminContent({ content }: { content: ContentCounts }) {
       setError(`${parsed.rows.length} rows. The limit is ${MAX_CSV_ROWS}.`);
       return;
     }
-    setResult(dryRun(parsed, SPEAKER_SPEC));
+    const spec = csvKind === "speakers" ? SPEAKER_CSV_SPEC : TEAM_CSV_SPEC;
+    setResult(dryRun(parsed, spec));
   }
 
   async function download(id: string) {
@@ -87,40 +132,100 @@ export function AdminContent({ content }: { content: ContentCounts }) {
     URL.revokeObjectURL(url);
   }
 
-  async function publishJson(id: string, file: File | undefined) {
-    if (!file) return;
+  async function publishPayload(id: string, payload: unknown, label: string) {
     setError(null);
     setNotice(null);
     setBusy(id);
+    const res = await fetch(`/api/admin/content/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payload }),
+    });
+    const body = (await res.json().catch(() => null)) as {
+      error?: string;
+      detail?: string;
+    } | null;
+    setBusy(null);
+    if (!res.ok) {
+      setError(body?.detail ?? body?.error ?? "Publish failed.");
+      return;
+    }
+    setNotice(`${label} published. Attach photos below for anyone still missing one.`);
+    await refreshMissing();
+  }
+
+  async function publishJson(id: string, file: File | undefined) {
+    if (!file) return;
     try {
       const payload = JSON.parse(await file.text()) as unknown;
-      const res = await fetch(`/api/admin/content/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payload }),
-      });
-      const body = (await res.json().catch(() => null)) as {
-        error?: string;
-        detail?: string;
-      } | null;
-      if (!res.ok) {
-        setError(body?.detail ?? body?.error ?? "Publish failed.");
-        return;
-      }
-      setNotice(`${id} published. Reload to see the new counts.`);
+      await publishPayload(id, payload, id);
     } catch {
       setError("That file is not valid JSON.");
-    } finally {
       setBusy(null);
+    } finally {
       setJsonTarget(null);
     }
   }
+
+  async function publishCsv() {
+    if (!result || result.issues.length > 0 || result.missingColumns.length > 0) {
+      return;
+    }
+    const current = await fetch(`/api/admin/content/${csvKind}`);
+    const previous = current.ok
+      ? ((await current.json()) as { payload?: unknown }).payload
+      : [];
+    const payload =
+      csvKind === "speakers"
+        ? speakersFromCsv(result, (previous as Speaker[]) ?? [])
+        : teamFromCsv(result, (previous as TeamMember[]) ?? []);
+    await publishPayload(csvKind, payload, csvKind);
+  }
+
+  async function uploadPhoto(row: MissingPhoto, file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    setNotice(null);
+    setBusy(`${row.collection}:${row.id}`);
+    const form = new FormData();
+    form.set("entryId", row.id);
+    form.set("image", file);
+    const res = await fetch(`/api/admin/content/${row.collection}/photo`, {
+      method: "POST",
+      body: form,
+    });
+    const body = (await res.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    setBusy(null);
+    setPhotoTarget(null);
+    if (!res.ok) {
+      const reason =
+        body?.error === "too_large"
+          ? "That file is over 2.5 MB."
+          : body?.error === "not_an_image"
+            ? "That is not an image."
+            : body?.error === "too_big_dimensions"
+              ? "That image is too large in pixels."
+              : "Could not upload the photo.";
+      setError(reason);
+      return;
+    }
+    setNotice(`Photo saved for ${row.name}.`);
+    await refreshMissing();
+  }
+
+  const csvReady =
+    result &&
+    result.issues.length === 0 &&
+    result.missingColumns.length === 0 &&
+    result.rows.length > 0;
 
   return (
     <div className="flex flex-col gap-5">
       <Panel
         title="Content"
-        subtitle="Live collections. Until you publish, the site still reads the JSON files in the repo."
+        subtitle="1. Publish the names (JSON or CSV). 2. Attach photos to whoever is still missing one."
       >
         <DataTable
           headers={["What", "Records", ""]}
@@ -165,30 +270,88 @@ export function AdminContent({ content }: { content: ContentCounts }) {
             if (jsonTarget) void publishJson(jsonTarget, file);
           }}
         />
-        {notice && (
-          <p className="mt-4 rounded-lg border-2 border-black02 bg-success-pastel px-4 py-3 text-body-m font-bold text-black02">
-            {notice}
-          </p>
-        )}
-        {error && (
-          <p className="mt-4 rounded-lg border-2 border-danger bg-danger-pastel px-4 py-3 text-body-m font-bold text-black02">
-            {error}
-          </p>
-        )}
       </Panel>
 
       <Panel
-        title="Check a speakers CSV"
-        subtitle="Validates a sheet against the speakers columns. Publishing still happens as JSON above."
+        title="Photos still needed"
+        subtitle="Empty, #, or a placeholder path. One file per row — the face you pick is the face that goes up."
       >
-        <button
-          type="button"
-          onClick={() => input.current?.click()}
-          className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02"
-        >
-          <UploadSimple size={18} weight="bold" aria-hidden />
-          Choose a CSV
-        </button>
+        <DataTable
+          headers={["Collection", "Id", "Name", ""]}
+          empty="Every profile has a real photo."
+          rows={missing.map((row) => [
+            row.collectionLabel,
+            <code key="id" className="font-mono text-caption">
+              {row.id}
+            </code>,
+            row.name,
+            <button
+              key="u"
+              type="button"
+              disabled={busy === `${row.collection}:${row.id}`}
+              onClick={() => {
+                setPhotoTarget(row);
+                photoInput.current?.click();
+              }}
+              className="rounded-pill border-2 border-black02 bg-primary px-3 py-1 text-caption font-bold disabled:opacity-50"
+            >
+              {busy === `${row.collection}:${row.id}`
+                ? "Uploading…"
+                : "Upload photo"}
+            </button>,
+          ])}
+        />
+        <input
+          ref={photoInput}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/*"
+          className="sr-only"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (photoTarget) void uploadPhoto(photoTarget, file);
+          }}
+        />
+      </Panel>
+
+      <Panel
+        title="Publish a CSV of names"
+        subtitle="Basic fields only. Photos can wait — existing pictures are kept if the sheet leaves photoUrl empty."
+      >
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <label className="text-caption font-bold uppercase tracking-wide text-black02/70">
+            Sheet is
+            <select
+              className="ml-2 rounded-lg border-2 border-black02 bg-offwhite px-3 py-2 font-sans text-body-m text-black02"
+              value={csvKind}
+              onChange={(e) => {
+                setCsvKind(e.target.value as "speakers" | "team");
+                setResult(null);
+              }}
+            >
+              <option value="speakers">speakers</option>
+              <option value="team">team</option>
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() => input.current?.click()}
+            className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02"
+          >
+            <UploadSimple size={18} weight="bold" aria-hidden />
+            Choose a CSV
+          </button>
+          {csvReady && (
+            <button
+              type="button"
+              onClick={() => void publishCsv()}
+              disabled={busy === csvKind}
+              className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 px-5 py-2.5 font-sans text-body-m font-bold text-black02 disabled:opacity-50"
+            >
+              {busy === csvKind ? "Publishing…" : `Publish ${csvKind}`}
+            </button>
+          )}
+        </div>
         <input
           ref={input}
           type="file"
@@ -215,7 +378,7 @@ export function AdminContent({ content }: { content: ContentCounts }) {
             )}
             <DataTable
               headers={["Row", "Column", "Problem"]}
-              empty="No problems found — the sheet matches the schema."
+              empty="No problems found — you can publish this sheet."
               rows={result.issues.slice(0, 100).map((i) => [
                 String(i.row),
                 <code key="c" className="font-mono text-caption">
@@ -227,6 +390,17 @@ export function AdminContent({ content }: { content: ContentCounts }) {
           </div>
         )}
       </Panel>
+
+      {notice && (
+        <p className="rounded-lg border-2 border-black02 bg-success-pastel px-4 py-3 text-body-m font-bold text-black02">
+          {notice}
+        </p>
+      )}
+      {error && (
+        <p className="rounded-lg border-2 border-danger bg-danger-pastel px-4 py-3 text-body-m font-bold text-black02">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

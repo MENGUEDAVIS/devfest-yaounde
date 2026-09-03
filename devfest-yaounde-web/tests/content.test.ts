@@ -15,6 +15,16 @@ import {
   discountWriteSchema,
   settingsSchema,
 } from "@/lib/content/schemas";
+import { dryRun, parseCsv } from "@/lib/admin/csv";
+import {
+  SPEAKER_CSV_SPEC,
+  speakersFromCsv,
+} from "@/lib/content/from-csv";
+import {
+  applyPhotoUrl,
+  entryNeedsPhoto,
+  isPlaceholderPhoto,
+} from "@/lib/content/photos";
 
 describe("editorial schemas", () => {
   it("accept the repo files as they stand", () => {
@@ -75,6 +85,65 @@ describe("editorial schemas", () => {
     assert.equal(
       settingsSchema.safeParse({ privacyUrl: "javascript:alert(1)" }).success,
       false,
+    );
+  });
+});
+
+describe("csv of names, photos later", () => {
+  it("builds speakers from a basic sheet and keeps an existing photo", () => {
+    const sheet = parseCsv(
+      [
+        "id,name,role_en,role_fr,company,bio_en,bio_fr,photoUrl",
+        "ama-nkeng,Ama Nkeng,Engineer,Ingénieure,Acme,Bio,Bio,",
+      ].join("\n"),
+    );
+    const dry = dryRun(sheet, SPEAKER_CSV_SPEC);
+    assert.equal(dry.issues.length, 0);
+    const payload = speakersFromCsv(dry, [
+      {
+        ...speakers[0],
+        id: "ama-nkeng",
+        photoUrl: "https://example.com/kept.jpg",
+      },
+    ]);
+    assert.equal(payload[0].photoUrl, "https://example.com/kept.jpg");
+    assert.equal(
+      collectionSchemas.speakers.safeParse(payload).success,
+      true,
+    );
+  });
+});
+
+describe("editorial photos", () => {
+  it("treats empty, hash and placeholder paths as missing", () => {
+    assert.equal(isPlaceholderPhoto(""), true);
+    assert.equal(isPlaceholderPhoto("#"), true);
+    assert.equal(isPlaceholderPhoto("/placeholders/speaker-1.svg"), true);
+    assert.equal(
+      isPlaceholderPhoto("https://x.supabase.co/storage/v1/object/public/editorial/speakers/a.jpg"),
+      false,
+    );
+  });
+
+  it("writes a speaker photo onto photoUrl and a product onto images[0]", () => {
+    const speaker = applyPhotoUrl(
+      { id: "a", photoUrl: "" },
+      { kind: "url", field: "photoUrl" },
+      "https://cdn/a.jpg",
+    );
+    assert.equal(speaker.photoUrl, "https://cdn/a.jpg");
+    const product = applyPhotoUrl(
+      { id: "tee", images: [] },
+      { kind: "images", field: "images" },
+      "https://cdn/tee.jpg",
+    );
+    assert.deepEqual(product.images, ["https://cdn/tee.jpg"]);
+    assert.equal(
+      entryNeedsPhoto({ photoUrl: "/placeholders/x.svg" }, {
+        kind: "url",
+        field: "photoUrl",
+      }),
+      true,
     );
   });
 });

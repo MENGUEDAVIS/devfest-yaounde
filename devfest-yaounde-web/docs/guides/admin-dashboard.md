@@ -103,8 +103,9 @@ short version:
 
 - **Real:** metrics, tickets, transactions, orders, discount codes (create and
   disable), users, wall status, CSV export, content publish, settings.
-- **Writes:** moving a shop order along, publishing a collection as JSON,
-  saving the announcement and legal URLs, creating a discount code.
+- **Writes:** moving a shop order along, publishing a collection as JSON or
+  CSV, attaching a photo per remaining profile, saving the announcement and
+  legal URLs, creating a discount code.
 - **Fallback:** until a collection is published, the public site still reads
   `src/data/*.json`. See ADR 0031.
 

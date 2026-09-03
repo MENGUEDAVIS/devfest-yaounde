@@ -3,10 +3,17 @@
 This is the guide for the things you'll actually change year to year:
 speakers, sessions, FAQs and the team.
 
-**The live way:** sign in as an organiser, open `/en/admin` → Content,
-download the JSON, edit it, publish it back. Until a collection is published
-the site still reads the files below. After you publish, editing the file
-does nothing until you publish again. See ADR 0031.
+**The live way:** sign in as an organiser, open `/en/admin` → Content.
+
+1. Publish the names — JSON, or a speakers/team CSV of the basic columns.
+   Photos can wait. If the sheet leaves `photoUrl` empty, a picture already
+   on that id is kept.
+2. Under **Photos still needed**, upload one file per remaining profile.
+   Empty, `#` and `/placeholders/…` count as missing.
+
+Until a collection is published the site still reads the files below. After
+you publish, editing the file does nothing until you publish again. See
+ADR 0031 and 0032.
 
 **The repo way** (still valid as the seed, and for a reviewable diff):
 all four live as JSON files under `src/data/`. Copy an existing entry, change

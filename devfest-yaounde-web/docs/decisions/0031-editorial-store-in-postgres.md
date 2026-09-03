@@ -49,7 +49,8 @@ same as the dashboard pages. Writes are rate-limited.
   refusal, not a broken page.
 - The JSON files remain the seed. After the first publish of a collection,
   editing the file no longer changes the live site for that collection.
-- Photo URLs are still paths; uploading images is not this work.
+- ~~Photo URLs are still paths; uploading images is not this work.~~
+  **Amended by 0032:** organisers attach pictures per profile after the sheet.
 - `quotes` / `stats` / `past-editions` are in the store even though the
   dashboard's content table currently lists the seven collections the brief
   named. They can be published through the same PUT.

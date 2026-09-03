@@ -1,7 +1,14 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { loadAdminData } from "@/lib/admin/data";
+import type { MissingPhoto } from "@/lib/admin/shape";
+import { isPlaceholderPhoto } from "@/lib/content/photos";
 import { loadSettings } from "@/lib/content/settings";
-import { collectionCounts } from "@/lib/content/store";
+import {
+  collectionCounts,
+  getSpeakers,
+  getSponsors,
+  getTeam,
+} from "@/lib/content/store";
 
 /**
  * `/{locale}/admin` — the whole dashboard, in one server render.
@@ -22,16 +29,49 @@ import { collectionCounts } from "@/lib/content/store";
  * DISPLAYS is still bilingual data, shown in both languages where it has two.
  */
 export default async function AdminPage() {
-  const [data, counts, settings] = await Promise.all([
-    loadAdminData(),
-    collectionCounts(),
-    loadSettings(),
-  ]);
+  const [data, counts, settings, speakers, team, sponsors] = await Promise.all(
+    [
+      loadAdminData(),
+      collectionCounts(),
+      loadSettings(),
+      getSpeakers(),
+      getTeam(),
+      getSponsors(),
+    ],
+  );
+
+  const missingPhotos: MissingPhoto[] = [
+    ...speakers
+      .filter((row) => isPlaceholderPhoto(row.photoUrl))
+      .map((row) => ({
+        collection: "speakers",
+        collectionLabel: "Speakers",
+        id: row.id,
+        name: row.name,
+      })),
+    ...team
+      .filter((row) => isPlaceholderPhoto(row.photoUrl))
+      .map((row) => ({
+        collection: "team",
+        collectionLabel: "Team",
+        id: row.id,
+        name: row.name,
+      })),
+    ...sponsors
+      .filter((row) => isPlaceholderPhoto(row.logoUrl))
+      .map((row) => ({
+        collection: "sponsors",
+        collectionLabel: "Sponsors",
+        id: row.id,
+        name: row.name,
+      })),
+  ];
 
   return (
     <AdminShell
       data={data}
       settings={settings}
+      missingPhotos={missingPhotos}
       content={{
         speakers: counts.speakers,
         team: counts.team,

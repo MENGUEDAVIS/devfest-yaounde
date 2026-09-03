@@ -74,6 +74,13 @@ export interface AdminDiscount {
   expiresAt: string | null;
 }
 
+export interface MissingPhoto {
+  collection: string;
+  collectionLabel: string;
+  id: string;
+  name: string;
+}
+
 export interface AdminSettings {
   announcement: { fr: string; en: string } | null;
   privacyUrl: string;
