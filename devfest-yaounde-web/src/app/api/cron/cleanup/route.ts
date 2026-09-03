@@ -12,9 +12,10 @@
  *   4. Purge wall cards past their retention — 200 days (ADR 0026).
  *
  * Protected by a shared secret rather than a session, because the caller is
- * Vercel Cron, not a person. Without `CRON_SECRET` set the route refuses
- * outright — an unauthenticated endpoint that mutates payment state is not
- * something to leave open by default.
+ * a scheduler, not a person. The five-minute knock comes from Supabase
+ * pg_cron (ADR 0028); Vercel Cron is a once-a-day Hobby-legal backstop.
+ * Without `CRON_SECRET` set the route refuses outright — an unauthenticated
+ * endpoint that mutates payment state is not something to leave open.
  */
 import { NextRequest } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/server";
@@ -30,7 +31,8 @@ function authorised(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
 
-  // Vercel Cron sends `Authorization: Bearer <CRON_SECRET>`.
+  // Both schedulers send `Authorization: Bearer <CRON_SECRET>` — Vercel Cron
+  // (daily backstop) and Supabase pg_cron via pg_net (the five-minute sweep).
   const header = request.headers.get("authorization");
   return header === `Bearer ${secret}`;
 }

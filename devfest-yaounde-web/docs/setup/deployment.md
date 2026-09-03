@@ -36,7 +36,7 @@ So the split is not a preference:
 | `SUPABASE_SERVICE_ROLE_KEY` | every checkout         | **Vercel**                                                      |
 | the PawaPay token           | every payment/callback | **Supabase Vault** (ADR 0018), or Vercel, or AWS SSM (ADR 0017) |
 | `BADGE_CODE_SECRET`         | every fulfilment       | **Vercel**                                                      |
-| `CRON_SECRET`               | every cron call        | **Vercel**                                                      |
+| `CRON_SECRET`               | every cron call        | **Vercel** *and* Vault as `cron-secret` (ADR 0028)              |
 | `RESEND_API_KEY`            | every receipt          | **Vercel**                                                      |
 | `SUPABASE_ACCESS_TOKEN`     | in a workflow          | **GitHub**                                                      |
 | `SUPABASE_DB_PASSWORD`      | in a workflow          | **GitHub**                                                      |
@@ -200,9 +200,11 @@ If the team wants it anyway, that is a decision record, not a config tweak.
 - [ ] `PAWAPAY_ENV=production` **and** a production PawaPay token. A sandbox
       token against the production URL fails as `AUTHENTICATION_ERROR`.
 - [ ] `APP_BASE_URL` / `NEXT_PUBLIC_APP_BASE_URL` set to the real domain.
-- [ ] `CRON_SECRET` set **and Vercel Cron confirmed running**. Since ADR 0019
-      the cron is a settlement path, not housekeeping: it is what delivers a
-      ticket when the buyer closed the tab after paying.
+- [ ] `CRON_SECRET` set on Vercel, **and** the same value stored in Vault as
+      `cron-secret`, with `app-base-url` set to the public origin. Apply
+      migration `0010_cleanup_sweep_cron.sql`. The five-minute sweep is
+      Supabase `pg_cron` (ADR 0028); Vercel Cron is a daily Hobby backstop.
+      Confirm: `select * from cron.job where jobname = 'devfest-cleanup-sweep';`
 - [ ] _Optional:_ PawaPay **Checkouts** callback pointed at
       `https://YOUR-DOMAIN/api/payments/pawapay/callback`. Only an
       optimisation — it makes settlement instant instead of within five

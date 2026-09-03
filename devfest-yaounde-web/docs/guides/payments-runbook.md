@@ -20,7 +20,7 @@ registered company. So settlement works by asking, in two places:
 | Path                                            | Speed       | Covers                                    |
 | ----------------------------------------------- | ----------- | ----------------------------------------- |
 | The return page polls `/api/payments/status`    | seconds     | anyone watching the screen after paying   |
-| A sweep inside `/api/cron/cleanup`, every 5 min | ≤ 5 minutes | closed tab, dead battery, dropped network |
+| A sweep inside `/api/cron/cleanup`, every 5 min (Supabase `pg_cron`, ADR 0028) | ≤ 5 minutes | closed tab, dead battery, dropped network |
 
 Both call the same authoritative lookup and the same guarded delivery, so any
 number of them racing still issues exactly one ticket.
@@ -74,17 +74,46 @@ Copy `.env.example`. Every variable is documented there. Three that matter most:
    instant instead of within five minutes. Nothing breaks if it does not.
 3. Leave all `PAWAPAY_ENFORCE_*` variables empty for now. See below.
 
-### 4. Confirm the cron is running
+### 4. Confirm the sweep is running
 
-The sweep is a settlement path, not housekeeping. After the first deploy,
-check the Vercel Cron logs, or call it by hand:
+The sweep is a settlement path, not housekeeping. Hobby cannot run Vercel
+Cron every five minutes, so **Supabase `pg_cron` knocks on the same door**
+(ADR 0028). After deploy:
+
+1. Store the two Vault secrets (once, SQL editor):
+
+```sql
+select vault.create_secret('https://YOUR-DOMAIN', 'app-base-url');
+select vault.create_secret('<same value as CRON_SECRET on Vercel>', 'cron-secret');
+```
+
+2. Confirm the job exists and has actually called the app:
+
+```sql
+select jobname, schedule, active from cron.job
+ where jobname = 'devfest-cleanup-sweep';
+
+select status_code, error_msg, created
+  from net._http_response
+ order by created desc
+ limit 5;
+```
+
+A `200` in that table means the sweep ran. `403` is a mismatched
+`cron-secret`. `null` / a warning in the Postgres logs means a Vault secret
+is missing.
+
+3. You can still call it by hand:
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" https://YOUR-DOMAIN/api/cron/cleanup
 ```
 
 A `403` means `CRON_SECRET` is missing or wrong. A JSON body with a
-`reconciled` block means it is working.
+`reconciled` block means the route itself is working.
+
+Vercel Cron still fires **once a day** (`0 4 * * *`) as a backstop. Do not
+put `*/5` back in `vercel.json` — Hobby will refuse the deploy.
 
 ### 5. Turn on callback verification — only if you registered one
 
