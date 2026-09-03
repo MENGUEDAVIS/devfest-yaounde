@@ -37,6 +37,7 @@ export type ApplyOutcome =
   | "not_completed"
   | "failed"
   | "amount_mismatch"
+  | "awaiting_payment"
   | "unknown_deposit";
 
 /**
@@ -60,6 +61,19 @@ export class TransientPaymentError extends Error {
  * PawaPay retries for about 15 minutes, so this stops well inside that.
  */
 const FOREIGN_DEPOSIT_ATTEMPTS = 4;
+
+/**
+ * How long PawaPay may plausibly not know about a deposit yet.
+ *
+ * A deposit appears when the buyer submits the hosted payment form. Before
+ * that there is nothing to find — which is also what an ABANDONED checkout
+ * looks like. The two are indistinguishable except by time.
+ *
+ * Past this, we stop calling it lag and say so. Deliberately shorter than the
+ * return page's two-minute give-up, so someone who cancelled gets a real
+ * answer instead of a spinner that eventually shrugs.
+ */
+const NOT_FOUND_GRACE_SECONDS = 75;
 
 /** PawaPay states that will never become COMPLETED. */
 const TERMINAL_FAILURES = new Set(["FAILED", "REJECTED", "CANCELLED"]);
@@ -127,7 +141,25 @@ export async function applyDepositIfCompleted(
 
   const deposit = lookup.data;
   if (!deposit) {
-    // NOT_FOUND right after a callback usually means propagation lag.
+    // PawaPay has never heard of this deposit. Two very different causes:
+    //
+    //   1. the buyer is still on the payment page and has not submitted yet;
+    //   2. they closed it, or cancelled, and never will.
+    //
+    // Only time separates them. Inside the grace window, treat it as lag.
+    const pending = await getPaymentIntent(depositId);
+    const ageSeconds = pending
+      ? (Date.now() - new Date(pending.created_at).getTime()) / 1000
+      : Number.POSITIVE_INFINITY;
+
+    if (ageSeconds > NOT_FOUND_GRACE_SECONDS) {
+      // Reported, NOT marked failed. Someone slow at typing a PIN can still
+      // complete this, and the reconcile sweep would settle it — marking the
+      // intent failed here would block a payment that genuinely arrives.
+      // The one-hour expiry remains the terminal step.
+      return "awaiting_payment";
+    }
+
     throw new TransientPaymentError(`deposit ${depositId} not found yet`);
   }
 

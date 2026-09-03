@@ -25,7 +25,22 @@ export type SendOutcome =
 const SEND_TIMEOUT_MS = 8000;
 
 function fromAddress(): string {
-  return process.env.EMAIL_FROM ?? "DevFest Yaoundé <onboarding@resend.dev>";
+  // The fallback is Resend's shared sandbox sender. It delivers while testing
+  // and is filtered by plenty of real inboxes, so production must set its own
+  // address on a domain verified with the provider.
+  return process.env.EMAIL_FROM ?? "DevFest Yaounde <onboarding@resend.dev>";
+}
+
+/**
+ * Where a reply goes.
+ *
+ * A receipt invites answers — "my ticket never arrived", "wrong size". The
+ * from-address does not need an inbox to send, so without this those replies
+ * fall into a mailbox nobody opens. Optional, and worth setting.
+ */
+function replyToAddress(): string | undefined {
+  const value = process.env.EMAIL_REPLY_TO?.trim();
+  return value || undefined;
 }
 
 export async function sendEmail(
@@ -55,6 +70,7 @@ export async function sendEmail(
       body: JSON.stringify({
         from: fromAddress(),
         to: [to],
+        ...(replyToAddress() ? { reply_to: replyToAddress() } : {}),
         subject: email.subject,
         text: email.text,
         html: email.html,

@@ -78,6 +78,17 @@ export async function GET(request: NextRequest) {
         kind: intent.kind,
       });
     }
+    // Not a failure: the intent is still claimable. It says only that no
+    // payment has reached PawaPay yet, so the screen can stop pretending to
+    // confirm one.
+    if (outcome === "awaiting_payment") {
+      return Response.json({
+        status: "awaiting_payment",
+        charged: intent.charged_amount,
+        currency: intent.currency,
+        kind: intent.kind,
+      });
+    }
     if (outcome === "failed" || outcome === "amount_mismatch") {
       return Response.json({
         status: outcome,
