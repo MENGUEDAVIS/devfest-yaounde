@@ -1,7 +1,11 @@
 # 0019 — Settle payments by polling, not by callback
 
 Date: 2026-09-01
-Status: Accepted
+Status: Accepted, **amended by 0028**
+
+> **Amended by `0028`:** the five-minute sweep is still `/api/cron/cleanup`,
+> but Supabase `pg_cron` invokes it. Vercel Hobby cannot run Cron more than
+> once a day. The poll, the route and the guarded delivery are unchanged.
 
 ## Context
 
