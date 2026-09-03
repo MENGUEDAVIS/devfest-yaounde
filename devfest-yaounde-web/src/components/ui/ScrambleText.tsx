@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useScramble } from "@/lib/use-scramble";
 
 /**
  * Glyphs the scramble cycles through. Deliberately ASCII-ish and monospace-y
@@ -8,22 +8,6 @@ import { useCallback, useEffect, useRef } from "react";
  * deliberately WITHOUT accented characters — the resolved text supplies those
  * from the real string.
  */
-const GLYPHS = "!<>-_\\/[]{}—=+*^?#░▒▓01";
-
-/**
- * Pacing (PHASE12 §4). The first version resolved in ~9 frames, which read as
- * a blink rather than a decode. These numbers are tuned to be WATCHABLE:
- * a glyph is held for several frames before changing, and each character
- * starts later than the one before it, so the resolve sweeps visibly across
- * the word. A short title takes roughly a second and a half.
- */
-/** Frames each character churns before it locks. */
-const CHURN_FRAMES = 26;
-/** Frames between one character starting and the next. */
-const STAGGER_FRAMES = 4;
-/** Frames a single random glyph is held before being swapped. Slows the churn. */
-const GLYPH_HOLD = 3;
-
 export interface ScrambleTextProps {
   /** The real text. This is what renders on the server and what it resolves to. */
   text: string;
@@ -66,67 +50,16 @@ export interface ScrambleTextProps {
  * of the effect is real work for a purely decorative moment.
  */
 export function ScrambleText({ text, className = "" }: ScrambleTextProps) {
-  const nodeRef = useRef<HTMLSpanElement>(null);
-  const frameRef = useRef<number | null>(null);
-
-  const scramble = useCallback(() => {
-    const node = nodeRef.current;
-    if (!node || frameRef.current !== null) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const chars = [...text];
-    // Each character gets its own start/end frame, so the resolve sweeps
-    // across the word instead of every letter locking at once.
-    const schedule = chars.map((_, i) => ({
-      start: i * STAGGER_FRAMES,
-      end: i * STAGGER_FRAMES + CHURN_FRAMES,
-    }));
-    const total = schedule[schedule.length - 1]?.end ?? 0;
-    // One held glyph per character, refreshed every GLYPH_HOLD frames.
-    const held = chars.map(() => GLYPHS[0]);
-    let frame = 0;
-
-    const tick = () => {
-      const out = chars.map((c, i) => {
-        // Whitespace never churns — scrambling the gaps makes the word lose
-        // its shape and reads as noise rather than as decoding.
-        if (c.trim() === "") return c;
-        if (frame < schedule[i].start || frame >= schedule[i].end) return c;
-        if (frame % GLYPH_HOLD === 0) {
-          held[i] = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
-        }
-        return held[i];
-      });
-      node.textContent = out.join("");
-
-      if (frame >= total) {
-        node.textContent = text;
-        frameRef.current = null;
-        return;
-      }
-      frame++;
-      frameRef.current = requestAnimationFrame(tick);
-    };
-
-    frameRef.current = requestAnimationFrame(tick);
-  }, [text]);
-
-  // Cancel an in-flight scramble if the title unmounts mid-decode, and put
-  // the real text back so a remount never inherits a half-decoded string.
-  useEffect(() => {
-    const node = nodeRef.current;
-    return () => {
-      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
-      if (node) node.textContent = text;
-    };
-  }, [text]);
+  /* The pacing, the glyph set and the reduced-motion guard live in the hook,
+     which the preloader also uses. Two copies of that is how two things
+     meant to look identical drift apart. */
+  const { ref, start } = useScramble<HTMLSpanElement>({ text });
 
   return (
-    <span className={`scramble ${className}`} onClick={scramble}>
+    <span className={`scramble ${className}`} onClick={start}>
       {/* The stable, correct text for assistive tech and for copy/paste. */}
       <span className="sr-only">{text}</span>
-      <span ref={nodeRef} aria-hidden>
+      <span ref={ref} aria-hidden>
         {text}
       </span>
     </span>

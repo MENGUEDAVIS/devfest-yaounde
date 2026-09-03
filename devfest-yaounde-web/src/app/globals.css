@@ -668,6 +668,25 @@ html:not(.has-custom-cursor) .cursor-layer {
   background: var(--color-primary);
 }
 
+/*
+ * SCROLL LOCK WHILE THE PRELOADER IS UP — from the very first paint.
+ *
+ * The loader is server-rendered, so it is on screen before any JavaScript
+ * runs. `lockScroll()` cannot be: it lives in an effect, which measured ~120ms
+ * after paint, and for that window the page could still be scrolled behind a
+ * screen that is supposed to be covering it.
+ *
+ * `:has()` closes the gap with no JS at all, and unlocks itself the instant
+ * React removes the node — there is no timer to get wrong and no state to
+ * leave stuck. The effect's `lockScroll()` stays, because it does the other
+ * half of the job: stopping Lenis, which owns its own scroll loop and ignores
+ * `overflow` entirely.
+ */
+html:has([data-preloader]),
+html:has([data-preloader]) body {
+  overflow: hidden;
+}
+
 /* Focus ring, yellow-family and always visible for keyboard users */
 :focus-visible {
   outline: 3px solid var(--color-primary);

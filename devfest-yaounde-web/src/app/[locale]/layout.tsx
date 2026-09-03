@@ -7,6 +7,7 @@ import { CustomCursor } from "@/components/global/CustomCursor";
 import { FloatingScrollbar } from "@/components/global/FloatingScrollbar";
 import { Footer } from "@/components/global/Footer";
 import { GlobalChrome } from "@/components/global/GlobalChrome";
+import { Preloader } from "@/components/global/Preloader";
 import { SmoothScrollProvider } from "@/components/global/SmoothScrollProvider";
 import { routing } from "@/i18n/routing";
 import { organizationJsonLd } from "@/lib/event";
@@ -123,6 +124,10 @@ export default async function LocaleLayout({
           >
             {t("skipToContent")}
           </a>
+          {/* First paint, and only on a real load — the root layout does not
+              remount on client navigation, so moving between pages never
+              shows it again. */}
+          <Preloader />
           <SmoothScrollProvider />
           <GlobalChrome />
           <FloatingScrollbar />
