@@ -48,7 +48,8 @@
   },
   "announcement": {
     "message": "🎟️ Les billets early bird se terminent bientôt — réservez le vôtre avant l'augmentation des prix !",
-    "dismiss": "Fermer l'annonce"
+    "dismiss": "Fermer l'annonce",
+    "wall": "Fait par la communauté, pour la communauté — chaque carte ici a été créée par quelqu'un qui vient au DevFest Yaoundé. Merci, sincèrement. Crée la tienne dans le générateur et tu es sur le mur aussi."
   },
   "footer": {
     "rsvpCta": "Viens construire avec nous",
@@ -511,6 +512,12 @@
       "noOrdersBody": "Tout ce que tu achètes à la boutique arrive ici, avec son état d'avancement.",
       "browseShop": "Voir la boutique",
       "metaDesc": "Tes billets, tes commandes, tes codes de badge."
+    },
+    "wall": {
+      "title": "Mur de la communauté",
+      "metaDesc": "Les cartes créées par la communauté DevFest Yaoundé, faites dans le générateur de PP et partagées par celles et ceux qui les ont créées.",
+      "cardLabel": "Carte DevFest",
+      "placeholderNotice": "Cartes d'exemple — pas de vraies personnes"
     }
   },
   "errors": {

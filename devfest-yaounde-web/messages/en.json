@@ -48,7 +48,8 @@
   },
   "announcement": {
     "message": "🎟️ Early bird tickets end soon — grab yours before prices go up!",
-    "dismiss": "Dismiss announcement"
+    "dismiss": "Dismiss announcement",
+    "wall": "Made by the community, for the community — every card here was built by someone coming to DevFest Yaoundé. Thank you, genuinely. Make yours in the DP generator and you're on the wall too."
   },
   "footer": {
     "rsvpCta": "Come build with us",
@@ -511,6 +512,12 @@
       "noOrdersBody": "Anything you buy from the shop lands here, with where it is in the process.",
       "browseShop": "Browse the shop",
       "metaDesc": "Your tickets, your orders, your badge codes."
+    },
+    "wall": {
+      "title": "Community wall",
+      "metaDesc": "Cards made by the DevFest Yaoundé community, built in the DP generator and shared by the people who made them.",
+      "cardLabel": "DevFest card",
+      "placeholderNotice": "Placeholder cards — not real people"
     }
   },
   "errors": {

@@ -669,6 +669,121 @@ html:not(.has-custom-cursor) .cursor-layer {
 }
 
 /*
+ * The wall page is a single screen: it does not scroll, and it has no footer.
+ *
+ * Both are done from CSS rather than by restructuring the shared layout,
+ * because only this one route out of a dozen wants either — and `:has()`
+ * scopes it exactly, with nothing to remember to undo on the way out. A
+ * footer below a wall that never scrolls is unreachable anyway.
+ *
+ * Reduced motion is the exception: there the wall stops moving on its own,
+ * so scrolling is the only way to see the rest of it.
+ */
+@media not (prefers-reduced-motion: reduce) {
+  html:has(main[data-wall]),
+  html:has(main[data-wall]) body {
+    overflow: hidden;
+  }
+}
+body:has(main[data-wall]) footer {
+  display: none;
+}
+
+/*
+ * ---------------------------------------------------- the community wall ---
+ *
+ * The wall is WIDER THAN THE SCREEN and pulled left, so the outermost columns
+ * run off both edges and the grid never lines up with the viewport. With the
+ * tilt, nothing about it reads as a rectangle of cards that happens to be
+ * moving.
+ *
+ * `scale` on the tilt is not decoration: rotating a rectangle leaves bare
+ * triangles at the corners, and the scale pushes them back out of sight.
+ */
+.wall-tilt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  transform: rotate(var(--wall-tilt, -4deg)) scale(1.22);
+  transform-origin: center;
+}
+.wall-tilt > * {
+  width: 128%;
+  margin-left: -14%;
+}
+.wall-column {
+  /* Each column is its own clipping window; the track inside is what moves. */
+  height: 130vh;
+  overflow: hidden;
+}
+
+/*
+ * THE EDGE FADE IS A MASK, NOT A GRADIENT FILL.
+ *
+ * It sits on the OUTER, UNROTATED box — the one that is exactly the viewport.
+ * On the tilted track inside it the percentages resolve against 130vh and
+ * then get scaled and rotated, so the fade landed off-screen entirely and the
+ * cards were hard-cut at the top and bottom edges.
+ *
+ * DESIGN.md §2.6 bans gradients as design surfaces, and this is deliberately
+ * not one: `mask-image` paints no colour at all. It varies ALPHA, so the cards
+ * fade to transparent and whatever the page background happens to be shows
+ * through. That is also why it needs no theme wiring — a colour scrim would
+ * have to be re-matched every time the theme changed, and this re-blends by
+ * construction, because it never had a colour of its own.
+ */
+.wall-fade {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+}
+
+.wall-tile {
+  transition:
+    opacity 260ms var(--ease-out-devfest),
+    transform 260ms var(--ease-bouncy);
+}
+/* Pointing at one card lifts it and pushes everything else back — the still
+   cards in its own column as well as the ones still moving elsewhere. */
+.wall-tile.is-spotlit {
+  transform: scale(1.06) rotate(1.6deg);
+  z-index: 2;
+}
+.wall-tile.is-dimmed {
+  opacity: 0.28;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wall-tile {
+    transition: none;
+  }
+  .wall-tile.is-spotlit {
+    transform: none;
+  }
+  .wall-column {
+    height: auto;
+    overflow: visible;
+  }
+  /* Nothing moves on its own, so the wall becomes an ordinary scrollable
+     list — "no motion" must not mean "no access". */
+  .wall-tilt {
+    position: static;
+    transform: rotate(var(--wall-tilt, -4deg)) scale(1.04);
+  }
+}
+
+/*
  * SCROLL LOCK WHILE THE PRELOADER IS UP — from the very first paint.
  *
  * The loader is server-rendered, so it is on screen before any JavaScript

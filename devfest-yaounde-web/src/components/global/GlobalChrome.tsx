@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { navSettle } from "@/lib/motion";
 import { useSessionDismissed } from "@/lib/use-session-dismissed";
@@ -24,6 +25,21 @@ const DISMISS_KEY = "devfest-announcement-dismissed";
 export function GlobalChrome() {
   const [dismissed, dismiss] = useSessionDismissed(DISMISS_KEY);
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+
+  /*
+   * The wall puts the bar at the BOTTOM.
+   *
+   * That page does not scroll and has no header of its own — the cards run
+   * edge to edge and off the top, so a bar pinned up there would sit on the
+   * busiest part of the screen. It also means the announcement cannot be
+   * dismissed there: it is the page's only chrome, and a wall with nothing
+   * on it but faces gives no way back.
+   *
+   * Read from the route rather than passed in, because the layout that
+   * renders this is shared by every page and does not know which one it is.
+   */
+  const onWall = /^\/[a-z]{2}\/wall\/?$/.test(pathname ?? "");
 
   useEffect(() => {
     function onScroll() {
@@ -34,7 +50,7 @@ export function GlobalChrome() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const bannerOpen = !dismissed;
+  const bannerOpen = onWall || !dismissed;
   /*
    * The shape morph is driven by the banner, not by scroll: with the banner
    * attached the unit is a tall card (radius-lg), and dismissing it morphs
@@ -44,7 +60,11 @@ export function GlobalChrome() {
   const pillShape = !bannerOpen;
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-3 sm:px-6 sm:pt-5">
+    <header
+      className={`pointer-events-none fixed inset-x-0 z-50 flex justify-center px-3 sm:px-6 ${
+        onWall ? "bottom-0 pb-3 sm:pb-5" : "top-0 pt-3 sm:pt-5"
+      }`}
+    >
       <div
         /*
          * PHASE10 §2 — the corners now BLEND to the pill instead of snapping.
@@ -78,7 +98,12 @@ export function GlobalChrome() {
           style={{ gridTemplateRows: bannerOpen ? "1fr" : "0fr" }}
         >
           <div className="min-h-0 overflow-hidden">
-            <AnnouncementBanner onDismiss={dismiss} hidden={!bannerOpen} />
+            <AnnouncementBanner
+              onDismiss={dismiss}
+              hidden={!bannerOpen}
+              dismissible={!onWall}
+              messageKey={onWall ? "wall" : undefined}
+            />
           </div>
         </div>
 
