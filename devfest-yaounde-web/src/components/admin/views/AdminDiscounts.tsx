@@ -1,8 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import type { AdminData } from "@/lib/admin/shape";
+import type { AdminData, AdminDiscount } from "@/lib/admin/shape";
 import { DataTable, Panel, when } from "./shared";
+
+const CODE_RE = /^[A-Z0-9-]{3,32}$/;
+
+function parsedValue(raw: string): number | null {
+  if (raw.trim() === "") return null;
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n < 1) return null;
+  return n;
+}
+
+function createHint(
+  code: string,
+  kind: "percent" | "fixed",
+  value: string,
+): string | null {
+  if (!code.trim())
+    return "Pick a code — at least 3 letters, digits or hyphens.";
+  if (!CODE_RE.test(code.trim())) {
+    return "Codes are 3–32 characters: A–Z, 0–9, hyphens.";
+  }
+  const n = parsedValue(value);
+  if (n === null) return "Value has to be a whole number of at least 1.";
+  if (kind === "percent" && n > 100) {
+    return "A percent off has to be between 1 and 100.";
+  }
+  return null;
+}
 
 export function AdminDiscounts({ data }: { data: AdminData }) {
   const [code, setCode] = useState("");
@@ -16,8 +43,15 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [rows, setRows] = useState<AdminDiscount[]>(data.discounts);
+
+  const hint = createHint(code, kind, value);
+  const ready = hint === null;
 
   async function create() {
+    if (!ready) return;
+    const n = parsedValue(value);
+    if (n === null) return;
     setStatus("saving");
     setError(null);
     const res = await fetch("/api/admin/discounts", {
@@ -26,11 +60,13 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
       body: JSON.stringify({
         code,
         kind,
-        value: Number(value),
+        value: n,
         appliesTo,
         active: true,
       }),
     });
+    const body = (await res.json().catch(() => null)) as
+      (Partial<AdminDiscount> & { error?: string; detail?: string }) | null;
     if (res.status === 409) {
       setStatus("error");
       setError("That code already exists.");
@@ -38,20 +74,50 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
     }
     if (!res.ok) {
       setStatus("error");
-      setError("Could not create the code. Check the fields.");
+      setError(body?.detail ?? "Could not create the code. Check the fields.");
       return;
     }
+    const created: AdminDiscount = {
+      code: body?.code ?? code.trim().toUpperCase(),
+      kind: body?.kind ?? kind,
+      value: body?.value ?? n,
+      appliesTo: body?.appliesTo ?? appliesTo,
+      active: body?.active ?? true,
+      redeemedCount: body?.redeemedCount ?? 0,
+      maxRedemptions: body?.maxRedemptions ?? null,
+      expiresAt: body?.expiresAt ?? null,
+    };
+    setRows((prev) =>
+      [...prev.filter((row) => row.code !== created.code), created].sort(
+        (a, b) => a.code.localeCompare(b.code),
+      ),
+    );
     setStatus("saved");
     setCode("");
   }
 
   async function toggle(existing: string, active: boolean) {
     setBusy(existing);
-    await fetch(`/api/admin/discounts/${existing}`, {
+    setError(null);
+    const res = await fetch(`/api/admin/discounts/${existing}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ active: !active }),
     });
+    const body = (await res.json().catch(() => null)) as {
+      error?: string;
+      detail?: string;
+    } | null;
+    if (!res.ok) {
+      setError(body?.detail ?? "Could not update that code.");
+      setBusy(null);
+      return;
+    }
+    setRows((prev) =>
+      prev.map((row) =>
+        row.code === existing ? { ...row, active: !active } : row,
+      ),
+    );
     setBusy(null);
   }
 
@@ -88,6 +154,8 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
               className={`${field} mt-1 block w-24`}
               type="number"
               min={1}
+              max={kind === "percent" ? 100 : undefined}
+              step={1}
               value={value}
               onChange={(e) => setValue(e.target.value)}
             />
@@ -109,15 +177,19 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
           <button
             type="button"
             onClick={() => void create()}
-            disabled={status === "saving"}
+            disabled={!ready || status === "saving"}
+            title={hint ?? undefined}
             className="rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 disabled:opacity-50"
           >
             {status === "saving" ? "Saving…" : "Create"}
           </button>
         </div>
+        {hint && status !== "saving" && status !== "saved" && (
+          <p className="mt-3 text-body-m text-black02/70">{hint}</p>
+        )}
         {status === "saved" && (
           <p className="mt-3 text-body-m font-bold text-black02">
-            Created. Reload to see it in the list.
+            Created. It is in the list below.
           </p>
         )}
         {error && (
@@ -143,7 +215,7 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
             "",
           ]}
           empty="No discount codes."
-          rows={data.discounts.map((d) => [
+          rows={rows.map((d) => [
             <span key="c" className="font-mono font-bold">
               {d.code}
             </span>,

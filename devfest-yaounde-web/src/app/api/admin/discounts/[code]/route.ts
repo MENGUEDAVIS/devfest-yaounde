@@ -3,7 +3,7 @@
  */
 import { NextRequest } from "next/server";
 import { recordAudit } from "@/lib/admin/audit";
-import { discountWriteSchema } from "@/lib/content/schemas";
+import { discountPatchSchema, firstZodIssue } from "@/lib/content/schemas";
 import { CHECKOUT_ERRORS, errorResponse } from "@/lib/payments/errors";
 import { currentOrganiser } from "@/lib/security/organisers";
 import { RATE_LIMITS, rateLimit } from "@/lib/security/rate-limit";
@@ -36,22 +36,33 @@ export async function PATCH(
     return errorResponse(CHECKOUT_ERRORS.INVALID_BODY, 400);
   }
 
-  const parsed = discountWriteSchema.partial().safeParse(
+  const parsed = discountPatchSchema.safeParse(
     body && typeof body === "object" ? { ...body, code } : { code },
   );
-  if (!parsed.success) return errorResponse(CHECKOUT_ERRORS.INVALID_BODY, 400);
-  const input = parsed.data;
-  if (input.kind === "percent" && input.value !== undefined && input.value > 100) {
-    return errorResponse(CHECKOUT_ERRORS.INVALID_BODY, 400);
+  if (!parsed.success) {
+    return errorResponse(CHECKOUT_ERRORS.INVALID_BODY, 400, {
+      detail: firstZodIssue(parsed.error),
+    });
   }
+  const input = parsed.data;
 
   const supabase = createAdminSupabase();
   const { data: existing } = await supabase
     .from("discount_codes")
-    .select("code, kind, value, applies_to, max_redemptions, expires_at, active")
+    .select(
+      "code, kind, value, applies_to, max_redemptions, expires_at, active",
+    )
     .eq("code", code)
     .maybeSingle();
   if (!existing) return Response.json({ error: "not_found" }, { status: 404 });
+
+  const nextKind = input.kind ?? existing.kind;
+  const nextValue = input.value ?? existing.value;
+  if (nextKind === "percent" && nextValue > 100) {
+    return errorResponse(CHECKOUT_ERRORS.INVALID_BODY, 400, {
+      detail: "value: percent must be 1–100",
+    });
+  }
 
   const { error } = await supabase
     .from("discount_codes")

@@ -70,7 +70,11 @@ export const teamSchema = z.object({
 export const sessionSchema = z.object({
   id: slug,
   time: z.string().regex(/^\d{2}:\d{2}$/),
-  durationMin: z.number().int().min(1).max(24 * 60),
+  durationMin: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 60),
   day: z.number().int().min(1).max(14),
   kind: z.enum(["talk", "workshop", "panel", "break"]),
   title: localizedRequired,
@@ -93,13 +97,7 @@ export const sponsorSchema = z.object({
 
 export const faqSchema = z.object({
   id: slug,
-  category: z.enum([
-    "general",
-    "tickets",
-    "venue",
-    "shop",
-    "code-of-conduct",
-  ]),
+  category: z.enum(["general", "tickets", "venue", "shop", "code-of-conduct"]),
   question: localizedRequired,
   answer: localizedRequired,
   cta: z
@@ -174,10 +172,7 @@ export const pastEditionSchema = z.object({
 const MAX_ROWS = 500;
 
 function collection<T extends z.ZodType<{ id: string }>>(item: T) {
-  return z
-    .array(item)
-    .max(MAX_ROWS)
-    .refine(uniqueIds, "duplicate id");
+  return z.array(item).max(MAX_ROWS).refine(uniqueIds, "duplicate id");
 }
 
 export const COLLECTIONS = [
@@ -232,7 +227,14 @@ export const settingsSchema = z.object({
   bevyUrl: urlOrEmpty.optional().nullable(),
 });
 
-export const discountWriteSchema = z.object({
+function blankToNull(value: unknown): unknown {
+  // Empty string from a date input, not a missing key — PATCH must not
+  // treat an omitted `expiresAt` as "clear the expiry".
+  if (value === "") return null;
+  return value;
+}
+
+const discountWriteFields = z.object({
   code: z
     .string()
     .trim()
@@ -241,16 +243,42 @@ export const discountWriteSchema = z.object({
     .max(32)
     .regex(/^[A-Z0-9-]+$/),
   kind: z.enum(["percent", "fixed"]),
-  value: z.number().int().min(1).max(1_000_000),
+  // The dashboard number input can arrive as a string; empty becomes 0
+  // and fails min(1) with a readable issue instead of a generic 400.
+  value: z.coerce.number().int().min(1).max(1_000_000),
   appliesTo: z.enum(["tickets", "shop", "both"]).default("both"),
   maxRedemptions: z.number().int().min(1).max(1_000_000).optional().nullable(),
-  expiresAt: z
-    .string()
-    .refine((value) => !Number.isNaN(Date.parse(value)), "invalid date")
-    .optional()
-    .nullable(),
+  expiresAt: z.preprocess(
+    blankToNull,
+    z
+      .string()
+      .refine((value) => !Number.isNaN(Date.parse(value)), "invalid date")
+      .nullable()
+      .optional(),
+  ),
   active: z.boolean().default(true),
 });
+
+export const discountWriteSchema = discountWriteFields.superRefine(
+  (data, ctx) => {
+    if (data.kind === "percent" && data.value > 100) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["value"],
+        message: "percent must be 1–100",
+      });
+    }
+  },
+);
+
+export const discountPatchSchema = discountWriteFields.partial();
+
+export function firstZodIssue(error: z.ZodError): string {
+  const issue = error.issues[0];
+  if (!issue) return "invalid payload";
+  const path = issue.path.join(".");
+  return path ? `${path}: ${issue.message}` : issue.message;
+}
 
 export type DiscountWrite = z.infer<typeof discountWriteSchema>;
 export type SettingsWrite = z.infer<typeof settingsSchema>;

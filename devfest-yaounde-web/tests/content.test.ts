@@ -12,14 +12,13 @@ import stats from "@/data/stats.json";
 import pastEditions from "@/data/past-editions.json";
 import {
   collectionSchemas,
+  discountPatchSchema,
   discountWriteSchema,
+  firstZodIssue,
   settingsSchema,
 } from "@/lib/content/schemas";
 import { dryRun, parseCsv } from "@/lib/admin/csv";
-import {
-  SPEAKER_CSV_SPEC,
-  speakersFromCsv,
-} from "@/lib/content/from-csv";
+import { SPEAKER_CSV_SPEC, speakersFromCsv } from "@/lib/content/from-csv";
 import {
   applyPhotoUrl,
   entryNeedsPhoto,
@@ -42,9 +41,10 @@ describe("editorial schemas", () => {
     } as const;
 
     for (const [id, payload] of Object.entries(files)) {
-      const parsed = collectionSchemas[id as keyof typeof collectionSchemas].safeParse(
-        payload,
-      );
+      const parsed =
+        collectionSchemas[id as keyof typeof collectionSchemas].safeParse(
+          payload,
+        );
       assert.equal(
         parsed.success,
         true,
@@ -60,13 +60,76 @@ describe("editorial schemas", () => {
     assert.equal(collectionSchemas.speakers.safeParse(copy).success, false);
   });
 
-  it("refuses a percent over 100 at the route's extra check, not the schema", () => {
+  it("accepts a well-formed percent code, including a string value", () => {
     const parsed = discountWriteSchema.safeParse({
+      code: "test10",
+      kind: "percent",
+      value: "10",
+      appliesTo: "both",
+      active: true,
+    });
+    assert.equal(parsed.success, true);
+    if (parsed.success) {
+      assert.equal(parsed.data.code, "TEST10");
+      assert.equal(parsed.data.value, 10);
+    }
+  });
+
+  it("refuses an empty or short code with a path in the first issue", () => {
+    const empty = discountWriteSchema.safeParse({
+      code: "",
+      kind: "percent",
+      value: 10,
+    });
+    assert.equal(empty.success, false);
+    if (!empty.success) {
+      assert.match(firstZodIssue(empty.error), /^code:/);
+    }
+    const short = discountWriteSchema.safeParse({
+      code: "AB",
+      kind: "percent",
+      value: 10,
+    });
+    assert.equal(short.success, false);
+  });
+
+  it("refuses a percent over 100 and an empty value", () => {
+    const tooMuch = discountWriteSchema.safeParse({
       code: "TOO-MUCH",
       kind: "percent",
       value: 150,
     });
-    assert.equal(parsed.success, true);
+    assert.equal(tooMuch.success, false);
+    if (!tooMuch.success) {
+      assert.match(firstZodIssue(tooMuch.error), /percent must be 1–100/);
+    }
+    const blank = discountWriteSchema.safeParse({
+      code: "BLANK",
+      kind: "percent",
+      value: "",
+    });
+    assert.equal(blank.success, false);
+  });
+
+  it("treats a blank expiry as omitted and still patches active", () => {
+    const created = discountWriteSchema.safeParse({
+      code: "KEEP",
+      kind: "fixed",
+      value: 500,
+      expiresAt: "",
+    });
+    assert.equal(created.success, true);
+    if (created.success) assert.equal(created.data.expiresAt, null);
+
+    const patched = discountPatchSchema.safeParse({
+      active: false,
+      code: "KEEP",
+    });
+    assert.equal(patched.success, true);
+    if (patched.success) {
+      assert.equal(patched.data.value, undefined);
+      assert.equal(patched.data.expiresAt, undefined);
+    }
   });
 
   it("accepts empty announcement strings and https URLs", () => {
@@ -107,10 +170,7 @@ describe("csv of names, photos later", () => {
       },
     ]);
     assert.equal(payload[0].photoUrl, "https://example.com/kept.jpg");
-    assert.equal(
-      collectionSchemas.speakers.safeParse(payload).success,
-      true,
-    );
+    assert.equal(collectionSchemas.speakers.safeParse(payload).success, true);
   });
 });
 
@@ -120,7 +180,9 @@ describe("editorial photos", () => {
     assert.equal(isPlaceholderPhoto("#"), true);
     assert.equal(isPlaceholderPhoto("/placeholders/speaker-1.svg"), true);
     assert.equal(
-      isPlaceholderPhoto("https://x.supabase.co/storage/v1/object/public/editorial/speakers/a.jpg"),
+      isPlaceholderPhoto(
+        "https://x.supabase.co/storage/v1/object/public/editorial/speakers/a.jpg",
+      ),
       false,
     );
   });
@@ -139,10 +201,13 @@ describe("editorial photos", () => {
     );
     assert.deepEqual(product.images, ["https://cdn/tee.jpg"]);
     assert.equal(
-      entryNeedsPhoto({ photoUrl: "/placeholders/x.svg" }, {
-        kind: "url",
-        field: "photoUrl",
-      }),
+      entryNeedsPhoto(
+        { photoUrl: "/placeholders/x.svg" },
+        {
+          kind: "url",
+          field: "photoUrl",
+        },
+      ),
       true,
     );
   });
