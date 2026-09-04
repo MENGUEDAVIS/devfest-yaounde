@@ -43,19 +43,39 @@ export async function DELETE(
     return Response.json({ error: "not_found" }, { status: 404 });
   }
 
+  /*
+   * TWO ways to be allowed to delete a card, and they are not the same right.
+   *
+   *   - the submitter, proving it with the token they were handed once;
+   *   - an ORGANISER, proving it with a session.
+   *
+   * The organiser path is new, and it is a bug fix rather than a feature.
+   * There was no way for an organiser to delete anything: the admin's "trash"
+   * button fell back to `PATCH { status: "rejected" }`, which removes the
+   * image but LEAVES THE ROW. So a moderated card stayed in the admin list
+   * for ever, now with a dead image — you could press delete on it four times
+   * and it would still be sitting there. The card was never deleted because
+   * nothing could delete it.
+   */
   const token = request.headers.get("x-deletion-token");
-  if (!token) return Response.json({ error: "not_found" }, { status: 404 });
+  const organiser = token ? null : await currentOrganiser();
+  if (!token && !organiser) {
+    return Response.json({ error: "not_found" }, { status: 404 });
+  }
 
   const supabase = createAdminSupabase();
   const { data: card } = await supabase
     .from("dp_cards")
-    .select("id, storage_path, deletion_hash")
+    .select("id, storage_path, deletion_hash, nickname")
     .eq("id", id)
     .maybeSingle();
 
-  // A wrong token and a missing card answer identically, so this cannot be
-  // used to discover which ids exist.
-  if (!card || !tokensMatch(hashToken(token), card.deletion_hash)) {
+  if (!card) return Response.json({ error: "not_found" }, { status: 404 });
+
+  // A wrong token and a missing card answer identically, so the token path
+  // cannot be used to discover which ids exist. An organiser is already
+  // authenticated, so that property is not theirs to protect.
+  if (token && !tokensMatch(hashToken(token), card.deletion_hash)) {
     return Response.json({ error: "not_found" }, { status: 404 });
   }
 
@@ -68,6 +88,21 @@ export async function DELETE(
     console.error("[dp-gallery] delete failed", error.message);
     return Response.json({ error: "server_error" }, { status: 500 });
   }
+
+  // Only an organiser's deletion is audited: a takedown by the person in the
+  // photograph is them exercising a right, not an action taken over them, and
+  // logging who removed themselves would keep a record of exactly the person
+  // who asked to stop having one.
+  if (organiser) {
+    await recordAudit({
+      actor: organiser.userId,
+      action: "wall.delete",
+      target: id,
+      before: { nickname: card.nickname },
+      after: null,
+    });
+  }
+
   return Response.json({ deleted: true });
 }
 

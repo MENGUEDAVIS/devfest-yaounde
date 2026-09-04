@@ -2,7 +2,7 @@
 
 import { List, X } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { Link, usePathname } from "@/i18n/navigation";
 import { ConfettiBurst } from "./ConfettiBurst";
@@ -34,6 +34,26 @@ export function Navbar({ compact }: { compact: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const clickTimestamps = useRef<number[]>([]);
+
+  /**
+   * A full-screen panel has two obligations an inline accordion never had:
+   * the page behind it must not scroll, and Escape must close it. Without
+   * the scroll lock, dragging on the panel scrolls the article underneath
+   * it — which on a phone reads as the menu being broken.
+   */
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileOpen]);
 
   function handleLogoClick() {
     const now = Date.now();
@@ -123,62 +143,75 @@ export function Navbar({ compact }: { compact: boolean }) {
         </button>
       </div>
 
-      {/* Mobile sheet — animates open with the same grid-rows collapse trick */}
+      {/*
+        A full-screen drawer, not a strip that unfolds under the bar.
+        
+        It used to be a `grid-template-rows` accordion inside the nav: the
+        menu opened into the top of the page and left the article showing
+        beneath it, so on a phone it read as something stuck at the top
+        rather than as a menu. Full-bleed gives the links room to be tap
+        targets and makes it unambiguous that the site is waiting.
+      */}
       <div
-        className="grid transition-[grid-template-rows] duration-400 ease-out-devfest motion-reduce:transition-none lg:hidden"
-        style={{ gridTemplateRows: mobileOpen ? "1fr" : "0fr" }}
+        id="mobile-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("openMenu")}
+        hidden={!mobileOpen}
+        className="fixed inset-0 z-[60] flex flex-col bg-offwhite lg:hidden"
       >
-        <div className="min-h-0 overflow-hidden">
-          <div className="mt-4 flex flex-col gap-1 border-t-2 border-black02/10 pt-4">
-            {/*
-              PHASE13 §7: the mobile menu now shows which page you are on.
-              It uses the FILL treatment (like the schedule's day toggles)
-              rather than the desktop nav's underline — an underline reads as
-              a link decoration in a stacked list, while a filled row reads
-              as "you are here" at a glance. `aria-current="page"` carries
-              the same information to assistive tech, which the desktop nav
-              was also missing.
-            */}
-            {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  tabIndex={mobileOpen ? undefined : -1}
-                  aria-current={isActive ? "page" : undefined}
-                  className={`rounded-md px-3 py-2 font-sans text-body-l font-bold transition-colors duration-200 ${
-                    isActive
-                      ? "border-2 border-black02 bg-primary text-black02"
-                      : "border-2 border-transparent text-black02/75 hover:bg-pastel hover:text-black02"
-                  }`}
-                >
-                  {t(link.key)}
-                </Link>
-              );
-            })}
-            <div className="mt-3 flex flex-wrap items-center gap-2.5">
+        <div className="flex items-center justify-between px-5 py-4">
+          <DevFestLogo className="h-7 w-auto" />
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            aria-label={t("closeMenu")}
+            className="rounded-pill border-2 border-black02 p-2.5 text-black02 transition-transform duration-200 active:scale-90"
+          >
+            <X size={22} weight="bold" />
+          </button>
+        </div>
+
+        <nav className="flex flex-1 flex-col gap-2 overflow-y-auto px-5 pb-8 pt-4">
+          {NAV_LINKS.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                aria-current={isActive ? "page" : undefined}
+                className={`rounded-lg px-4 py-4 font-sans text-heading-m font-bold transition-colors duration-200 ${
+                  isActive
+                    ? "border-2 border-black02 bg-primary text-black02"
+                    : "border-2 border-transparent text-black02/80 hover:bg-pastel hover:text-black02"
+                }`}
+              >
+                {t(link.key)}
+              </Link>
+            );
+          })}
+
+          <div className="mt-auto flex flex-col gap-3 pt-8">
+            <Link
+              href="/tickets"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-pill border-2 border-black02 bg-primary px-5 py-3.5 text-center font-sans text-body-l font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)]"
+            >
+              {t("tickets")}
+            </Link>
+            <Link
+              href="/shop"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-pill border-2 border-black02 px-5 py-3.5 text-center font-sans text-body-l font-bold text-black02"
+            >
+              {t("shop")}
+            </Link>
+            <div className="flex justify-center pt-2">
               <LanguageSwitcher />
-              <Link
-                href="/shop"
-                onClick={() => setMobileOpen(false)}
-                tabIndex={mobileOpen ? undefined : -1}
-                className="rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02"
-              >
-                {t("shop")}
-              </Link>
-              <Link
-                href="/tickets"
-                onClick={() => setMobileOpen(false)}
-                tabIndex={mobileOpen ? undefined : -1}
-                className="rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02"
-              >
-                {t("tickets")}
-              </Link>
             </div>
           </div>
-        </div>
+        </nav>
       </div>
     </nav>
   );

@@ -162,11 +162,25 @@ function layout(l: Locale, title: string, bodyHtml: string): string {
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
 
   <!-- Brand bar. The chapter first, the edition second: the chapter is who
-       is writing, the edition is what about. -->
-  <tr><td style="background:${BRAND.ink};border-radius:16px 16px 0 0;padding:20px 28px;">
-    <span style="font-family:${MONO};font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.yellow};">${escapeHtml(c.chapter)}</span>
-    <span style="font-family:${MONO};font-size:12px;letter-spacing:1.5px;color:${BRAND.offwhite};opacity:.5;">&nbsp;&times;&nbsp;</span>
-    <span style="font-family:${MONO};font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.offwhite};">${escapeHtml(c.edition)}</span>
+       is writing, the edition is what about.
+
+       The mark is an absolute HTTPS URL to a PNG, and it has to be all three
+       of those. Mail clients strip data: URIs, most of them will not render
+       SVG at all, and a relative path has no origin to resolve against in an
+       inbox. The alt text and the wordmark below carry it when images are
+       blocked, which for a first message from an unknown sender is common. -->
+  <tr><td style="background:${BRAND.ink};border-radius:16px 16px 0 0;padding:18px 28px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="padding-right:12px;line-height:0;" valign="middle">
+        <img src="${SITE_URL}/logo/d-logo-left.png" width="20" height="23" alt="" style="display:inline-block;vertical-align:middle;border:0;">
+        <img src="${SITE_URL}/logo/d-logo-right.png" width="20" height="23" alt="" style="display:inline-block;vertical-align:middle;border:0;">
+      </td>
+      <td valign="middle">
+        <span style="font-family:${MONO};font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.yellow};">${escapeHtml(c.chapter)}</span>
+        <span style="font-family:${MONO};font-size:12px;letter-spacing:1.5px;color:${BRAND.offwhite};opacity:.5;">&nbsp;&times;&nbsp;</span>
+        <span style="font-family:${MONO};font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.offwhite};">${escapeHtml(c.edition)}</span>
+      </td>
+    </tr></table>
   </td></tr>
 
   <!-- Title band. Flat colour, no gradient — DESIGN.md is explicit. -->

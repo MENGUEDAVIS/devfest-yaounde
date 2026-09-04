@@ -686,7 +686,21 @@ export function TicketCheckout({
       </div>
 
       {/* ---- Order summary, sticky through every step ---- */}
-      <aside className="lg:sticky lg:top-40 lg:self-start">
+      {/*
+       * Sticky to the BOTTOM on a phone, to the top on a wide screen.
+       *
+       * On mobile the summary was simply the last thing on a long page, so
+       * the running total — the number someone is deciding against while they
+       * pick tiers — was off screen for the entire decision. `bottom-0` keeps
+       * it in view while the checkout column is, and lets it scroll away with
+       * the end of the section rather than following the reader down the
+       * footer.
+       *
+       * Capped and scrollable because the card grows: with several lines and
+       * a discount applied it would otherwise take most of a small screen and
+       * bury the thing it is summarising.
+       */}
+      <aside className="sticky bottom-0 z-30 max-h-[60svh] overflow-y-auto lg:bottom-auto lg:top-40 lg:max-h-none lg:self-start lg:overflow-visible">
         <OrderSummary
           title={t("summary")}
           lines={paidTiers

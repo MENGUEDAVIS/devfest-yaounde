@@ -27,13 +27,11 @@ import {
   removeCard,
   requireConsent,
   initialStatus,
-  signedUrl,
+  readWallPage,
   storagePath,
   storeCard,
 } from "@/lib/dp/gallery-server";
 import { galleryConsentText } from "@/lib/dp/gallery-consent";
-
-const PAGE_SIZE = 24;
 
 function enabled(): boolean {
   return process.env.NEXT_PUBLIC_DP_GALLERY === "1";
@@ -137,40 +135,10 @@ export async function GET(request: NextRequest) {
   // submission is not buried by a late rush. `newest` stays available.
   const shuffle = url.searchParams.get("order") !== "newest";
 
-  const supabase = createAdminSupabase();
-  const { data, error } = await supabase
-    .from("dp_cards")
-    .select("id, nickname, storage_path, created_at")
-    .eq("status", "approved")
-    .eq("visible", true)
-    .order("created_at", { ascending: false })
-    .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
-
-  if (error) {
-    console.error("[dp-gallery] read failed", error.message);
+  try {
+    // Same reader the page uses. One definition of "what is on the wall".
+    return Response.json(await readWallPage(page, shuffle));
+  } catch {
     return Response.json({ error: "server_error" }, { status: 500 });
   }
-
-  const rows = data ?? [];
-  if (shuffle) {
-    for (let i = rows.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [rows[i], rows[j]] = [rows[j], rows[i]];
-    }
-  }
-
-  // No IP, no consent timestamps, no tokens — the contract is explicit.
-  const cards = await Promise.all(
-    rows.map(async (row) => ({
-      id: row.id,
-      nickname: row.nickname,
-      imageUrl: await signedUrl(row.storage_path),
-    })),
-  );
-
-  return Response.json({
-    cards: cards.filter((card) => card.imageUrl),
-    page,
-    hasMore: rows.length === PAGE_SIZE,
-  });
 }

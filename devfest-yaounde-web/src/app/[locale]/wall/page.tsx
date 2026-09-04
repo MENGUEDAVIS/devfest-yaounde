@@ -4,6 +4,7 @@ import { DpWall } from "@/components/wall/DpWall";
 import { pageMetadata } from "@/lib/seo";
 import type { WallCard } from "@/data/wall-placeholders";
 import { CHAPTER_EMAIL } from "@/lib/site-config";
+import { readWallPage } from "@/lib/dp/gallery-server";
 
 export async function generateMetadata({
   params,
@@ -32,6 +33,16 @@ export async function generateMetadata({
 }
 
 /**
+ * Never cached. Two reasons, both load-bearing:
+ *
+ *   - the image URLs are SIGNED and expire, so a cached render eventually
+ *     serves links that 404 and a wall with no pictures on it;
+ *   - a card submitted a moment ago should be on the wall, not on the wall in
+ *     up to a minute.
+ */
+export const dynamic = "force-dynamic";
+
+/**
  * `/{locale}/wall` — the community wall.
  *
  * Live cards from `GET /api/dp/gallery` (visible + approved). An empty
@@ -49,20 +60,16 @@ export default async function WallPage({
   let cards: WallCard[] = [];
   let hasMore = false;
   if (process.env.NEXT_PUBLIC_DP_GALLERY === "1") {
-    const base =
-      process.env.NEXT_PUBLIC_APP_BASE_URL ?? "http://localhost:3000";
     try {
-      const response = await fetch(`${base}/api/dp/gallery`, {
-        next: { revalidate: 60 },
-      });
-      if (response.ok) {
-        const data = (await response.json()) as {
-          cards?: WallCard[];
-          hasMore?: boolean;
-        };
-        cards = data.cards ?? [];
-        hasMore = Boolean(data.hasMore);
-      }
+      // Read the database directly. This used to fetch the site's own API
+      // route over HTTP, using NEXT_PUBLIC_APP_BASE_URL — a server calling
+      // itself across the network to reach a function it already had. When
+      // that call failed (cold start, a base URL wrong on a preview), the
+      // page rendered ZERO cards and the wall looked broken until someone
+      // reloaded. That is the "images don't load until I refresh" report.
+      const wall = await readWallPage();
+      cards = wall.cards;
+      hasMore = wall.hasMore;
     } catch {
       // Empty state below rather than a crash.
     }

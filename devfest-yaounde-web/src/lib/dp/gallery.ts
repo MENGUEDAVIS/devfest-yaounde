@@ -16,23 +16,26 @@
  */
 export const GALLERY_MAX_EDGE = 640;
 
-/** JPEG rather than PNG: a photograph on a wall, not an asset to re-edit. */
-const GALLERY_TYPE = "image/jpeg";
-const GALLERY_QUALITY = 0.82;
-
 /**
- * The site's own "paper" neutral (`frames.ts`, `stickers.ts`), used to flatten
- * transparency before the JPEG encode.
+ * WebP, and nothing is flattened.
  *
  * A card with rounded or mixed corners (`geometry.ts`) is drawn INSIDE a
- * clipped rounded rect — the canvas is `clearRect`'d first, so the four
- * corners outside that rect are fully transparent alpha, not any colour.
- * JPEG has no alpha channel, and a canvas with no explicit fill composites
- * transparency onto BLACK when encoded. Every rounded card was picking up
- * solid black corners the moment it reached the wall — invisible in the PNG
- * preview and download, only visible once this JPEG copy existed.
+ * clipped rounded rect, so its four corners are fully transparent. JPEG has
+ * no alpha channel: encoding one meant compositing those corners onto
+ * something, and a canvas composites onto BLACK unless filled first. That is
+ * why the download (a PNG) looked right and the wall copy did not — the two
+ * were different formats, and only one of them could carry the corners.
+ *
+ * WebP carries alpha. Nothing is filled, nothing is baked in, and the card
+ * reaching the wall is the card that was composed.
+ *
+ * A browser too old to encode WebP from a canvas returns a PNG instead
+ * (`toBlob` falls back on an unsupported type). That is fine and deliberate:
+ * PNG also carries alpha, the server re-encodes either one to WebP, and the
+ * incoming size cap is set high enough to accept it.
  */
-const GALLERY_BACKGROUND = "#F0F0F0";
+const GALLERY_TYPE = "image/webp";
+const GALLERY_QUALITY = 0.92;
 
 /** Where a deletion token is kept so someone can take their card down. */
 export const GALLERY_TOKENS_KEY = "devfest-dp-gallery";
@@ -84,9 +87,7 @@ export async function galleryCopy(card: Blob): Promise<Blob> {
     const canvas = new OffscreenCanvas(w, h);
     const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
     ctx.imageSmoothingQuality = "high";
-    // Flatten onto paper BEFORE drawing the card — see GALLERY_BACKGROUND.
-    ctx.fillStyle = GALLERY_BACKGROUND;
-    ctx.fillRect(0, 0, w, h);
+    // No fill: the canvas starts transparent and WebP keeps it that way.
     ctx.drawImage(source, 0, 0, w, h);
     source.close();
     return canvas.convertToBlob({
@@ -100,8 +101,7 @@ export async function galleryCopy(card: Blob): Promise<Blob> {
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   ctx.imageSmoothingQuality = "high";
-  ctx.fillStyle = GALLERY_BACKGROUND;
-  ctx.fillRect(0, 0, w, h);
+  // No fill — see above.
   ctx.drawImage(source, 0, 0, w, h);
   source.close();
   return new Promise<Blob>((resolve, reject) => {
@@ -137,7 +137,7 @@ export async function submitToGallery(input: {
   if (!galleryEnabled()) throw new GallerySubmitError("gallery_disabled");
 
   const body = new FormData();
-  body.set("image", await galleryCopy(input.card), "card.jpg");
+  body.set("image", await galleryCopy(input.card), "card.webp");
   body.set(
     "nickname",
     (
