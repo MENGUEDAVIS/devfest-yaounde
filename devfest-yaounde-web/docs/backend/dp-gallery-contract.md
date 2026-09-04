@@ -26,7 +26,7 @@ reachable the moment its row changes.
 ```sql
 create table dp_cards (
   id            uuid primary key default gen_random_uuid(),
-  storage_path  text not null,                    -- e.g. dp-cards/2026/<id>.jpg
+  storage_path  text not null,                    -- e.g. dp-cards/2026/<id>.webp
   nickname      text not null check (length(nickname) <= 28),
   locale        text not null check (locale in ('fr','en')),
 
@@ -61,13 +61,13 @@ same reasoning as a password. The token is returned once, to the browser.
 
 `multipart/form-data`, no authentication.
 
-| Field       | Type         | Notes                                     |
-| ----------- | ------------ | ----------------------------------------- |
-| `image`     | file         | JPEG, ≤ 400 KB, ≤ 800px on the long edge  |
-| `nickname`  | string       | ≤ 28 characters                           |
-| `locale`    | `fr` \| `en` |                                           |
-| `consent`   | `"true"`     | Reject the request if it is anything else |
-| `consentAt` | ISO 8601     |                                           |
+| Field       | Type         | Notes                                         |
+| ----------- | ------------ | --------------------------------------------- |
+| `image`     | file         | WebP or PNG, ≤ 2 MB, ≤ 800px on the long edge |
+| `nickname`  | string       | ≤ 28 characters                               |
+| `locale`    | `fr` \| `en` |                                               |
+| `consent`   | `"true"`     | Reject the request if it is anything else     |
+| `consentAt` | ISO 8601     |                                               |
 
 **Must do, in this order:**
 

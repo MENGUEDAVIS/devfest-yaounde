@@ -12,9 +12,9 @@ import {
   Ticket,
   Users,
 } from "@phosphor-icons/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import type { AdminData, AdminSettings, MissingPhoto } from "@/lib/admin/shape";
 import { AdminOverview } from "./views/AdminOverview";
@@ -152,23 +152,41 @@ export function AdminShell({
   settings: AdminSettings;
   missingPhotos: MissingPhoto[];
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const params = useSearchParams();
-  const view = parseView(params.get("view"));
+  // Seeded from the URL once, then owned here. Reading `params` on every
+  // render would tie the view back to the router and undo the point below.
+  const [view, setView] = useState<ViewId>(() => parseView(params.get("view")));
 
   useEffect(() => {
     document.title = "Admin · DevFest Yaoundé";
   }, []);
 
+  /**
+   * Switch view, and write the URL WITHOUT navigating.
+   *
+   * This used to call `router.replace`. In the App Router that is a real
+   * navigation: it asks the server for the route again, which re-runs the
+   * admin page — six database reads, every one of them for data already
+   * sitting in this component's props — before the new tab can paint.
+   * Moving between tabs was therefore slower than moving between pages of
+   * the public site, which is the opposite of what a dashboard should feel
+   * like and exactly what was reported.
+   *
+   * `history.replaceState` gives the same shareable, reload-safe URL with no
+   * round trip at all. Nothing on the server depends on `?view=`: the page
+   * takes no `searchParams`, so there was never anything to re-render for.
+   */
   function go(id: ViewId) {
-    const next = new URLSearchParams(params.toString());
+    setView(id);
+    const next = new URLSearchParams(window.location.search);
     if (id === "overview") next.delete("view");
     else next.set("view", id);
     const query = next.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, {
-      scroll: false,
-    });
+    window.history.replaceState(
+      null,
+      "",
+      query ? `${window.location.pathname}?${query}` : window.location.pathname,
+    );
   }
 
   const header = HEADERS[view];

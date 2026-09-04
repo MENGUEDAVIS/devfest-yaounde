@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMediaQuery } from "@/lib/use-media-query";
 import type { WallCard } from "@/data/wall-placeholders";
+import { dealColumns } from "@/lib/dp/wall-layout";
 
 /** Pixels per second a column travels. Slow enough to read a name in passing. */
 const BASE_SPEED = 18;
@@ -11,14 +12,16 @@ const BASE_SPEED = 18;
 const SPEED_JITTER = 5;
 /** The whole wall leans, so cards never travel perfectly vertically. */
 const TILT_DEG = -4;
-
 /**
- * The community wall.
+ * How often the wall re-asks what is on it.
  *
- * COLUMN-BASED MASONRY. Cards keep the size and corners they were composed
- * with: the JPEG is shown at its native ratio (`height: auto`), no CSS
- * `object-cover` crop and no forced `border-radius` on top of the artwork.
+ * The wall is a display surface people leave open — at a venue, on a second
+ * screen — so a card submitted while someone is watching should appear
+ * without anyone reloading. This also refreshes the SIGNED image URLs, which
+ * expire, so a long-lived tab does not decay into broken images.
  */
+const REFRESH_MS = 45_000;
+
 export function DpWall({
   cards: initialCards,
   placeholder,
@@ -58,6 +61,50 @@ export function DpWall({
       cancelled = true;
     };
   }, [more, page, placeholder]);
+  /**
+   * Keep the wall current without anyone reloading it.
+   *
+   * Two problems, one loop. A card submitted while somebody is watching
+   * should appear on its own — the wall is a display surface people leave
+   * open at a venue, not a page you refresh. And the image URLs are SIGNED
+   * and expire, so a tab left open long enough decays into a wall of broken
+   * images regardless of whether anything new was posted.
+   *
+   * The merge is deliberately conservative: existing cards keep their
+   * POSITION and only have their URL refreshed, and genuinely new ids are
+   * appended. Replacing the array wholesale would re-deal every column and
+   * the whole wall would visibly jump every forty-five seconds.
+   */
+  useEffect(() => {
+    if (placeholder) return;
+    let cancelled = false;
+
+    const id = window.setInterval(async () => {
+      try {
+        const response = await fetch("/api/dp/gallery", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as { cards?: WallCard[] };
+        const fresh = data.cards ?? [];
+        if (cancelled || fresh.length === 0) return;
+
+        setCards((prev) => {
+          const byId = new Map(fresh.map((card) => [card.id, card]));
+          const kept = prev.map((card) => byId.get(card.id) ?? card);
+          const known = new Set(prev.map((card) => card.id));
+          return [...kept, ...fresh.filter((card) => !known.has(card.id))];
+        });
+      } catch {
+        // Offline, or a blip. The next tick tries again; a failed refresh
+        // must never blank a wall that is currently rendering fine.
+      }
+    }, REFRESH_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [placeholder]);
+
   const t = useTranslations("pages.wall");
   const calm = useMediaQuery("(prefers-reduced-motion: reduce)");
 
@@ -67,21 +114,38 @@ export function DpWall({
   const huge = useMediaQuery("(min-width: 1700px)");
   const columnCount = huge ? 8 : widest ? 7 : wider ? 6 : wide ? 4 : 3;
 
-  const [hovered, setHovered] = useState<{ column: number; id: string } | null>(
-    null,
-  );
+  /**
+   * Which TILE is under the pointer — identified by its position, not by the
+   * card it shows.
+   *
+   * Keying this by `card.id` meant hovering one tile spotlit every copy of
+   * that card in the column at once. With the old dealing that was the entire
+   * column, which is the "I hovered and it hovered 3 cards" report.
+   */
+  const [hovered, setHovered] = useState<{
+    column: number;
+    key: string;
+  } | null>(null);
 
-  const columns = useMemo(() => {
-    const out: WallCard[][] = Array.from({ length: columnCount }, () => []);
-    if (cards.length === 0) return out;
-    const perColumn = Math.max(6, Math.ceil(18 / columnCount) * 3);
-    for (let c = 0; c < columnCount; c++) {
-      for (let i = 0; i < perColumn; i++) {
-        out[c].push(cards[(c + i * columnCount) % cards.length]);
-      }
-    }
-    return out;
-  }, [cards, columnCount]);
+  /**
+   * Deal the cards into columns.
+   *
+   * The previous version indexed `cards[(c + i * columnCount) % cards.length]`,
+   * which aliases catastrophically whenever the deck and the column count
+   * share a factor: with three cards in three columns it reduces to
+   * `c % 3 === c`, so **every column showed one person, repeated forever**.
+   * That is what was on the wall.
+   *
+   * Now each column draws its own shuffle of the whole deck, re-shuffling
+   * whenever it runs out, so a short deck repeats in a different order rather
+   * than the same one. The seed is the column index alone — deliberately NOT
+   * the deck size, so a new card arriving does not re-deal the entire wall
+   * under the eyes of whoever is watching it.
+   */
+  const columns = useMemo(
+    () => dealColumns(cards, columnCount),
+    [cards, columnCount],
+  );
 
   return (
     <div
@@ -105,9 +169,9 @@ export function DpWall({
               calm={calm}
               paused={hovered?.column === index}
               dimmed={hovered !== null}
-              hoveredId={hovered?.column === index ? hovered.id : null}
-              onHover={(id) =>
-                setHovered(id === null ? null : { column: index, id })
+              hoveredKey={hovered?.column === index ? hovered.key : null}
+              onHover={(key) =>
+                setHovered(key === null ? null : { column: index, key })
               }
               label={t("cardLabel")}
               placeholder={placeholder}
@@ -125,7 +189,7 @@ function WallColumn({
   calm,
   paused,
   dimmed,
-  hoveredId,
+  hoveredKey,
   onHover,
   label,
   placeholder,
@@ -135,8 +199,8 @@ function WallColumn({
   calm: boolean;
   paused: boolean;
   dimmed: boolean;
-  hoveredId: string | null;
-  onHover: (id: string | null) => void;
+  hoveredKey: string | null;
+  onHover: (key: string | null) => void;
   label: string;
   placeholder: boolean;
 }) {
@@ -180,18 +244,25 @@ function WallColumn({
     <div className="wall-column min-w-0 flex-1">
       <div ref={trackRef} className="flex flex-col gap-3 sm:gap-4">
         {[0, 1].map((copy) =>
-          cards.map((card, i) => (
-            <WallTile
-              key={`${copy}-${card.id}-${i}`}
-              card={card}
-              label={label}
-              placeholder={placeholder}
-              duplicate={copy === 1}
-              spotlit={hoveredId === card.id}
-              dimmed={dimmed && hoveredId !== card.id}
-              onHover={onHover}
-            />
-          )),
+          cards.map((card, i) => {
+            // Position, not card id: the same card legitimately appears more
+            // than once in a column, and only the one under the pointer
+            // should light up.
+            const tileKey = `${copy}-${i}`;
+            return (
+              <WallTile
+                key={tileKey}
+                tileKey={tileKey}
+                card={card}
+                label={label}
+                placeholder={placeholder}
+                duplicate={copy === 1}
+                spotlit={hoveredKey === tileKey}
+                dimmed={dimmed && hoveredKey !== tileKey}
+                onHover={onHover}
+              />
+            );
+          }),
         )}
       </div>
     </div>
@@ -199,6 +270,7 @@ function WallColumn({
 }
 
 function WallTile({
+  tileKey,
   card,
   label,
   placeholder,
@@ -207,30 +279,49 @@ function WallTile({
   dimmed,
   onHover,
 }: {
+  tileKey: string;
   card: WallCard;
   label: string;
   placeholder: boolean;
   duplicate: boolean;
   spotlit: boolean;
   dimmed: boolean;
-  onHover: (id: string | null) => void;
+  onHover: (key: string | null) => void;
 }) {
   return (
     <figure
       aria-hidden={duplicate}
-      onPointerEnter={() => onHover(card.id)}
+      onPointerEnter={() => onHover(tileKey)}
       onPointerLeave={() => onHover(null)}
       className={`wall-tile ${spotlit ? "is-spotlit" : ""} ${
         dimmed ? "is-dimmed" : ""
       }`}
     >
+      {/*
+       * The wall is for looking at, not for taking from.
+       *
+       * These are photographs of real people who agreed to appear on a
+       * community page — not to have their face saved off it by a passer-by.
+       * So: no context menu, no drag-to-desktop, no long-press save sheet on
+       * iOS, no text selection.
+       *
+       * Stated plainly, because it would be dishonest to imply otherwise:
+       * this stops the CASUAL grab and nothing more. Anyone who opens the
+       * network tab still has the URL. Real protection is the takedown path,
+       * the retention rule and the fact that the bucket is private and served
+       * through short-lived signed links — not this. Organisers download from
+       * the admin, which is a different surface with a real gate in front.
+       */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={card.imageUrl}
         alt={placeholder ? label : `${card.nickname} — ${label}`}
         loading="lazy"
         decoding="async"
-        className="block h-auto w-full bg-transparent"
+        draggable={false}
+        onContextMenu={(event) => event.preventDefault()}
+        onDragStart={(event) => event.preventDefault()}
+        className="wall-tile-image block h-auto w-full bg-transparent"
       />
     </figure>
   );

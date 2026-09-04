@@ -78,6 +78,7 @@ import {
   DEFAULT_RETENTION_DAYS,
   purgeExpiredCards,
 } from "@/lib/dp/gallery-retention";
+import { dealColumns } from "@/lib/dp/wall-layout";
 
 const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
@@ -1025,8 +1026,16 @@ describe("community wall", () => {
   it("caps the server side above what the client sends", () => {
     // The client downscales to 640; the server refuses anything over 800, so
     // a hand-rolled upload cannot smuggle a full-resolution face in.
+    //
+    // The DIMENSION cap is the control that matters and it has not moved.
+    // The byte cap did: it used to be 400 KB, which was fine while the client
+    // sent JPEG, and became a trap when the wall moved to WebP — a browser
+    // that cannot encode WebP from a canvas falls back to PNG, and a 640px
+    // PNG of a photograph is comfortably over it. Bytes bound the request;
+    // pixels bound what can be stored, and pixels are what a smuggled
+    // full-resolution face would need.
     assert.ok(MAX_EDGE >= GALLERY_MAX_EDGE);
-    assert.ok(MAX_BYTES <= 400 * 1024);
+    assert.ok(MAX_BYTES <= 2 * 1024 * 1024, "byte cap must stay bounded");
   });
 
   it("stays dark until the flag is set", () => {
@@ -1259,21 +1268,25 @@ describe("receipt emails", () => {
   });
 });
 
-describe("wall cards keep their paper, not a black hole", () => {
+describe("wall cards keep their transparency, not a black hole", () => {
   /**
-   * The regression this guards is not hypothetical: every card on the live
-   * wall has corners of exactly 0,0,0, measured off the stored JPEG.
+   * The regression this guards shipped twice, differently.
    *
    * A generated card has fully transparent corners (geometry.ts). JPEG has no
-   * alpha, and sharp — like a browser canvas — composites transparency onto
-   * BLACK when no background is given. So the re-encode that makes the stored
-   * image safe was also the thing painting a black frame around every face.
+   * alpha, so the first version composited them onto BLACK and every face on
+   * the wall got a black frame. The fix flattened onto paper instead — which
+   * removed the black but baked #F0F0F0 into the card, so the corners were a
+   * pale rectangle on any other background.
+   *
+   * WebP carries alpha. The guarantee is no longer "the corners are the right
+   * colour", it is "the corners have no colour at all", and that is what this
+   * asserts now.
    */
-  it("flattens transparent corners onto paper before the JPEG encode", async () => {
+  it("re-encodes to WebP with the transparent corners intact", async () => {
     const sharp = (await import("sharp")).default;
 
-    // A square that is opaque red in the middle and fully transparent at the
-    // corners — the shape of every card the generator produces.
+    // Opaque red in the middle, fully transparent at the corners — the shape
+    // of every card the generator produces.
     const size = 64;
     const raw = Buffer.alloc(size * size * 4, 0);
     for (let y = 16; y < 48; y++) {
@@ -1290,14 +1303,17 @@ describe("wall cards keep their paper, not a black hole", () => {
       .toBuffer();
 
     const out = await normaliseImage(new Blob([new Uint8Array(png)]));
-    const { data, info } = await sharp(out).raw().toBuffer({
-      resolveWithObject: true,
-    });
 
-    const corner = (x: number, y: number) => {
-      const i = (y * info.width + x) * info.channels;
-      return [data[i], data[i + 1], data[i + 2]];
-    };
+    const meta = await sharp(out).metadata();
+    assert.equal(meta.format, "webp", "stored format");
+    assert.equal(meta.hasAlpha, true, "alpha channel dropped");
+
+    const { data, info } = await sharp(out)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const alphaAt = (x: number, y: number) =>
+      data[(y * info.width + x) * info.channels + 3];
 
     for (const [x, y] of [
       [1, 1],
@@ -1305,13 +1321,68 @@ describe("wall cards keep their paper, not a black hole", () => {
       [1, info.height - 2],
       [info.width - 2, info.height - 2],
     ]) {
-      const [r, g, b] = corner(x, y);
-      // Paper is #F0F0F0. JPEG is lossy, so this is a neighbourhood, not an
-      // equality — but 0,0,0 is nowhere near it, which is the whole point.
       assert.ok(
-        r > 200 && g > 200 && b > 200,
-        `corner ${x},${y} came out ${r},${g},${b} — transparency was composited onto something dark`,
+        alphaAt(x, y) < 20,
+        `corner ${x},${y} came back opaque — the transparency was composited away`,
       );
     }
+    // And the middle is still there, so this is not passing by producing an
+    // empty image.
+    assert.ok(alphaAt(info.width >> 1, info.height >> 1) > 200, "centre lost");
+  });
+});
+
+describe("dealing cards into the wall's columns", () => {
+  const deck = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      id: `card-${i}`,
+      nickname: `person-${i}`,
+      imageUrl: `https://example.test/${i}.webp`,
+    }));
+
+  it("never gives a column one card on repeat when the deck has several", () => {
+    // The shipped version indexed `cards[(c + i * columnCount) % length]`,
+    // which for three cards in three columns reduces to `c % 3 === c`: every
+    // column was one person, forever. That is what was on the live wall.
+    for (const columnCount of [3, 4, 6, 7, 8]) {
+      for (const size of [2, 3, 4, 6, 8, 12]) {
+        const columns = dealColumns(deck(size), columnCount);
+        for (const [index, column] of columns.entries()) {
+          const distinct = new Set(column.map((card) => card.id)).size;
+          assert.equal(
+            distinct,
+            Math.min(size, column.length),
+            `column ${index} of ${columnCount} with a deck of ${size} showed ${distinct} distinct cards`,
+          );
+        }
+      }
+    }
+  });
+
+  it("deals the columns differently from one another", () => {
+    // Otherwise the wall is one sheet scrolling, which is what it looked like.
+    const columns = dealColumns(deck(6), 5);
+    const signatures = columns.map((column) =>
+      column
+        .slice(0, 6)
+        .map((card) => card.id)
+        .join(","),
+    );
+    assert.equal(
+      new Set(signatures).size,
+      signatures.length,
+      "two columns were dealt the same order",
+    );
+  });
+
+  it("is stable across renders, so hydration cannot mismatch", () => {
+    // Seeded, not Math.random(): the server and the browser must build the
+    // same wall or React throws.
+    const cards = deck(5);
+    assert.deepEqual(dealColumns(cards, 4), dealColumns(cards, 4));
+  });
+
+  it("survives an empty deck", () => {
+    assert.deepEqual(dealColumns([], 3), [[], [], []]);
   });
 });
