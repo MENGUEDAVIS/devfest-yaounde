@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Flag } from "@phosphor-icons/react";
+import { reportGalleryCard } from "@/lib/dp/gallery";
 import { useMediaQuery } from "@/lib/use-media-query";
 import type { WallCard } from "@/data/wall-placeholders";
 
@@ -97,6 +99,9 @@ export function DpWall({
                 setHovered(id === null ? null : { column: index, id })
               }
               label={t("cardLabel")}
+              reportLabel={t("report")}
+              reportedLabel={t("reported")}
+              reportFailedLabel={t("reportFailed")}
               placeholder={placeholder}
             />
           ))}
@@ -115,6 +120,9 @@ function WallColumn({
   hoveredId,
   onHover,
   label,
+  reportLabel,
+  reportedLabel,
+  reportFailedLabel,
   placeholder,
 }: {
   index: number;
@@ -125,6 +133,9 @@ function WallColumn({
   hoveredId: string | null;
   onHover: (id: string | null) => void;
   label: string;
+  reportLabel: string;
+  reportedLabel: string;
+  reportFailedLabel: string;
   placeholder: boolean;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -181,6 +192,9 @@ function WallColumn({
               key={`${copy}-${card.id}-${i}`}
               card={card}
               label={label}
+              reportLabel={reportLabel}
+              reportedLabel={reportedLabel}
+              reportFailedLabel={reportFailedLabel}
               placeholder={placeholder}
               duplicate={copy === 1}
               spotlit={hoveredId === card.id}
@@ -197,6 +211,9 @@ function WallColumn({
 function WallTile({
   card,
   label,
+  reportLabel,
+  reportedLabel,
+  reportFailedLabel,
   placeholder,
   duplicate,
   spotlit,
@@ -205,18 +222,36 @@ function WallTile({
 }: {
   card: WallCard;
   label: string;
+  reportLabel: string;
+  reportedLabel: string;
+  reportFailedLabel: string;
   placeholder: boolean;
   duplicate: boolean;
   spotlit: boolean;
   dimmed: boolean;
   onHover: (id: string | null) => void;
 }) {
+  const [reportState, setReportState] = useState<
+    "idle" | "sending" | "sent" | "error"
+  >("idle");
+
+  async function report() {
+    if (reportState !== "idle") return;
+    setReportState("sending");
+    try {
+      await reportGalleryCard(card.id);
+      setReportState("sent");
+    } catch {
+      setReportState("error");
+    }
+  }
+
   return (
     <figure
       aria-hidden={duplicate}
       onPointerEnter={() => onHover(card.id)}
       onPointerLeave={() => onHover(null)}
-      className={`wall-tile ${spotlit ? "is-spotlit" : ""} ${
+      className={`wall-tile relative ${spotlit ? "is-spotlit" : ""} ${
         dimmed ? "is-dimmed" : ""
       }`}
     >
@@ -235,6 +270,24 @@ function WallTile({
           card.ratio === "3:4" ? "aspect-[3/4]" : "aspect-square"
         }`}
       />
+      {!placeholder && !duplicate && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            void report();
+          }}
+          disabled={reportState === "sending" || reportState === "sent"}
+          className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-pill border-2 border-black02 bg-offwhite px-2.5 py-1 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 disabled:opacity-70"
+        >
+          <Flag size={12} weight="bold" aria-hidden />
+          {reportState === "sent"
+            ? reportedLabel
+            : reportState === "error"
+              ? reportFailedLabel
+              : reportLabel}
+        </button>
+      )}
     </figure>
   );
 }

@@ -552,9 +552,9 @@ describe("dp stickers", () => {
 });
 
 describe("dp community wall", () => {
-  it("is off unless the deployment switches it on", () => {
-    // The endpoint does not exist (GAPS.md G20). Dark by default is what
-    // keeps a button that would quietly fail off the screen entirely.
+  it("is dark in these tests unless the flag is set", () => {
+    // next.config defaults the flag on for a Next.js build (ADR 0033). These
+    // tests run outside that, so the helper still sees process.env as-is.
     assert.equal(process.env.NEXT_PUBLIC_DP_GALLERY, undefined);
     assert.equal(galleryEnabled(), false);
   });

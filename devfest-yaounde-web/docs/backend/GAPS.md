@@ -323,22 +323,13 @@ is never blocked by the log.
 
 ### G21 — The wall has no report path for visitors
 
-The wall page is built (ADR 0030) and the backend behind it exists (ADR 0026),
-with publication defaulting to no review (ADR 0027). Retro-moderation is real:
-`PATCH /api/dp/gallery/:id` with `rejected` deletes the image.
+**RESOLVED 2026-09-04** (ADR 0033, migration 0013). Each live card has a
+Report control. `POST /api/dp/gallery/:id/report` is unauthenticated,
+rate-limited by IP, one row per address per card. The dashboard lists those
+rows; Remove is the existing reject, which still deletes the image.
 
-**What is missing is the way anyone tells the organisers.** A visitor who sees
-something that should not be on a public page — an image that is not a DP, a
-face that is not the submitter's, a child — has no button. The only routes are
-knowing an organiser, or having submitted the card yourself.
-
-With review-before-publication this mattered less, because a human saw every
-card. Auto-approval moves protection from before publication to after it
-(ADR 0027 says so plainly), and "after" only works if someone can raise a hand.
-
-**Small, and frontend-plus-one-endpoint:** a report control on each card, and
-somewhere for the report to land. Worth closing before
-`NEXT_PUBLIC_DP_GALLERY` is switched on, not after.
+There is still no email ping when a report lands — organisers reload the
+panel. That is a smaller gap, not this one.
 
 ### G20 — The community wall — BACKEND BUILT
 
@@ -360,10 +351,9 @@ pending card is invisible, **anonymous reads return nothing approved or not**,
 approval publishes it behind a signed URL, the right takedown token matches
 and a different one does not, and a removed object stops being served.
 
-**Still missing: the wall PAGE itself**, and any screen for the queue. The
-queue is workable from any HTTP client, which is what lets the flag be turned
-on safely; a reviewing interface built before a single card exists would be
-guessing at what a reviewer needs.
+**The wall page shipped (ADR 0030) and the flag is on (ADR 0033).** Reports
+land in the dashboard (G21). The pending queue is still an API, and is empty
+by design while auto-approval is on.
 
 **Fully specified** in `docs/backend/dp-gallery-contract.md`: the table with
 its consent record, the three endpoints, validation order, rate limiting

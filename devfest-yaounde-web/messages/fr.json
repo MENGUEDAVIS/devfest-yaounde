@@ -521,7 +521,10 @@
       "title": "Mur de la communauté",
       "metaDesc": "Les cartes créées par la communauté DevFest Yaoundé, faites dans le générateur de PP et partagées par celles et ceux qui les ont créées.",
       "cardLabel": "Carte DevFest",
-      "placeholderNotice": "Cartes d'exemple — pas de vraies personnes"
+      "placeholderNotice": "Cartes d'exemple — pas de vraies personnes",
+      "report": "Signaler",
+      "reported": "C'est transmis",
+      "reportFailed": "Réessayer"
     }
   },
   "errors": {

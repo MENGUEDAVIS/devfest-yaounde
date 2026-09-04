@@ -6,11 +6,9 @@
  * card. See docs/decisions/0021-dp-community-wall.md — it reverses, narrowly,
  * the no-upload rule in ADR 0015.
  *
- * THE BACKEND DOES NOT EXIST YET. `POST /api/dp/gallery` is specified in
- * docs/backend/dp-gallery-contract.md and has not been built, so this module
- * is dark: `galleryEnabled()` is false without the environment flag, and the
- * screen renders no control at all. A button that quietly fails is worse than
- * no button — the same rule that removed the fake fulfilment picker (G13).
+ * The backend exists (ADR 0026). The wall is on unless the deployment sets
+ * `NEXT_PUBLIC_DP_GALLERY=0` (ADR 0033). `galleryEnabled()` still gates the
+ * control: a button that quietly fails is worse than no button.
  */
 
 /**
@@ -168,6 +166,25 @@ export async function submitToGallery(input: {
  * with the same honesty as the bag (GAPS.md G15): it does not follow anyone
  * to another device, and clearing site data loses it.
  */
+/**
+ * Flag a live card. No account, no reason form — the organisers look at the
+ * picture. A second tap from the same browser is still a success.
+ */
+export async function reportGalleryCard(id: string): Promise<void> {
+  if (!galleryEnabled()) throw new GallerySubmitError("gallery_disabled");
+
+  let response: Response;
+  try {
+    response = await fetch(`/api/dp/gallery/${id}/report`, { method: "POST" });
+  } catch {
+    throw new GallerySubmitError("gallery_failed");
+  }
+
+  if (response.status === 429)
+    throw new GallerySubmitError("gallery_rate_limited");
+  if (!response.ok) throw new GallerySubmitError("gallery_failed");
+}
+
 function rememberToken(token: string) {
   try {
     const raw = window.localStorage.getItem(GALLERY_TOKENS_KEY);

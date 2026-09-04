@@ -125,6 +125,35 @@ export type Database = {
         }
         Relationships: []
       }
+      dp_card_reports: {
+        Row: {
+          card_id: string
+          created_at: string
+          id: string
+          reporter_ip: unknown
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          id?: string
+          reporter_ip?: unknown
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          id?: string
+          reporter_ip?: unknown
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dp_card_reports_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "dp_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editorial_documents: {
         Row: {
           id: string

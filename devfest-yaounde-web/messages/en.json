@@ -521,7 +521,10 @@
       "title": "Community wall",
       "metaDesc": "Cards made by the DevFest Yaoundé community, built in the DP generator and shared by the people who made them.",
       "cardLabel": "DevFest card",
-      "placeholderNotice": "Placeholder cards — not real people"
+      "placeholderNotice": "Placeholder cards — not real people",
+      "report": "Report",
+      "reported": "Told the team",
+      "reportFailed": "Try again"
     }
   },
   "errors": {

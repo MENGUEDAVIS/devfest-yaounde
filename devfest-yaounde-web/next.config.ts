@@ -56,6 +56,12 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["http://localhost:3000", "192.168.100.15", "10.34.2.185"],
+  // The wall is on (ADR 0033). Only an explicit "0" turns it off — an empty
+  // string copied from .env.example would otherwise keep it dark in production.
+  env: {
+    NEXT_PUBLIC_DP_GALLERY:
+      process.env.NEXT_PUBLIC_DP_GALLERY === "0" ? "0" : "1",
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
