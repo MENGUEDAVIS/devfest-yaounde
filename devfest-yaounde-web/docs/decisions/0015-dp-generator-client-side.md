@@ -1,7 +1,7 @@
 # 0015 — The DP generator never uploads a photo
 
 Date: 2026-08-31
-Status: Accepted
+Status: Superseded by 0034
 
 ## Context
 

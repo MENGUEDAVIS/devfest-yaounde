@@ -92,6 +92,8 @@ export type Database = {
           status: string
           storage_path: string
           submitter_ip: unknown
+          theme: string
+          visible: boolean
         }
         Insert: {
           consent?: boolean
@@ -107,6 +109,8 @@ export type Database = {
           status?: string
           storage_path: string
           submitter_ip?: unknown
+          theme?: string
+          visible?: boolean
         }
         Update: {
           consent?: boolean
@@ -122,6 +126,8 @@ export type Database = {
           status?: string
           storage_path?: string
           submitter_ip?: unknown
+          theme?: string
+          visible?: boolean
         }
         Relationships: []
       }

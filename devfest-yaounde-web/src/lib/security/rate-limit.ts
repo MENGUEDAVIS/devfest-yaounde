@@ -36,7 +36,7 @@ export const RATE_LIMITS = {
    * to (ADR 0015), so the address is all there is. Five an hour is generous
    * for a person and tedious for a script.
    */
-  dpGallery: { bucket: "dp_gallery", limit: 5, windowSeconds: 3600 },
+  dpGallery: { bucket: "dp_gallery", limit: 12, windowSeconds: 3600 },
   /**
    * Reporting a wall card, by IP. Cheaper than a submission — a person who
    * spots two bad cards should not wait an hour — still useless as a flood.

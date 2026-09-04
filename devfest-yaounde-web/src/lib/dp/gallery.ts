@@ -1,14 +1,9 @@
 /**
- * DP generator — the community wall.
+ * DP generator — saving a composed card to the community wall.
  *
- * This is the ONE path by which a card may leave the device, and it exists
- * only because someone asked for it explicitly, in that session, for that
- * card. See docs/decisions/0021-dp-community-wall.md — it reverses, narrowly,
- * the no-upload rule in ADR 0015.
- *
- * The backend exists (ADR 0026). The wall is on unless the deployment sets
- * `NEXT_PUBLIC_DP_GALLERY=0` (ADR 0033). `galleryEnabled()` still gates the
- * control: a button that quietly fails is worse than no button.
+ * Download, share and copy stash a smaller copy first, then do the action
+ * (ADR 0034). The source photo never uploads. The wall is on unless the
+ * deployment sets `NEXT_PUBLIC_DP_GALLERY=0`.
  */
 
 /**
@@ -100,38 +95,40 @@ export async function galleryCopy(card: Blob): Promise<Blob> {
 }
 
 export interface GallerySubmission {
-  /** What was returned so this browser can take the card down again. */
+  id: string;
   deletionToken: string;
-  /**
-   * What actually happened. `approved` means it is on the wall now;
-   * `pending` means a reviewer has to see it first. Which one you get is a
-   * deployment decision (ADR 0027), so the screen must read this rather than
-   * assume.
-   */
   status: "approved" | "pending";
 }
 
+export interface GalleryToken {
+  id: string;
+  token: string;
+}
+
 /**
- * Hand one card to the wall.
- *
- * `consent` is not a formality and not a default: the request carries the
- * fact that a person ticked a box on this card, and the server is asked to
- * store that alongside the image. A wall of faces with no record of who
- * agreed to what is the thing this must never become.
+ * Stash the composed card. Throws on a hard failure so a caller that cares
+ * can show it; `stashComposedCard` swallows those so a download still runs.
  */
 export async function submitToGallery(input: {
   card: Blob;
   nickname: string;
   locale: "fr" | "en";
+  theme?: string;
 }): Promise<GallerySubmission> {
   if (!galleryEnabled()) throw new GallerySubmitError("gallery_disabled");
 
   const body = new FormData();
   body.set("image", await galleryCopy(input.card), "card.jpg");
-  body.set("nickname", input.nickname.trim().slice(0, 28));
+  body.set(
+    "nickname",
+    (
+      input.nickname.trim() || (input.locale === "fr" ? "quelqu'un" : "someone")
+    ).slice(0, 28),
+  );
   body.set("locale", input.locale);
   body.set("consent", "true");
   body.set("consentAt", new Date().toISOString());
+  if (input.theme) body.set("theme", input.theme);
 
   let response: Response;
   try {
@@ -146,30 +143,36 @@ export async function submitToGallery(input: {
   if (!response.ok) throw new GallerySubmitError("gallery_failed");
 
   const data = (await response.json().catch(() => null)) as {
+    id?: string;
     deletionToken?: string;
     status?: "approved" | "pending";
   } | null;
-  if (!data?.deletionToken) throw new GallerySubmitError("gallery_failed");
+  if (!data?.deletionToken || !data.id) {
+    throw new GallerySubmitError("gallery_failed");
+  }
 
-  rememberToken(data.deletionToken);
+  rememberToken(data.id, data.deletionToken);
   return {
+    id: data.id,
     deletionToken: data.deletionToken,
     status: data.status === "pending" ? "pending" : "approved",
   };
 }
 
-/**
- * Keep the deletion token on the device.
- *
- * There is no account, so this token IS the proof of authorship — lose it and
- * the only route to a takedown is asking the team. Kept in `localStorage`
- * with the same honesty as the bag (GAPS.md G15): it does not follow anyone
- * to another device, and clearing site data loses it.
- */
-/**
- * Flag a live card. No account, no reason form — the organisers look at the
- * picture. A second tap from the same browser is still a success.
- */
+/** Save-on-action: never blocks Download / Share / Copy. */
+export async function stashComposedCard(input: {
+  card: Blob;
+  nickname: string;
+  locale: "fr" | "en";
+  theme?: string;
+}): Promise<void> {
+  try {
+    await submitToGallery(input);
+  } catch (err) {
+    console.warn("[dp] wall stash skipped", err);
+  }
+}
+
 export async function reportGalleryCard(id: string): Promise<void> {
   if (!galleryEnabled()) throw new GallerySubmitError("gallery_disabled");
 
@@ -185,15 +188,61 @@ export async function reportGalleryCard(id: string): Promise<void> {
   if (!response.ok) throw new GallerySubmitError("gallery_failed");
 }
 
-function rememberToken(token: string) {
+export function loadGalleryTokens(): GalleryToken[] {
   try {
     const raw = window.localStorage.getItem(GALLERY_TOKENS_KEY);
-    const list = raw ? (JSON.parse(raw) as string[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap((item) => {
+      if (
+        item &&
+        typeof item === "object" &&
+        "id" in item &&
+        "token" in item &&
+        typeof (item as GalleryToken).id === "string" &&
+        typeof (item as GalleryToken).token === "string"
+      ) {
+        return [item as GalleryToken];
+      }
+      return [];
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function takeDownCard(
+  id: string,
+  token: string,
+): Promise<boolean> {
+  const response = await fetch(`/api/dp/gallery/${id}`, {
+    method: "DELETE",
+    headers: { "X-Deletion-Token": token },
+  });
+  if (response.ok) forgetGalleryToken(id);
+  return response.ok;
+}
+
+function rememberToken(id: string, token: string) {
+  try {
+    const list = loadGalleryTokens().filter((row) => row.id !== id);
     window.localStorage.setItem(
       GALLERY_TOKENS_KEY,
-      JSON.stringify([...list.filter((t) => t !== token), token].slice(-20)),
+      JSON.stringify([...list, { id, token }].slice(-20)),
     );
   } catch {
     // Private mode: the submission still stands, the takedown shortcut does not.
+  }
+}
+
+function forgetGalleryToken(id: string) {
+  try {
+    window.localStorage.setItem(
+      GALLERY_TOKENS_KEY,
+      JSON.stringify(loadGalleryTokens().filter((row) => row.id !== id)),
+    );
+  } catch {
+    /* ignore */
   }
 }
