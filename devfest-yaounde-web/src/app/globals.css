@@ -702,8 +702,15 @@ body:has(main[data-wall]) footer {
  */
 body:has([data-admin]) header,
 body:has([data-admin]) footer,
-body:has([data-admin]) [data-preloader] {
+body:has([data-admin]) [data-preloader],
+body:has([data-admin]) [data-floating-scrollbar] {
   display: none;
+}
+
+html:has([data-admin]),
+html:has([data-admin]) body {
+  overflow: auto;
+  height: auto;
 }
 
 /*

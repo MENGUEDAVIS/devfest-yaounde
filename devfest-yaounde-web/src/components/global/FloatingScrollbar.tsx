@@ -122,6 +122,7 @@ export function FloatingScrollbar() {
   return (
     <div
       ref={trackRef}
+      data-floating-scrollbar
       onPointerDown={handleTrackPointerDown}
       className={`fixed right-1.5 top-2 z-60 hidden w-2.5 rounded-pill transition-opacity duration-300 lg:block ${
         active ? "opacity-100" : "opacity-45"
