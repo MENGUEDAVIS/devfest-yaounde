@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { loadAdminData } from "@/lib/admin/data";
 import type { MissingPhoto } from "@/lib/admin/shape";
@@ -29,16 +30,14 @@ import {
  * DISPLAYS is still bilingual data, shown in both languages where it has two.
  */
 export default async function AdminPage() {
-  const [data, counts, settings, speakers, team, sponsors] = await Promise.all(
-    [
-      loadAdminData(),
-      collectionCounts(),
-      loadSettings(),
-      getSpeakers(),
-      getTeam(),
-      getSponsors(),
-    ],
-  );
+  const [data, counts, settings, speakers, team, sponsors] = await Promise.all([
+    loadAdminData(),
+    collectionCounts(),
+    loadSettings(),
+    getSpeakers(),
+    getTeam(),
+    getSponsors(),
+  ]);
 
   const missingPhotos: MissingPhoto[] = [
     ...speakers
@@ -68,19 +67,21 @@ export default async function AdminPage() {
   ];
 
   return (
-    <AdminShell
-      data={data}
-      settings={settings}
-      missingPhotos={missingPhotos}
-      content={{
-        speakers: counts.speakers,
-        team: counts.team,
-        sessions: counts.sessions,
-        sponsors: counts.sponsors,
-        faqs: counts.faqs,
-        products: counts.products,
-        tiers: counts["ticket-tiers"],
-      }}
-    />
+    <Suspense fallback={<div className="min-h-screen bg-pastel" />}>
+      <AdminShell
+        data={data}
+        settings={settings}
+        missingPhotos={missingPhotos}
+        content={{
+          speakers: counts.speakers,
+          team: counts.team,
+          sessions: counts.sessions,
+          sponsors: counts.sponsors,
+          faqs: counts.faqs,
+          products: counts.products,
+          tiers: counts["ticket-tiers"],
+        }}
+      />
+    </Suspense>
   );
 }

@@ -18,7 +18,7 @@ import {
 import type { Speaker, TeamMember } from "@/data/types";
 import type { MissingPhoto } from "@/lib/admin/shape";
 import type { ContentCounts } from "../AdminShell";
-import { DataTable, Panel } from "./shared";
+import { DataTable, InfoBanner, Panel } from "./shared";
 
 const FILES: {
   label: string;
@@ -34,12 +34,15 @@ const FILES: {
   { label: "Ticket tiers", id: "ticket-tiers", count: (c) => c.tiers },
 ];
 
-const PHOTO_LIST: { id: string; label: string; field: "photoUrl" | "logoUrl" }[] =
-  [
-    { id: "speakers", label: "Speakers", field: "photoUrl" },
-    { id: "team", label: "Team", field: "photoUrl" },
-    { id: "sponsors", label: "Sponsors", field: "logoUrl" },
-  ];
+const PHOTO_LIST: {
+  id: string;
+  label: string;
+  field: "photoUrl" | "logoUrl";
+}[] = [
+  { id: "speakers", label: "Speakers", field: "photoUrl" },
+  { id: "team", label: "Team", field: "photoUrl" },
+  { id: "sponsors", label: "Sponsors", field: "logoUrl" },
+];
 
 function needsPhoto(url: unknown): boolean {
   if (typeof url !== "string") return true;
@@ -66,6 +69,7 @@ export function AdminContent({
   const photoInput = useRef<HTMLInputElement>(null);
   const [jsonTarget, setJsonTarget] = useState<string | null>(null);
   const [photoTarget, setPhotoTarget] = useState<MissingPhoto | null>(null);
+  const [tab, setTab] = useState<(typeof FILES)[number]["id"]>("speakers");
 
   async function refreshMissing() {
     const rows: MissingPhoto[] = [];
@@ -150,7 +154,9 @@ export function AdminContent({
       setError(body?.detail ?? body?.error ?? "Publish failed.");
       return;
     }
-    setNotice(`${label} published. Attach photos below for anyone still missing one.`);
+    setNotice(
+      `${label} published. Attach photos below for anyone still missing one.`,
+    );
     await refreshMissing();
   }
 
@@ -168,7 +174,11 @@ export function AdminContent({
   }
 
   async function publishCsv() {
-    if (!result || result.issues.length > 0 || result.missingColumns.length > 0) {
+    if (
+      !result ||
+      result.issues.length > 0 ||
+      result.missingColumns.length > 0
+    ) {
       return;
     }
     const current = await fetch(`/api/admin/content/${csvKind}`);
@@ -221,16 +231,40 @@ export function AdminContent({
     result.missingColumns.length === 0 &&
     result.rows.length > 0;
 
+  const visibleFiles = FILES.filter((f) => f.id === tab);
+  const visibleMissing = missing.filter((row) => row.collection === tab);
+
   return (
     <div className="flex flex-col gap-5">
+      <InfoBanner>
+        There is no separate Partners collection — community-tier names live
+        under Sponsors. Speakers, team, schedule, sponsors, FAQs, products and
+        ticket tiers all persist in Postgres once published (ADR 0031).
+      </InfoBanner>
+      <div className="flex flex-wrap gap-1.5">
+        {FILES.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => setTab(f.id)}
+            className={`rounded-pill px-3 py-1.5 font-sans text-caption font-bold ${
+              tab === f.id
+                ? "bg-primary text-black02"
+                : "border border-black02/20 bg-offwhite text-black02/70"
+            }`}
+          >
+            {f.label} · {f.count(content)}
+          </button>
+        ))}
+      </div>
       <Panel
-        title="Content"
+        title={FILES.find((f) => f.id === tab)?.label ?? "Content"}
         subtitle="1. Publish the names (JSON or CSV). 2. Attach photos to whoever is still missing one."
       >
         <DataTable
           headers={["What", "Records", ""]}
           empty="No content files."
-          rows={FILES.map((f) => [
+          rows={visibleFiles.map((f) => [
             <span key="l" className="font-bold">
               {f.label}
             </span>,
@@ -279,7 +313,7 @@ export function AdminContent({
         <DataTable
           headers={["Collection", "Id", "Name", ""]}
           empty="Every profile has a real photo."
-          rows={missing.map((row) => [
+          rows={visibleMissing.map((row) => [
             row.collectionLabel,
             <code key="id" className="font-mono text-caption">
               {row.id}

@@ -127,11 +127,11 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
   return (
     <div className="flex flex-col gap-5">
       <Panel title="New discount code">
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <label className="text-caption font-bold uppercase tracking-wide text-black02/70">
             Code
             <input
-              className={`${field} mt-1 block font-mono`}
+              className={`${field} mt-1 block w-full font-mono`}
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="GDG2026"
@@ -140,7 +140,7 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
           <label className="text-caption font-bold uppercase tracking-wide text-black02/70">
             Kind
             <select
-              className={`${field} mt-1 block`}
+              className={`${field} mt-1 block w-full`}
               value={kind}
               onChange={(e) => setKind(e.target.value as "percent" | "fixed")}
             >
@@ -151,7 +151,7 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
           <label className="text-caption font-bold uppercase tracking-wide text-black02/70">
             Value
             <input
-              className={`${field} mt-1 block w-24`}
+              className={`${field} mt-1 block w-full`}
               type="number"
               min={1}
               max={kind === "percent" ? 100 : undefined}
@@ -163,7 +163,7 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
           <label className="text-caption font-bold uppercase tracking-wide text-black02/70">
             Applies to
             <select
-              className={`${field} mt-1 block`}
+              className={`${field} mt-1 block w-full`}
               value={appliesTo}
               onChange={(e) =>
                 setAppliesTo(e.target.value as "tickets" | "shop" | "both")
@@ -179,7 +179,7 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
             onClick={() => void create()}
             disabled={!ready || status === "saving"}
             title={hint ?? undefined}
-            className="rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 disabled:opacity-50"
+            className="rounded-pill border border-black02/30 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 disabled:opacity-50"
           >
             {status === "saving" ? "Saving…" : "Create"}
           </button>

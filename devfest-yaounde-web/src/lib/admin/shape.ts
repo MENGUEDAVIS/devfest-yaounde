@@ -83,6 +83,17 @@ export interface AdminWallReport {
   createdAt: string;
 }
 
+export interface AdminWallCard {
+  id: string;
+  nickname: string;
+  theme: string;
+  visible: boolean;
+  status: string;
+  imageUrl: string | null;
+  createdAt: string;
+  reportCount: number;
+}
+
 export interface MissingPhoto {
   collection: string;
   collectionLabel: string;
@@ -116,4 +127,5 @@ export interface AdminData {
   discounts: AdminDiscount[];
   wallEnabled: boolean;
   wallReports: AdminWallReport[];
+  wallCards: AdminWallCard[];
 }
