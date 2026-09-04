@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { TicketCheckout } from "@/components/tickets/TicketCheckout";
+import { AccountLink } from "@/components/account/AccountLink";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { loadSettings } from "@/lib/content/settings";
@@ -42,10 +43,7 @@ export default async function TicketsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.tickets");
-  const [tiers, settings] = await Promise.all([
-    getTiers(),
-    loadSettings(),
-  ]);
+  const [tiers, settings] = await Promise.all([getTiers(), loadSettings()]);
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
@@ -56,6 +54,7 @@ export default async function TicketsPage({
         <p className="mt-6 max-w-2xl text-body-l text-black02/80">
           {t("lead")}
         </p>
+        <AccountLink label={t("myTicketsLink")} />
 
         <div className="mt-16">
           <TicketCheckout tiers={tiers} bevyUrl={settings.bevyUrl} />

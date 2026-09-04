@@ -65,7 +65,8 @@
       "shop": "Shop",
       "dpGenerator": "DP Generator",
       "communityWall": "Community Wall",
-      "community": "Join the Community"
+      "community": "Join the Community",
+      "account": "My account"
     },
     "legal": {
       "title": "Legal",
@@ -264,7 +265,8 @@
       "refundTitle": "Tickets are non-refundable",
       "refundBody": "Once a ticket is paid for it can't be refunded or cancelled — not for a change of plans, and not after the event. You can put someone else's name on it before the day.",
       "refundAck": "I understand tickets are non-refundable.",
-      "metaDesc": "Pick your pass and pay with Mobile Money. Every tier, what's included, and how to get in."
+      "metaDesc": "Pick your pass and pay with Mobile Money. Every tier, what's included, and how to get in.",
+      "myTicketsLink": "Already bought? See my tickets"
     },
     "shop": {
       "title": "Shop",
@@ -325,7 +327,8 @@
       "fulfilmentPickup": "I'll collect it",
       "fulfilmentShipping": "I'd rather have it delivered",
       "fulfilmentNoteLabel": "A landmark to help us (optional)",
-      "fulfilmentNotePlaceholder": "Neighbourhood, landmark, when you're around…"
+      "fulfilmentNotePlaceholder": "Neighbourhood, landmark, when you're around…",
+      "myOrdersLink": "See my orders"
     },
     "dpGenerator": {
       "title": "DP Generator",
@@ -461,6 +464,7 @@
     "paymentReturn": {
       "title": "Confirming your payment",
       "waitingTitle": "Hang tight — confirming your payment",
+      "slowTitle": "Still checking",
       "waitingHint": "Keep this page open. It's what turns your payment into a ticket, and it usually takes a few seconds.",
       "successTitle": "You're in.",
       "charged": "Charged {amount} {currency}",

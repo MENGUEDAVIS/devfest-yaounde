@@ -31,6 +31,19 @@ in two places:
 1. **The return page poll** (`GET /api/payments/status`) now fulfils. Most
    buyers watch that page, so most payments settle within seconds — the same
    perceived latency as a callback.
+
+   > **Corrected 2026-09-04 by observation.** "Within seconds" was optimistic.
+   > Real Mobile Money settlement here regularly takes minutes: the buyer
+   > confirms on a USSD prompt and the operator reports back when it reports
+   > back. The page watched for two minutes and then stopped — while still
+   > showing a spinning spinner, so "waiting" and "no longer waiting" looked
+   > identical. A payment that landed at three minutes was settled by the
+   > five-minute sweep instead, and the buyer sat in front of a spinner for
+   > ten. The poll now backs off over a quarter of an hour (4s → 8s → 20s)
+   > and, when it does stop, says so with a different icon and a way to
+   > re-check. The sweep remains the safety net; it is no longer the normal
+   > path for someone sitting on the page.
+
 2. **A reconciliation sweep** (`reconcilePendingDeposits`, run from
    `/api/cron/cleanup` every five minutes) checks every pending deposit older
    than 90 seconds. This catches the closed tab, the dead battery, the
@@ -56,8 +69,11 @@ called from somewhere else.
 - **No callback URL needed.** The conflict with the SCD shop disappears
   rather than being worked around. No relay, no second account, no
   coordination between two systems.
-- **Latency is a range, not a point.** Watching the page: seconds. Closed tab:
-  up to five minutes. For a ticket that arrives by email either way, that is
+- **Latency is a range, not a point.** Watching the page: as fast as the
+  mobile-money operator answers, which is seconds at best and **several
+  minutes routinely** — see the correction above; the page is built to wait
+  that long rather than assume the good case. Closed tab: up to five minutes
+  after that. For a ticket that arrives by email either way, that is
   acceptable; for something needing instant confirmation it would not be.
 - **More PawaPay API calls.** Bounded: the sweep skips intents younger than
   90 seconds (the poll is handling those), skips free baskets entirely (they

@@ -68,6 +68,7 @@ import {
 import {
   hashToken,
   mintDeletionToken,
+  normaliseImage,
   tokensMatch,
   MAX_EDGE,
   MAX_BYTES,
@@ -1255,5 +1256,62 @@ describe("receipt emails", () => {
     assert.ok(email.html.includes("Livraison souhaitée"));
     assert.ok(email.html.includes("Bastos, après 18h"));
     assert.ok(email.text.includes("Bastos, après 18h"));
+  });
+});
+
+describe("wall cards keep their paper, not a black hole", () => {
+  /**
+   * The regression this guards is not hypothetical: every card on the live
+   * wall has corners of exactly 0,0,0, measured off the stored JPEG.
+   *
+   * A generated card has fully transparent corners (geometry.ts). JPEG has no
+   * alpha, and sharp — like a browser canvas — composites transparency onto
+   * BLACK when no background is given. So the re-encode that makes the stored
+   * image safe was also the thing painting a black frame around every face.
+   */
+  it("flattens transparent corners onto paper before the JPEG encode", async () => {
+    const sharp = (await import("sharp")).default;
+
+    // A square that is opaque red in the middle and fully transparent at the
+    // corners — the shape of every card the generator produces.
+    const size = 64;
+    const raw = Buffer.alloc(size * size * 4, 0);
+    for (let y = 16; y < 48; y++) {
+      for (let x = 16; x < 48; x++) {
+        const i = (y * size + x) * 4;
+        raw[i] = 200;
+        raw[i + 3] = 255;
+      }
+    }
+    const png = await sharp(raw, {
+      raw: { width: size, height: size, channels: 4 },
+    })
+      .png()
+      .toBuffer();
+
+    const out = await normaliseImage(new Blob([new Uint8Array(png)]));
+    const { data, info } = await sharp(out).raw().toBuffer({
+      resolveWithObject: true,
+    });
+
+    const corner = (x: number, y: number) => {
+      const i = (y * info.width + x) * info.channels;
+      return [data[i], data[i + 1], data[i + 2]];
+    };
+
+    for (const [x, y] of [
+      [1, 1],
+      [info.width - 2, 1],
+      [1, info.height - 2],
+      [info.width - 2, info.height - 2],
+    ]) {
+      const [r, g, b] = corner(x, y);
+      // Paper is #F0F0F0. JPEG is lossy, so this is a neighbourhood, not an
+      // equality — but 0,0,0 is nowhere near it, which is the whole point.
+      assert.ok(
+        r > 200 && g > 200 && b > 200,
+        `corner ${x},${y} came out ${r},${g},${b} — transparency was composited onto something dark`,
+      );
+    }
   });
 });

@@ -65,7 +65,8 @@
       "shop": "Boutique",
       "dpGenerator": "Générateur de PP",
       "communityWall": "Mur de la communauté",
-      "community": "Rejoindre la communauté"
+      "community": "Rejoindre la communauté",
+      "account": "Mon compte"
     },
     "legal": {
       "title": "Légal",
@@ -264,7 +265,8 @@
       "refundTitle": "Les billets ne sont pas remboursables",
       "refundBody": "Une fois payé, un billet ne peut être ni remboursé ni annulé — ni en cas de changement de programme, ni après l'événement. Tu peux en revanche y mettre le nom de quelqu'un d'autre avant le jour J.",
       "refundAck": "Je comprends que les billets ne sont pas remboursables.",
-      "metaDesc": "Choisis ton pass et paie en Mobile Money. Tous les tarifs, ce qu'ils incluent, et comment entrer."
+      "metaDesc": "Choisis ton pass et paie en Mobile Money. Tous les tarifs, ce qu'ils incluent, et comment entrer.",
+      "myTicketsLink": "Déjà commandé ? Voir mes billets"
     },
     "shop": {
       "title": "Boutique",
@@ -325,7 +327,8 @@
       "fulfilmentPickup": "Je récupère sur place",
       "fulfilmentShipping": "Je préfère être livré",
       "fulfilmentNoteLabel": "Un repère pour nous aider (facultatif)",
-      "fulfilmentNotePlaceholder": "Quartier, point de repère, quand tu es dispo…"
+      "fulfilmentNotePlaceholder": "Quartier, point de repère, quand tu es dispo…",
+      "myOrdersLink": "Voir mes commandes"
     },
     "dpGenerator": {
       "title": "Générateur de PP",
@@ -461,6 +464,7 @@
     "paymentReturn": {
       "title": "Confirmation de ton paiement",
       "waitingTitle": "Un instant — on confirme ton paiement",
+      "slowTitle": "On vérifie encore",
       "waitingHint": "Garde cette page ouverte. C'est elle qui transforme ton paiement en billet, et ça prend généralement quelques secondes.",
       "successTitle": "C'est bon, tu es des nôtres.",
       "charged": "Débité : {amount} {currency}",

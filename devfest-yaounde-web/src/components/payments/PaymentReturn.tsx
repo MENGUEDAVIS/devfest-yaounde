@@ -1,16 +1,41 @@
 "use client";
 
-import { CheckCircle, Warning, XCircle } from "@phosphor-icons/react";
+import { CheckCircle, Clock, Warning, XCircle } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { ConfettiBurst } from "@/components/global/ConfettiBurst";
 import { Button } from "@/components/ui/Button";
 import { BadgeCode } from "@/components/tickets/BadgeCode";
 
-/** How often to ask. The guide's range is 3–5s; 4s splits it. */
-const POLL_MS = 4000;
-/** Give up watching after this. A sweep settles anything left behind. */
-const GIVE_UP_MS = 120_000;
+/**
+ * How long to keep asking, and how often.
+ *
+ * The old schedule was a flat 4s for two minutes. Two minutes is not long
+ * enough: Mobile Money settlement in Cameroon routinely takes longer than
+ * that — the buyer confirms on a USSD prompt, the operator reports back when
+ * it reports back — and the reconcile sweep only runs every five minutes. So
+ * a real payment regularly landed AFTER the page had stopped looking, and the
+ * confirmation only appeared on a reload, ten minutes later.
+ *
+ * Now it watches for a quarter of an hour, backing off as hope fades: fast
+ * while the answer is most likely imminent, slow enough afterwards that a
+ * forgotten tab is not hammering PawaPay. Well inside the 120-per-5-minutes
+ * budget of `RATE_LIMITS.paymentStatus` at every stage.
+ */
+const POLL_SCHEDULE = [
+  { untilMs: 60_000, everyMs: 4_000 },
+  { untilMs: 300_000, everyMs: 8_000 },
+  { untilMs: 900_000, everyMs: 20_000 },
+] as const;
+
+const GIVE_UP_MS = POLL_SCHEDULE[POLL_SCHEDULE.length - 1].untilMs;
+
+function nextDelay(elapsedMs: number): number {
+  for (const step of POLL_SCHEDULE) {
+    if (elapsedMs < step.untilMs) return step.everyMs;
+  }
+  return POLL_SCHEDULE[POLL_SCHEDULE.length - 1].everyMs;
+}
 
 type Status =
   | "pending"
@@ -29,11 +54,17 @@ interface StatusResponse {
   error?: string;
 }
 
+/**
+ * The shape `/api/account/tickets` returns. It changed to camelCase when the
+ * endpoint started joining on the tier and the money (ADR 0036) and this
+ * screen was not updated with it — so the badge code, the one thing that gets
+ * somebody through the door, silently rendered blank on the confirmation.
+ */
 interface Ticket {
   id: string;
-  tier_id: string;
-  attendee_name: string;
-  badge_code: string;
+  attendeeName: string;
+  badgeCode: string;
+  tier: { name: string };
 }
 
 export interface PaymentReturnProps {
@@ -108,11 +139,12 @@ export function PaymentReturn({
         // failed payment and must never be shown as one.
       }
 
-      if (Date.now() - startedAt > GIVE_UP_MS) {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed > GIVE_UP_MS) {
         setGaveUp(true);
         return;
       }
-      timerRef.current = window.setTimeout(poll, POLL_MS);
+      timerRef.current = window.setTimeout(poll, nextDelay(elapsed));
     }
 
     poll();
@@ -187,9 +219,12 @@ export function PaymentReturn({
               {tickets.slice(0, 5).map((ticket) => (
                 <li key={ticket.id} className="flex flex-col gap-2">
                   <span className="text-body-m text-black02/70">
-                    {ticket.attendee_name}
+                    {ticket.attendeeName}
+                    <span className="ml-2 font-mono text-caption uppercase tracking-wide text-black02/55">
+                      {ticket.tier?.name}
+                    </span>
                   </span>
-                  <BadgeCode code={ticket.badge_code} label={t("scanAtDoor")} />
+                  <BadgeCode code={ticket.badgeCode} label={t("scanAtDoor")} />
                 </li>
               ))}
             </ul>
@@ -287,11 +322,23 @@ export function PaymentReturn({
   }
 
   // Still pending.
+  //
+  // The icon has to change once we stop looking. It used to keep spinning
+  // after the page had given up, so "still checking" and "no longer checking"
+  // were visually identical — a spinner that turns forever, which is exactly
+  // what it looked like: a payment taking ten minutes to verify when in fact
+  // nothing had been watching it for eight of them.
   return (
     <Shell
-      tone="waiting"
-      icon={<span className="payment-spinner" aria-hidden />}
-      title={t("waitingTitle")}
+      tone={gaveUp ? "warning" : "waiting"}
+      icon={
+        gaveUp ? (
+          <Clock size={40} weight="fill" />
+        ) : (
+          <span className="payment-spinner" aria-hidden />
+        )
+      }
+      title={gaveUp ? t("slowTitle") : t("waitingTitle")}
     >
       <p className="text-body-l text-black02/80">
         {gaveUp
@@ -309,9 +356,17 @@ export function PaymentReturn({
         {tp("pending")}
       </p>
       {gaveUp && (
-        <Button href="/account" size="md">
-          {t("viewAccount")}
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            href={`/payments/return?depositId=${encodeURIComponent(depositId)}`}
+            size="md"
+          >
+            {t("refresh")}
+          </Button>
+          <Button href="/account" size="md" variant="secondary">
+            {t("viewAccount")}
+          </Button>
+        </div>
       )}
     </Shell>
   );
