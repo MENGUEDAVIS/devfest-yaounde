@@ -10,10 +10,24 @@
  * the first thing someone reads after paying, so it should not sound like a
  * bank statement.
  *
- * Plain text alongside HTML on purpose: mobile mail clients in Cameroon are
- * a mixed bag, and a text part that reads well is cheap insurance.
+ * ## Why this is written in tables with inline styles
+ *
+ * Not nostalgia. Mail clients strip `<style>` blocks, Outlook renders through
+ * Word rather than a browser, and flexbox and grid are unreliable across the
+ * set of clients a Cameroonian attendee actually uses. So: tables for layout,
+ * every rule inline, 600px wide, and a plain-text part that reads properly on
+ * its own rather than being an afterthought.
+ *
+ * ## What it must contain
+ *
+ * Everything the ticket page promised. Someone who paid should not have to go
+ * back to the site to find out what they bought — the tier, what is included,
+ * the badge code, the size they chose, and exactly what was deducted and
+ * charged. A receipt that omits the detail is a receipt you have to
+ * supplement with a support email.
  */
 import type { PaymentIntentRow } from "@/lib/payments/intents";
+import { CHAPTER_EMAIL, SITE_URL } from "@/lib/site-config";
 
 export interface RenderedEmail {
   subject: string;
@@ -22,6 +36,28 @@ export interface RenderedEmail {
 }
 
 type Locale = "fr" | "en";
+
+/**
+ * The brand, as a mail client will actually render it.
+ *
+ * These are the design-system values from `globals.css`, hard-coded because
+ * an email cannot read a CSS custom property. Yellow is the DEFAULT theme;
+ * the site's swappable themes deliberately do not follow into the inbox — a
+ * receipt should look the same in December as it did in September.
+ */
+const BRAND = {
+  yellow: "#F9AB00",
+  yellowPastel: "#FFE7A5",
+  ink: "#1E1E1E",
+  offwhite: "#F0F0F0",
+  paper: "#FFFFFF",
+  muted: "#4D4D4D",
+  hairline: "#E2E2E2",
+} as const;
+
+const FONT =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const MONO = "'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace";
 
 function locale(intent: PaymentIntentRow): Locale {
   return intent.locale === "en" ? "en" : "fr";
@@ -40,78 +76,316 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function layout(title: string, bodyHtml: string): string {
-  // Inline styles only: every serious mail client strips <style> blocks.
-  return `<!doctype html><html><body style="margin:0;padding:24px;background:#FCF6DF;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#1E1E1E">
-<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;padding:32px">
-<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3">${escapeHtml(title)}</h1>
+/** Every string this file renders, in both languages and in one place. */
+const COPY = {
+  fr: {
+    chapter: "GDG Yaoundé",
+    edition: "DevFest Yaoundé 2026",
+    ticketsSubject: "Ta place est réservée — DevFest Yaoundé 2026",
+    orderSubject: "Commande confirmée — DevFest Yaoundé 2026",
+    ticketsTitle: "Tu y es.",
+    orderTitle: "C'est noté.",
+    entryCode: "Code d'entrée",
+    entryCodeHint: "C'est ce code qu'on scanne à la porte. Garde-le.",
+    included: "Ce qui est compris",
+    size: "Taille",
+    forWhom: "Au nom de",
+    yourTicket: "Ton billet",
+    ticketsHeading: "Tes billets",
+    orderHeading: "Ta commande",
+    subtotal: "Sous-total",
+    discount: "Réduction",
+    totalPaid: "Total payé",
+    free: "Offert",
+    myTickets: "Voir mes billets",
+    pickup: "À récupérer sur place",
+    shipping: "Livraison souhaitée",
+    fulfilmentNote: "Ta note",
+    orderNext:
+      "On te préviendra dès que ta commande est prête à être récupérée.",
+    venue: "Yaoundé, Cameroun",
+    dateTba:
+      "La date exacte arrive très bientôt — on t'écrit dès qu'elle est fixée.",
+    why: "Tu reçois cet e-mail parce que tu as commandé sur",
+    contact: "Une question ? Réponds simplement à cet e-mail.",
+    ref: "Référence",
+  },
+  en: {
+    chapter: "GDG Yaoundé",
+    edition: "DevFest Yaoundé 2026",
+    ticketsSubject: "You're in — DevFest Yaoundé 2026",
+    orderSubject: "Order confirmed — DevFest Yaoundé 2026",
+    ticketsTitle: "You're in.",
+    orderTitle: "Got it.",
+    entryCode: "Entry code",
+    entryCodeHint: "This is what we scan at the door. Keep it.",
+    included: "What's included",
+    size: "Size",
+    forWhom: "For",
+    yourTicket: "Your ticket",
+    ticketsHeading: "Your tickets",
+    orderHeading: "Your order",
+    subtotal: "Subtotal",
+    discount: "Discount",
+    totalPaid: "Total paid",
+    free: "Free",
+    myTickets: "See my tickets",
+    pickup: "Collecting in person",
+    shipping: "Delivery requested",
+    fulfilmentNote: "Your note",
+    orderNext: "We'll let you know as soon as it's ready to collect.",
+    venue: "Yaoundé, Cameroon",
+    dateTba:
+      "The exact date lands very soon — we'll write the moment it's set.",
+    why: "You're getting this because you ordered on",
+    contact: "A question? Just reply to this email.",
+    ref: "Reference",
+  },
+} as const;
+
+/**
+ * The shell every message shares: brand bar, yellow title band, content,
+ * footer. One layout, so a second template cannot drift from the first.
+ */
+function layout(l: Locale, title: string, bodyHtml: string): string {
+  const c = COPY[l];
+  const host = SITE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+  return `<!doctype html>
+<html lang="${l}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(title)}</title></head>
+<body style="margin:0;padding:0;background:${BRAND.offwhite};">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(title)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.offwhite};padding:24px 12px;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+
+  <!-- Brand bar. The chapter first, the edition second: the chapter is who
+       is writing, the edition is what about. -->
+  <tr><td style="background:${BRAND.ink};border-radius:16px 16px 0 0;padding:20px 28px;">
+    <span style="font-family:${MONO};font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.yellow};">${escapeHtml(c.chapter)}</span>
+    <span style="font-family:${MONO};font-size:12px;letter-spacing:1.5px;color:${BRAND.offwhite};opacity:.5;">&nbsp;&times;&nbsp;</span>
+    <span style="font-family:${MONO};font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.offwhite};">${escapeHtml(c.edition)}</span>
+  </td></tr>
+
+  <!-- Title band. Flat colour, no gradient — DESIGN.md is explicit. -->
+  <tr><td style="background:${BRAND.yellow};padding:32px 28px;">
+    <h1 style="margin:0;font-family:${FONT};font-size:30px;line-height:1.15;font-weight:800;color:${BRAND.ink};">${escapeHtml(title)}</h1>
+  </td></tr>
+
+  <tr><td style="background:${BRAND.paper};padding:28px;">
 ${bodyHtml}
-<p style="margin:32px 0 0;font-size:13px;color:#4D4D4D">DevFest Yaoundé — GDG Yaoundé</p>
-</div></body></html>`;
+  </td></tr>
+
+  <tr><td style="background:${BRAND.paper};border-radius:0 0 16px 16px;border-top:1px solid ${BRAND.hairline};padding:22px 28px;">
+    <p style="margin:0 0 6px;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(c.contact)}</p>
+    <p style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${BRAND.muted};">
+      ${escapeHtml(c.why)} <a href="${SITE_URL}" style="color:${BRAND.ink};font-weight:600;">${escapeHtml(host)}</a>
+      &nbsp;·&nbsp; <a href="mailto:${CHAPTER_EMAIL}" style="color:${BRAND.ink};">${escapeHtml(CHAPTER_EMAIL)}</a>
+    </p>
+  </td></tr>
+
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
+/** A pill button. Anchor-with-padding, the only shape every client renders. */
+function button(label: string, href: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 0;"><tr><td style="background:${BRAND.yellow};border:2px solid ${BRAND.ink};border-radius:999px;">
+<a href="${href}" style="display:inline-block;padding:12px 26px;font-family:${FONT};font-size:15px;font-weight:700;color:${BRAND.ink};text-decoration:none;">${escapeHtml(label)}</a>
+</td></tr></table>`;
+}
+
+/** The money block. Subtotal and discount appear only when there was one. */
+function totalsHtml(intent: PaymentIntentRow, l: Locale): string {
+  const c = COPY[l];
+  const discounted = intent.discount_amount > 0;
+  const subtotal = intent.charged_amount + intent.discount_amount;
+
+  // Nothing was charged and nothing was taken off: there is no money story to
+  // tell, and "Total paid: Free" on a free pass reads like a bill for zero.
+  // A 100%-discounted order still gets the block — what was deducted is the
+  // whole point of it.
+  if (intent.charged_amount === 0 && !discounted) return "";
+
+  const row = (label: string, value: string, strong = false) =>
+    `<tr>
+<td style="padding:6px 0;font-family:${FONT};font-size:${strong ? "16px" : "14px"};${strong ? "font-weight:700;" : ""}color:${strong ? BRAND.ink : BRAND.muted};">${escapeHtml(label)}</td>
+<td align="right" style="padding:6px 0;font-family:${MONO};font-size:${strong ? "18px" : "14px"};${strong ? "font-weight:700;" : ""}color:${strong ? BRAND.ink : BRAND.muted};">${escapeHtml(value)}</td>
+</tr>`;
+
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 0;border-top:2px solid ${BRAND.ink};padding-top:8px;">
+${discounted ? row(c.subtotal, money(subtotal, l)) : ""}
+${
+  discounted
+    ? row(
+        `${c.discount}${intent.discount_code ? ` · ${intent.discount_code}` : ""}`,
+        `-${money(intent.discount_amount, l)}`,
+      )
+    : ""
+}
+${row(c.totalPaid, intent.charged_amount === 0 ? c.free : money(intent.charged_amount, l), true)}
+</table>`;
+}
+
+function totalsText(intent: PaymentIntentRow, l: Locale): string[] {
+  const c = COPY[l];
+  const out: string[] = [];
+  // Same rule as the HTML side, and for the same reason.
+  if (intent.charged_amount === 0 && intent.discount_amount === 0) return out;
+  if (intent.discount_amount > 0) {
+    out.push(
+      `${c.subtotal}: ${money(intent.charged_amount + intent.discount_amount, l)}`,
+    );
+    out.push(
+      `${c.discount}${intent.discount_code ? ` (${intent.discount_code})` : ""}: -${money(intent.discount_amount, l)}`,
+    );
+  }
+  out.push(
+    `${c.totalPaid}: ${intent.charged_amount === 0 ? c.free : money(intent.charged_amount, l)}`,
+  );
+  return out;
 }
 
 export interface TicketForEmail {
   attendeeName: string;
   tierId: string;
   badgeCode: string;
+  /** Chosen at checkout for a tier that includes apparel. */
+  apparelSize?: string | null;
+  /** The tier's proper name, e.g. "SONNET" — not the slug. */
+  tierName?: string;
+  /** Sub-title beside the name: "Student pass". Already localised. */
+  tierLabel?: string;
+  /** What the tier includes, already localised. */
+  perks?: string[];
 }
 
-/** Sent once, when a ticket order is fulfilled. */
+/**
+ * Sent once, when a ticket order is fulfilled.
+ *
+ * One card per ticket, because one order can hold several and each has its
+ * own badge code. Burying three codes in a paragraph is how somebody arrives
+ * at the door with the wrong one.
+ */
 export function renderTicketReceipt(
   intent: PaymentIntentRow,
   tickets: TicketForEmail[],
 ): RenderedEmail {
   const l = locale(intent);
+  const c = COPY[l];
   const free = intent.charged_amount === 0;
 
-  const subject =
-    l === "fr"
-      ? `Ta place est réservée — DevFest Yaoundé`
-      : `You're in — DevFest Yaoundé`;
+  const subject = c.ticketsSubject;
 
-  const intro =
-    l === "fr"
-      ? free
-        ? "C'est confirmé, on se voit au DevFest. Voici ton code d'entrée — garde-le, c'est lui qu'on scanne à la porte."
-        : "Paiement reçu, merci ! Voici ton code d'entrée — garde-le, c'est lui qu'on scanne à la porte."
-      : free
-        ? "You're confirmed — see you at DevFest. Here's your entry code; keep it, that's what we scan at the door."
-        : "Payment received, thank you! Here's your entry code; keep it, that's what we scan at the door.";
+  const intro = free
+    ? l === "fr"
+      ? "C'est confirmé — on se voit au DevFest. Tout ce qu'il te faut est là, en bas."
+      : "You're confirmed — see you at DevFest. Everything you need is below."
+    : l === "fr"
+      ? "Paiement reçu, merci ! Tout ce qu'il te faut est là, en bas."
+      : "Payment received, thank you! Everything you need is below.";
 
-  const codesLabel = l === "fr" ? "Code d'entrée" : "Entry code";
-  const totalLabel = l === "fr" ? "Total payé" : "Total paid";
+  const single = tickets.length === 1;
 
-  const lines = tickets.map(
-    (t) => `${t.attendeeName} — ${t.tierId.toUpperCase()} — ${t.badgeCode}`,
-  );
+  const cards = tickets
+    .map((ticket) => {
+      const tierName = ticket.tierName ?? ticket.tierId.toUpperCase();
+      const perks = (ticket.perks ?? [])
+        .map(
+          (perk) =>
+            `<tr><td style="padding:2px 0;font-family:${FONT};font-size:13px;line-height:1.5;color:${BRAND.muted};">&bull;&nbsp; ${escapeHtml(perk)}</td></tr>`,
+        )
+        .join("");
 
-  const text = [
-    intro,
-    "",
-    ...lines.map((line) => `  ${line}`),
-    "",
-    free ? "" : `${totalLabel} : ${money(intent.charged_amount, l)}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px;border:2px solid ${BRAND.ink};border-radius:14px;background:${BRAND.paper};">
+<tr><td style="padding:20px;">
 
-  const rows = tickets
-    .map(
-      (t) => `<tr>
-<td style="padding:12px 0;border-bottom:1px solid #eee">${escapeHtml(t.attendeeName)}<br>
-<span style="font-size:13px;color:#4D4D4D">${escapeHtml(t.tierId.toUpperCase())}</span></td>
-<td style="padding:12px 0;border-bottom:1px solid #eee;text-align:right;font-family:ui-monospace,monospace;font-weight:600">${escapeHtml(t.badgeCode)}</td>
-</tr>`,
-    )
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td style="font-family:${MONO};font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${BRAND.ink};">${escapeHtml(tierName)}</td>
+    ${
+      ticket.tierLabel
+        ? `<td align="right" style="font-family:${FONT};font-size:12px;color:${BRAND.muted};">${escapeHtml(ticket.tierLabel)}</td>`
+        : "<td></td>"
+    }
+  </tr></table>
+
+  <p style="margin:10px 0 0;font-family:${FONT};font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:${BRAND.muted};">${escapeHtml(c.forWhom)}</p>
+  <p style="margin:2px 0 0;font-family:${FONT};font-size:18px;font-weight:700;color:${BRAND.ink};">${escapeHtml(ticket.attendeeName)}</p>
+
+  ${
+    ticket.apparelSize
+      ? `<p style="margin:8px 0 0;font-family:${FONT};font-size:13px;color:${BRAND.muted};">${escapeHtml(c.size)} : <span style="font-family:${MONO};font-weight:700;color:${BRAND.ink};">${escapeHtml(ticket.apparelSize)}</span></p>`
+      : ""
+  }
+
+  <!-- The badge code, given the space it deserves: it is the one thing in
+       this email somebody has to find again in a hurry, at a door. -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0 0;background:${BRAND.yellowPastel};border-radius:10px;">
+  <tr><td style="padding:14px 16px;">
+    <p style="margin:0;font-family:${FONT};font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:${BRAND.ink};">${escapeHtml(c.entryCode)}</p>
+    <p style="margin:4px 0 0;font-family:${MONO};font-size:22px;font-weight:700;letter-spacing:1.5px;color:${BRAND.ink};">${escapeHtml(ticket.badgeCode)}</p>
+  </td></tr></table>
+
+  ${
+    perks
+      ? `<p style="margin:16px 0 6px;font-family:${FONT};font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:${BRAND.ink};">${escapeHtml(c.included)}</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${perks}</table>`
+      : ""
+  }
+
+</td></tr></table>`;
+    })
     .join("");
 
   const html = layout(
-    subject,
-    `<p style="margin:0 0 20px;line-height:1.6">${escapeHtml(intro)}</p>
-<p style="margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#4D4D4D">${escapeHtml(codesLabel)}</p>
-<table style="width:100%;border-collapse:collapse">${rows}</table>
-${free ? "" : `<p style="margin:20px 0 0;font-weight:600">${escapeHtml(totalLabel)} : ${escapeHtml(money(intent.charged_amount, l))}</p>`}`,
+    l,
+    c.ticketsTitle,
+    `<p style="margin:0 0 8px;font-family:${FONT};font-size:16px;line-height:1.6;color:${BRAND.ink};">${escapeHtml(intro)}</p>
+<p style="margin:0 0 24px;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(c.entryCodeHint)}</p>
+
+<p style="margin:0 0 12px;font-family:${FONT};font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:${BRAND.ink};">${escapeHtml(single ? c.yourTicket : c.ticketsHeading)}</p>
+${cards}
+
+${totalsHtml(intent, l)}
+
+<p style="margin:20px 0 0;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(c.venue)} &nbsp;·&nbsp; ${escapeHtml(c.dateTba)}</p>
+
+${button(c.myTickets, `${SITE_URL}/${l}/account`)}
+
+<p style="margin:20px 0 0;font-family:${MONO};font-size:11px;color:${BRAND.muted};">${escapeHtml(c.ref)} ${escapeHtml(intent.deposit_id)}</p>`,
   );
+
+  const text = [
+    `${c.chapter} × ${c.edition}`,
+    "",
+    c.ticketsTitle,
+    intro,
+    c.entryCodeHint,
+    "",
+    single ? c.yourTicket : c.ticketsHeading,
+    "",
+    ...tickets.flatMap((ticket) => {
+      const rows = [
+        `  ${ticket.tierName ?? ticket.tierId.toUpperCase()}${ticket.tierLabel ? ` (${ticket.tierLabel})` : ""}`,
+        `  ${c.forWhom} : ${ticket.attendeeName}`,
+        `  ${c.entryCode} : ${ticket.badgeCode}`,
+      ];
+      if (ticket.apparelSize) rows.push(`  ${c.size} : ${ticket.apparelSize}`);
+      for (const perk of ticket.perks ?? []) rows.push(`    - ${perk}`);
+      rows.push("");
+      return rows;
+    }),
+    ...totalsText(intent, l),
+    "",
+    `${c.venue} — ${c.dateTba}`,
+    `${c.myTickets} : ${SITE_URL}/${l}/account`,
+    "",
+    `${c.ref} ${intent.deposit_id}`,
+    `${c.contact} ${CHAPTER_EMAIL}`,
+  ].join("\n");
 
   return { subject, text, html };
 }
@@ -119,54 +393,91 @@ ${free ? "" : `<p style="margin:20px 0 0;font-weight:600">${escapeHtml(totalLabe
 /** Sent once, when a shop order is fulfilled. */
 export function renderOrderReceipt(intent: PaymentIntentRow): RenderedEmail {
   const l = locale(intent);
-
-  const subject =
-    l === "fr"
-      ? "Commande confirmée — DevFest Yaoundé"
-      : "Order confirmed — DevFest Yaoundé";
+  const c = COPY[l];
+  const subject = c.orderSubject;
 
   const intro =
     l === "fr"
-      ? "Merci ! Ta commande est enregistrée. On te préviendra dès qu'elle est prête à être récupérée."
-      : "Thank you! Your order is in. We'll let you know as soon as it's ready to collect.";
-
-  const totalLabel = l === "fr" ? "Total payé" : "Total paid";
+      ? "Merci ! Ta commande est enregistrée."
+      : "Thank you! Your order is in.";
 
   const items = intent.line_items.map((line) => {
     const name = line.name[l] ?? line.name.fr;
     const variant = [line.variant?.size, line.variant?.color]
       .filter(Boolean)
       .join(" · ");
-    return {
-      label: variant ? `${name} (${variant})` : name,
-      qty: line.quantity,
-      amount: money(line.lineAmount, l),
-    };
+    return { name, variant, qty: line.quantity, amount: line.lineAmount };
   });
-
-  const text = [
-    intro,
-    "",
-    ...items.map((i) => `  ${i.qty} × ${i.label} — ${i.amount}`),
-    "",
-    `${totalLabel} : ${money(intent.charged_amount, l)}`,
-  ].join("\n");
 
   const rows = items
     .map(
       (i) => `<tr>
-<td style="padding:12px 0;border-bottom:1px solid #eee">${escapeHtml(String(i.qty))} × ${escapeHtml(i.label)}</td>
-<td style="padding:12px 0;border-bottom:1px solid #eee;text-align:right">${escapeHtml(i.amount)}</td>
+<td style="padding:14px 0;border-bottom:1px solid ${BRAND.hairline};font-family:${FONT};font-size:15px;color:${BRAND.ink};">
+  <strong style="font-weight:700;">${escapeHtml(i.name)}</strong>
+  ${i.variant ? `<br><span style="font-size:13px;color:${BRAND.muted};">${escapeHtml(i.variant)}</span>` : ""}
+  <br><span style="font-family:${MONO};font-size:12px;color:${BRAND.muted};">&times; ${escapeHtml(String(i.qty))}</span>
+</td>
+<td align="right" style="padding:14px 0;border-bottom:1px solid ${BRAND.hairline};font-family:${MONO};font-size:15px;font-weight:700;color:${BRAND.ink};">${escapeHtml(money(i.amount, l))}</td>
 </tr>`,
     )
     .join("");
 
+  const fulfilment = intent.fulfilment;
+  const fulfilmentHtml = fulfilment
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 0;background:${BRAND.offwhite};border-radius:12px;">
+<tr><td style="padding:16px 18px;">
+  <p style="margin:0;font-family:${FONT};font-size:12px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:${BRAND.ink};">${escapeHtml(fulfilment.method === "shipping" ? c.shipping : c.pickup)}</p>
+  ${fulfilment.note ? `<p style="margin:6px 0 0;font-family:${FONT};font-size:14px;line-height:1.5;color:${BRAND.muted};">${escapeHtml(c.fulfilmentNote)} : ${escapeHtml(fulfilment.note)}</p>` : ""}
+</td></tr></table>`
+    : "";
+
   const html = layout(
-    subject,
-    `<p style="margin:0 0 20px;line-height:1.6">${escapeHtml(intro)}</p>
-<table style="width:100%;border-collapse:collapse">${rows}</table>
-<p style="margin:20px 0 0;font-weight:600">${escapeHtml(totalLabel)} : ${escapeHtml(money(intent.charged_amount, l))}</p>`,
+    l,
+    c.orderTitle,
+    `<p style="margin:0 0 8px;font-family:${FONT};font-size:16px;line-height:1.6;color:${BRAND.ink};">${escapeHtml(intro)}</p>
+<p style="margin:0 0 24px;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(c.orderNext)}</p>
+
+<p style="margin:0 0 4px;font-family:${FONT};font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:${BRAND.ink};">${escapeHtml(c.orderHeading)}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>
+
+${totalsHtml(intent, l)}
+${fulfilmentHtml}
+
+${button(c.myTickets, `${SITE_URL}/${l}/account`)}
+
+<p style="margin:20px 0 0;font-family:${MONO};font-size:11px;color:${BRAND.muted};">${escapeHtml(c.ref)} ${escapeHtml(intent.deposit_id)}</p>`,
   );
+
+  const text = [
+    `${c.chapter} × ${c.edition}`,
+    "",
+    c.orderTitle,
+    intro,
+    c.orderNext,
+    "",
+    c.orderHeading,
+    "",
+    ...items.map(
+      (i) =>
+        `  ${i.qty} × ${i.name}${i.variant ? ` (${i.variant})` : ""} — ${money(i.amount, l)}`,
+    ),
+    "",
+    ...totalsText(intent, l),
+    ...(fulfilment
+      ? [
+          "",
+          fulfilment.method === "shipping" ? c.shipping : c.pickup,
+          ...(fulfilment.note
+            ? [`${c.fulfilmentNote} : ${fulfilment.note}`]
+            : []),
+        ]
+      : []),
+    "",
+    `${c.myTickets} : ${SITE_URL}/${l}/account`,
+    "",
+    `${c.ref} ${intent.deposit_id}`,
+    `${c.contact} ${CHAPTER_EMAIL}`,
+  ].join("\n");
 
   return { subject, text, html };
 }

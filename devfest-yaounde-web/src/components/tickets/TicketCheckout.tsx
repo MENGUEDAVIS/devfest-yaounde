@@ -21,9 +21,11 @@ import { Button } from "@/components/ui/Button";
 import {
   CheckoutError,
   checkoutTickets,
+  isDiscountFailure,
   nextStepAfterCheckout,
   type AttendeeInput,
 } from "@/lib/checkout-client";
+import { useDiscount } from "@/components/checkout/use-discount";
 import { signInWithGoogle, useSession } from "@/lib/use-session";
 import type { TicketTier } from "@/data/types";
 
@@ -88,10 +90,6 @@ export function TicketCheckout({
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [attendees, setAttendees] = useState<AttendeeDraft[]>([]);
 
-  const [discountCode, setDiscountCode] = useState("");
-  const [discountOpen, setDiscountOpen] = useState(false);
-  const [discountApplied, setDiscountApplied] = useState(false);
-  const [discountError, setDiscountError] = useState<string | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -107,6 +105,16 @@ export function TicketCheckout({
    * No `isFree` branch anywhere below: the only zero-price tier is handled
    * off-site, so a basket that reaches checkout always has a real total.
    */
+
+  // The basket as the server prices it: tier ids and counts, no money. The
+  // hook re-prices whenever this changes under an applied code, so the
+  // deduction on screen always belongs to the basket on screen.
+  const discount = useDiscount({
+    kind: "tickets",
+    tiers: paidTiers
+      .filter((tier) => (counts[tier.id] ?? 0) > 0)
+      .map((tier) => ({ tierId: tier.id, quantity: counts[tier.id] ?? 0 })),
+  });
 
   const money = (value: number) =>
     new Intl.NumberFormat(locale === "fr" ? "fr-CM" : "en-CM").format(value);
@@ -213,7 +221,9 @@ export function TicketCheckout({
         // The pay button is disabled until the box is ticked, so reaching
         // here means it was. The server records when, and what wording.
         acceptedTerms: true,
-        ...(discountCode.trim() ? { discountCode: discountCode.trim() } : {}),
+        ...(discount.submittedCode
+          ? { discountCode: discount.submittedCode }
+          : {}),
         contact: {
           email: profile?.email ?? attendees[0]?.email ?? "",
           ...(phone.trim() ? { phone: phone.trim() } : {}),
@@ -238,17 +248,11 @@ export function TicketCheckout({
         );
         setStep("details");
       }
-      if (
-        e.code === "discount_invalid" ||
-        e.code === "discount_expired" ||
-        e.code === "discount_exhausted"
-      ) {
-        // Keep the basket, clear only the code — the guide is explicit. The
-        // verdict lands on the summary card, which is where the field is.
-        setDiscountApplied(false);
-        setDiscountError(e.code);
-        setDiscountCode("");
-        setDiscountOpen(true);
+      if (isDiscountFailure(e.code)) {
+        // Accepted for a quote, refused at payment — a single-use code can be
+        // spent by somebody else in between. Keep the basket, clear only the
+        // code; the verdict lands on the summary card, where the field is.
+        discount.reject(e.code);
       }
       if (e.code === "tier_sold_out" || e.code === "tier_not_on_sale")
         setStep("select");
@@ -697,20 +701,7 @@ export function TicketCheckout({
           emptyLabel={t("summaryEmpty")}
           note={t("totalNote")}
           discount={{
-            open: discountOpen,
-            setOpen: setDiscountOpen,
-            code: discountCode,
-            setCode: (v) => {
-              setDiscountCode(v);
-              setDiscountApplied(false);
-              setDiscountError(null);
-            },
-            applied: discountApplied,
-            apply: () => {
-              setDiscountApplied(discountCode.trim().length >= 3);
-              setDiscountError(null);
-            },
-            error: discountError,
+            ...discount,
             errorText: (code) => te(code as never),
           }}
         />

@@ -35,6 +35,24 @@ export const CHECKOUT_ERRORS = {
 export type CheckoutErrorCode =
   (typeof CHECKOUT_ERRORS)[keyof typeof CHECKOUT_ERRORS];
 
+/**
+ * The verdicts that mean "that code did not work".
+ *
+ * These are what the brute-force fence charges for — a wrong guess, of any
+ * flavour. Kept as a set rather than a `startsWith("discount_")` test so
+ * adding a code has to be a decision about whether it counts as a guess.
+ */
+const DISCOUNT_FAILURES = new Set<CheckoutErrorCode>([
+  CHECKOUT_ERRORS.DISCOUNT_INVALID,
+  CHECKOUT_ERRORS.DISCOUNT_EXPIRED,
+  CHECKOUT_ERRORS.DISCOUNT_EXHAUSTED,
+  CHECKOUT_ERRORS.DISCOUNT_NOT_APPLICABLE,
+]);
+
+export function isDiscountFailure(code: CheckoutErrorCode): boolean {
+  return DISCOUNT_FAILURES.has(code);
+}
+
 export class CheckoutError extends Error {
   readonly code: CheckoutErrorCode;
   readonly status: number;

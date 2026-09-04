@@ -1,6 +1,6 @@
 "use client";
 
-import { Tag } from "@phosphor-icons/react";
+import { CircleNotch, Tag, X } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
@@ -12,6 +12,15 @@ export interface SummaryLine {
   amount: number;
 }
 
+/** What the server said this basket costs. Null until a code is applied. */
+export interface AppliedDiscount {
+  code: string;
+  /** Whole XAF taken off. Always the server's number, never computed here. */
+  amount: number;
+  /** What is left to pay. Also the server's. */
+  charged: number;
+}
+
 /**
  * The sticky "Your order" card — shared by tickets and shop.
  *
@@ -19,11 +28,17 @@ export interface SummaryLine {
  * have a code, and a whole step asking about something most people skip is a
  * step that mostly gets clicked through.
  *
- * There is deliberately no pre-validation call behind "Apply": an endpoint
- * that says whether a code is real would be a free oracle for guessing codes
- * (GAPS.md G4). Apply stages the code, and the server's verdict arrives with
- * the order — which is exactly what the copy says, rather than implying the
- * code has been checked.
+ * **Applying a code prices it immediately** (`POST /api/checkout/quote`). It
+ * used to only stage the code, with the deduction revealed on the payment
+ * page — which meant the first honest total appeared after the point of no
+ * return. `GAPS.md` G4 had ruled a preview endpoint out as an oracle for
+ * guessing codes; ADR 0036 reverses that, because the oracle already existed
+ * behind checkout and the real fence was always the rate limit.
+ *
+ * Every number in the discount rows comes from the server. This component
+ * does no discount arithmetic of its own — a percentage recomputed on the
+ * client is a second opinion nobody asked for, and it will eventually
+ * disagree with the amount actually charged.
  */
 export function OrderSummary({
   title,
@@ -36,6 +51,7 @@ export function OrderSummary({
 }: {
   title: string;
   lines: SummaryLine[];
+  /** Basket total BEFORE any discount, priced from the catalog. */
   total: number;
   emptyLabel: string;
   note: string;
@@ -44,8 +60,10 @@ export function OrderSummary({
     setOpen: (v: boolean) => void;
     code: string;
     setCode: (v: string) => void;
-    applied: boolean;
     apply: () => void;
+    remove: () => void;
+    pending: boolean;
+    applied: AppliedDiscount | null;
     error: string | null;
     errorText: (code: string) => string;
   };
@@ -55,6 +73,11 @@ export function OrderSummary({
   const locale = useLocale();
   const money = (v: number) =>
     new Intl.NumberFormat(locale === "fr" ? "fr-CM" : "en-CM").format(v);
+
+  const applied = discount.applied;
+  // The server's `charged` wins over anything derivable here. It already
+  // accounts for a discount larger than the basket, which clamps to zero.
+  const payable = applied ? applied.charged : total;
 
   return (
     <div className="rounded-lg border-2 border-black02 bg-offwhite p-6">
@@ -87,20 +110,68 @@ export function OrderSummary({
             ))}
           </ul>
 
-          <div className="mt-5 flex items-baseline justify-between gap-4 border-t-2 border-black02/15 pt-4">
-            <span className="font-sans text-body-l font-bold text-black02">
-              {t("total")}
-            </span>
-            <span className="font-mono text-heading-m font-bold text-black02">
-              {money(total)} XAF
-            </span>
+          <div className="mt-5 border-t-2 border-black02/15 pt-4">
+            {applied && (
+              <>
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="text-body-m text-black02/75">
+                    {t("subtotal")}
+                  </span>
+                  <span className="shrink-0 font-mono text-body-m text-black02/75">
+                    {money(total)}
+                  </span>
+                </div>
+
+                {/* The deduction, stated as a number rather than as a
+                    reassurance. "Your code was applied" is not an answer to
+                    "how much did it take off". */}
+                <div className="mt-2 flex items-baseline justify-between gap-4">
+                  <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 text-body-m font-bold text-black02">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Tag size={14} weight="bold" aria-hidden />
+                      {t("discountRow")}
+                    </span>
+                    <span className="font-mono text-caption uppercase tracking-wide text-black02/70">
+                      {applied.code}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-mono text-body-m font-bold text-black02">
+                    −{money(applied.amount)}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={discount.remove}
+                  disabled={discount.pending}
+                  className="mt-2 inline-flex items-center gap-1 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70 underline decoration-2 underline-offset-4 hover:text-black02 disabled:opacity-40"
+                >
+                  <X size={12} weight="bold" aria-hidden />
+                  {t("removeDiscount")}
+                </button>
+              </>
+            )}
+
+            <div
+              className={`flex items-baseline justify-between gap-4 ${
+                applied ? "mt-4 border-t-2 border-black02/15 pt-4" : ""
+              }`}
+            >
+              <span className="font-sans text-body-l font-bold text-black02">
+                {applied ? t("totalToPay") : t("total")}
+              </span>
+              <span className="font-mono text-heading-m font-bold text-black02">
+                {money(payable)} XAF
+              </span>
+            </div>
           </div>
-          {/* The server recomputes every total from the catalog, so this is an
+
+          {/* The server re-prices from the catalog at checkout, so this is an
               estimate until the order comes back with its quote. */}
           <p className="mt-3 text-caption text-black02/60">{note}</p>
 
           <div className="mt-5 border-t-2 border-black02/15 pt-4">
-            {!discount.open ? (
+            {!discount.open && !applied ? (
               <button
                 type="button"
                 onClick={() => discount.setOpen(true)}
@@ -109,6 +180,10 @@ export function OrderSummary({
                 <Tag size={14} weight="bold" aria-hidden />
                 {t("addDiscount")}
               </button>
+            ) : applied ? (
+              <p className="text-body-m text-black02/75">
+                {t("discountConfirmedAtPayment")}
+              </p>
             ) : (
               <div>
                 <label
@@ -124,17 +199,34 @@ export function OrderSummary({
                     onChange={(e) =>
                       discount.setCode(e.target.value.toUpperCase())
                     }
+                    onKeyDown={(e) => {
+                      // Typing a code and pressing Enter is the obvious
+                      // gesture; without this it submits the page instead.
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (discount.code.trim().length >= 3) discount.apply();
+                      }
+                    }}
                     placeholder="GDG-2026"
                     maxLength={32}
-                    className="min-w-0 flex-1 rounded-lg border-2 border-black02 bg-offwhite px-3 py-2 font-mono text-body-m uppercase tracking-wide text-black02"
+                    disabled={discount.pending}
+                    className="min-w-0 flex-1 rounded-lg border-2 border-black02 bg-offwhite px-3 py-2 font-mono text-body-m uppercase tracking-wide text-black02 disabled:opacity-60"
                   />
                   <button
                     type="button"
                     onClick={discount.apply}
-                    disabled={discount.code.trim().length < 3}
-                    className="shrink-0 rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02 disabled:opacity-40"
+                    disabled={discount.code.trim().length < 3 || discount.pending}
+                    className="inline-flex shrink-0 items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02 disabled:opacity-40"
                   >
-                    {t("apply")}
+                    {discount.pending && (
+                      <CircleNotch
+                        size={14}
+                        weight="bold"
+                        aria-hidden
+                        className="motion-safe:animate-spin"
+                      />
+                    )}
+                    {discount.pending ? t("applying") : t("apply")}
                   </button>
                 </div>
                 {discount.error && (
@@ -143,11 +235,6 @@ export function OrderSummary({
                     className="mt-2 text-body-m font-bold text-danger"
                   >
                     {discount.errorText(discount.error)}
-                  </p>
-                )}
-                {discount.applied && !discount.error && (
-                  <p className="mt-2 text-body-m text-black02/75">
-                    {t("discountStaged")}
                   </p>
                 )}
               </div>
