@@ -20,6 +20,20 @@ export const GALLERY_MAX_EDGE = 640;
 const GALLERY_TYPE = "image/jpeg";
 const GALLERY_QUALITY = 0.82;
 
+/**
+ * The site's own "paper" neutral (`frames.ts`, `stickers.ts`), used to flatten
+ * transparency before the JPEG encode.
+ *
+ * A card with rounded or mixed corners (`geometry.ts`) is drawn INSIDE a
+ * clipped rounded rect — the canvas is `clearRect`'d first, so the four
+ * corners outside that rect are fully transparent alpha, not any colour.
+ * JPEG has no alpha channel, and a canvas with no explicit fill composites
+ * transparency onto BLACK when encoded. Every rounded card was picking up
+ * solid black corners the moment it reached the wall — invisible in the PNG
+ * preview and download, only visible once this JPEG copy existed.
+ */
+const GALLERY_BACKGROUND = "#F0F0F0";
+
 /** Where a deletion token is kept so someone can take their card down. */
 export const GALLERY_TOKENS_KEY = "devfest-dp-gallery";
 
@@ -70,6 +84,9 @@ export async function galleryCopy(card: Blob): Promise<Blob> {
     const canvas = new OffscreenCanvas(w, h);
     const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
     ctx.imageSmoothingQuality = "high";
+    // Flatten onto paper BEFORE drawing the card — see GALLERY_BACKGROUND.
+    ctx.fillStyle = GALLERY_BACKGROUND;
+    ctx.fillRect(0, 0, w, h);
     ctx.drawImage(source, 0, 0, w, h);
     source.close();
     return canvas.convertToBlob({
@@ -83,6 +100,8 @@ export async function galleryCopy(card: Blob): Promise<Blob> {
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   ctx.imageSmoothingQuality = "high";
+  ctx.fillStyle = GALLERY_BACKGROUND;
+  ctx.fillRect(0, 0, w, h);
   ctx.drawImage(source, 0, 0, w, h);
   source.close();
   return new Promise<Blob>((resolve, reject) => {

@@ -33,9 +33,14 @@ says `NEXT_PUBLIC_SUPABASE_URL is not set`. That is a different problem from
 the one this guide is mostly about.
 
 You do not need any other variable for the dashboard. The community wall is
-on (ADR 0033). Click a card on the Wall panel to hide or show it. The active
-section lives in `?view=` so a reload keeps your place. **Back to site** in
-the sidebar returns to the public homepage.
+on (ADR 0033). Click a card on the Wall panel to hide or show it — grey and
+faded means off, but the file is still there, so this is reversible. The
+trash icon in the corner of a card is not: it deletes the stored image
+outright and drops the card off the public wall for good, same as a takedown
+request. A card with a small flag badge has been reported by a visitor; that
+count is the only signal the panel gives you for which ones to look at first.
+The active section lives in `?view=` so a reload keeps your place. **Back to
+site** in the sidebar returns to the public homepage.
 
 ## 2. Are you signed in?
 
