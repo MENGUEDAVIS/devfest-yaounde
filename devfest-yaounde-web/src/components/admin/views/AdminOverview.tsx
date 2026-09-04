@@ -4,7 +4,7 @@ import type { AdminData } from "@/lib/admin/shape";
 import type { ContentCounts, ViewId } from "../AdminShell";
 import { EVENT, eventDates } from "@/lib/event";
 import { AdminChart } from "./AdminChart";
-import { InfoBanner, Panel, money } from "./shared";
+import { InfoBanner, money } from "./shared";
 
 function Stat({
   label,
@@ -16,14 +16,14 @@ function Stat({
   note?: string;
 }) {
   return (
-    <div className="rounded-lg border border-black02/15 bg-offwhite p-4">
+    <div className="min-w-0">
       <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
         {label}
       </p>
-      <p className="mt-1 font-sans text-heading-l font-bold text-black02">
+      <p className="mt-0.5 font-sans text-heading-m font-bold text-black02">
         {value}
       </p>
-      {note && <p className="mt-1 text-caption text-black02/60">{note}</p>}
+      {note && <p className="text-caption text-black02/60">{note}</p>}
     </div>
   );
 }
@@ -41,12 +41,22 @@ function seriesByDay(rows: { createdAt: string; amount?: number }[]): {
   return { labels, values: labels.map((day) => map.get(day) ?? 0) };
 }
 
+function align(
+  labels: string[],
+  series: { labels: string[]; values: number[] },
+): number[] {
+  return labels.map((day) => {
+    const i = series.labels.indexOf(day);
+    return i >= 0 ? (series.values[i] ?? 0) : 0;
+  });
+}
+
 function countdownCopy(): { value: string; note: string } {
   const dates = eventDates();
   if (!dates) {
     return {
       value: "TBA",
-      note: `${EVENT.year} dates are not confirmed — this is not a made-up day.`,
+      note: `${EVENT.year} dates unconfirmed`,
     };
   }
   const start = new Date(dates.start).getTime();
@@ -76,6 +86,14 @@ export function AdminOverview({
   );
   const orders = seriesByDay(data.orders.rows);
   const wall = seriesByDay(data.wallCards);
+  const labels = [
+    ...new Set([
+      ...tickets.labels,
+      ...revenue.labels,
+      ...orders.labels,
+      ...wall.labels,
+    ]),
+  ].sort();
 
   return (
     <div className="flex flex-col gap-6">
@@ -84,7 +102,7 @@ export function AdminOverview({
         not counted here. A zero would look like nobody came.
       </InfoBanner>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
         <Stat label="D-Day" value={dday.value} note={dday.note} />
         <Stat label="Paid tickets" value={String(c.paidTickets)} />
         <Stat
@@ -97,18 +115,18 @@ export function AdminOverview({
           }
         />
         <Stat
-          label="Settled revenue"
+          label="Settled"
           value={money(c.settledRevenue, "XAF")}
-          note="Net of discounts, activated payments only"
+          note="Activated, net of discounts"
         />
         <Stat label="Shop orders" value={String(c.orders)} />
-        <Stat label="Signed-in users" value={String(c.users)} />
+        <Stat label="Users" value={String(c.users)} />
         <Stat
-          label="Wall — live"
+          label="Wall"
           value={data.wallEnabled ? String(c.wallApproved) : "off"}
         />
         <Stat
-          label="Content records"
+          label="Content"
           value={String(
             content.speakers +
               content.team +
@@ -121,55 +139,47 @@ export function AdminOverview({
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel
-          title="Tickets over time"
-          subtitle="Paid badges, by day created."
-        >
+      <section className="w-full rounded-lg border border-black02/15 bg-offwhite p-5">
+        <h2 className="font-sans text-heading-m font-bold text-black02">
+          The edition so far
+        </h2>
+        <p className="mt-1 text-body-m text-black02/70">
+          Counts on the left axis, settled XAF on the right.
+        </p>
+        <div className="mt-4">
           <AdminChart
-            labels={tickets.labels}
-            values={tickets.values}
+            labels={labels}
+            series={[
+              {
+                label: "Tickets",
+                values: align(labels, tickets),
+                color: "#f9ab00",
+              },
+              {
+                label: "Orders",
+                values: align(labels, orders),
+                color: "#4285f4",
+              },
+              {
+                label: "DP cards",
+                values: align(labels, wall),
+                color: "#34a853",
+              },
+              {
+                label: "Revenue (XAF)",
+                values: align(labels, revenue),
+                color: "#1e1e1e",
+                axis: "y1",
+              },
+            ]}
             caption={
-              tickets.labels.length
-                ? "One point per day with a ticket."
-                : "No tickets yet — the axis stays empty rather than invented."
+              labels.length
+                ? "One line per series, by day. Empty days stay at zero."
+                : "Nothing to plot yet — the chart stays empty rather than invented."
             }
           />
-        </Panel>
-        <Panel title="Revenue" subtitle="Activated payments, net of discounts.">
-          <AdminChart
-            labels={revenue.labels}
-            values={revenue.values}
-            caption={
-              revenue.labels.length
-                ? "XAF received that day."
-                : "No settled payments yet."
-            }
-          />
-        </Panel>
-        <Panel title="Shop orders" subtitle="Orders placed, by day.">
-          <AdminChart
-            labels={orders.labels}
-            values={orders.values}
-            caption={
-              orders.labels.length
-                ? "Orders opened that day."
-                : "No orders yet."
-            }
-          />
-        </Panel>
-        <Panel title="DP cards" subtitle="Composed cards saved to the wall.">
-          <AdminChart
-            labels={wall.labels}
-            values={wall.values}
-            caption={
-              wall.labels.length
-                ? "Saves that day, including hidden ones."
-                : "Nobody has saved a card yet."
-            }
-          />
-        </Panel>
-      </div>
+        </div>
+      </section>
 
       <div className="flex flex-wrap gap-2.5">
         {(

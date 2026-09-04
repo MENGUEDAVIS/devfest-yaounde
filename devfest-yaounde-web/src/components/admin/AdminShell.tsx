@@ -15,6 +15,7 @@ import {
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import type { AdminData, AdminSettings, MissingPhoto } from "@/lib/admin/shape";
 import { AdminOverview } from "./views/AdminOverview";
 import { AdminTickets } from "./views/AdminTickets";
@@ -175,12 +176,22 @@ export function AdminShell({
   return (
     <div className="min-h-screen bg-pastel px-4 py-5 sm:px-6">
       <div className="mx-auto flex max-w-[100rem] flex-col gap-6 lg:flex-row">
-        <aside className="shrink-0 lg:sticky lg:top-5 lg:h-fit lg:w-56">
-          <div className="rounded-lg border border-black02/20 bg-offwhite p-4">
-            <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
-              DevFest admin
+        <aside className="shrink-0 lg:w-56">
+          <div className="rounded-lg border border-black02/20 bg-offwhite p-4 lg:fixed lg:top-5 lg:bottom-5 lg:flex lg:w-56 lg:flex-col lg:overflow-y-auto">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5"
+              aria-label="DevFest Yaoundé"
+            >
+              <DevFestLogo className="h-7 w-auto shrink-0" />
+              <span className="font-sans text-body-m font-bold leading-tight text-black02">
+                DevFest Yaoundé
+              </span>
+            </Link>
+            <p className="mt-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
+              Admin
             </p>
-            <p className="mt-1 truncate text-body-m font-bold text-black02">
+            <p className="mt-0.5 truncate text-body-m font-bold text-black02">
               {data.organiserEmail ?? "Organiser"}
             </p>
 
@@ -214,7 +225,7 @@ export function AdminShell({
 
             <Link
               href="/"
-              className="mt-6 inline-flex items-center gap-2 px-3 py-2 font-sans text-body-m font-bold text-black02/70 hover:text-black02"
+              className="mt-auto inline-flex items-center gap-2 px-3 py-2 pt-6 font-sans text-body-m font-bold text-black02/70 hover:text-black02"
             >
               <ArrowLeft size={16} weight="bold" aria-hidden />
               Back to site

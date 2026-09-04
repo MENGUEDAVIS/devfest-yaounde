@@ -18,9 +18,11 @@ does not pay for it on first paint.
 No `react-chartjs-2`. A canvas ref and `new Chart()` is enough, and it keeps
 the dependency count at one.
 
-Animation runs on load, and is **off** under `prefers-reduced-motion`. Colours
-come from the theme tokens (`--color-primary`, `--color-black02`). No
-gradients as fills — flat.
+Animation runs on load, and is **off** under `prefers-reduced-motion`. One
+full-width multi-line chart: tickets, orders, DP cards on the left axis,
+settled XAF on the right. Area fills are **soft vertical gradients** of the
+line colour — asked for on the chart, not used as a design surface on the
+rest of the admin.
 
 While `EVENT_BASE_DATE` is null the countdown is labelled as unconfirmed,
 not invented. Series that have no rows yet render as empty axes with a

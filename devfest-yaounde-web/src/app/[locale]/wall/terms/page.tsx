@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { pageMetadata } from "@/lib/seo";
+import { CHAPTER_EMAIL } from "@/lib/site-config";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 
@@ -55,14 +56,16 @@ export default async function WallTermsPage({
           </h2>
           <p className="mt-3 text-body-m text-black02/80">{t("howBody")}</p>
         </section>
-        <p className="mt-8 text-body-m font-bold text-black02">{t("children")}</p>
+        <p className="mt-8 text-body-m font-bold text-black02">
+          {t("children")}
+        </p>
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link
-            href="/wall/remove"
+          <a
+            href={`mailto:${CHAPTER_EMAIL}`}
             className="rounded-pill border-2 border-black02 bg-primary px-6 py-3 font-sans text-body-m font-bold text-black02"
           >
             {t("removeCta")}
-          </Link>
+          </a>
           <Link
             href="/wall"
             className="rounded-pill border-2 border-black02 px-6 py-3 font-sans text-body-m font-bold text-black02"
