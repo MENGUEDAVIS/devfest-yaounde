@@ -61,6 +61,7 @@ or amend an earlier one.
 | [0030](decisions/0030-wall-page-and-what-it-shows.md)    | What the community wall shows           | Accepted, **amended by 0033**                |
 | [0033](decisions/0033-community-wall-is-on.md)           | Wall on; visitors can report a card     | Accepted — closes G21                        |
 | [0034](decisions/0034-dp-save-on-action.md)              | Download/share/copy saves the card      | Accepted — **supersedes 0015**               |
+| [0035](decisions/0035-chartjs-admin-overview.md)         | Chart.js on the admin overview          | Accepted                                     |
 
 **Site and design**
 
