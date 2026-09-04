@@ -37,6 +37,15 @@ export const RATE_LIMITS = {
    * for a person and tedious for a script.
    */
   dpGallery: { bucket: "dp_gallery", limit: 5, windowSeconds: 3600 },
+  /**
+   * Reporting a wall card, by IP. Cheaper than a submission — a person who
+   * spots two bad cards should not wait an hour — still useless as a flood.
+   */
+  dpGalleryReport: {
+    bucket: "dp_gallery_report",
+    limit: 8,
+    windowSeconds: 300,
+  },
   /** Dashboard writes. Generous for a person, useless for a script. */
   adminWrite: { bucket: "admin-write", limit: 60, windowSeconds: 300 },
   /** One picture per remaining profile, so this is higher than adminWrite. */

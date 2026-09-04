@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { currentOrganiser } from "@/lib/security/organisers";
+import { signedUrl } from "@/lib/dp/gallery-server";
 
 /**
  * Everything the dashboard reads, in one place, behind one gate.
@@ -73,8 +74,9 @@ export async function loadAdminData(): Promise<AdminData> {
   const wallEnabled = process.env.NEXT_PUBLIC_DP_GALLERY === "1";
   let wallPending = 0;
   let wallApproved = 0;
+  let wallReports: AdminData["wallReports"] = [];
   if (wallEnabled) {
-    const [pending, approved] = await Promise.all([
+    const [pending, approved, reports] = await Promise.all([
       db
         .from("dp_cards")
         .select("id", { count: "exact", head: true })
@@ -83,9 +85,40 @@ export async function loadAdminData(): Promise<AdminData> {
         .from("dp_cards")
         .select("id", { count: "exact", head: true })
         .eq("status", "approved"),
+      db
+        .from("dp_card_reports")
+        .select("id, card_id, created_at")
+        .order("created_at", { ascending: false })
+        .limit(100),
     ]);
     wallPending = pending.count ?? 0;
     wallApproved = approved.count ?? 0;
+
+    const reportRows = reports.data ?? [];
+    const cardIds = [...new Set(reportRows.map((row) => row.card_id))];
+    const cards =
+      cardIds.length === 0
+        ? []
+        : ((
+            await db
+              .from("dp_cards")
+              .select("id, nickname, status, storage_path")
+              .in("id", cardIds)
+          ).data ?? []);
+    const byId = new Map(cards.map((card) => [card.id, card]));
+    wallReports = await Promise.all(
+      reportRows.map(async (row) => {
+        const card = byId.get(row.card_id);
+        return {
+          id: row.id,
+          cardId: row.card_id,
+          nickname: card?.nickname ?? "unknown",
+          status: card?.status ?? "gone",
+          imageUrl: card ? await signedUrl(card.storage_path) : null,
+          createdAt: row.created_at,
+        };
+      }),
+    );
   }
 
   const ticketRows = tickets.data ?? [];
@@ -184,5 +217,6 @@ export async function loadAdminData(): Promise<AdminData> {
       expiresAt: d.expires_at,
     })),
     wallEnabled,
+    wallReports,
   };
 }

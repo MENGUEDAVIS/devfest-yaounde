@@ -32,8 +32,8 @@ If these are missing the page returns a **500**, not a 404, and the server log
 says `NEXT_PUBLIC_SUPABASE_URL is not set`. That is a different problem from
 the one this guide is mostly about.
 
-You do not need any other variable for the dashboard. `NEXT_PUBLIC_DP_GALLERY`
-only affects whether the wall panel shows counts or an explanation.
+You do not need any other variable for the dashboard. The community wall is
+on (ADR 0033); the Wall panel lists visitor reports and can take a card down.
 
 ## 2. Are you signed in?
 

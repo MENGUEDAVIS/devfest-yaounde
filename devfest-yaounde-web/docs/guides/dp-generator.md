@@ -214,11 +214,10 @@ Everything above happens on the device. **One thing does not**, and only when
 someone asks for it on that card: a smaller copy can be sent to GDG Yaoundé
 for the community wall.
 
-It is off. `NEXT_PUBLIC_DP_GALLERY` gates it, the endpoint behind it does not
-exist yet, and with the flag unset the screen renders no wall control at all —
-not a disabled one. `src/lib/dp/gallery.ts` holds the client side;
-`docs/backend/dp-gallery-contract.md` is what someone needs to build; ADR 0021
-is why it reverses ADR 0015 and what that costs.
+It is on (ADR 0033). `NEXT_PUBLIC_DP_GALLERY=0` is the explicit off: the
+screen then renders no wall control at all — not a disabled one.
+`src/lib/dp/gallery.ts` holds the client side; the endpoints live under
+`/api/dp/gallery`. ADR 0021 is why this reverses ADR 0015 and what that costs.
 
 Three properties worth knowing if you touch it:
 

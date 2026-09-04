@@ -70,4 +70,4 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 
 **Real content.** Everything in `src/data/` is placeholder — speakers, sessions, team, sponsors, and now ticket tiers and shop products too. The tier names and prices in particular are invented mock data and must not ship: `docs/guides/updating-tickets-and-shop.md` and the pre-launch checklist in `docs/setup/deployment.md`.
 
-**Still open:** card payments (Mobile Money only today), refunds, organiser tools, buyer-settable fulfilment, role-badge verification, and the community wall's backend — the frontend for it is written and switched off (ADR 0021, GAPS.md G20).
+**Still open:** card payments (Mobile Money only today), refunds, organiser tools, buyer-settable fulfilment, and role-badge verification. The community wall is on (ADR 0033).

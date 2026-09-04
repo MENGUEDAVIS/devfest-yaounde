@@ -58,7 +58,8 @@ or amend an earlier one.
 | [0029](decisions/0029-editorial-content-store.md)        | Editorial content has no writable store | **Accepted by 0031**                         |
 | [0031](decisions/0031-editorial-store-in-postgres.md)    | Postgres store, JSON fallback           | Accepted, **amended by 0032**                |
 | [0032](decisions/0032-editorial-photo-upload.md)         | Photos attached per profile after sheet | Accepted                                     |
-| [0030](decisions/0030-wall-page-and-what-it-shows.md)    | What the community wall shows           | Accepted — placeholders until the flag is on |
+| [0030](decisions/0030-wall-page-and-what-it-shows.md)    | What the community wall shows           | Accepted, **amended by 0033**                |
+| [0033](decisions/0033-community-wall-is-on.md)           | Wall on; visitors can report a card     | Accepted — closes G21                        |
 
 **Site and design**
 

@@ -74,6 +74,15 @@ export interface AdminDiscount {
   expiresAt: string | null;
 }
 
+export interface AdminWallReport {
+  id: string;
+  cardId: string;
+  nickname: string;
+  status: string;
+  imageUrl: string | null;
+  createdAt: string;
+}
+
 export interface MissingPhoto {
   collection: string;
   collectionLabel: string;
@@ -106,4 +115,5 @@ export interface AdminData {
   users: { rows: AdminUser[]; total: number };
   discounts: AdminDiscount[];
   wallEnabled: boolean;
+  wallReports: AdminWallReport[];
 }
