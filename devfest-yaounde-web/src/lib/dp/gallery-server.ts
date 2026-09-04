@@ -106,7 +106,21 @@ export async function normaliseImage(file: Blob): Promise<Buffer> {
   // Re-encode rather than pass through. `rotate()` with no argument applies
   // any EXIF orientation before it is discarded, so the picture keeps the way
   // up it was submitted.
-  return image.rotate().jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+  //
+  // `.flatten()` before `.jpeg()` matters specifically for this generator: a
+  // rounded or mixed-corner card (geometry.ts) has its four corners fully
+  // transparent, and sharp's JPEG encoder — like a browser canvas — composites
+  // transparency onto BLACK when no background is given. Every submitted card
+  // was picking up solid black corners here even after the client-side fix in
+  // gallery.ts, because this re-encode runs independently and is what
+  // actually gets stored. #F0F0F0 matches the client's flatten colour
+  // (frames.ts / stickers.ts "paper") so a card looks the same wherever it
+  // was produced.
+  return image
+    .rotate()
+    .flatten({ background: "#F0F0F0" })
+    .jpeg({ quality: 82, mozjpeg: true })
+    .toBuffer();
 }
 
 export function cleanNickname(raw: FormDataEntryValue | null): string {
