@@ -3,7 +3,7 @@
  */
 import { NextRequest } from "next/server";
 import { recordAudit } from "@/lib/admin/audit";
-import { discountWriteSchema } from "@/lib/content/schemas";
+import { discountWriteSchema, firstZodIssue } from "@/lib/content/schemas";
 import { CHECKOUT_ERRORS, errorResponse } from "@/lib/payments/errors";
 import { currentOrganiser } from "@/lib/security/organisers";
 import { RATE_LIMITS, rateLimit } from "@/lib/security/rate-limit";
@@ -31,11 +31,12 @@ export async function POST(request: NextRequest) {
   }
 
   const parsed = discountWriteSchema.safeParse(body);
-  if (!parsed.success) return errorResponse(CHECKOUT_ERRORS.INVALID_BODY, 400);
-  const input = parsed.data;
-  if (input.kind === "percent" && input.value > 100) {
-    return errorResponse(CHECKOUT_ERRORS.INVALID_BODY, 400);
+  if (!parsed.success) {
+    return errorResponse(CHECKOUT_ERRORS.INVALID_BODY, 400, {
+      detail: firstZodIssue(parsed.error),
+    });
   }
+  const input = parsed.data;
 
   const supabase = createAdminSupabase();
   const { error } = await supabase.from("discount_codes").insert({
@@ -63,5 +64,17 @@ export async function POST(request: NextRequest) {
     after: input,
   });
 
-  return Response.json({ code: input.code }, { status: 201 });
+  return Response.json(
+    {
+      code: input.code,
+      kind: input.kind,
+      value: input.value,
+      appliesTo: input.appliesTo,
+      active: input.active,
+      redeemedCount: 0,
+      maxRedemptions: input.maxRedemptions ?? null,
+      expiresAt: input.expiresAt ?? null,
+    },
+    { status: 201 },
+  );
 }
