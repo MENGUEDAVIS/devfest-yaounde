@@ -29,7 +29,7 @@ hold a ticket and does not is a problem at the door, not on the screen.
 | **Card payment**            | **Absent**                | Not offered — see G1             |
 | **Refunds / cancellation**  | **Absent**                | Not offered — see G2             |
 | **Email receipts**          | Code done, provider unset | Wire; degrades silently — G3     |
-| **Discount code preview**   | Deliberately absent       | No "check code" button — G4      |
+| **Discount code preview**   | **Complete**              | Priced before payment — G4       |
 | Organiser check-in / orders | **Complete**              | Out of Phase 14's scope — G5     |
 
 **Most of this is buildable for real.** The gaps are narrow and specific.
@@ -77,17 +77,31 @@ QR and badge code are the source of truth; email is mentioned **only** when
 `/account`, so the ticket is reachable either way. This is a config gap, not a
 code gap.
 
-### G4 — No discount-code validation endpoint, on purpose
+### G4 — Discount preview — ~~absent on purpose~~ **CLOSED 2026-09-04**
 
 <!-- Confirmed 2026-09-02: apply at submission, reflect the server's verdict. -->
+<!-- Reversed 2026-09-04: the buyer saw the real total only on PawaPay's page. -->
 
-There is deliberately no "check this code" endpoint: it would be a free oracle
-for guessing codes.
+~~There is deliberately no "check this code" endpoint: it would be a free
+oracle for guessing codes.~~
 
-**Phase 14 does:** the code field submits with the order; an invalid or spent
-code comes back as `discount_invalid` / `discount_expired` /
-`discount_exhausted` and clears the field while **keeping the basket**. No
-live-validation affordance that implies checking-as-you-type.
+**Reversed by ADR 0036.** The reasoning above was sound; the conclusion was
+too strong. The oracle already existed — anyone could POST a real checkout
+and read `discount_invalid` off the response — so refusing to build a preview
+only made each guess cost a payment intent. The fence was always the rate
+limit, never the absence of an endpoint. Meanwhile the buyer learned what
+they owed for the first time on PawaPay's page, after committing to pay it.
+
+**Now:** `POST /api/checkout/quote` prices a basket without committing to it.
+The summary shows subtotal, the deduction with its code, and what is left to
+pay; the code can be removed and another tried until payment. Sign-in is
+required, every call is metered, and **only a rejected code charges the
+brute-force fence** — every guess is wrong, so guessing still costs, while a
+buyer re-pricing their own basket does not.
+
+A quote holds nothing. The redemption is still claimed at payment time, once,
+inside `create_payment_intent`, so a code accepted for a quote can still be
+refused at checkout — the screen keeps the basket and says why.
 
 ### G5 — Organiser tools are unbuilt (backend ready)
 

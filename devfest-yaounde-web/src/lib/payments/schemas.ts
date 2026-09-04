@@ -144,6 +144,37 @@ export const shopCheckoutSchema = z.object({
   locale: localeSchema.default("fr"),
 });
 
+/**
+ * A price preview. Deliberately the thinnest body in this file.
+ *
+ * No contact, no consent, no attendee details — a quote commits to nothing
+ * and stores nothing, so asking for any of that would be collecting personal
+ * data to answer an arithmetic question.
+ *
+ * Tickets quote from tier COUNTS rather than an attendee list: the buyer
+ * wants to see what a code takes off before they have typed anybody's name.
+ */
+export const quoteSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("tickets"),
+    tiers: z
+      .array(
+        z.object({
+          tierId: idSchema,
+          quantity: z.number().int().min(1).max(10),
+        }),
+      )
+      .min(1)
+      .max(10),
+    discountCode: discountCodeSchema,
+  }),
+  z.object({
+    kind: z.literal("shop"),
+    cart: z.array(cartLineSchema).min(1).max(20),
+    discountCode: discountCodeSchema,
+  }),
+]);
+
 export const depositIdSchema = z.string().uuid();
 
 export type TicketCheckoutInput = z.infer<typeof ticketCheckoutSchema>;

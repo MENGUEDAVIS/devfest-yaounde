@@ -124,9 +124,62 @@ export async function quoteTickets(
   }
 
   const tiers = await loadTiers();
-  const counts = new Map<string, AttendeeInput[]>();
+  const counts = new Map<string, number>();
+
+  // The per-attendee rules that pricing itself does not care about. They
+  // still belong on the paying path: an apparel tier with no size is an
+  // order nobody can fulfil.
   for (const attendee of attendees) {
     const tier = findTier(attendee.tierId, tiers);
+    if (!tier) throw new CheckoutError(CHECKOUT_ERRORS.UNKNOWN_TIER);
+    if (tier.includesApparel && !attendee.apparelSize) {
+      throw new CheckoutError(CHECKOUT_ERRORS.APPAREL_SIZE_REQUIRED);
+    }
+    counts.set(attendee.tierId, (counts.get(attendee.tierId) ?? 0) + 1);
+  }
+
+  return quoteTierCounts(
+    [...counts].map(([tierId, quantity]) => ({ tierId, quantity })),
+    discountCode,
+  );
+}
+
+/** How many tickets of one tier — the shape pricing actually needs. */
+export interface TierCount {
+  tierId: string;
+  quantity: number;
+}
+
+/**
+ * Prices tickets from tier counts alone.
+ *
+ * Split out of `quoteTickets` so the price PREVIEW and the real checkout run
+ * the same arithmetic. Two functions that both "work out the ticket total"
+ * are two functions that eventually disagree, and the one the buyer is shown
+ * disagreeing with the one they are charged is the worst possible pairing.
+ *
+ * What is deliberately absent is everything about the attendees — names,
+ * emails, apparel sizes. None of it moves the total, and a preview is asked
+ * for before those are filled in.
+ */
+export async function quoteTierCounts(
+  counts: TierCount[],
+  discountCode?: string,
+): Promise<PricedBasket> {
+  const total = counts.reduce((sum, c) => sum + c.quantity, 0);
+  if (counts.length === 0 || total === 0) {
+    throw new CheckoutError(CHECKOUT_ERRORS.EMPTY_BASKET);
+  }
+  if (total > MAX_TICKETS_PER_ORDER) {
+    throw new CheckoutError(CHECKOUT_ERRORS.ATTENDEE_COUNT_MISMATCH);
+  }
+
+  const tiers = await loadTiers();
+  const lines: PricedLine[] = [];
+
+  for (const { tierId, quantity } of counts) {
+    if (quantity <= 0) continue;
+    const tier = findTier(tierId, tiers);
     if (!tier) throw new CheckoutError(CHECKOUT_ERRORS.UNKNOWN_TIER);
     if (!tier.onSale) throw new CheckoutError(CHECKOUT_ERRORS.TIER_NOT_ON_SALE);
     // `rsvpExternal` is not a display hint. The tier is not sold here at all:
@@ -136,33 +189,22 @@ export async function quoteTickets(
     if (tier.rsvpExternal) {
       throw new CheckoutError(CHECKOUT_ERRORS.TIER_RSVP_EXTERNAL);
     }
-    if (tier.includesApparel && !attendee.apparelSize) {
-      throw new CheckoutError(CHECKOUT_ERRORS.APPAREL_SIZE_REQUIRED);
-    }
-    const bucket = counts.get(attendee.tierId) ?? [];
-    bucket.push(attendee);
-    counts.set(attendee.tierId, bucket);
-  }
-
-  const lines: PricedLine[] = [];
-  for (const [tierId, group] of counts) {
-    const tier = findTier(tierId, tiers)!;
     // Optimistic fast-fail only: one order asking for more than the tier ever
     // had. It says nothing about what is still free, because a count taken
     // here would be stale by the time we insert. The binding check is the
     // reservation inside `create_payment_intent` — see intents.ts.
     if (
       tier.quantityAvailable !== undefined &&
-      group.length > tier.quantityAvailable
+      quantity > tier.quantityAvailable
     ) {
       throw new CheckoutError(CHECKOUT_ERRORS.TIER_SOLD_OUT);
     }
     lines.push({
       productId: tier.id,
       name: { fr: tier.name, en: tier.name },
-      quantity: group.length,
+      quantity,
       unitAmount: tier.priceXAF,
-      lineAmount: tier.priceXAF * group.length,
+      lineAmount: tier.priceXAF * quantity,
     });
   }
 

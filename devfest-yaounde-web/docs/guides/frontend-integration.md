@@ -77,9 +77,36 @@ until the person confirms. Everything is one call.
 - **Attendee details** — one entry per ticket. **The list is the quantity**:
   three Sonnet attendees means three Sonnet tickets. If the tier has
   `includesApparel: true`, a size is required or the server rejects the order.
-- **Discount code** — optional, sent with the checkout. There is no "validate
-  code" endpoint on purpose: a separate endpoint would be a free oracle for
-  guessing codes.
+- **Discount code** — optional. **Price it before paying** (ADR 0036):
+
+  ```
+  POST /api/checkout/quote
+  { "kind": "tickets", "tiers": [{ "tierId": "sonnet", "quantity": 2 }],
+    "discountCode": "GDG-2026" }
+
+  → { subtotal, discountCode, discountAmount, charged, currency }
+  ```
+
+  Shop baskets use `{ "kind": "shop", "cart": [...] }`, the same `cart` shape
+  as the checkout call. `discountCode` is optional on both: leave it out to
+  price the basket on its own.
+
+  Three rules for using it:
+
+  1. **Show the server's numbers, never your own.** Do not recompute a
+     percentage in the browser — it will eventually disagree with what is
+     charged, and it will disagree in the direction that looks like a better
+     deal.
+  2. **Re-quote when the basket changes** while a code is applied. A discount
+     is a function of the basket, so adding a ticket makes the old deduction
+     wrong. `useDiscount` already does this; if you write your own, do it too.
+  3. **A quote holds nothing.** It reserves no stock and redeems no code. The
+     server re-prices at checkout, and a single-use code can be spent by
+     someone else in between — so still handle `discount_*` on the checkout
+     response, keeping the basket and clearing only the code.
+
+  It is metered: sign-in required, and a **rejected** code costs one of eight
+  attempts per five minutes. A valid code costs nothing, so re-quoting is free.
 
 ### Step 4 — one call
 
@@ -240,8 +267,13 @@ were a real barrier; a watermark is the documented stronger option.
 
 ```
 GET /api/account/tickets
-→ { "tickets": [ { id, tier_id, attendee_name, attendee_email,
-                   apparel_size, badge_code, checked_in_at, created_at } ] }
+→ { "tickets": [ { id, attendeeName, attendeeEmail, apparelSize, badgeCode,
+                   checkedInAt, createdAt, isSelf,
+                   tier: { id, name, label, description, perks,
+                           includesApparel },
+                   unitAmount,
+                   order: { depositId, currency, discountCode,
+                            discountAmount, chargedAmount, paidAt } } ] }
 
 GET /api/account/orders
 → { "orders": [ { id, status, total_amount, currency, fulfilment, created_at,
@@ -251,6 +283,18 @@ GET /api/account/orders
 
 Both are already scoped to the signed-in person by the database itself. There
 is no id to pass, and no way to ask for someone else's.
+
+`tier` and `order` are joined on server-side rather than left for the browser
+to resolve. A ticket row holds a tier SLUG and no price, which renders as
+"SONNET" and nothing else — telling the person who paid neither what they
+bought nor what it cost. `tier` comes from the catalog (falling back to the
+slug for a retired tier, so old tickets stay readable) and `order` comes from
+the payment intent, which is the record of what actually happened: a tier
+whose price changes later must not rewrite what someone was charged before.
+
+`unitAmount` is what that one ticket was charged. `discountAmount` and
+`chargedAmount` belong to the whole ORDER — label them that way rather than
+implying one ticket carried them.
 
 `badge_code` is what becomes the QR at the door — format `DFY-XXXXX-XXXXX`.
 Render it as a QR **and** as readable text: a cracked screen or a dead battery
