@@ -75,6 +75,7 @@ export async function loadAdminData(): Promise<AdminData> {
   let wallPending = 0;
   let wallApproved = 0;
   let wallReports: AdminData["wallReports"] = [];
+  let wallCards: AdminData["wallCards"] = [];
   if (wallEnabled) {
     const [pending, approved, reports] = await Promise.all([
       db
@@ -118,6 +119,28 @@ export async function loadAdminData(): Promise<AdminData> {
           createdAt: row.created_at,
         };
       }),
+    );
+
+    const reportCount = new Map<string, number>();
+    for (const row of reportRows) {
+      reportCount.set(row.card_id, (reportCount.get(row.card_id) ?? 0) + 1);
+    }
+    const { data: stored } = await db
+      .from("dp_cards")
+      .select("id, nickname, theme, visible, status, storage_path, created_at")
+      .order("created_at", { ascending: false })
+      .limit(80);
+    wallCards = await Promise.all(
+      (stored ?? []).map(async (card) => ({
+        id: card.id,
+        nickname: card.nickname,
+        theme: card.theme,
+        visible: card.visible,
+        status: card.status,
+        imageUrl: await signedUrl(card.storage_path),
+        createdAt: card.created_at,
+        reportCount: reportCount.get(card.id) ?? 0,
+      })),
     );
   }
 
@@ -218,5 +241,6 @@ export async function loadAdminData(): Promise<AdminData> {
     })),
     wallEnabled,
     wallReports,
+    wallCards,
   };
 }

@@ -33,7 +33,9 @@ says `NEXT_PUBLIC_SUPABASE_URL is not set`. That is a different problem from
 the one this guide is mostly about.
 
 You do not need any other variable for the dashboard. The community wall is
-on (ADR 0033); the Wall panel lists visitor reports and can take a card down.
+on (ADR 0033). Click a card on the Wall panel to hide or show it. The active
+section lives in `?view=` so a reload keeps your place. **Back to site** in
+the sidebar returns to the public homepage.
 
 ## 2. Are you signed in?
 

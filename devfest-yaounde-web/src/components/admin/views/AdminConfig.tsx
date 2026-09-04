@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { AdminSettings } from "@/lib/admin/shape";
 import { Panel } from "./shared";
 
+const ANNOUNCE_MAX = 180;
+
 export function AdminConfig({ settings }: { settings: AdminSettings }) {
   const [announcementFr, setAnnouncementFr] = useState(
     settings.announcement?.fr ?? "",
@@ -61,18 +63,26 @@ export function AdminConfig({ settings }: { settings: AdminSettings }) {
           <textarea
             className={field}
             rows={2}
+            maxLength={ANNOUNCE_MAX}
             value={announcementFr}
             onChange={(e) => setAnnouncementFr(e.target.value)}
           />
+          <span className="mt-1 block text-caption font-normal text-black02/60">
+            {announcementFr.length}/{ANNOUNCE_MAX}
+          </span>
         </label>
         <label className="block text-body-m font-bold text-black02">
           Announcement (en)
           <textarea
             className={field}
             rows={2}
+            maxLength={ANNOUNCE_MAX}
             value={announcementEn}
             onChange={(e) => setAnnouncementEn(e.target.value)}
           />
+          <span className="mt-1 block text-caption font-normal text-black02/60">
+            {announcementEn.length}/{ANNOUNCE_MAX}
+          </span>
         </label>
         <label className="block text-body-m font-bold text-black02">
           Privacy policy URL
