@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { DpWall } from "@/components/wall/DpWall";
 import { pageMetadata } from "@/lib/seo";
 import type { WallCard } from "@/data/wall-placeholders";
+import { CHAPTER_EMAIL } from "@/lib/site-config";
 
 export async function generateMetadata({
   params,
@@ -93,12 +94,12 @@ export default async function WallPage({
           </Link>
         </div>
       )}
-      <Link
-        href="/wall/remove"
-        className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-pill border-2 border-black02 bg-offwhite px-4 py-1.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02"
+      <a
+        href={`mailto:${CHAPTER_EMAIL}`}
+        className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-pill border-2 border-black02 bg-offwhite px-4 py-1.5 text-center font-mono text-mono-tag font-bold uppercase tracking-wide text-black02"
       >
-        {t("removeMine")}
-      </Link>
+        {t("takedownHint", { email: CHAPTER_EMAIL })}
+      </a>
     </main>
   );
 }

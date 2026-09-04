@@ -444,7 +444,7 @@
         "hint": "Les hashtags, @gdgyaounde, et le lien vers ici. Copie, puis joins l'image dans l'appli."
       },
       "consent": {
-        "notice": "Télécharger, partager ou copier cette carte enregistre aussi une copie plus légère sur le mur public de la communauté. La photo que tu as choisie reste sur ton appareil. Tu peux retirer la carte à tout moment.",
+        "notice": "Télécharger, partager ou copier cette carte enregistre aussi une copie plus légère sur le mur public de la communauté. La photo que tu as choisie reste sur ton appareil. Pour retirer une carte, écris à gdgyaounde@gmail.com.",
         "termsLink": "Ce qu'on garde, et comment retirer une carte"
       },
       "toast": {
@@ -505,13 +505,10 @@
       "title": "Mur de la communauté",
       "metaDesc": "Les cartes créées par la communauté DevFest Yaoundé, faites dans le générateur de PP et partagées par celles et ceux qui les ont créées.",
       "cardLabel": "Carte DevFest",
-      "report": "Signaler",
-      "reported": "C'est transmis",
-      "reportFailed": "Réessayer",
       "emptyTitle": "Le mur t'attend",
       "emptyBody": "Personne n'a encore enregistré de carte. Fais-en une, télécharge-la, et tu seras le premier sur le mur.",
       "emptyCta": "Faire une carte",
-      "removeMine": "Retirer une carte que j'ai faite"
+      "takedownHint": "Retirer une carte ? {email}"
     },
     "wallTerms": {
       "title": "Conditions du mur",
@@ -522,10 +519,10 @@
       "whereTitle": "Où ça apparaît",
       "whereBody": "Sur le mur public de la communauté, sauf si tu la retires ou qu'un organisateur la cache. Le mur n'est pas proposé aux moteurs de recherche.",
       "howTitle": "Comment retirer une carte",
-      "howBody": "Sur ce même navigateur, la page de retrait suffit — les jetons vivent sur cet appareil, il n'y a pas de compte. Appareil perdu ou site vidé ? Écris au chapitre et dis quel surnom ou quelle image. N'importe qui peut aussi signaler une carte sur le mur.",
-      "removeCta": "Retirer une carte que j'ai faite",
+      "howBody": "Écris à gdgyaounde@gmail.com et dis quel surnom ou quelle image. Il n'y a pas de bouton sur le mur — un organisateur la cachera ou la supprimera.",
+      "removeCta": "Écrire à gdgyaounde@gmail.com",
       "wallCta": "Voir le mur",
-      "children": "Ne mets pas la carte d'un enfant sur le mur. Si tu en vois une, signale-la."
+      "children": "Ne mets pas la carte d'un enfant sur le mur. Si tu en vois une, écris à gdgyaounde@gmail.com."
     },
     "wallRemove": {
       "title": "Retirer une carte",

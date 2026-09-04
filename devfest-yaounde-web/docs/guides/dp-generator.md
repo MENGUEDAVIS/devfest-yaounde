@@ -211,8 +211,8 @@ then do the action. A failed save does not block the download (ADR 0034).
 The source photo never uploads.
 
 An upfront notice sits above the buttons, with a link to `/wall/terms`.
-`/wall/remove` takes down cards saved on this browser. Anyone can report a
-card on the wall.
+Takedown is by email to gdgyaounde@gmail.com — there is no report button
+on the cards.
 
 `NEXT_PUBLIC_DP_GALLERY=0` turns the save off. What uploads is a 640px JPEG,
 not the file someone saved. No EXIF can reach the server — the card is drawn

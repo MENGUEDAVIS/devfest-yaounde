@@ -444,7 +444,7 @@
         "hint": "Hashtags, @gdgyaounde, and a link back here. Copy it, then attach the image in the app."
       },
       "consent": {
-        "notice": "Downloading, sharing or copying this card also saves a smaller copy on the public Community Wall. The photo you picked stays on your device. You can take the card down any time.",
+        "notice": "Downloading, sharing or copying this card also saves a smaller copy on the public Community Wall. The photo you picked stays on your device. To take a card down, write gdgyaounde@gmail.com.",
         "termsLink": "What's stored, and how to take a card down"
       },
       "toast": {
@@ -505,13 +505,10 @@
       "title": "Community wall",
       "metaDesc": "Cards made by the DevFest Yaoundé community, built in the DP generator and shared by the people who made them.",
       "cardLabel": "DevFest card",
-      "report": "Report",
-      "reported": "Told the team",
-      "reportFailed": "Try again",
       "emptyTitle": "The wall is waiting for you",
       "emptyBody": "Nobody has saved a card yet. Make one, download it, and you'll be first on the wall.",
       "emptyCta": "Make a card",
-      "removeMine": "Remove a card I made"
+      "takedownHint": "Need a card taken down? {email}"
     },
     "wallTerms": {
       "title": "Community wall terms",
@@ -522,10 +519,10 @@
       "whereTitle": "Where it shows",
       "whereBody": "On the public Community Wall, unless you take it down or an organiser hides it. The wall is not offered to search engines.",
       "howTitle": "How to take a card down",
-      "howBody": "On this same browser, use the remove page — the tokens live on this device, there is no account. Lost the device or cleared the site? Write the chapter and say which nickname or which picture. Anyone can also report a card on the wall.",
-      "removeCta": "Remove a card I made",
+      "howBody": "Write gdgyaounde@gmail.com and say which nickname or which picture. There is no button on the wall — an organiser will hide or delete it.",
+      "removeCta": "Email gdgyaounde@gmail.com",
       "wallCta": "See the wall",
-      "children": "Do not put a card of a child on the wall. If you see one, report it."
+      "children": "Do not put a card of a child on the wall. If you see one, write gdgyaounde@gmail.com."
     },
     "wallRemove": {
       "title": "Take a card down",

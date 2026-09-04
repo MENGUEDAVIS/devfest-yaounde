@@ -317,13 +317,10 @@ is never blocked by the log.
 
 ### G21 — The wall has no report path for visitors
 
-**RESOLVED 2026-09-04** (ADR 0033, migration 0013). Each live card has a
-Report control. `POST /api/dp/gallery/:id/report` is unauthenticated,
-rate-limited by IP, one row per address per card. The dashboard lists those
-rows; Remove is the existing reject, which still deletes the image.
-
-There is still no email ping when a report lands — organisers reload the
-panel. That is a smaller gap, not this one.
+**REVISED 2026-09-04.** Visitor report buttons came off the cards. Takedown
+is email to gdgyaounde@gmail.com; organisers hide a card from the admin
+wall (click to toggle `visible`). The report endpoint may still exist; it
+is not offered in the UI.
 
 ### G20 — The community wall — BACKEND BUILT
 

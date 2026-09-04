@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Flag } from "@phosphor-icons/react";
 import type { AdminData, AdminWallCard } from "@/lib/admin/shape";
 import { InfoBanner } from "./shared";
 
@@ -18,12 +17,6 @@ export function AdminWall({ data }: { data: AdminData }) {
       </InfoBanner>
     );
   }
-
-  const flagged = cards
-    .filter((card) => card.reportCount > 0 && card.status !== "rejected")
-    .sort((a, b) => b.reportCount - a.reportCount);
-  const rest = cards.filter((card) => !flagged.includes(card));
-  const ordered = [...flagged, ...rest];
 
   async function toggle(card: AdminWallCard) {
     if (card.status === "rejected") return;
@@ -49,31 +42,36 @@ export function AdminWall({ data }: { data: AdminData }) {
   return (
     <div className="flex flex-col gap-5">
       <InfoBanner>
-        Cards go public the moment someone downloads, shares or copies (ADR
-        0034). Click a card to hide it — grey and faded means off the public
-        wall. Reported cards are listed first. Do not leave a card of a child
-        up.
+        Click a card to hide it from the public wall — grey and faded means off.
+        Takedown requests come to gdgyaounde@gmail.com. Do not leave a card of a
+        child up.
       </InfoBanner>
       {error && (
         <p className="rounded-lg border border-danger/40 bg-danger-pastel px-4 py-3 text-body-m font-bold text-black02">
           {error}
         </p>
       )}
-      {ordered.length === 0 ? (
+      {cards.length === 0 ? (
         <p className="rounded-lg border border-dashed border-black02/30 px-4 py-10 text-center text-body-m text-black02/70">
           No cards stored yet.
         </p>
       ) : (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {ordered.map((card) => {
+        <ul className="columns-2 gap-3 sm:columns-3 lg:columns-4">
+          {cards.map((card) => {
             const off = !card.visible || card.status === "rejected";
             return (
-              <li key={card.id}>
+              <li key={card.id} className="mb-3 break-inside-avoid">
                 <button
                   type="button"
                   disabled={busy === card.id || card.status === "rejected"}
                   onClick={() => void toggle(card)}
-                  className={`relative w-full overflow-hidden rounded-lg border border-black02/20 text-left transition-[filter,opacity] ${
+                  aria-pressed={!off}
+                  aria-label={
+                    off
+                      ? `Show ${card.nickname} on the wall`
+                      : `Hide ${card.nickname} from the wall`
+                  }
+                  className={`block w-full text-left transition-[filter,opacity] ${
                     off ? "opacity-40 grayscale" : ""
                   }`}
                 >
@@ -82,19 +80,10 @@ export function AdminWall({ data }: { data: AdminData }) {
                     <img
                       src={card.imageUrl}
                       alt=""
-                      className="aspect-square w-full object-cover"
+                      className="block h-auto w-full"
                     />
                   ) : (
                     <div className="aspect-square bg-pastel" />
-                  )}
-                  <span className="block truncate px-2 py-1.5 font-sans text-caption font-bold text-black02">
-                    {card.nickname}
-                  </span>
-                  {card.reportCount > 0 && (
-                    <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-pill border border-black02 bg-primary px-2 py-0.5 font-mono text-mono-tag font-bold">
-                      <Flag size={10} weight="fill" aria-hidden />
-                      {card.reportCount}
-                    </span>
                   )}
                 </button>
               </li>

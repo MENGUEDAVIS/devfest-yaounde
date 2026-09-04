@@ -23,12 +23,8 @@ engines.
 
 ## How to take a card down
 
-- On the same browser, open `/wall/remove`. The tokens from this device are
-  enough; there is no account.
-- Lost the device, cleared the site data, or it is someone else's card:
-  write the chapter (the contact on the site) and say which nickname / which
-  picture. Organisers can hide or delete it without the token.
-- Anyone can **report** a card on the wall. That lands in the organiser
-  dashboard.
+Write **gdgyaounde@gmail.com** and say which nickname or which picture.
+There is no report button on the wall. An organiser will hide or delete it.
 
-Do not put a card of a child on the wall. If one appears, report it.
+Do not put a card of a child on the wall. If one appears, write that same
+address.
