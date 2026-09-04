@@ -122,6 +122,15 @@ export function cleanLocale(raw: FormDataEntryValue | null): "fr" | "en" {
   return raw;
 }
 
+/** Frame id from the generator. Empty is allowed (older clients). */
+export function cleanTheme(raw: FormDataEntryValue | null): string {
+  const value = typeof raw === "string" ? raw.trim().slice(0, 40) : "";
+  if (value && !/^[a-z0-9-]+$/i.test(value)) {
+    throw new GalleryRejected("bad_nickname");
+  }
+  return value;
+}
+
 /**
  * The consent, from the request.
  *

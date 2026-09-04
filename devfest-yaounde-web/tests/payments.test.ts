@@ -709,18 +709,14 @@ describe("dp generator helpers", () => {
     assert.notEqual(fr, en, "the two locales must not share one string");
   });
 
-  it("points the caption at the generator, and names no accounts", () => {
+  it("points the caption at the generator, with hashtags and @gdgyaounde", () => {
     for (const caption of [shareCaption("fr"), shareCaption("en")]) {
       assert.ok(
         caption.includes("/dp-generator"),
         "the CTA has to name the page people are being sent to",
       );
-      // Handles are deliberately absent — none are confirmed (GAPS.md G16),
-      // and a wrong one tags a stranger on every post.
-      assert.ok(
-        !/(^|\s)@\w/.test(caption),
-        `caption names an account: ${caption}`,
-      );
+      assert.ok(caption.includes("@gdgyaounde"));
+      assert.ok(caption.includes("#DevFestYaounde"));
     }
   });
 });
@@ -1008,7 +1004,10 @@ describe("community wall", () => {
   });
 
   it("fails loudly on a missing translation rather than storing a blank", () => {
-    assert.throws(() => galleryConsentText("de" as never), /wall consent copy/);
+    assert.throws(
+      () => galleryConsentText("de" as never),
+      /gallery consent copy/,
+    );
   });
 
   it("caps the server side above what the client sends", () => {

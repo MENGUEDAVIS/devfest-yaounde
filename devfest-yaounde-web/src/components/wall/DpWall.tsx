@@ -32,12 +32,44 @@ const TILT_DEG = -4;
  * scrollable list, because "no motion" must not mean "no access".
  */
 export function DpWall({
-  cards,
+  cards: initialCards,
   placeholder,
+  hasMore: initialMore = false,
 }: {
   cards: WallCard[];
   placeholder: boolean;
+  hasMore?: boolean;
 }) {
+  const [cards, setCards] = useState(initialCards);
+  const [page, setPage] = useState(0);
+  const [more, setMore] = useState(initialMore);
+
+  useEffect(() => {
+    if (!more || placeholder) return;
+    let cancelled = false;
+    const next = page + 1;
+    fetch(`/api/dp/gallery?page=${next}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { cards?: WallCard[]; hasMore?: boolean } | null) => {
+        if (cancelled || !data) {
+          if (!cancelled) setMore(false);
+          return;
+        }
+        const extra = data.cards ?? [];
+        setCards((prev) => {
+          const seen = new Set(prev.map((card) => card.id));
+          return [...prev, ...extra.filter((card) => !seen.has(card.id))];
+        });
+        setMore(Boolean(data.hasMore) && extra.length > 0);
+        if (data.hasMore && extra.length > 0) setPage(next);
+      })
+      .catch(() => {
+        if (!cancelled) setMore(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [more, page, placeholder]);
   const t = useTranslations("pages.wall");
   const calm = useMediaQuery("(prefers-reduced-motion: reduce)");
 

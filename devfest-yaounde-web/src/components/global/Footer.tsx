@@ -139,6 +139,11 @@ export async function Footer() {
                     </Link>
                   </li>
                   <li>
+                    <Link href="/wall" className={LINK_CLASS}>
+                      {t("getInvolved.communityWall")}
+                    </Link>
+                  </li>
+                  <li>
                     {/* Community join — distinct from the retired RSVP action */}
                     <a href={BEVY_URL} className={LINK_CLASS}>
                       {t("getInvolved.community")}

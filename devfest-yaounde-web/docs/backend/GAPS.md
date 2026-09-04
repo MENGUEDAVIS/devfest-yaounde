@@ -279,14 +279,8 @@ hashtag + community handles". Two of the three shipped. The handles did not,
 because every entry in `SOCIAL_LINKS` is still `"#"` and guessing an `@name`
 tags a stranger on every post someone makes.
 
-**DECIDED 2026-09-02: no handles, and none are wanted.** The caption carries a
-CTA instead — `devfest.gdgyaounde.com/dp-generator` — which does the job the
-handles were meant to do, sends people to something the chapter controls, and
-cannot be wrong. A URL is verifiable; a handle is a guess.
-
-If real profiles are ever confirmed AND someone wants them in-caption, it is
-one edit in `shareCaption` (`src/lib/dp/share.ts`), and the caption is shown on
-screen exactly as it is sent, so the change is visible immediately.
+**Amended 2026-09-04 by ADR 0034 / Phase 18:** the caption now includes
+`@gdgyaounde` as well as the CTA URL. The handle was asked for explicitly.
 
 ### G17 — The DP photo mask is not the morphed shape
 

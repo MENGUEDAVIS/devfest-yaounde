@@ -5,24 +5,13 @@ import {
   Copy,
   DownloadSimple,
   ImageSquare,
-  InstagramLogo,
-  LinkedinLogo,
   ShareNetwork,
   Trash,
-  UsersThree,
   Warning,
-  WhatsappLogo,
-  XLogo,
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
-import {
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { Link } from "@/i18n/navigation";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent, ReactNode } from "react";
 import {
   ACCEPTED_TYPES,
@@ -58,22 +47,15 @@ import {
   TEXT_STICKERS,
   type PlacedSticker,
 } from "@/lib/dp/stickers";
-import {
-  galleryEnabled,
-  GallerySubmitError,
-  submitToGallery,
-} from "@/lib/dp/gallery";
+import { stashComposedCard } from "@/lib/dp/gallery";
 import {
   copyImage,
-  canShareImage,
-  composerUrl,
   copyCaption,
   downloadDp,
   shareCaption,
   shareDp,
-  SHARE_NETWORKS,
-  type ShareNetwork as ShareTarget,
 } from "@/lib/dp/share";
+import { Toast } from "@/components/ui/Toast";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { DpStage } from "./DpStage";
 import { StickerChip } from "./StickerChip";
@@ -101,13 +83,6 @@ const CORNERS: DpCorners[] = ["rounded", "square", "mixed"];
 /** The most stickers one card can carry before it is just noise. */
 const MAX_STICKERS = 12;
 
-const NETWORK_ICONS: Record<ShareTarget, typeof WhatsappLogo> = {
-  whatsapp: WhatsappLogo,
-  x: XLogo,
-  linkedin: LinkedinLogo,
-  instagram: InstagramLogo,
-};
-
 type ErrorCode = DpImageError["code"];
 type Notice =
   | "shared"
@@ -115,23 +90,16 @@ type Notice =
   | "unavailable"
   | "downloaded"
   | "failed"
-  | "attach"
   | "imageCopied"
   | "copyUnsupported"
-  | "wallSent"
-  | "gallery_rate_limited"
-  | "gallery_rejected"
-  | "gallery_failed";
-
-const subscribeNoop = () => () => {};
+  | "captionCopied";
 
 /**
  * `/dp-generator` — the whole feature (PAGES.md §9; rebuilt in PHASE16).
  *
- * STANDALONE BY DESIGN: no sign-in, no session, no order, no network call of
- * any kind. It shares the brand and nothing else, so it keeps working when
- * the rest of the site's backend is down, and it can be handed out as a link
- * on its own.
+ * STANDALONE FOR THE PHOTO: no sign-in, no session. The composed card is
+ * saved on download/share/copy (ADR 0034); the source photo never uploads.
+ * A failed save does not block the action.
  *
  * NOT A WIZARD. Name, photo, style, effects, stickers and crop all change the
  * same picture, so hiding half of them behind "next" would make people walk
@@ -169,8 +137,14 @@ export function DpGenerator() {
   const [exportSize, setExportSize] = useState(DP_SIZE);
   const [error, setError] = useState<ErrorCode | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const [busy, setBusy] = useState<"download" | "share" | "wall" | null>(null);
-  const [wallSent, setWallSent] = useState<"approved" | "pending" | null>(null);
+  const [busy, setBusy] = useState<"download" | "share" | null>(null);
+  const [wallToast, setWallToast] = useState(false);
+
+  useEffect(() => {
+    if (!wallToast) return;
+    const timer = window.setTimeout(() => setWallToast(false), 10000);
+    return () => window.clearTimeout(timer);
+  }, [wallToast]);
   const [dropping, setDropping] = useState(false);
   const [tab, setTab] = useState<Group>("info");
   const [sheetOpen, setSheetOpen] = useState(true);
@@ -203,16 +177,6 @@ export function DpGenerator() {
         ? clampTransform(photo, transform, photoBoxUnits(ratio))
         : transform,
     [photo, transform, ratio],
-  );
-
-  /* Whether this browser can put the actual IMAGE into a share sheet. It
-     decides which of the two share paths is offered, and it is a browser
-     capability, so it is read the way every other one here is: through a
-     store with a defined server answer rather than a guess corrected later. */
-  const canShareFile = useSyncExternalStore(
-    subscribeNoop,
-    () => canShareImage(),
-    () => false,
   );
 
   const frame = findFrame(frameId) ?? DP_FRAMES[0];
@@ -337,13 +301,24 @@ export function DpGenerator() {
     }
   }
 
+  async function stash(blob: Blob) {
+    await stashComposedCard({
+      card: blob,
+      nickname,
+      locale: lang,
+      theme: frameId,
+    });
+  }
+
   async function onDownload() {
     setBusy("download");
     setNotice(null);
     const blob = await render();
     if (blob) {
+      await stash(blob);
       downloadDp(blob, dpFileName(nickname));
       setNotice("downloaded");
+      setWallToast(true);
     }
     setBusy(null);
   }
@@ -353,44 +328,10 @@ export function DpGenerator() {
     setNotice(null);
     const blob = await render();
     if (blob) {
+      await stash(blob);
       setNotice(
         await shareDp({ blob, fileName: dpFileName(nickname), locale: lang }),
       );
-    }
-    setBusy(null);
-  }
-
-  /**
-   * Send this card to the community wall.
-   *
-   * Gated twice: the wall has to be switched on for the deployment at all,
-   * and the person has to tick the box on THIS card. Neither is remembered
-   * between cards — consent to publish one picture of your face is not
-   * consent to publish the next one.
-   */
-  async function onSendToWall() {
-    setBusy("wall");
-    setNotice(null);
-    const blob = await render();
-    if (blob) {
-      try {
-        const sent = await submitToGallery({
-          card: blob,
-          nickname,
-          locale: lang,
-        });
-        // Read what the server actually did. Whether a card is reviewed first
-        // is a deployment decision (ADR 0027), so the screen must not promise
-        // a review that is not happening.
-        setWallSent(sent.status);
-        setNotice("wallSent");
-      } catch (err) {
-        setNotice(
-          err instanceof GallerySubmitError && err.code !== "gallery_disabled"
-            ? err.code
-            : "gallery_failed",
-        );
-      }
     }
     setBusy(null);
   }
@@ -400,32 +341,17 @@ export function DpGenerator() {
     setBusy("share");
     setNotice(null);
     const blob = await render();
-    if (blob) setNotice(await copyImage(blob));
+    if (blob) {
+      await stash(blob);
+      setNotice(await copyImage(blob));
+    }
     setBusy(null);
   }
 
-  /**
-   * The desktop path, and the honest one.
-   *
-   * No web API can attach an image to a post for you, so this does the three
-   * things that CAN be done and says what it did: saves the image, puts the
-   * caption where it can be pasted, and opens the composer. The window is
-   * opened from inside the click — deferring it behind the render would let
-   * the popup blocker eat it.
-   */
-  async function onNetwork(network: ShareTarget) {
-    setBusy("share");
+  async function onCopyCaption() {
     setNotice(null);
-    const url = composerUrl(network, lang);
-    const composer = url
-      ? window.open("", "_blank", "noopener,noreferrer")
-      : null;
-    const blob = await render();
-    if (blob) downloadDp(blob, dpFileName(nickname));
-    await copyCaption(lang);
-    if (composer && url) composer.location.replace(url);
-    setNotice("attach");
-    setBusy(null);
+    const result = await copyCaption(lang);
+    setNotice(result === "copied" ? "captionCopied" : result);
   }
 
   const stageLabel = nickname.trim()
@@ -438,19 +364,11 @@ export function DpGenerator() {
   /* Two namespaces: `errors.dp.*` is the shared vocabulary for what a share
      did (or could not do), `status.*` is this screen's own. The wall's
      outcomes are this screen's, since nothing else can produce them. */
-  const OWN_NOTICES = [
-    "imageCopied",
-    "copyUnsupported",
-    "wallSent",
-    "gallery_rate_limited",
-    "gallery_rejected",
-    "gallery_failed",
-  ];
+  const OWN_NOTICES = ["imageCopied", "copyUnsupported", "captionCopied"];
   const noticeText = !notice
     ? ""
     : notice === "downloaded" ||
         notice === "failed" ||
-        notice === "attach" ||
         OWN_NOTICES.includes(notice)
       ? t(`status.${notice}`)
       : tError(notice);
@@ -991,13 +909,21 @@ export function DpGenerator() {
                     ))}
                   </div>
 
-                  {/* Said once, where the actions are, rather than as a tick
-                      nobody reads. It has to be visible BEFORE the buttons,
-                      or it is not a term someone accepted — it is a notice
-                      they were shown afterwards. */}
-                  <p className="mt-5 max-w-md text-caption text-black02/70">
-                    {t("terms")}
-                  </p>
+                  {/* Informed, and in front of the buttons — not a tick
+                      afterwards. ADR 0034: download/share/copy is the save. */}
+                  <div className="mt-5 max-w-md rounded-lg border-2 border-black02 bg-pastel px-4 py-3">
+                    <p className="text-body-m font-bold text-black02">
+                      {t("consent.notice")}
+                    </p>
+                    <p className="mt-2 text-caption text-black02/80">
+                      <Link
+                        href="/wall/terms"
+                        className="underline decoration-2 underline-offset-2 hover:text-black02"
+                      >
+                        {t("consent.termsLink")}
+                      </Link>
+                    </p>
+                  </div>
 
                   <div className="mt-3 flex flex-col gap-3 sm:max-w-sm">
                     <button
@@ -1040,81 +966,6 @@ export function DpGenerator() {
                     </div>
                   </div>
 
-                  {/* THE ONE WAY A CARD LEAVES THE DEVICE.
-                      Rendered only where the wall is switched on, so nothing
-                      here is a button that quietly does nothing — and gated
-                      on a box that is unticked every time, because a face on
-                      a public page is not somewhere to end up by accident. */}
-                  {galleryEnabled() && (
-                    <div className="mt-6 rounded-lg border-2 border-black02 bg-pastel p-5">
-                      <p className="font-sans text-body-l font-bold text-black02">
-                        {t("wall.title")}
-                      </p>
-                      <p className="mt-2 text-body-m text-black02/80">
-                        {t("wall.body")}
-                      </p>
-                      {/*
-                        THE BUTTON IS THE CONSENT.
-                        The wording sits directly above it and is what the
-                        server records as `consent_text`, so the record still
-                        says exactly what was on screen when someone pressed
-                        it — it is just no longer gated behind a second click
-                        that only ever had one sensible answer.
-                      */}
-                      <p className="mt-4 text-body-m font-bold text-black02">
-                        {t("wall.consent")}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => void onSendToWall()}
-                        disabled={!photo || busy !== null}
-                        className="mt-4 inline-flex items-center justify-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-6 py-3 font-sans text-body-m font-bold text-black02 hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        <UsersThree size={18} weight="bold" aria-hidden />
-                        {busy === "wall" ? t("wall.sending") : t("wall.send")}
-                      </button>
-                      {wallSent && (
-                        <p className="mt-3 text-body-m font-bold text-black02">
-                          {wallSent === "pending"
-                            ? t("wall.pending")
-                            : t("wall.live")}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Only where the browser CANNOT put the image in a share
-                      sheet. Where it can, one tap already does the whole job
-                      and four buttons that do less would be clutter. */}
-                  {!canShareFile && (
-                    <div className="mt-6">
-                      <Legend>{t("networks.legend")}</Legend>
-                      <div className="flex flex-wrap gap-2.5">
-                        {SHARE_NETWORKS.map((network) => {
-                          const Icon = NETWORK_ICONS[network];
-                          return (
-                            <button
-                              key={network}
-                              type="button"
-                              onClick={() => void onNetwork(network)}
-                              disabled={!photo || busy !== null}
-                              className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-4 py-2 font-sans text-body-m font-bold text-black02 transition-colors hover:bg-primary disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                              <Icon size={18} weight="fill" aria-hidden />
-                              {t(`networks.${network}`)}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <p className="mt-2 max-w-md text-caption text-black02/70">
-                        {t("networks.hint")}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* One live region for every outcome — saved, shared,
-                      copied, or the browser refusing all of it. Silence after
-                      a tap is the failure this prevents. */}
                   <p
                     aria-live="polite"
                     className="mt-3 min-h-[1.5rem] text-body-m font-bold text-black02"
@@ -1132,15 +983,14 @@ export function DpGenerator() {
                     <p className="mt-2 text-caption text-black02/70">
                       {t("caption.hint")}
                     </p>
-                  </div>
-
-                  <div className="mt-4 rounded-lg border-2 border-black02 bg-pastel p-5">
-                    <p className="font-sans text-body-m font-bold text-black02">
-                      {t("privacy.title")}
-                    </p>
-                    <p className="mt-2 text-body-m text-black02/80">
-                      {t("privacy.body")}
-                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void onCopyCaption()}
+                      className="mt-3 inline-flex items-center gap-2 rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02 hover:bg-primary"
+                    >
+                      <Copy size={16} weight="bold" aria-hidden />
+                      {t("actions.copyCaption")}
+                    </button>
                   </div>
                 </Group>
               </div>
@@ -1148,6 +998,23 @@ export function DpGenerator() {
           </div>
         </div>
       </div>
+      {wallToast && (
+        <Toast
+          onDismiss={() => setWallToast(false)}
+          dismissLabel={t("toast.dismiss")}
+        >
+          {t.rich("toast.wall", {
+            wall: (chunks) => (
+              <Link
+                href="/wall"
+                className="underline decoration-2 underline-offset-2"
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
+        </Toast>
+      )}
     </div>
   );
 }

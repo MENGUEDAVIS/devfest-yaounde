@@ -18,22 +18,19 @@
  *
  * Captions are bilingual because they are user-facing copy — the i18n rule
  * covers share text explicitly.
+ *
+ * Phase 18 put `@gdgyaounde` in the caption (ADR 0034, amends G16).
  */
 import { SITE_HOST, SITE_URL } from "@/lib/site-config";
 
 export const SHARE_HASHTAGS = ["#DevFestYaounde", "#GDGYaounde", "#DevFest"];
+export const SHARE_HANDLE = "@gdgyaounde";
 
 export const SHARE_CAPTIONS = {
   fr: "Je serai au DevFest Yaoundé. On s'y retrouve ?",
   en: "I'll be at DevFest Yaoundé. See you there?",
 } as const;
 
-/**
- * The call to action. It names the page rather than an account, which is why
- * the caption carries no handles: a URL is verifiable and cannot tag the
- * wrong person, and none of the chapter's social profiles are confirmed
- * (GAPS.md G16).
- */
 const SHARE_CTA = {
   fr: "Fais la tienne sur",
   en: "Get yours at",
@@ -52,7 +49,7 @@ export function shareCaption(locale: "fr" | "en"): string {
     "",
     `${SHARE_CTA[locale]} ${DP_SHARE_LABEL}`,
     "",
-    SHARE_HASHTAGS.join(" "),
+    `${SHARE_HASHTAGS.join(" ")} ${SHARE_HANDLE}`,
   ].join("\n");
 }
 
