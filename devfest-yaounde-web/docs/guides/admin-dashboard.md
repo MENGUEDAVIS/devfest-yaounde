@@ -32,8 +32,10 @@ If these are missing the page returns a **500**, not a 404, and the server log
 says `NEXT_PUBLIC_SUPABASE_URL is not set`. That is a different problem from
 the one this guide is mostly about.
 
-You do not need any other variable for the dashboard. `NEXT_PUBLIC_DP_GALLERY`
-only affects whether the wall panel shows counts or an explanation.
+You do not need any other variable for the dashboard. The community wall is
+on (ADR 0033). Click a card on the Wall panel to hide or show it. The active
+section lives in `?view=` so a reload keeps your place. **Back to site** in
+the sidebar returns to the public homepage.
 
 ## 2. Are you signed in?
 
@@ -101,13 +103,13 @@ What is real, what is read-only and why is in
 [`docs/backend/ADMIN-CAPABILITIES.md`](../backend/ADMIN-CAPABILITIES.md). The
 short version:
 
-- **Real:** metrics, tickets, transactions, orders, discount codes, users,
-  wall status, CSV export.
-- **The one write:** moving a shop order along.
-- **Read-only:** everything editorial (speakers, sessions, team, sponsors,
-  FAQs, products, tiers), the announcement message, and the config URLs —
-  they live in files in the repo, and a running site cannot write to its own
-  source. See ADR 0029.
+- **Real:** metrics, tickets, transactions, orders, discount codes (create and
+  disable), users, wall status, CSV export, content publish, settings.
+- **Writes:** moving a shop order along, publishing a collection as JSON or
+  CSV, attaching a photo per remaining profile, saving the announcement and
+  legal URLs, creating a discount code.
+- **Fallback:** until a collection is published, the public site still reads
+  `src/data/*.json`. See ADR 0031.
 
 ## Still 404 after all three?
 

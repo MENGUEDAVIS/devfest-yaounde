@@ -51,7 +51,10 @@ export function SmoothScrollProvider() {
     }
 
     function sync() {
-      const wanted = !motionQuery.matches && !coarseQuery.matches;
+      const wanted =
+        !motionQuery.matches &&
+        !coarseQuery.matches &&
+        !document.querySelector("[data-admin]");
 
       if (!wanted) {
         teardown();

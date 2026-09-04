@@ -198,37 +198,25 @@ Two paths, and the difference between them is a platform limit, not a taste:
   into a post or a chat. Support is real but not universal and it needs a
   secure context, so a refusal is reported rather than swallowed — the
   download is right there.
-- **Everywhere else**, no web API can attach an image to a post on someone's
-  behalf. So the per-network buttons do the three things that _can_ be done —
-  save the image, copy the caption, open the composer — and the screen says
-  the image still has to be attached. Instagram has no web composer at all, so
-  there it saves and stops rather than opening a link that goes nowhere.
+- **Everywhere else**, Share copies the caption (Web Share is still offered
+  where the browser can attach the file). Per-network intent buttons are gone.
 
-The caption names **no accounts**. It carries the event hashtags and a CTA
-pointing at `devfest.gdgyaounde.com/dp-generator`: a URL is verifiable and
-cannot tag the wrong person (GAPS.md G16).
+The caption carries the event hashtags, `@gdgyaounde`, and a CTA pointing at
+`devfest.gdgyaounde.com/dp-generator` (ADR 0034).
 
 ## The community wall
 
-Everything above happens on the device. **One thing does not**, and only when
-someone asks for it on that card: a smaller copy can be sent to GDG Yaoundé
-for the community wall.
+Download, share and copy **first save a smaller copy** of the composed card,
+then do the action. A failed save does not block the download (ADR 0034).
+The source photo never uploads.
 
-It is off. `NEXT_PUBLIC_DP_GALLERY` gates it, the endpoint behind it does not
-exist yet, and with the flag unset the screen renders no wall control at all —
-not a disabled one. `src/lib/dp/gallery.ts` holds the client side;
-`docs/backend/dp-gallery-contract.md` is what someone needs to build; ADR 0021
-is why it reverses ADR 0015 and what that costs.
+An upfront notice sits above the buttons, with a link to `/wall/terms`.
+Takedown is by email to gdgyaounde@gmail.com — there is no report button
+on the cards.
 
-Three properties worth knowing if you touch it:
-
-- **The consent box is unticked for every card.** Consent to publish one
-  picture of your face is not consent to publish the next one.
-- **What uploads is not what downloads.** 640px JPEG, roughly thirty times
-  smaller — a wall thumbnail, not the file someone saved.
-- **No EXIF can reach the server**, because the card is drawn from a bitmap
-  onto a canvas. The original file's GPS and camera data were never in those
-  pixels. That is a property of the compositor, not a filter to remember.
+`NEXT_PUBLIC_DP_GALLERY=0` turns the save off. What uploads is a 640px JPEG,
+not the file someone saved. No EXIF can reach the server — the card is drawn
+from a bitmap onto a canvas.
 
 ## On a phone
 

@@ -5,10 +5,7 @@ import { Suspense } from "react";
 import { SpeakerBrowser } from "@/components/speakers/SpeakerBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import speakers from "@/data/speakers.json";
-import type { Speaker } from "@/data/types";
-
-const allSpeakers = speakers as Speaker[];
+import { getSpeakers } from "@/lib/content/store";
 
 export async function generateMetadata({
   params,
@@ -33,6 +30,7 @@ export default async function SpeakersPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.speakers");
+  const allSpeakers = await getSpeakers();
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">

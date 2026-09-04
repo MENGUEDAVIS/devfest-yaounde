@@ -15,6 +15,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { CHECKOUT_ERRORS, errorResponse } from "@/lib/payments/errors";
 import { logPaymentEvent } from "@/lib/payments/intents";
+import { recordAudit } from "@/lib/admin/audit";
 import { currentOrganiser } from "@/lib/security/organisers";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { RATE_LIMITS, rateLimit } from "@/lib/security/rate-limit";
@@ -77,6 +78,12 @@ export async function POST(request: NextRequest) {
   await logPaymentEvent(null, `checkin_${result.status}`, {
     organiserId: organiser.userId,
     tierId: result.tierId ?? null,
+  });
+  await recordAudit({
+    actor: organiser.userId,
+    action: `checkin.${result.status}`,
+    target: parsed.data.badgeCode,
+    after: { status: result.status, tierId: result.tierId ?? null },
   });
 
   return Response.json(result, {

@@ -12,6 +12,7 @@ import { SmoothScrollProvider } from "@/components/global/SmoothScrollProvider";
 import { routing } from "@/i18n/routing";
 import { organizationJsonLd } from "@/lib/event";
 import { JsonLd } from "@/lib/seo";
+import { loadSettings } from "@/lib/content/settings";
 import { SITE_URL } from "@/lib/site-config";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "../globals.css";
@@ -84,6 +85,11 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
   const t = await getTranslations("nav");
+  const settings = await loadSettings();
+  const announcementMessage =
+    locale === "en"
+      ? settings.announcement?.en
+      : settings.announcement?.fr;
 
   return (
     <html
@@ -129,7 +135,7 @@ export default async function LocaleLayout({
               shows it again. */}
           <Preloader />
           <SmoothScrollProvider />
-          <GlobalChrome />
+          <GlobalChrome announcementMessage={announcementMessage} />
           <FloatingScrollbar />
           <CustomCursor />
           {/*

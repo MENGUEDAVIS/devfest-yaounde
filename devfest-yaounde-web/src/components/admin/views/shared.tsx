@@ -4,6 +4,17 @@ import { Warning } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { toCsv } from "@/lib/admin/csv";
 
+export function PageHeader({ title, blurb }: { title: string; blurb: string }) {
+  return (
+    <header className="mb-6">
+      <h1 className="font-sans text-heading-l font-bold text-black02">
+        {title}
+      </h1>
+      <p className="mt-1 max-w-2xl text-body-m text-black02/70">{blurb}</p>
+    </header>
+  );
+}
+
 export function Panel({
   title,
   subtitle,
@@ -16,7 +27,7 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-lg border-2 border-black02 bg-offwhite p-5 shadow-[0_4px_0_0_var(--color-black02)]">
+    <section className="rounded-lg border border-black02/20 bg-offwhite p-5">
       <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-sans text-heading-m font-bold text-black02">
@@ -33,15 +44,21 @@ export function Panel({
   );
 }
 
-/**
- * The banner every read-only view carries.
- *
- * It names the reason and the record rather than saying "coming soon", because
- * the reason is a decision someone has to take, not a task someone forgot.
- */
-export function ReadOnlyNotice({ children }: { children: ReactNode }) {
+export function InfoBanner({
+  children,
+  tone = "info",
+}: {
+  children: ReactNode;
+  tone?: "info" | "warn";
+}) {
   return (
-    <p className="mb-4 flex items-start gap-2.5 rounded-lg border-2 border-black02 bg-primary px-4 py-3 text-body-m font-bold text-black02">
+    <p
+      className={`mb-4 flex items-start gap-2.5 rounded-lg px-4 py-3 text-body-m text-black02 ${
+        tone === "warn"
+          ? "border border-danger/40 bg-danger-pastel"
+          : "border border-black02/15 bg-pastel"
+      }`}
+    >
       <Warning
         size={18}
         weight="bold"
@@ -51,6 +68,16 @@ export function ReadOnlyNotice({ children }: { children: ReactNode }) {
       <span>{children}</span>
     </p>
   );
+}
+
+/**
+ * The banner every read-only view carries.
+ *
+ * It names the reason and the record rather than saying "coming soon", because
+ * the reason is a decision someone has to take, not a task someone forgot.
+ */
+export function ReadOnlyNotice({ children }: { children: ReactNode }) {
+  return <InfoBanner tone="warn">{children}</InfoBanner>;
 }
 
 export function DataTable({
@@ -72,12 +99,12 @@ export function DataTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[42rem] border-collapse text-left">
-        <thead>
+        <thead className="sticky top-0 z-10 bg-offwhite">
           <tr>
             {headers.map((h) => (
               <th
                 key={h}
-                className="whitespace-nowrap border-b-2 border-black02 px-3 py-2 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70"
+                className="whitespace-nowrap border-b border-black02/30 px-4 py-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70"
               >
                 {h}
               </th>
@@ -86,11 +113,16 @@ export function DataTable({
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-b border-black02/15">
+            <tr
+              key={i}
+              className={`border-b border-black02/10 ${
+                i % 2 === 1 ? "bg-pastel/40" : ""
+              }`}
+            >
               {row.map((cell, j) => (
                 <td
                   key={j}
-                  className="px-3 py-2 align-top text-body-m text-black02"
+                  className="px-4 py-3 align-middle text-body-m text-black02"
                 >
                   {cell}
                 </td>

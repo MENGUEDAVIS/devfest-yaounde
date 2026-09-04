@@ -1,75 +1,130 @@
 "use client";
 
-import {
-  BEVY_URL,
-  CODE_OF_CONDUCT_URL,
-  PRIVACY_POLICY_URL,
-  SITE_URL,
-} from "@/lib/site-config";
-import { DataTable, Panel, ReadOnlyNotice } from "./shared";
+import { useState } from "react";
+import type { AdminSettings } from "@/lib/admin/shape";
+import { Panel } from "./shared";
 
-export function AdminConfig() {
+const ANNOUNCE_MAX = 180;
+
+export function AdminConfig({ settings }: { settings: AdminSettings }) {
+  const [announcementFr, setAnnouncementFr] = useState(
+    settings.announcement?.fr ?? "",
+  );
+  const [announcementEn, setAnnouncementEn] = useState(
+    settings.announcement?.en ?? "",
+  );
+  const [privacyUrl, setPrivacyUrl] = useState(settings.privacyUrl);
+  const [cocUrl, setCocUrl] = useState(settings.cocUrl);
+  const [bevyUrl, setBevyUrl] = useState(settings.bevyUrl);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
+    "idle",
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    setStatus("saving");
+    setError(null);
+    const res = await fetch("/api/admin/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        announcement: {
+          fr: announcementFr,
+          en: announcementEn,
+        },
+        privacyUrl,
+        cocUrl,
+        bevyUrl,
+      }),
+    });
+    if (!res.ok) {
+      setStatus("error");
+      setError("Could not save. Check the URLs are https or empty.");
+      return;
+    }
+    setStatus("saved");
+  }
+
+  const field =
+    "mt-1 w-full rounded-lg border-2 border-black02 bg-offwhite px-3 py-2 font-sans text-body-m text-black02";
+
   return (
-    <div className="flex flex-col gap-5">
-      <Panel
-        title="Links and configuration"
-        subtitle="What the public site currently points at."
-      >
-        <ReadOnlyNotice>
-          Read-only for the same reason as the content: these live in{" "}
-          <code>src/lib/site-config.ts</code> and{" "}
-          <code>messages/&#123;fr,en&#125;.json</code>, and a running site
-          cannot write to its own source. A small `settings` table would be
-          enough for just these — see{" "}
-          <strong>docs/decisions/0029-editorial-content-store.md</strong>.
-        </ReadOnlyNotice>
-        <DataTable
-          headers={["Setting", "Value", "Where it lives"]}
-          empty=""
-          rows={[
-            ["Site URL", SITE_URL, "src/lib/site-config.ts"],
-            ["Bevy event", BEVY_URL, "src/lib/site-config.ts"],
-            [
-              "Privacy policy",
-              PRIVACY_POLICY_URL === "#" ? "not set" : PRIVACY_POLICY_URL,
-              "src/lib/site-config.ts",
-            ],
-            [
-              "Code of conduct",
-              CODE_OF_CONDUCT_URL === "#" ? "not set" : CODE_OF_CONDUCT_URL,
-              "src/lib/site-config.ts",
-            ],
-            [
-              "Announcement message",
-              "messages/{fr,en}.json → announcement.message",
-              "messages/*.json",
-            ],
-          ].map(([k, v, where]) => [
-            <span key="k" className="font-bold">
-              {k}
-            </span>,
-            <span key="v" className="break-all font-mono text-caption">
-              {v}
-            </span>,
-            <code key="w" className="font-mono text-caption">
-              {where}
-            </code>,
-          ])}
-        />
-      </Panel>
-
-      <Panel
-        title="The announcement message"
-        subtitle="Editing it is a repo change today."
-      >
-        <p className="text-body-m text-black02/80">
-          It appears in the bar at the top of every page (and at the bottom of
-          the community wall), in both languages. The bar marquees only when the
-          text does not fit, so a message under roughly 90 characters sits still
-          — which reads calmer. Both languages must be edited together: a
-          missing key fails the locale-parity check.
-        </p>
-      </Panel>
-    </div>
+    <Panel
+      title="Links and configuration"
+      subtitle={
+        settings.source === "database"
+          ? "Saved in the database — this is what the public site shows."
+          : "Still the repo defaults. Save to take over."
+      }
+    >
+      <div className="flex max-w-2xl flex-col gap-5">
+        <label className="block text-body-m font-bold text-black02">
+          Announcement (fr)
+          <textarea
+            className={field}
+            rows={2}
+            maxLength={ANNOUNCE_MAX}
+            value={announcementFr}
+            onChange={(e) => setAnnouncementFr(e.target.value)}
+          />
+          <span className="mt-1 block text-caption font-normal text-black02/60">
+            {announcementFr.length}/{ANNOUNCE_MAX}
+          </span>
+        </label>
+        <label className="block text-body-m font-bold text-black02">
+          Announcement (en)
+          <textarea
+            className={field}
+            rows={2}
+            maxLength={ANNOUNCE_MAX}
+            value={announcementEn}
+            onChange={(e) => setAnnouncementEn(e.target.value)}
+          />
+          <span className="mt-1 block text-caption font-normal text-black02/60">
+            {announcementEn.length}/{ANNOUNCE_MAX}
+          </span>
+        </label>
+        <label className="block text-body-m font-bold text-black02">
+          Privacy policy URL
+          <input
+            className={field}
+            value={privacyUrl}
+            onChange={(e) => setPrivacyUrl(e.target.value)}
+          />
+        </label>
+        <label className="block text-body-m font-bold text-black02">
+          Code of conduct URL
+          <input
+            className={field}
+            value={cocUrl}
+            onChange={(e) => setCocUrl(e.target.value)}
+          />
+        </label>
+        <label className="block text-body-m font-bold text-black02">
+          Bevy event URL
+          <input
+            className={field}
+            value={bevyUrl}
+            onChange={(e) => setBevyUrl(e.target.value)}
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => void save()}
+          disabled={status === "saving"}
+          className="self-start rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 disabled:opacity-50"
+        >
+          {status === "saving" ? "Saving…" : "Save settings"}
+        </button>
+        {status === "saved" && (
+          <p className="text-body-m font-bold text-black02">Saved.</p>
+        )}
+        {error && (
+          <p className="rounded-lg border-2 border-danger bg-danger-pastel px-4 py-3 text-body-m font-bold text-black02">
+            {error}
+          </p>
+        )}
+      </div>
+    </Panel>
   );
 }

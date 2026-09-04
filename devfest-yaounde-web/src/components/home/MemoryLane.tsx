@@ -3,16 +3,16 @@ import { isPlaceholderUrl, RECAP_URL } from "@/lib/site-config";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 import { ScrollStage } from "@/components/ui/ScrollStage";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import pastEditions from "@/data/past-editions.json";
+import { getPastEditions } from "@/lib/content/store";
 import {
   parallaxStyle,
   stageParallax,
   stagePhoto,
   stagePhotoStyle,
 } from "@/lib/motion";
-import type { PastEditionPhoto } from "@/data/types";
 
-const photos = pastEditions as PastEditionPhoto[];
+
+
 
 /**
  * Per-photo resting tilt and parallax depth. Varying the depth is what
@@ -34,6 +34,7 @@ const PHOTO_NUDGE = ["sm:mt-0", "sm:mt-14", "sm:mt-4", "sm:mt-20"];
 export async function MemoryLane() {
   const t = await getTranslations("home.memoryLane");
   const locale = (await getLocale()) as "fr" | "en";
+  const photos = await getPastEditions();
 
   return (
     <SectionContainer background="offwhite" maxWidth="6xl">

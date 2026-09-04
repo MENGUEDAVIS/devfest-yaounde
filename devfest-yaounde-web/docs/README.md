@@ -55,8 +55,13 @@ or amend an earlier one.
 | [0018](decisions/0018-secrets-in-supabase-vault.md)      | Supabase Vault as secret store          | Accepted — **current default**               |
 | [0019](decisions/0019-settle-by-polling-not-callback.md) | Settle by polling, not callback         | Accepted, **amended by 0028**                |
 | [0028](decisions/0028-cleanup-sweep-from-supabase.md)    | Sweep invoked by Supabase cron          | Accepted — **Hobby cannot use Vercel `*/5`** |
-| [0029](decisions/0029-editorial-content-store.md)        | Editorial content has no writable store | **Open — a decision for the humans**         |
-| [0030](decisions/0030-wall-page-and-what-it-shows.md)    | What the community wall shows           | Accepted — placeholders until the flag is on |
+| [0029](decisions/0029-editorial-content-store.md)        | Editorial content has no writable store | **Accepted by 0031**                         |
+| [0031](decisions/0031-editorial-store-in-postgres.md)    | Postgres store, JSON fallback           | Accepted, **amended by 0032**                |
+| [0032](decisions/0032-editorial-photo-upload.md)         | Photos attached per profile after sheet | Accepted                                     |
+| [0030](decisions/0030-wall-page-and-what-it-shows.md)    | What the community wall shows           | Accepted, **amended by 0033**                |
+| [0033](decisions/0033-community-wall-is-on.md)           | Wall on; visitors can report a card     | Accepted — closes G21                        |
+| [0034](decisions/0034-dp-save-on-action.md)              | Download/share/copy saves the card      | Accepted — **supersedes 0015**               |
+| [0035](decisions/0035-chartjs-admin-overview.md)         | Chart.js on the admin overview          | Accepted                                     |
 
 **Site and design**
 
@@ -71,7 +76,7 @@ or amend an earlier one.
 [0010](decisions/0010-team-grouping.md) team grouping ·
 [0011](decisions/0011-runtime-theming.md) runtime theming ·
 [0012](decisions/0012-overlay-reuse.md) overlay reuse ·
-[0015](decisions/0015-dp-generator-client-side.md) DP generator is client-side
+[0015](decisions/0015-dp-generator-client-side.md) DP generator client-side (superseded by 0034)
 
 ---
 

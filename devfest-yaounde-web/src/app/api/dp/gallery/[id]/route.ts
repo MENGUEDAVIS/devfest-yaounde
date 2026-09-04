@@ -11,11 +11,20 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { createAdminSupabase } from "@/lib/supabase/server";
+import { recordAudit } from "@/lib/admin/audit";
 import { currentOrganiser } from "@/lib/security/organisers";
 import { hashToken, removeCard, tokensMatch } from "@/lib/dp/gallery-server";
 
 const idSchema = z.string().uuid();
-const patchSchema = z.object({ status: z.enum(["approved", "rejected"]) });
+const patchSchema = z
+  .object({
+    status: z.enum(["approved", "rejected"]).optional(),
+    visible: z.boolean().optional(),
+  })
+  .refine(
+    (value) => value.status !== undefined || value.visible !== undefined,
+    "empty patch",
+  );
 
 function enabled(): boolean {
   return process.env.NEXT_PUBLIC_DP_GALLERY === "1";
@@ -92,7 +101,7 @@ export async function PATCH(
   const supabase = createAdminSupabase();
   const { data: card } = await supabase
     .from("dp_cards")
-    .select("id, storage_path, status")
+    .select("id, storage_path, status, visible")
     .eq("id", id)
     .maybeSingle();
 
@@ -100,6 +109,7 @@ export async function PATCH(
 
   // Rejection DELETES the image rather than hiding it. A rejected face
   // sitting in a bucket is the harm the review existed to prevent.
+  // `visible` is the reversible hide (ADR 0034 / B9).
   if (parsed.data.status === "rejected") {
     await removeCard(card.storage_path);
   }
@@ -107,7 +117,10 @@ export async function PATCH(
   const { error } = await supabase
     .from("dp_cards")
     .update({
-      status: parsed.data.status,
+      ...(parsed.data.status ? { status: parsed.data.status } : {}),
+      ...(parsed.data.visible !== undefined
+        ? { visible: parsed.data.visible }
+        : {}),
       reviewed_by: organiser.userId,
       reviewed_at: new Date().toISOString(),
     })
@@ -118,5 +131,20 @@ export async function PATCH(
     return Response.json({ error: "server_error" }, { status: 500 });
   }
 
-  return Response.json({ id, status: parsed.data.status });
+  await recordAudit({
+    actor: organiser.userId,
+    action: "wall.moderate",
+    target: id,
+    before: { status: card.status, visible: card.visible },
+    after: {
+      status: parsed.data.status ?? card.status,
+      visible: parsed.data.visible ?? card.visible,
+    },
+  });
+
+  return Response.json({
+    id,
+    status: parsed.data.status ?? card.status,
+    visible: parsed.data.visible ?? card.visible,
+  });
 }

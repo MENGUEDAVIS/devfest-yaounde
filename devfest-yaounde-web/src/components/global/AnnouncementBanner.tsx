@@ -20,6 +20,7 @@ export function AnnouncementBanner({
   hidden,
   dismissible = true,
   messageKey = "message",
+  messageOverride,
 }: {
   onDismiss: () => void;
   hidden: boolean;
@@ -31,9 +32,14 @@ export function AnnouncementBanner({
   dismissible?: boolean;
   /** Which announcement to run. The wall thanks the community instead. */
   messageKey?: string;
+  /** Live copy from the dashboard. Falls back to the i18n file when unset. */
+  messageOverride?: string;
 }) {
   const t = useTranslations("announcement");
-  const message = t(messageKey as "message");
+  const message =
+    messageOverride && messageKey === "message"
+      ? messageOverride
+      : t(messageKey as "message");
 
   const trackRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLSpanElement>(null);

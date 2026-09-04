@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ShopBrowser } from "@/components/shop/ShopBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import products from "@/data/products.json";
+import { getProducts } from "@/lib/content/store";
 import type { Product } from "@/data/types";
 
 export async function generateMetadata({
@@ -40,6 +40,7 @@ export default async function ShopPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.shop");
+  const products: Product[] = await getProducts();
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
@@ -51,7 +52,7 @@ export default async function ShopPage({
           {t("lead")}
         </p>
         <div className="mt-16">
-          <ShopBrowser products={products as Product[]} />
+          <ShopBrowser products={products} />
         </div>
       </SectionContainer>
     </main>

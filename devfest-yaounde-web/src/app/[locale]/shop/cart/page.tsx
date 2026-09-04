@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ShopCheckout } from "@/components/shop/ShopCheckout";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import products from "@/data/products.json";
+import { getProducts } from "@/lib/content/store";
 import type { Product } from "@/data/types";
 
 export async function generateMetadata({
@@ -32,6 +32,7 @@ export default async function CartPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.shop");
+  const products: Product[] = await getProducts();
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
@@ -40,7 +41,7 @@ export default async function CartPage({
           <ScrambleText text={t("bagTitle")} />
         </h1>
         <div className="mt-14">
-          <ShopCheckout products={products as Product[]} />
+          <ShopCheckout products={products} />
         </div>
       </SectionContainer>
     </main>

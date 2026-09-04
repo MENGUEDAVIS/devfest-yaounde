@@ -1,37 +1,57 @@
 /**
- * The catalog, read from src/data/*.json.
+ * The catalog.
  *
  * This is the ONLY place a price comes from. Nothing in a request body is
  * ever treated as a price — a client that sends `priceXAF: 1` gets charged
  * the real amount, because the real amount is looked up here by id.
+ *
+ * Live data comes from the editorial store (ADR 0031). The JSON files are
+ * the fallback until a collection is published from the dashboard. The
+ * sync helpers below read the files so unit tests do not need a database;
+ * checkout always goes through `loadTiers` / `loadProducts`.
  */
 import ticketTiersJson from "@/data/ticket-tiers.json";
 import productsJson from "@/data/products.json";
 import type { Product, ProductStatus, TicketTier } from "@/data/types";
+import { getProducts, getTiers } from "@/lib/content/store";
 
 export const CURRENCY = "XAF" as const;
 /** ISO-3166 alpha-3, required by PawaPay's Payment Page. */
 export const COUNTRY = "CMR" as const;
 
-const tiers = ticketTiersJson as TicketTier[];
-const products = productsJson as Product[];
+const fileTiers = ticketTiersJson as TicketTier[];
+const fileProducts = productsJson as Product[];
+
+export async function loadTiers(): Promise<TicketTier[]> {
+  return getTiers();
+}
+
+export async function loadProducts(): Promise<Product[]> {
+  return getProducts();
+}
 
 /** Tiers a buyer may pick right now. */
-export function sellableTiers(): TicketTier[] {
-  return tiers.filter((tier) => tier.onSale);
+export function sellableTiers(list: TicketTier[] = fileTiers): TicketTier[] {
+  return list.filter((tier) => tier.onSale);
 }
 
 /** Every tier, including retired ones — past tickets must stay resolvable. */
-export function findTier(id: string): TicketTier | undefined {
-  return tiers.find((tier) => tier.id === id);
+export function findTier(
+  id: string,
+  list: TicketTier[] = fileTiers,
+): TicketTier | undefined {
+  return list.find((tier) => tier.id === id);
 }
 
-export function allProducts(): Product[] {
-  return products;
+export function allProducts(list: Product[] = fileProducts): Product[] {
+  return list;
 }
 
-export function findProduct(id: string): Product | undefined {
-  return products.find((product) => product.id === id);
+export function findProduct(
+  id: string,
+  list: Product[] = fileProducts,
+): Product | undefined {
+  return list.find((product) => product.id === id);
 }
 
 /** Statuses that can actually go through checkout. */
@@ -70,12 +90,14 @@ export function isValidVariant(
 /**
  * Capacity per tier, for the reservation check in `create_payment_intent`.
  * A tier with no `quantityAvailable` is omitted, which the SQL reads as
- * unlimited. Capacity lives in JSON rather than the database so an organiser
- * can change it with a file edit; the database only counts against it.
+ * unlimited. Capacity is declared on the tier; the database only counts
+ * against it. An organiser changes the number by publishing the collection.
  */
-export function tierCapacities(): Record<string, number> {
+export function tierCapacities(
+  list: TicketTier[] = fileTiers,
+): Record<string, number> {
   const out: Record<string, number> = {};
-  for (const tier of tiers) {
+  for (const tier of list) {
     if (tier.quantityAvailable !== undefined) {
       out[tier.id] = tier.quantityAvailable;
     }
@@ -111,9 +133,11 @@ export function variantKey(
 }
 
 /** Declared stock for every capped combination, keyed for the reservation. */
-export function variantCapacities(): Record<string, number> {
+export function variantCapacities(
+  list: Product[] = fileProducts,
+): Record<string, number> {
   const out: Record<string, number> = {};
-  for (const product of products) {
+  for (const product of list) {
     for (const row of product.stock ?? []) {
       out[variantKey(product.id, row)] = row.quantity;
     }
@@ -125,8 +149,9 @@ export function variantCapacities(): Record<string, number> {
 export function declaredStock(
   productId: string,
   variant?: { size?: string; color?: string },
+  list: Product[] = fileProducts,
 ): number | undefined {
-  const product = findProduct(productId);
+  const product = findProduct(productId, list);
   const row = product?.stock?.find(
     (s) =>
       (s.size ?? "") === (variant?.size ?? "") &&

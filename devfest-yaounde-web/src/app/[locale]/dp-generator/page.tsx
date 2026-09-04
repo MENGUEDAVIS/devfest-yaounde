@@ -23,14 +23,9 @@ export async function generateMetadata({
 /**
  * `/{locale}/dp-generator` — PAGES.md §9.
  *
- * The page is a shell: a heading, and one client component that does the
- * whole job in the browser. There is no server work to do, because there is
- * no server side to this feature — the photo is composited and downloaded
- * locally and never uploaded (ADR 0015).
- *
- * That also means it is genuinely standalone. No session is read, no order is
- * looked up, nothing is fetched. It shares the brand, the theme and the
- * cursor with the rest of the site and depends on none of its backend.
+ * The page is a shell: a heading, and one client component. The source photo
+ * stays on the device; the composed card is saved on download/share/copy
+ * (ADR 0034). No session is read.
  */
 export default async function DpGeneratorPage({
   params,

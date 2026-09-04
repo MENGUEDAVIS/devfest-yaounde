@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit: {
+        Row: {
+          action: string
+          actor: string
+          after: Json | null
+          before: Json | null
+          created_at: string
+          id: string
+          target: string | null
+        }
+        Insert: {
+          action: string
+          actor: string
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          target?: string | null
+        }
+        Update: {
+          action?: string
+          actor?: string
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          target?: string | null
+        }
+        Relationships: []
+      }
       discount_codes: {
         Row: {
           active: boolean
@@ -62,6 +92,8 @@ export type Database = {
           status: string
           storage_path: string
           submitter_ip: unknown
+          theme: string
+          visible: boolean
         }
         Insert: {
           consent?: boolean
@@ -77,6 +109,8 @@ export type Database = {
           status?: string
           storage_path: string
           submitter_ip?: unknown
+          theme?: string
+          visible?: boolean
         }
         Update: {
           consent?: boolean
@@ -92,6 +126,58 @@ export type Database = {
           status?: string
           storage_path?: string
           submitter_ip?: unknown
+          theme?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
+      dp_card_reports: {
+        Row: {
+          card_id: string
+          created_at: string
+          id: string
+          reporter_ip: unknown
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          id?: string
+          reporter_ip?: unknown
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          id?: string
+          reporter_ip?: unknown
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dp_card_reports_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "dp_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editorial_documents: {
+        Row: {
+          id: string
+          payload: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id: string
+          payload: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          payload?: Json
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -327,6 +413,36 @@ export type Database = {
           count?: number
           identifier?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          announcement: Json | null
+          bevy_url: string | null
+          coc_url: string | null
+          id: string
+          privacy_url: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          announcement?: Json | null
+          bevy_url?: string | null
+          coc_url?: string | null
+          id?: string
+          privacy_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          announcement?: Json | null
+          bevy_url?: string | null
+          coc_url?: string | null
+          id?: string
+          privacy_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }

@@ -8,8 +8,7 @@ import { getTranslations } from "next-intl/server";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { Button } from "@/components/ui/Button";
-import pastEditions from "@/data/past-editions.json";
-import sponsors from "@/data/sponsors.json";
+import { getPastEditions, getSponsors } from "@/lib/content/store";
 import {
   heroBgDrift,
   heroDelayStyle,
@@ -24,10 +23,9 @@ import {
   tileIn,
   tileStyle,
 } from "@/lib/motion";
-import type { PastEditionPhoto, Sponsor } from "@/data/types";
 
-const photos = pastEditions as PastEditionPhoto[];
-const sponsorList = sponsors as Sponsor[];
+
+
 
 /** Backdrop collage tilts — uneven so it reads as pinned prints. */
 const TILE_ROTATION = [-7, 4, -3, 6, -5, 3];
@@ -55,6 +53,8 @@ const TILE_ROTATION = [-7, 4, -3, 6, -5, 3];
 export async function Hero() {
   const t = await getTranslations("home.hero");
   const year = new Date().getFullYear();
+  const photos = await getPastEditions();
+  const sponsorList = await getSponsors();
 
   const tiles = [...photos, ...photos, ...photos, ...photos, ...photos].slice(
     0,

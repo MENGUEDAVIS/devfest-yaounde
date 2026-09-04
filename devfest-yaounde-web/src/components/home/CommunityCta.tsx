@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionContainer } from "@/components/ui/SectionContainer";
-import { BEVY_URL } from "@/lib/site-config";
+import { loadSettings } from "@/lib/content/settings";
 
 /**
  * Pre-footer CTA (PHASE5 §7) — the page's final, loudest "star" moment.
@@ -15,6 +15,7 @@ import { BEVY_URL } from "@/lib/site-config";
  */
 export async function CommunityCta() {
   const t = await getTranslations("home.community");
+  const { bevyUrl } = await loadSettings();
 
   return (
     <SectionContainer background="yellow" maxWidth="5xl">
@@ -31,7 +32,7 @@ export async function CommunityCta() {
         </Reveal>
         <Reveal index={2}>
           <div className="mt-14 flex flex-wrap items-center justify-center gap-4">
-            <Button tone="black02" href={BEVY_URL} external size="lg">
+            <Button tone="black02" href={bevyUrl} external size="lg">
               {t("cta")}
             </Button>
             <Button

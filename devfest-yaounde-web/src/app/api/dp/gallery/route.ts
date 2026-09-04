@@ -21,6 +21,7 @@ import {
   GalleryRejected,
   cleanLocale,
   cleanNickname,
+  cleanTheme,
   mintDeletionToken,
   normaliseImage,
   removeCard,
@@ -60,11 +61,13 @@ export async function POST(request: NextRequest) {
 
   let nickname: string;
   let locale: "fr" | "en";
+  let theme: string;
   let bytes: Buffer;
   try {
     requireConsent(form);
     nickname = cleanNickname(form.get("nickname"));
     locale = cleanLocale(form.get("locale"));
+    theme = cleanTheme(form.get("theme"));
 
     const image = form.get("image");
     if (!(image instanceof Blob)) throw new GalleryRejected("not_an_image");
@@ -106,6 +109,8 @@ export async function POST(request: NextRequest) {
     reviewed_at: status === "approved" ? new Date().toISOString() : null,
     deletion_hash: hash,
     submitter_ip: ip === "unknown" ? null : ip,
+    theme,
+    visible: true,
   });
 
   if (error) {
@@ -118,7 +123,7 @@ export async function POST(request: NextRequest) {
   // 201 with the token, exactly once. Only its hash is kept.
   // The status is whatever actually happened — auto-approved or queued —
   // so the screen can tell the truth (ADR 0027).
-  return Response.json({ deletionToken: token, status }, { status: 201 });
+  return Response.json({ id, deletionToken: token, status }, { status: 201 });
 }
 
 export async function GET(request: NextRequest) {
@@ -137,6 +142,7 @@ export async function GET(request: NextRequest) {
     .from("dp_cards")
     .select("id, nickname, storage_path, created_at")
     .eq("status", "approved")
+    .eq("visible", true)
     .order("created_at", { ascending: false })
     .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 

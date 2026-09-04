@@ -1,7 +1,7 @@
 # 0029 — Editorial content is not editable from the dashboard, and why
 
 Date: 2026-09-03
-Status: **Open — a decision for the humans, not one this phase can take**
+Status: **Accepted by 0031** — Postgres is the writable store; JSON files remain the seed/fallback.
 
 ## Context
 

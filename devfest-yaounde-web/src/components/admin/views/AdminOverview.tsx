@@ -1,8 +1,10 @@
 "use client";
 
 import type { AdminData } from "@/lib/admin/shape";
-import type { ContentCounts } from "../AdminShell";
-import { Panel, money } from "./shared";
+import type { ContentCounts, ViewId } from "../AdminShell";
+import { EVENT, eventDates } from "@/lib/event";
+import { AdminChart } from "./AdminChart";
+import { InfoBanner, money } from "./shared";
 
 function Stat({
   label,
@@ -14,16 +16,55 @@ function Stat({
   note?: string;
 }) {
   return (
-    <div className="rounded-lg border-2 border-black02 bg-offwhite p-4">
+    <div className="min-w-0">
       <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
         {label}
       </p>
-      <p className="mt-1 font-sans text-heading-l font-bold text-black02">
+      <p className="mt-0.5 font-sans text-heading-m font-bold text-black02">
         {value}
       </p>
-      {note && <p className="mt-1 text-caption text-black02/60">{note}</p>}
+      {note && <p className="text-caption text-black02/60">{note}</p>}
     </div>
   );
+}
+
+function seriesByDay(rows: { createdAt: string; amount?: number }[]): {
+  labels: string[];
+  values: number[];
+} {
+  const map = new Map<string, number>();
+  for (const row of rows) {
+    const day = row.createdAt.slice(0, 10);
+    map.set(day, (map.get(day) ?? 0) + (row.amount ?? 1));
+  }
+  const labels = [...map.keys()].sort();
+  return { labels, values: labels.map((day) => map.get(day) ?? 0) };
+}
+
+function align(
+  labels: string[],
+  series: { labels: string[]; values: number[] },
+): number[] {
+  return labels.map((day) => {
+    const i = series.labels.indexOf(day);
+    return i >= 0 ? (series.values[i] ?? 0) : 0;
+  });
+}
+
+function countdownCopy(): { value: string; note: string } {
+  const dates = eventDates();
+  if (!dates) {
+    return {
+      value: "TBA",
+      note: `${EVENT.year} dates unconfirmed`,
+    };
+  }
+  const start = new Date(dates.start).getTime();
+  const days = Math.max(0, Math.ceil((start - Date.now()) / 86_400_000));
+  return {
+    value: String(days),
+    note: days === 1 ? "day to D-Day" : "days to D-Day",
+  };
 }
 
 export function AdminOverview({
@@ -33,107 +74,131 @@ export function AdminOverview({
 }: {
   data: AdminData;
   content: ContentCounts;
-  onGo: (v: "tickets" | "orders" | "wall") => void;
+  onGo: (v: ViewId) => void;
 }) {
   const c = data.counts;
+  const dday = countdownCopy();
+  const tickets = seriesByDay(data.tickets.rows);
+  const revenue = seriesByDay(
+    data.transactions.rows
+      .filter((row) => row.status === "activated")
+      .map((row) => ({ createdAt: row.createdAt, amount: row.netAmount })),
+  );
+  const orders = seriesByDay(data.orders.rows);
+  const wall = seriesByDay(data.wallCards);
+  const labels = [
+    ...new Set([
+      ...tickets.labels,
+      ...revenue.labels,
+      ...orders.labels,
+      ...wall.labels,
+    ]),
+  ].sort();
+
   return (
-    <div className="flex flex-col gap-5">
-      <Panel title="At a glance" subtitle="Live from the database.">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Stat label="Paid tickets" value={String(c.paidTickets)} />
-          <Stat
-            label="Checked in"
-            value={String(c.checkedIn)}
-            note={
-              c.paidTickets
-                ? `${Math.round((c.checkedIn / c.paidTickets) * 100)}% of sold`
-                : undefined
+    <div className="flex flex-col gap-6">
+      <InfoBanner>
+        Free-pass RSVPs live on Bevy and never reach this system, so they are
+        not counted here. A zero would look like nobody came.
+      </InfoBanner>
+
+      <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+        <Stat label="D-Day" value={dday.value} note={dday.note} />
+        <Stat label="Paid tickets" value={String(c.paidTickets)} />
+        <Stat
+          label="Checked in"
+          value={String(c.checkedIn)}
+          note={
+            c.paidTickets
+              ? `${Math.round((c.checkedIn / c.paidTickets) * 100)}% of sold`
+              : undefined
+          }
+        />
+        <Stat
+          label="Settled"
+          value={money(c.settledRevenue, "XAF")}
+          note="Activated, net of discounts"
+        />
+        <Stat label="Shop orders" value={String(c.orders)} />
+        <Stat label="Users" value={String(c.users)} />
+        <Stat
+          label="Wall"
+          value={data.wallEnabled ? String(c.wallApproved) : "off"}
+        />
+        <Stat
+          label="Content"
+          value={String(
+            content.speakers +
+              content.team +
+              content.sessions +
+              content.sponsors +
+              content.faqs +
+              content.products +
+              content.tiers,
+          )}
+        />
+      </div>
+
+      <section className="w-full rounded-lg border border-black02/15 bg-offwhite p-5">
+        <h2 className="font-sans text-heading-m font-bold text-black02">
+          The edition so far
+        </h2>
+        <p className="mt-1 text-body-m text-black02/70">
+          Counts on the left axis, settled XAF on the right.
+        </p>
+        <div className="mt-4">
+          <AdminChart
+            labels={labels}
+            series={[
+              {
+                label: "Tickets",
+                values: align(labels, tickets),
+                color: "#f9ab00",
+              },
+              {
+                label: "Orders",
+                values: align(labels, orders),
+                color: "#4285f4",
+              },
+              {
+                label: "DP cards",
+                values: align(labels, wall),
+                color: "#34a853",
+              },
+              {
+                label: "Revenue (XAF)",
+                values: align(labels, revenue),
+                color: "#1e1e1e",
+                axis: "y1",
+              },
+            ]}
+            caption={
+              labels.length
+                ? "One line per series, by day. Empty days stay at zero."
+                : "Nothing to plot yet — the chart stays empty rather than invented."
             }
           />
-          <Stat label="Shop orders" value={String(c.orders)} />
-          <Stat
-            label="Settled revenue"
-            value={money(c.settledRevenue, "XAF")}
-            note="Net of discounts, activated payments only"
-          />
-          <Stat label="Signed-in users" value={String(c.users)} />
-          <Stat
-            label="Wall — live"
-            value={data.wallEnabled ? String(c.wallApproved) : "off"}
-          />
-          <Stat
-            label="Wall — waiting"
-            value={data.wallEnabled ? String(c.wallPending) : "off"}
-          />
-          <Stat
-            label="Content records"
-            value={String(
-              content.speakers +
-                content.team +
-                content.sessions +
-                content.sponsors +
-                content.faqs +
-                content.products +
-                content.tiers,
-            )}
-            note="Across every data file"
-          />
         </div>
-      </Panel>
+      </section>
 
-      {/*
-        Said out loud rather than shown as an empty table.
-
-        The free tier RSVPs on Bevy and never touches this system: there is no
-        row to count. A "free tickets" figure here would be permanently zero
-        and would read as "nobody signed up", which is worse than not showing
-        it — a dashboard that quietly reports a number it cannot know is how
-        someone plans catering for the wrong crowd.
-      */}
-      <Panel
-        title="What this dashboard cannot tell you"
-        subtitle="Two numbers live somewhere else, and are not guessed at here."
-      >
-        <ul className="flex flex-col gap-3 text-body-m text-black02">
-          <li className="rounded-lg border-2 border-black02 bg-pastel p-4">
-            <strong className="font-bold">Free-pass RSVPs are on Bevy.</strong>{" "}
-            The free tier redirects there and never reaches this system, so
-            there is no row to count. Read them on the Bevy event page; showing
-            a zero here would look like nobody came.
-          </li>
-          <li className="rounded-lg border-2 border-black02 bg-pastel p-4">
-            <strong className="font-bold">
-              Nobody&apos;s actions are logged.
-            </strong>{" "}
-            Order and moderation changes leave a changed row but no record of
-            who made it (GAPS.md G22).
-          </li>
-        </ul>
-      </Panel>
-
-      <Panel
-        title="Jump to"
-        subtitle="The things most often needed on the day."
-      >
-        <div className="flex flex-wrap gap-2.5">
-          {(
-            [
-              ["tickets", "Find a ticket"],
-              ["orders", "Move an order along"],
-              ["wall", "Review the wall"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onGo(id)}
-              className="rounded-pill border-2 border-black02 bg-offwhite px-5 py-2.5 font-sans text-body-m font-bold text-black02 hover:bg-primary"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </Panel>
+      <div className="flex flex-wrap gap-2.5">
+        {(
+          [
+            ["tickets", "Find a ticket"],
+            ["orders", "Move an order along"],
+            ["wall", "Review the wall"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onGo(id)}
+            className="rounded-pill border border-black02/30 bg-offwhite px-5 py-2.5 font-sans text-body-m font-bold text-black02 hover:bg-primary"
+          >
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

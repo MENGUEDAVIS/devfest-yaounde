@@ -74,6 +74,41 @@ export interface AdminDiscount {
   expiresAt: string | null;
 }
 
+export interface AdminWallReport {
+  id: string;
+  cardId: string;
+  nickname: string;
+  status: string;
+  imageUrl: string | null;
+  createdAt: string;
+}
+
+export interface AdminWallCard {
+  id: string;
+  nickname: string;
+  theme: string;
+  visible: boolean;
+  status: string;
+  imageUrl: string | null;
+  createdAt: string;
+  reportCount: number;
+}
+
+export interface MissingPhoto {
+  collection: string;
+  collectionLabel: string;
+  id: string;
+  name: string;
+}
+
+export interface AdminSettings {
+  announcement: { fr: string; en: string } | null;
+  privacyUrl: string;
+  cocUrl: string;
+  bevyUrl: string;
+  source: "database" | "repo";
+}
+
 export interface AdminData {
   organiserEmail: string | null;
   counts: {
@@ -91,4 +126,6 @@ export interface AdminData {
   users: { rows: AdminUser[]; total: number };
   discounts: AdminDiscount[];
   wallEnabled: boolean;
+  wallReports: AdminWallReport[];
+  wallCards: AdminWallCard[];
 }

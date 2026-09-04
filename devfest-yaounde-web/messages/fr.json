@@ -64,6 +64,7 @@
       "title": "S'impliquer",
       "shop": "Boutique",
       "dpGenerator": "Générateur de PP",
+      "communityWall": "Mur de la communauté",
       "community": "Rejoindre la communauté"
     },
     "legal": {
@@ -323,7 +324,7 @@
     },
     "dpGenerator": {
       "title": "Générateur de PP",
-      "lead": "Crée ta photo de profil DevFest Yaoundé. Ton nom, ton style, tes stickers, et tu télécharges — tout se passe ici, sur ton appareil.",
+      "lead": "Crée ta photo de profil DevFest Yaoundé. Ton nom, ton style, tes stickers, et tu télécharges. Une copie plus légère de la carte peut atterrir sur le mur — la photo que tu as choisie reste sur ton appareil.",
       "tabs": {
         "info": "Toi",
         "style": "Style",
@@ -428,46 +429,29 @@
         "downloading": "On la dessine…",
         "share": "Partager",
         "sharing": "Ouverture…",
-        "copyImage": "Copier la carte"
-      },
-      "networks": {
-        "legend": "Ou publie sur",
-        "hint": "Aucun de ces réseaux ne peut joindre l'image à ta place : chacun enregistre l'image, copie la légende et ouvre la fenêtre de publication — tu n'as plus qu'à glisser l'image. Instagram n'a pas de publication sur le web du tout, donc là c'est enregistrer, puis publier depuis l'appli.",
-        "whatsapp": "WhatsApp",
-        "x": "X",
-        "linkedin": "LinkedIn",
-        "instagram": "Instagram"
+        "copyImage": "Copier la carte",
+        "copyCaption": "Copier la légende"
       },
       "status": {
         "downloaded": "Enregistré. Va changer ta photo.",
         "failed": "Le rendu a échoué. Réessaie, ou prends une autre photo.",
-        "attach": "Image enregistrée et légende copiée — il ne reste qu'à joindre l'image au post.",
-        "wallSent": "Envoyé au mur.",
-        "gallery_rate_limited": "Ça fait plusieurs cartes d'affilée — attends une minute et réessaie.",
-        "gallery_rejected": "Le mur n'a pas accepté celle-ci. Essaie avec une autre carte.",
-        "gallery_failed": "Elle n'est pas arrivée au mur. Ton téléchargement fonctionne toujours.",
         "imageCopied": "Carte copiée — colle-la directement dans ton post.",
-        "copyUnsupported": "Ce navigateur ne copie pas les images. Télécharge-la plutôt."
+        "copyUnsupported": "Ce navigateur ne copie pas les images. Télécharge-la plutôt.",
+        "captionCopied": "Légende copiée. Colle-la où tu publies."
       },
       "caption": {
         "title": "Ce qui part avec",
-        "hint": "Le partage envoie l'image avec cette légende. Si ton navigateur ne le permet pas, la légende atterrit dans ton presse-papiers — tu n'as plus qu'à coller."
+        "hint": "Les hashtags, @gdgyaounde, et le lien vers ici. Copie, puis joins l'image dans l'appli."
       },
-      "privacy": {
-        "title": "La photo ne quitte jamais ton appareil",
-        "body": "Rien n'est envoyé, rien n'est stocké. La carte est dessinée dans ton navigateur et enregistrée directement dans tes téléchargements — on ne la voit jamais."
+      "consent": {
+        "notice": "Télécharger, partager ou copier cette carte enregistre aussi une copie plus légère sur le mur public de la communauté. La photo que tu as choisie reste sur ton appareil. Pour retirer une carte, écris à gdgyaounde@gmail.com.",
+        "termsLink": "Ce qu'on garde, et comment retirer une carte"
       },
-      "metaDesc": "Crée ta photo de profil DevFest Yaoundé dans ton navigateur — un style, un recadrage, des stickers, et tu télécharges. Rien n'est envoyé.",
-      "wall": {
-        "title": "Mets-la sur le mur de la communauté",
-        "body": "Une copie plus légère part chez GDG Yaoundé et apparaît aussitôt sur le mur DevFest. Ton téléchargement, lui, reste en pleine qualité sur ton appareil.",
-        "consent": "Envoyer cette carte la place, avec ta photo, sur le mur public de la communauté. Tu peux nous demander de la retirer à tout moment.",
-        "send": "Mettre sur le mur",
-        "sending": "Envoi…",
-        "pending": "Envoyée. Elle apparaîtra sur le mur après relecture de l'équipe — tu peux nous demander de la retirer à tout moment.",
-        "live": "Envoyée, elle est sur le mur. Tu peux nous demander de la retirer à tout moment."
+      "toast": {
+        "wall": "Ta carte est sur le <wall>mur de la communauté</wall> — tu vas voir les autres ?",
+        "dismiss": "Fermer"
       },
-      "terms": "Télécharger, copier ou partager ta carte vaut acceptation du fonctionnement du générateur : la photo reste sur ton appareil, et la carte est à toi. L'envoyer au mur de la communauté est une étape à part, volontaire."
+      "metaDesc": "Crée ta photo de profil DevFest Yaoundé dans ton navigateur — un style, un recadrage, des stickers, et tu télécharges."
     },
     "paymentReturn": {
       "title": "Confirmation de ton paiement",
@@ -521,7 +505,35 @@
       "title": "Mur de la communauté",
       "metaDesc": "Les cartes créées par la communauté DevFest Yaoundé, faites dans le générateur de PP et partagées par celles et ceux qui les ont créées.",
       "cardLabel": "Carte DevFest",
-      "placeholderNotice": "Cartes d'exemple — pas de vraies personnes"
+      "emptyTitle": "Le mur t'attend",
+      "emptyBody": "Personne n'a encore enregistré de carte. Fais-en une, télécharge-la, et tu seras le premier sur le mur.",
+      "emptyCta": "Faire une carte",
+      "takedownHint": "Retirer une carte ? {email}"
+    },
+    "wallTerms": {
+      "title": "Conditions du mur",
+      "metaDesc": "Ce qu'on garde quand tu enregistres une carte DevFest, combien de temps, et comment la retirer.",
+      "lead": "En court : on garde une copie plus légère de la carte composée, pas la photo de ton appareil, et tu peux la retirer à tout moment.",
+      "storedTitle": "Ce qu'on garde",
+      "storedBody": "Quand tu télécharges, partages ou copies une carte, on enregistre un JPEG plus petit de la carte composée (environ 640 px), le nom affiché, l'heure, le style, et le texte de l'avis que tu as vu. La photo originale ne quitte pas ton appareil. Pas de GPS, pas de numéro de série — c'est dessiné sur un canvas et ré-encodé ici.",
+      "whereTitle": "Où ça apparaît",
+      "whereBody": "Sur le mur public de la communauté, sauf si tu la retires ou qu'un organisateur la cache. Le mur n'est pas proposé aux moteurs de recherche.",
+      "howTitle": "Comment retirer une carte",
+      "howBody": "Écris à gdgyaounde@gmail.com et dis quel surnom ou quelle image. Il n'y a pas de bouton sur le mur — un organisateur la cachera ou la supprimera.",
+      "removeCta": "Écrire à gdgyaounde@gmail.com",
+      "wallCta": "Voir le mur",
+      "children": "Ne mets pas la carte d'un enfant sur le mur. Si tu en vois une, écris à gdgyaounde@gmail.com."
+    },
+    "wallRemove": {
+      "title": "Retirer une carte",
+      "metaDesc": "Retirer une carte du mur DevFest faite depuis ce navigateur.",
+      "lead": "Les cartes enregistrées depuis ce navigateur apparaissent ici. Pas de compte — si tu perds l'appareil ou vides le site, le raccourci disparaît, mais tu peux encore écrire au chapitre.",
+      "empty": "Rien d'enregistré sur ce navigateur. Si tu as fait une carte sur un autre téléphone, écris au chapitre et dis laquelle.",
+      "remove": "La retirer",
+      "removing": "On retire…",
+      "removed": "C'est retiré.",
+      "failed": "Ça n'a pas marché. Réessaie, ou écris au chapitre.",
+      "termsLink": "Lire les conditions du mur"
     }
   },
   "errors": {

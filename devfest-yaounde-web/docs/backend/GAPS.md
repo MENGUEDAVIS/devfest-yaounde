@@ -279,14 +279,8 @@ hashtag + community handles". Two of the three shipped. The handles did not,
 because every entry in `SOCIAL_LINKS` is still `"#"` and guessing an `@name`
 tags a stranger on every post someone makes.
 
-**DECIDED 2026-09-02: no handles, and none are wanted.** The caption carries a
-CTA instead — `devfest.gdgyaounde.com/dp-generator` — which does the job the
-handles were meant to do, sends people to something the chapter controls, and
-cannot be wrong. A URL is verifiable; a handle is a guess.
-
-If real profiles are ever confirmed AND someone wants them in-caption, it is
-one edit in `shareCaption` (`src/lib/dp/share.ts`), and the caption is shown on
-screen exactly as it is sent, so the change is visible immediately.
+**Amended 2026-09-04 by ADR 0034 / Phase 18:** the caption now includes
+`@gdgyaounde` as well as the CTA URL. The handle was asked for explicitly.
 
 ### G17 — The DP photo mask is not the morphed shape
 
@@ -315,32 +309,18 @@ For a back-office several volunteers can reach, where the state being changed
 is money-adjacent and the moderation decisions are about people's faces, "who
 marked this delivered?" and "who deleted that card?" have no answer.
 
-**Needs a table and one write per privileged action** — actor, action, target,
-before/after, timestamp — so it is backend, not this phase. The dashboard is
-built assuming it will arrive: every write it performs goes through an
-existing endpoint, so adding the log there covers the UI too, with no
-dashboard change.
-
-Worth doing before the event rather than after the first dispute.
+**RESOLVED 2026-09-03** (migration 0011, ADR 0031). `admin_audit` records
+actor, action, target, before/after, timestamp. Order status, check-in, wall
+moderation, content publish, settings and discount writes all insert a row
+after they succeed. An audit failure is logged and swallowed so a door scan
+is never blocked by the log.
 
 ### G21 — The wall has no report path for visitors
 
-The wall page is built (ADR 0030) and the backend behind it exists (ADR 0026),
-with publication defaulting to no review (ADR 0027). Retro-moderation is real:
-`PATCH /api/dp/gallery/:id` with `rejected` deletes the image.
-
-**What is missing is the way anyone tells the organisers.** A visitor who sees
-something that should not be on a public page — an image that is not a DP, a
-face that is not the submitter's, a child — has no button. The only routes are
-knowing an organiser, or having submitted the card yourself.
-
-With review-before-publication this mattered less, because a human saw every
-card. Auto-approval moves protection from before publication to after it
-(ADR 0027 says so plainly), and "after" only works if someone can raise a hand.
-
-**Small, and frontend-plus-one-endpoint:** a report control on each card, and
-somewhere for the report to land. Worth closing before
-`NEXT_PUBLIC_DP_GALLERY` is switched on, not after.
+**REVISED 2026-09-04.** Visitor report buttons came off the cards. Takedown
+is email to gdgyaounde@gmail.com; organisers hide a card from the admin
+wall (click to toggle `visible`). The report endpoint may still exist; it
+is not offered in the UI.
 
 ### G20 — The community wall — BACKEND BUILT
 
@@ -362,10 +342,9 @@ pending card is invisible, **anonymous reads return nothing approved or not**,
 approval publishes it behind a signed URL, the right takedown token matches
 and a different one does not, and a removed object stops being served.
 
-**Still missing: the wall PAGE itself**, and any screen for the queue. The
-queue is workable from any HTTP client, which is what lets the flag be turned
-on safely; a reviewing interface built before a single card exists would be
-guessing at what a reviewer needs.
+**The wall page shipped (ADR 0030) and the flag is on (ADR 0033).** Reports
+land in the dashboard (G21). The pending queue is still an API, and is empty
+by design while auto-approval is on.
 
 **Fully specified** in `docs/backend/dp-gallery-contract.md`: the table with
 its consent record, the three endpoints, validation order, rate limiting
