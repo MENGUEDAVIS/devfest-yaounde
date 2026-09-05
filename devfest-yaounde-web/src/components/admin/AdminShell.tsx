@@ -5,12 +5,14 @@ import {
   ChartBar,
   Gear,
   Image as ImageIcon,
+  List,
   Package,
   Percent,
   Receipt,
   Table,
   Ticket,
   Users,
+  X,
 } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -157,9 +159,34 @@ export function AdminShell({
   // render would tie the view back to the router and undo the point below.
   const [view, setView] = useState<ViewId>(() => parseView(params.get("view")));
 
+  /**
+   * The sidebar as a real drawer on a phone.
+   *
+   * It used to be a rounded card sitting at the top of the page with the
+   * sections wrapped into pills underneath it — always there, taking a screen
+   * of height before any content, and not actually usable. On a small screen
+   * it is now a full-bleed drawer behind a floating button, and the layout
+   * below it starts at the top of the page where it belongs.
+   */
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   useEffect(() => {
     document.title = "Admin · DevFest Yaoundé";
   }, []);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setDrawerOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [drawerOpen]);
 
   /**
    * Switch view, and write the URL WITHOUT navigating.
@@ -178,6 +205,7 @@ export function AdminShell({
    */
   function go(id: ViewId) {
     setView(id);
+    setDrawerOpen(false);
     const next = new URLSearchParams(window.location.search);
     if (id === "overview") next.delete("view");
     else next.set("view", id);
@@ -192,10 +220,41 @@ export function AdminShell({
   const header = HEADERS[view];
 
   return (
-    <div className="min-h-screen bg-pastel px-4 py-5 sm:px-6">
+    <div className="min-h-screen bg-pastel px-4 pb-5 pt-20 sm:px-6 lg:pt-5">
+      {/*
+        The only way into the drawer on a phone, and it floats above the
+        content so it is reachable from anywhere on a long table without
+        scrolling back up. Hidden from `lg`, where the sidebar is permanent.
+      */}
+      <button
+        type="button"
+        onClick={() => setDrawerOpen(true)}
+        aria-label="Open admin menu"
+        aria-expanded={drawerOpen}
+        aria-controls="admin-drawer"
+        className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_3px_0_0_var(--color-black02)] lg:hidden"
+      >
+        <List size={20} weight="bold" />
+      </button>
+
       <div className="mx-auto flex max-w-[100rem] flex-col gap-6 lg:flex-row">
         <aside className="shrink-0 lg:w-56">
-          <div className="rounded-lg border border-black02/20 bg-offwhite p-4 lg:fixed lg:top-5 lg:bottom-5 lg:flex lg:w-56 lg:flex-col lg:overflow-y-auto">
+          <div
+            id="admin-drawer"
+            className={`${
+              drawerOpen ? "flex" : "hidden"
+            } fixed inset-0 z-40 flex-col overflow-y-auto border-0 bg-offwhite p-5 lg:flex lg:inset-auto lg:bottom-5 lg:top-5 lg:w-56 lg:rounded-lg lg:border lg:border-black02/20 lg:p-4`}
+          >
+            {/* Square on a phone: a full-bleed panel with rounded corners
+                reads as a card that failed to fill the screen. */}
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close admin menu"
+              className="mb-4 self-end rounded-pill border-2 border-black02 p-2 text-black02 lg:hidden"
+            >
+              <X size={18} weight="bold" />
+            </button>
             <Link
               href="/"
               className="flex items-center gap-2.5"

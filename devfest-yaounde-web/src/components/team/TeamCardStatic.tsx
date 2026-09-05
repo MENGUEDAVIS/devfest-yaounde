@@ -52,12 +52,16 @@ export function TeamCardStatic({
         {member.contribution[locale]}
         {member.years ? ` · ${member.years}` : ""}
       </p>
-      <p className="mt-3 text-body-m text-black02/80">
-        {member.oneLiner[locale]}
-      </p>
-      <p className="mt-3 border-l-4 border-primary pl-3 text-body-m italic text-black02/75">
-        {member.icebreakerAnswer[locale]}
-      </p>
+      {member.oneLiner && (
+        <p className="mt-3 text-body-m text-black02/80">
+          {member.oneLiner[locale]}
+        </p>
+      )}
+      {member.icebreakerAnswer && (
+        <p className="mt-3 border-l-4 border-primary pl-3 text-body-m italic text-black02/75">
+          {member.icebreakerAnswer[locale]}
+        </p>
+      )}
       {socials.length > 0 && (
         <div className="mt-4 flex gap-2">
           {socials.map(({ key, href, Icon, label }) => (

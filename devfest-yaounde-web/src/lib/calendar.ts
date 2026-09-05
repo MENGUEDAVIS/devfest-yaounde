@@ -3,16 +3,20 @@ import type { Session } from "@/data/types";
 /**
  * Add-to-calendar links (PAGES.md §3).
  *
- * The event date is NOT confirmed yet — `home.hero.dates` still reads "dates
- * to be announced". Rather than invent one, sessions carry only a time of
- * day, and these helpers take an explicit `baseDate`. Until a real date is
- * set, `EVENT_BASE_DATE` is null and the calendar UI is hidden entirely
- * rather than exporting an event on a made-up day.
+ * Sessions carry only a time of day; these helpers take an explicit
+ * `baseDate`. While it was null the calendar UI stayed hidden rather than
+ * exporting an event on a made-up day.
  *
- * To switch it on: set EVENT_BASE_DATE to the real first-day date
- * (YYYY-MM-DD). Day 2 is derived as the following day.
+ * **Set 2026-09-04 from the chapter's own listing** — GDG Yaoundé publishes
+ * DevFest Yaoundé 2026 on **21 November 2026**:
+ * https://gdg.community.dev/gdg-yaounde/
+ *
+ * Day 2 is derived as the following day, matching `EVENT.days = 2` and the
+ * Bevy description ("a two-day experience"). Worth confirming: the Bevy
+ * listing shows a single start date, so the second day is inferred from that
+ * sentence rather than stated anywhere as a date.
  */
-export const EVENT_BASE_DATE: string | null = null;
+export const EVENT_BASE_DATE: string | null = "2026-11-21";
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
