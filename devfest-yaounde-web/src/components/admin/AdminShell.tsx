@@ -15,6 +15,8 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from "@/lib/use-media-query";
+import { lockScroll } from "@/lib/scroll-source";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
@@ -174,19 +176,31 @@ export function AdminShell({
     document.title = "Admin · DevFest Yaoundé";
   }, []);
 
+  /** From `lg` the sidebar is permanent, so none of the drawer rules apply. */
+  const permanent = useMediaQuery("(min-width: 1024px)");
+  const shown = permanent || drawerOpen;
+
   useEffect(() => {
-    if (!drawerOpen) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    if (!drawerOpen || permanent) return;
+    /*
+     * `lockScroll`, not `document.body.style.overflow`.
+     *
+     * The document element is what scrolls here, so hiding overflow on the
+     * body alone leaves the page moving under the drawer — which is exactly
+     * what it did. `lockScroll` covers <html> too, compensates for a native
+     * scrollbar gutter, and stops Lenis, which keeps gliding regardless of
+     * any overflow rule.
+     */
+    const releaseScroll = lockScroll();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setDrawerOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = previous;
+      releaseScroll();
       window.removeEventListener("keydown", onKey);
     };
-  }, [drawerOpen]);
+  }, [drawerOpen, permanent]);
 
   /**
    * Switch view, and write the URL WITHOUT navigating.
@@ -239,11 +253,35 @@ export function AdminShell({
 
       <div className="mx-auto flex max-w-[100rem] flex-col gap-6 lg:flex-row">
         <aside className="shrink-0 lg:w-56">
+          {/*
+            The scrim. It fades rather than appearing, and it is what makes
+            the drawer read as sitting ABOVE the page instead of replacing it.
+            Tapping it closes, like every other dismissable surface here.
+          */}
+          <div
+            aria-hidden
+            onClick={() => setDrawerOpen(false)}
+            className={`fixed inset-0 z-30 bg-black02/50 transition-opacity duration-300 ease-out motion-reduce:transition-none lg:hidden ${
+              drawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
+            }`}
+          />
+
+          {/*
+            Kept MOUNTED and slid in and out, rather than switched between
+            `hidden` and `flex` — an element that does not exist cannot
+            animate, which is why every open and close was instantaneous.
+
+            `inert` while it is off-screen, so its buttons are not tabbable
+            from a page that appears to be showing no menu at all. Driven by
+            the media query rather than by a class, because `inert` is an
+            attribute and cannot be scoped to a breakpoint.
+          */}
           <div
             id="admin-drawer"
-            className={`${
-              drawerOpen ? "flex" : "hidden"
-            } fixed inset-0 z-40 flex-col overflow-y-auto border-0 bg-offwhite p-5 lg:flex lg:inset-auto lg:bottom-5 lg:top-5 lg:w-56 lg:rounded-lg lg:border lg:border-black02/20 lg:p-4`}
+            inert={!shown}
+            className={`fixed inset-0 z-40 flex flex-col overflow-y-auto overscroll-contain border-0 bg-offwhite p-5 transition-transform duration-300 ease-out motion-reduce:transition-none lg:inset-auto lg:bottom-5 lg:top-5 lg:w-56 lg:translate-x-0 lg:rounded-lg lg:border lg:border-black02/20 lg:p-4 lg:transition-none ${
+              drawerOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
           >
             {/* Square on a phone: a full-bleed panel with rounded corners
                 reads as a card that failed to fill the screen. */}
