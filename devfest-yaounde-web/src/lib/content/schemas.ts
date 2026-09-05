@@ -56,12 +56,23 @@ export const teamSchema = z.object({
   id: slug,
   name: z.string().trim().min(1).max(120),
   role: localizedRequired,
-  oneLiner: localizedRequired,
   contribution: localizedRequired,
   photoUrl: z.string().max(400),
   social,
-  icebreakerQuestion: localizedRequired,
-  icebreakerAnswer: localizedRequired,
+  /*
+   * OPTIONAL, and that is the point.
+   *
+   * These are the personality beats — a one-liner, an icebreaker answer, a
+   * funny moment. They were required while the team file held invented
+   * placeholder people, which made requiring them free. Now that it holds
+   * REAL organisers, requiring them would mean either writing words and
+   * attributing them to a named person who never said them, or leaving the
+   * team page as fiction. Neither is acceptable, so the fields wait for the
+   * people they belong to. The page renders without them.
+   */
+  oneLiner: localized.optional(),
+  icebreakerQuestion: localized.optional(),
+  icebreakerAnswer: localized.optional(),
   funnyMoment: localized.optional(),
   alumni: z.boolean().optional(),
   years: z.string().max(40).optional(),

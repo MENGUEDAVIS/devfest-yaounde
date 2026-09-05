@@ -104,8 +104,7 @@ const COPY = {
     orderNext:
       "On te préviendra dès que ta commande est prête à être récupérée.",
     venue: "Yaoundé, Cameroun",
-    dateTba:
-      "La date exacte arrive très bientôt — on t'écrit dès qu'elle est fixée.",
+    date: "21–22 novembre 2026",
     why: "Tu reçois cet e-mail parce que tu as commandé sur",
     contact: "Une question ? Réponds simplement à cet e-mail.",
     ref: "Référence",
@@ -135,8 +134,7 @@ const COPY = {
     fulfilmentNote: "Your note",
     orderNext: "We'll let you know as soon as it's ready to collect.",
     venue: "Yaoundé, Cameroon",
-    dateTba:
-      "The exact date lands very soon — we'll write the moment it's set.",
+    date: "21–22 November 2026",
     why: "You're getting this because you ordered on",
     contact: "A question? Just reply to this email.",
     ref: "Reference",
@@ -365,7 +363,7 @@ ${cards}
 
 ${totalsHtml(intent, l)}
 
-<p style="margin:20px 0 0;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(c.venue)} &nbsp;·&nbsp; ${escapeHtml(c.dateTba)}</p>
+<p style="margin:20px 0 0;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(c.date)} &nbsp;·&nbsp; ${escapeHtml(c.venue)}</p>
 
 ${button(c.myTickets, `${SITE_URL}/${l}/account`)}
 
@@ -394,7 +392,7 @@ ${button(c.myTickets, `${SITE_URL}/${l}/account`)}
     }),
     ...totalsText(intent, l),
     "",
-    `${c.venue} — ${c.dateTba}`,
+    `${c.date} — ${c.venue}`,
     `${c.myTickets} : ${SITE_URL}/${l}/account`,
     "",
     `${c.ref} ${intent.deposit_id}`,

@@ -460,7 +460,18 @@ export function ShopCheckout({ products }: { products: Product[] }) {
         </div>
       </div>
 
-      <aside className="lg:sticky lg:top-40 lg:self-start">
+      {/*
+       * Pinned to the bottom of a phone, edge to edge, collapsed until tapped.
+       *
+       * The negative margins cancel the section's own padding so the card
+       * meets both screen edges — a pinned panel that stops short of them
+       * reads as a floating box that failed to land. The summary collapses
+       * itself (see OrderSummary), so what is pinned is a single bar carrying
+       * the total until someone asks for the detail.
+       *
+       * From `lg` it goes back to being a normal sticky column at the top.
+       */}
+      <aside className="sticky bottom-0 z-30 -mx-5 max-h-[70svh] overflow-y-auto sm:-mx-8 lg:mx-0 lg:bottom-auto lg:top-40 lg:max-h-none lg:self-start lg:overflow-visible">
         <OrderSummary
           title={tt("summary")}
           lines={summaryLines}
