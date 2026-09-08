@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ShopBrowser } from "@/components/shop/ShopBrowser";
+import { AccountLink } from "@/components/account/AccountLink";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { getProducts } from "@/lib/content/store";
@@ -51,6 +52,7 @@ export default async function ShopPage({
         <p className="mt-6 max-w-2xl text-body-l text-black02/80">
           {t("lead")}
         </p>
+        <AccountLink label={t("myOrdersLink")} />
         <div className="mt-16">
           <ShopBrowser products={products} />
         </div>

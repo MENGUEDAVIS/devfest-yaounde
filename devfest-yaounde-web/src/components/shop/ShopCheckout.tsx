@@ -21,8 +21,10 @@ import { Link } from "@/i18n/navigation";
 import {
   CheckoutError,
   checkoutShop,
+  isDiscountFailure,
   nextStepAfterCheckout,
 } from "@/lib/checkout-client";
+import { useDiscount } from "@/components/checkout/use-discount";
 import { MAX_LINE_QTY, useCart } from "@/lib/use-cart";
 import { useSession } from "@/lib/use-session";
 import { ProductImage } from "./ProductImage";
@@ -57,12 +59,20 @@ export function ShopCheckout({ products }: { products: Product[] }) {
   const { profile, loading: sessionLoading } = useSession();
   const { lines, setQuantity, remove, clear, count } = useCart();
 
+  // The bag as the server prices it: ids, counts and variants, no money. The
+  // hook re-prices whenever it changes under an applied code, so the
+  // deduction on screen always belongs to the bag on screen.
+  const discount = useDiscount({
+    kind: "shop",
+    cart: lines.map((line) => ({
+      productId: line.productId,
+      quantity: line.quantity,
+      ...(line.variant ? { variant: line.variant } : {}),
+    })),
+  });
+
   const [step, setStep] = useState<Step>("bag");
   const [confirmingEmpty, setConfirmingEmpty] = useState(false);
-  const [discountCode, setDiscountCode] = useState("");
-  const [discountOpen, setDiscountOpen] = useState(false);
-  const [discountApplied, setDiscountApplied] = useState(false);
-  const [discountError, setDiscountError] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   // A preference, not a commitment: the team still coordinates. Defaults to
@@ -120,7 +130,9 @@ export function ShopCheckout({ products }: { products: Product[] }) {
           quantity: line.quantity,
           ...(line.variant ? { variant: line.variant } : {}),
         })),
-        ...(discountCode.trim() ? { discountCode: discountCode.trim() } : {}),
+        ...(discount.submittedCode
+          ? { discountCode: discount.submittedCode }
+          : {}),
         contact: {
           email: profile?.email ?? "",
           ...(phone.trim() ? { phone: phone.trim() } : {}),
@@ -135,15 +147,10 @@ export function ShopCheckout({ products }: { products: Product[] }) {
           ? err
           : new CheckoutError("server_error", 500);
       setError(e);
-      if (
-        e.code === "discount_invalid" ||
-        e.code === "discount_expired" ||
-        e.code === "discount_exhausted"
-      ) {
-        setDiscountApplied(false);
-        setDiscountError(e.code);
-        setDiscountCode("");
-        setDiscountOpen(true);
+      if (isDiscountFailure(e.code)) {
+        // Accepted for a quote, refused at payment — a single-use code can be
+        // spent by somebody else in between. Keep the bag, clear the code.
+        discount.reject(e.code);
       }
       if (e.code === "product_unavailable" || e.code === "unknown_product") {
         setStep("bag");
@@ -453,7 +460,21 @@ export function ShopCheckout({ products }: { products: Product[] }) {
         </div>
       </div>
 
-      <aside className="lg:sticky lg:top-40 lg:self-start">
+      {/*
+       * A floating card pinned near the bottom of a phone, collapsed until
+       * tapped.
+       *
+       * It was briefly stretched to the screen edges. Floating reads better:
+       * it stays clearly a panel sitting OVER the page rather than a bar
+       * welded to the bottom of it, and it keeps the rounded corners the rest
+       * of the site uses. `bottom-4` is the gap that makes that legible.
+       *
+       * The summary collapses itself (see OrderSummary), so what is pinned is
+       * a single bar carrying the total until someone asks for the detail.
+       *
+       * From `lg` it goes back to being a normal sticky column at the top.
+       */}
+      <aside className="sticky bottom-4 z-30 max-h-[70svh] overflow-y-auto lg:bottom-auto lg:top-40 lg:max-h-none lg:self-start lg:overflow-visible">
         <OrderSummary
           title={tt("summary")}
           lines={summaryLines}
@@ -461,20 +482,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
           emptyLabel={tt("summaryEmpty")}
           note={tt("totalNote")}
           discount={{
-            open: discountOpen,
-            setOpen: setDiscountOpen,
-            code: discountCode,
-            setCode: (v) => {
-              setDiscountCode(v);
-              setDiscountApplied(false);
-              setDiscountError(null);
-            },
-            applied: discountApplied,
-            apply: () => {
-              setDiscountApplied(discountCode.trim().length >= 3);
-              setDiscountError(null);
-            },
-            error: discountError,
+            ...discount,
             errorText: (code) => te(code as never),
           }}
         >

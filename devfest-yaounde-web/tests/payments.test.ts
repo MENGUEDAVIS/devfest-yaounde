@@ -23,14 +23,25 @@ import {
   verifyBadgeCode,
 } from "@/lib/security/badge-code";
 import { verifyCallback } from "@/lib/pawapay/verify";
-import { quoteTickets, quoteCart } from "@/lib/payments/pricing";
+import {
+  quoteTickets,
+  quoteCart,
+  quoteTierCounts,
+} from "@/lib/payments/pricing";
 import { refundAcknowledgment } from "@/lib/payments/terms";
 import {
   ticketCheckoutSchema,
   shopCheckoutSchema,
   fulfilmentRequestSchema,
 } from "@/lib/payments/schemas";
-import { CHECKOUT_ERRORS, CheckoutError } from "@/lib/payments/errors";
+import {
+  CHECKOUT_ERRORS,
+  CheckoutError,
+  isDiscountFailure,
+} from "@/lib/payments/errors";
+import { isDiscountFailure as clientIsDiscountFailure } from "@/lib/checkout-client";
+import { renderOrderReceipt, renderTicketReceipt } from "@/lib/email/templates";
+import type { PaymentIntentRow } from "@/lib/payments/intents";
 import {
   declaredStock,
   findProduct,
@@ -57,6 +68,7 @@ import {
 import {
   hashToken,
   mintDeletionToken,
+  normaliseImage,
   tokensMatch,
   MAX_EDGE,
   MAX_BYTES,
@@ -66,6 +78,7 @@ import {
   DEFAULT_RETENTION_DAYS,
   purgeExpiredCards,
 } from "@/lib/dp/gallery-retention";
+import { dealColumns } from "@/lib/dp/wall-layout";
 
 const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
@@ -1013,8 +1026,16 @@ describe("community wall", () => {
   it("caps the server side above what the client sends", () => {
     // The client downscales to 640; the server refuses anything over 800, so
     // a hand-rolled upload cannot smuggle a full-resolution face in.
+    //
+    // The DIMENSION cap is the control that matters and it has not moved.
+    // The byte cap did: it used to be 400 KB, which was fine while the client
+    // sent JPEG, and became a trap when the wall moved to WebP — a browser
+    // that cannot encode WebP from a canvas falls back to PNG, and a 640px
+    // PNG of a photograph is comfortably over it. Bytes bound the request;
+    // pixels bound what can be stored, and pixels are what a smuggled
+    // full-resolution face would need.
     assert.ok(MAX_EDGE >= GALLERY_MAX_EDGE);
-    assert.ok(MAX_BYTES <= 400 * 1024);
+    assert.ok(MAX_BYTES <= 2 * 1024 * 1024, "byte cap must stay bounded");
   });
 
   it("stays dark until the flag is set", () => {
@@ -1045,5 +1066,323 @@ describe("wall retention", () => {
     const report = await purgeExpiredCards();
     assert.deepEqual(report, { expired: 0, errors: 0 });
     if (saved !== undefined) process.env.NEXT_PUBLIC_DP_GALLERY = saved;
+  });
+});
+
+describe("quoting a basket before paying for it", () => {
+  it("prices tier counts exactly as it prices the attendees they stand for", async () => {
+    // The claim in pricing.ts is that the preview and the real checkout run
+    // the SAME arithmetic. Two functions that both work out a ticket total
+    // eventually disagree, and the one shown disagreeing with the one charged
+    // is the worst possible pairing — so assert they agree.
+    const fromAttendees = await quoteTickets([
+      {
+        tierId: "sonnet",
+        name: "Ada Nkeng",
+        email: "ada@example.com",
+        apparelSize: "M",
+      },
+      {
+        tierId: "sonnet",
+        name: "Ben Fouda",
+        email: "ben@example.com",
+        apparelSize: "L",
+      },
+    ]);
+    const fromCounts = await quoteTierCounts([
+      { tierId: "sonnet", quantity: 2 },
+    ]);
+
+    assert.equal(fromCounts.subtotal, fromAttendees.subtotal);
+    assert.equal(fromCounts.charged, fromAttendees.charged);
+    assert.equal(fromCounts.currency, fromAttendees.currency);
+    assert.deepEqual(
+      fromCounts.lines.map((l) => [l.productId, l.quantity, l.lineAmount]),
+      fromAttendees.lines.map((l) => [l.productId, l.quantity, l.lineAmount]),
+    );
+  });
+
+  it("does not reopen the off-site RSVP bypass through the preview", async () => {
+    // The quote path is new reachable surface. If it skipped this check, a
+    // direct POST could price free tickets the site does not sell — and the
+    // check that matters is the one on every path, not on the old one.
+    await rejectsWith(
+      quoteTierCounts([{ tierId: "haikyu", quantity: 1 }]),
+      CHECKOUT_ERRORS.TIER_RSVP_EXTERNAL,
+    );
+  });
+
+  it("refuses an empty basket rather than quoting zero", async () => {
+    await rejectsWith(quoteTierCounts([]), CHECKOUT_ERRORS.EMPTY_BASKET);
+  });
+
+  it("caps a preview at the same order size as a real checkout", async () => {
+    await rejectsWith(
+      quoteTierCounts([{ tierId: "sonnet", quantity: 11 }]),
+      CHECKOUT_ERRORS.ATTENDEE_COUNT_MISMATCH,
+    );
+  });
+
+  it("keeps the client and server lists of discount failures in step", () => {
+    // checkout-client.ts mirrors this list rather than importing it, to keep
+    // a server module out of the browser bundle. A mirror nobody checks is a
+    // mirror that drifts, so this is the check.
+    const codes = [
+      CHECKOUT_ERRORS.DISCOUNT_INVALID,
+      CHECKOUT_ERRORS.DISCOUNT_EXPIRED,
+      CHECKOUT_ERRORS.DISCOUNT_EXHAUSTED,
+      CHECKOUT_ERRORS.DISCOUNT_NOT_APPLICABLE,
+    ];
+    for (const code of codes) {
+      assert.equal(isDiscountFailure(code), true, `server: ${code}`);
+      assert.equal(clientIsDiscountFailure(code), true, `client: ${code}`);
+    }
+    for (const code of [
+      CHECKOUT_ERRORS.RATE_LIMITED,
+      CHECKOUT_ERRORS.TIER_SOLD_OUT,
+      CHECKOUT_ERRORS.SERVER_ERROR,
+    ]) {
+      assert.equal(isDiscountFailure(code), false, `server: ${code}`);
+      assert.equal(clientIsDiscountFailure(code), false, `client: ${code}`);
+    }
+  });
+});
+
+describe("receipt emails", () => {
+  /** A fulfilled ticket order, as the templates receive it. */
+  function ticketIntent(
+    overrides: Partial<PaymentIntentRow> = {},
+  ): PaymentIntentRow {
+    return {
+      deposit_id: "11111111-2222-3333-4444-555555555555",
+      user_id: "user-1",
+      kind: "tickets",
+      status: "activated",
+      charged_amount: 3600,
+      net_amount: 3600,
+      currency: "XAF",
+      discount_code: "GDG-2026",
+      discount_amount: 400,
+      line_items: [
+        {
+          productId: "sonnet",
+          name: { fr: "SONNET", en: "SONNET" },
+          quantity: 2,
+          unitAmount: 2000,
+          lineAmount: 4000,
+        },
+      ],
+      attendees: null,
+      contact: { email: "ada@example.com" },
+      locale: "fr",
+      failure_code: null,
+      terms_text: null,
+      terms_accepted_at: null,
+      fulfilment: null,
+      created_at: new Date().toISOString(),
+      activated_at: new Date().toISOString(),
+      ...overrides,
+    } as PaymentIntentRow;
+  }
+
+  const tickets = [
+    {
+      attendeeName: "Ada Nkeng",
+      tierId: "sonnet",
+      badgeCode: "DFY-ABCDE-FGHIJ",
+      apparelSize: "M",
+      tierName: "SONNET",
+      tierLabel: "Pass étudiant",
+      perks: ["Accès à toutes les conférences", "Le t-shirt de l'édition"],
+    },
+  ];
+
+  it("carries every ticket detail the sales page promised", () => {
+    const email = renderTicketReceipt(ticketIntent(), tickets);
+    for (const fragment of [
+      "Ada Nkeng",
+      "DFY-ABCDE-FGHIJ",
+      "SONNET",
+      "Pass étudiant",
+      "Le t-shirt de l&#x27;édition".replace("&#x27;", "'"),
+      "M",
+    ]) {
+      assert.ok(email.html.includes(fragment), `HTML is missing ${fragment}`);
+      assert.ok(
+        email.text.includes(fragment),
+        `text part is missing ${fragment}`,
+      );
+    }
+  });
+
+  it("states what was deducted, not just what was charged", () => {
+    // The whole point of the checkout change: a buyer should never have to
+    // work out the discount themselves from two other numbers.
+    const email = renderTicketReceipt(ticketIntent(), tickets);
+    // `\D?` for the thousands separator: fr-CM groups with a NARROW no-break
+    // space (U+202F), not the space you get from a keyboard.
+    assert.ok(email.html.includes("GDG-2026"), "code missing");
+    assert.match(email.html, /4\D?000/, "subtotal missing");
+    assert.match(email.html, /-400/, "deduction missing");
+    assert.match(email.html, /3\D?600/, "total missing");
+    assert.match(email.text, /-400\D?XAF/, "text deduction missing");
+  });
+
+  it("shows no discount rows when there was no discount", () => {
+    const email = renderTicketReceipt(
+      ticketIntent({ discount_code: null, discount_amount: 0 }),
+      tickets,
+    );
+    assert.ok(!email.html.includes("Sous-total"), "subtotal shown needlessly");
+    assert.ok(!email.text.includes("Réduction"), "discount row leaked");
+  });
+
+  it("escapes an attendee name rather than rendering it as markup", () => {
+    // The name is typed by a buyer and lands in HTML. It is also printed on a
+    // badge, so it is not sanitised at the source — it has to be escaped here.
+    const email = renderTicketReceipt(ticketIntent(), [
+      { ...tickets[0], attendeeName: '<img src=x onerror="alert(1)">' },
+    ]);
+    assert.ok(!email.html.includes("<img src=x"), "raw markup rendered");
+    assert.ok(email.html.includes("&lt;img"), "not escaped");
+  });
+
+  it("speaks the language the order was placed in", () => {
+    const fr = renderTicketReceipt(ticketIntent({ locale: "fr" }), tickets);
+    const en = renderTicketReceipt(ticketIntent({ locale: "en" }), tickets);
+    assert.ok(fr.subject.includes("Ta place"), fr.subject);
+    assert.ok(en.subject.includes("You're in"), en.subject);
+    assert.notEqual(fr.html, en.html);
+  });
+
+  it("records the buyer's fulfilment choice on a shop receipt", () => {
+    const email = renderOrderReceipt(
+      ticketIntent({
+        kind: "shop",
+        fulfilment: { method: "shipping", note: "Bastos, après 18h" },
+      }),
+    );
+    assert.ok(email.html.includes("Livraison souhaitée"));
+    assert.ok(email.html.includes("Bastos, après 18h"));
+    assert.ok(email.text.includes("Bastos, après 18h"));
+  });
+});
+
+describe("wall cards keep their transparency, not a black hole", () => {
+  /**
+   * The regression this guards shipped twice, differently.
+   *
+   * A generated card has fully transparent corners (geometry.ts). JPEG has no
+   * alpha, so the first version composited them onto BLACK and every face on
+   * the wall got a black frame. The fix flattened onto paper instead — which
+   * removed the black but baked #F0F0F0 into the card, so the corners were a
+   * pale rectangle on any other background.
+   *
+   * WebP carries alpha. The guarantee is no longer "the corners are the right
+   * colour", it is "the corners have no colour at all", and that is what this
+   * asserts now.
+   */
+  it("re-encodes to WebP with the transparent corners intact", async () => {
+    const sharp = (await import("sharp")).default;
+
+    // Opaque red in the middle, fully transparent at the corners — the shape
+    // of every card the generator produces.
+    const size = 64;
+    const raw = Buffer.alloc(size * size * 4, 0);
+    for (let y = 16; y < 48; y++) {
+      for (let x = 16; x < 48; x++) {
+        const i = (y * size + x) * 4;
+        raw[i] = 200;
+        raw[i + 3] = 255;
+      }
+    }
+    const png = await sharp(raw, {
+      raw: { width: size, height: size, channels: 4 },
+    })
+      .png()
+      .toBuffer();
+
+    const out = await normaliseImage(new Blob([new Uint8Array(png)]));
+
+    const meta = await sharp(out).metadata();
+    assert.equal(meta.format, "webp", "stored format");
+    assert.equal(meta.hasAlpha, true, "alpha channel dropped");
+
+    const { data, info } = await sharp(out)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const alphaAt = (x: number, y: number) =>
+      data[(y * info.width + x) * info.channels + 3];
+
+    for (const [x, y] of [
+      [1, 1],
+      [info.width - 2, 1],
+      [1, info.height - 2],
+      [info.width - 2, info.height - 2],
+    ]) {
+      assert.ok(
+        alphaAt(x, y) < 20,
+        `corner ${x},${y} came back opaque — the transparency was composited away`,
+      );
+    }
+    // And the middle is still there, so this is not passing by producing an
+    // empty image.
+    assert.ok(alphaAt(info.width >> 1, info.height >> 1) > 200, "centre lost");
+  });
+});
+
+describe("dealing cards into the wall's columns", () => {
+  const deck = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      id: `card-${i}`,
+      nickname: `person-${i}`,
+      imageUrl: `https://example.test/${i}.webp`,
+    }));
+
+  it("never gives a column one card on repeat when the deck has several", () => {
+    // The shipped version indexed `cards[(c + i * columnCount) % length]`,
+    // which for three cards in three columns reduces to `c % 3 === c`: every
+    // column was one person, forever. That is what was on the live wall.
+    for (const columnCount of [3, 4, 6, 7, 8]) {
+      for (const size of [2, 3, 4, 6, 8, 12]) {
+        const columns = dealColumns(deck(size), columnCount);
+        for (const [index, column] of columns.entries()) {
+          const distinct = new Set(column.map((card) => card.id)).size;
+          assert.equal(
+            distinct,
+            Math.min(size, column.length),
+            `column ${index} of ${columnCount} with a deck of ${size} showed ${distinct} distinct cards`,
+          );
+        }
+      }
+    }
+  });
+
+  it("deals the columns differently from one another", () => {
+    // Otherwise the wall is one sheet scrolling, which is what it looked like.
+    const columns = dealColumns(deck(6), 5);
+    const signatures = columns.map((column) =>
+      column
+        .slice(0, 6)
+        .map((card) => card.id)
+        .join(","),
+    );
+    assert.equal(
+      new Set(signatures).size,
+      signatures.length,
+      "two columns were dealt the same order",
+    );
+  });
+
+  it("is stable across renders, so hydration cannot mismatch", () => {
+    // Seeded, not Math.random(): the server and the browser must build the
+    // same wall or React throws.
+    const cards = deck(5);
+    assert.deepEqual(dealColumns(cards, 4), dealColumns(cards, 4));
+  });
+
+  it("survives an empty deck", () => {
+    assert.deepEqual(dealColumns([], 3), [[], [], []]);
   });
 });

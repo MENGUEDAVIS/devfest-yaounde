@@ -12,6 +12,7 @@ import "server-only";
 import { renderOrderReceipt, renderTicketReceipt } from "@/lib/email/templates";
 import { sendEmail } from "@/lib/email/send";
 import { createAdminSupabase } from "@/lib/supabase/server";
+import { findTier, loadTiers } from "./catalog";
 import { logPaymentEvent, type PaymentIntentRow } from "./intents";
 
 export async function sendReceipt(intent: PaymentIntentRow): Promise<void> {
@@ -31,7 +32,7 @@ export async function sendReceipt(intent: PaymentIntentRow): Promise<void> {
       const supabase = createAdminSupabase();
       const { data, error } = await supabase
         .from("tickets")
-        .select("attendee_name, tier_id, badge_code")
+        .select("attendee_name, tier_id, badge_code, apparel_size")
         .eq("deposit_id", intent.deposit_id)
         .order("created_at", { ascending: true });
 
@@ -42,13 +43,26 @@ export async function sendReceipt(intent: PaymentIntentRow): Promise<void> {
         return;
       }
 
+      // The receipt names the tier and lists what it includes, so it has to
+      // read the catalog. A ticket row only holds the slug, and "SONNET" on
+      // its own tells the attendee nothing about what they bought.
+      const l = intent.locale === "en" ? "en" : "fr";
+      const tiers = await loadTiers();
+
       email = renderTicketReceipt(
         intent,
-        data.map((t) => ({
-          attendeeName: t.attendee_name,
-          tierId: t.tier_id,
-          badgeCode: t.badge_code,
-        })),
+        data.map((t) => {
+          const tier = findTier(t.tier_id, tiers);
+          return {
+            attendeeName: t.attendee_name,
+            tierId: t.tier_id,
+            badgeCode: t.badge_code,
+            apparelSize: t.apparel_size,
+            tierName: tier?.name,
+            tierLabel: tier?.label?.[l],
+            perks: tier?.perks?.map((perk) => perk[l] ?? perk.fr),
+          };
+        }),
       );
     } else {
       email = renderOrderReceipt(intent);

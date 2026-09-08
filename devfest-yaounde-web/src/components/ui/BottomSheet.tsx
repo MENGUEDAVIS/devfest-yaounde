@@ -112,7 +112,28 @@ export function BottomSheet({
     <div data-lenis-prevent className="fixed inset-0 z-100">
       <div
         aria-hidden
-        onClick={onClose}
+        /*
+         * Dismiss on POINTERDOWN, with the default prevented — not on click.
+         *
+         * On a touch screen the sequence is pointerdown → pointerup → a
+         * compatibility `click`. Closing on `click` unmounted this portal
+         * mid-sequence, and the browser then delivered the tail of that same
+         * tap to whatever was newly underneath — so tapping outside a
+         * speaker's sheet closed it AND opened the sheet of the card behind
+         * the tap. Two sheets from one finger.
+         *
+         * `preventDefault()` on pointerdown suppresses the compatibility
+         * mouse events for the whole gesture, so the tap ends where it began:
+         * on the scrim. `stopPropagation` keeps it off anything above.
+         */
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onClose();
+        }}
+        // A pointer that started elsewhere and is released here must not
+        // reach the page either.
+        onClick={(event) => event.stopPropagation()}
         // Blurred scrim, matching the full-screen lockup: the page behind
         // stays as context but stops competing with the sheet.
         className="anim-modal-backdrop absolute inset-0 bg-black02/60 backdrop-blur-sm"

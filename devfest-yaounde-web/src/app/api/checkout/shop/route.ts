@@ -12,6 +12,7 @@ import {
   CHECKOUT_ERRORS,
   CheckoutError,
   errorResponse,
+  isDiscountFailure,
 } from "@/lib/payments/errors";
 import { shopCheckoutSchema } from "@/lib/payments/schemas";
 import { quoteCart } from "@/lib/payments/pricing";
@@ -19,6 +20,7 @@ import { startCheckout } from "@/lib/payments/checkout";
 import { currentUser } from "@/lib/supabase/server";
 import {
   RATE_LIMITS,
+  consumeOnDiscountFailure,
   rateLimit,
   rateLimitIdentity,
 } from "@/lib/security/rate-limit";
@@ -50,15 +52,6 @@ export async function POST(request: NextRequest) {
   }
   const input = parsed.data;
 
-  if (input.discountCode) {
-    const codeLimit = await rateLimit(RATE_LIMITS.discountCode, identity);
-    if (!codeLimit.allowed) {
-      return errorResponse(CHECKOUT_ERRORS.RATE_LIMITED, 429, {
-        retryAfter: codeLimit.retryAfterSeconds,
-      });
-    }
-  }
-
   try {
     const quote = await quoteCart(input.cart, input.discountCode);
     const result = await startCheckout({
@@ -72,6 +65,18 @@ export async function POST(request: NextRequest) {
     return Response.json({ ...result, quote });
   } catch (err) {
     if (err instanceof CheckoutError) {
+      // A discount code is guessable by design. The fence is charged for a
+      // WRONG code only — every guess is wrong, so guessing still costs,
+      // while a real code does not spend the budget of someone who is simply
+      // retrying a legitimate checkout.
+      if (isDiscountFailure(err.code)) {
+        const spent = await consumeOnDiscountFailure(identity);
+        if (spent) {
+          return errorResponse(CHECKOUT_ERRORS.RATE_LIMITED, 429, {
+            retryAfter: RATE_LIMITS.discountCode.windowSeconds,
+          });
+        }
+      }
       return errorResponse(err.code, err.status);
     }
     console.error("[checkout/shop] unexpected failure", err);

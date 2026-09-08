@@ -95,8 +95,19 @@ export function PaymentStep({
             onChange={(e) => setAcceptedTerms(e.target.checked)}
             className="mt-0.5 h-5 w-5 shrink-0 rounded-sm border-2 border-black02 accent-[var(--color-primary)]"
           />
+          {/*
+           * `terms.ack`, NOT t("refundAck").
+           *
+           * This rendered the tickets wording on both surfaces while the
+           * prop sat unused — so a shop buyer ticked "I understand tickets
+           * are non-refundable" for a hoodie. Worse than wrong copy: the
+           * server records the SHOP sentence as the evidence of consent
+           * (terms.ts), so the stored record described something the buyer
+           * was never shown. That is exactly the failure ADR 0022 exists to
+           * prevent, arriving through the screen instead of the request body.
+           */}
           <span className="text-body-m font-bold text-black02">
-            {t("refundAck")}
+            {terms.ack}
           </span>
         </label>
       </div>

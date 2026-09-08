@@ -1,6 +1,11 @@
 "use client";
 
-import { Package, SignOut, Ticket as TicketIcon } from "@phosphor-icons/react";
+import {
+  Check,
+  Package,
+  SignOut,
+  Ticket as TicketIcon,
+} from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,15 +14,43 @@ import { Button } from "@/components/ui/Button";
 import { BadgeCode } from "@/components/tickets/BadgeCode";
 import { signInWithGoogle, signOut, useSession } from "@/lib/use-session";
 
+interface LocalizedString {
+  fr: string;
+  en: string;
+}
+
+/**
+ * A ticket as `/api/account/tickets` returns it — the row plus the two things
+ * the row cannot answer on its own: what the tier actually is, and what was
+ * actually paid. Both resolved server-side, so this page and the receipt
+ * email describe a ticket identically.
+ */
 interface Ticket {
   id: string;
-  tier_id: string;
-  attendee_name: string;
-  attendee_email: string;
-  apparel_size: string | null;
-  badge_code: string;
-  checked_in_at: string | null;
-  created_at: string;
+  attendeeName: string;
+  attendeeEmail: string;
+  apparelSize: string | null;
+  badgeCode: string;
+  checkedInAt: string | null;
+  createdAt: string;
+  isSelf: boolean | null;
+  tier: {
+    id: string;
+    name: string;
+    label: LocalizedString | null;
+    description: LocalizedString | null;
+    perks: LocalizedString[];
+    includesApparel: boolean;
+  };
+  unitAmount: number | null;
+  order: {
+    depositId: string;
+    currency: string;
+    discountCode: string | null;
+    discountAmount: number;
+    chargedAmount: number;
+    paidAt: string;
+  } | null;
 }
 
 interface OrderItem {
@@ -173,26 +206,122 @@ export function AccountDashboard() {
                   className="rounded-lg border-2 border-black02 bg-offwhite p-6"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <Badge tone="primary" variant="outline">
-                      {ticket.tier_id.toUpperCase()}
-                    </Badge>
-                    {ticket.checked_in_at ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone="primary" variant="outline">
+                        {ticket.tier.name}
+                      </Badge>
+                      {ticket.isSelf && <Badge tone="blue">{t("yours")}</Badge>}
+                    </div>
+                    {ticket.checkedInAt ? (
                       <Badge tone="success">{t("checkedIn")}</Badge>
                     ) : (
                       <Badge tone="blue">{t("valid")}</Badge>
                     )}
                   </div>
-                  <p className="mt-4 font-sans text-heading-m font-bold text-black02">
-                    {ticket.attendee_name}
-                  </p>
-                  {ticket.apparel_size && (
-                    <p className="mt-1 text-body-m text-black02/70">
-                      {t("size", { size: ticket.apparel_size })}
+
+                  {ticket.tier.label && (
+                    <p className="mt-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                      {ticket.tier.label[locale === "en" ? "en" : "fr"]}
                     </p>
                   )}
+
+                  <p className="mt-2 font-sans text-heading-m font-bold text-black02">
+                    {ticket.attendeeName}
+                  </p>
+                  <p className="mt-1 break-words text-body-m text-black02/70">
+                    {ticket.attendeeEmail}
+                  </p>
+                  {ticket.apparelSize && (
+                    <p className="mt-1 text-body-m text-black02/70">
+                      {t("size", { size: ticket.apparelSize })}
+                    </p>
+                  )}
+
+                  {/* What the tier includes. The whole point of buying one
+                      tier over another, and until now it lived only on the
+                      sales page — where you cannot look it up afterwards. */}
+                  {ticket.tier.perks.length > 0 && (
+                    <div className="mt-5">
+                      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                        {t("included")}
+                      </p>
+                      <ul className="mt-2 flex flex-col gap-1.5">
+                        {ticket.tier.perks.map((perk, i) => (
+                          <li
+                            key={i}
+                            className="flex gap-2 text-body-m text-black02/80"
+                          >
+                            <Check
+                              size={16}
+                              weight="bold"
+                              aria-hidden
+                              className="mt-1 shrink-0"
+                            />
+                            <span>{perk[locale === "en" ? "en" : "fr"]}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* What it cost. `unitAmount` is what this ticket was
+                      charged at; the discount and the total belong to the
+                      whole ORDER, so they are labelled as such rather than
+                      implying this one ticket carried them. */}
+                  {ticket.order && (
+                    <div className="mt-5 border-t-2 border-black02/15 pt-4">
+                      {ticket.unitAmount !== null && (
+                        <div className="flex items-baseline justify-between gap-4">
+                          <span className="text-body-m text-black02/70">
+                            {t("pricePaid")}
+                          </span>
+                          <span className="font-mono text-body-m font-bold text-black02">
+                            {money(ticket.unitAmount)} {ticket.order.currency}
+                          </span>
+                        </div>
+                      )}
+                      {ticket.order.discountAmount > 0 && (
+                        <div className="mt-1.5 flex items-baseline justify-between gap-4">
+                          <span className="text-body-m text-black02/70">
+                            {t("orderDiscount", {
+                              code: ticket.order.discountCode ?? "",
+                            })}
+                          </span>
+                          <span className="font-mono text-body-m text-black02/70">
+                            -{money(ticket.order.discountAmount)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="mt-1.5 flex items-baseline justify-between gap-4">
+                        <span className="text-body-m text-black02/70">
+                          {t("orderTotal")}
+                        </span>
+                        <span className="font-mono text-body-m text-black02/70">
+                          {money(ticket.order.chargedAmount)}{" "}
+                          {ticket.order.currency}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-caption text-black02/55">
+                        {t("purchasedOn", {
+                          date: new Date(
+                            ticket.order.paidAt,
+                          ).toLocaleDateString(
+                            locale === "en" ? "en-GB" : "fr-FR",
+                            { day: "numeric", month: "long", year: "numeric" },
+                          ),
+                        })}
+                      </p>
+                      <p className="mt-1 font-mono text-caption text-black02/45">
+                        {t("reference", {
+                          ref: ticket.order.depositId.slice(0, 8),
+                        })}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="mt-5">
                     <BadgeCode
-                      code={ticket.badge_code}
+                      code={ticket.badgeCode}
                       label={t("badgeLabel")}
                       size={132}
                     />

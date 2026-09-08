@@ -23,7 +23,16 @@ export const GALLERY_BUCKET = "dp-cards";
 
 /** The client already downscales to 640px; this is the ceiling we enforce. */
 export const MAX_EDGE = 800;
-export const MAX_BYTES = 400 * 1024;
+/**
+ * Cap on the bytes ARRIVING, not the bytes stored.
+ *
+ * Raised when the wall moved to WebP: a browser that cannot encode WebP from
+ * a canvas falls back to PNG, and a 640px PNG carrying a photograph is
+ * comfortably over the old 400 KB. What actually lands in the bucket is the
+ * re-encode below, which is far smaller — so this only has to be generous
+ * enough not to punish an older Safari for its encoder.
+ */
+export const MAX_BYTES = 2 * 1024 * 1024;
 const MAX_NICKNAME = 28;
 
 /** How long a wall image URL stays valid. Long enough to render, not to hotlink. */
@@ -107,19 +116,25 @@ export async function normaliseImage(file: Blob): Promise<Buffer> {
   // any EXIF orientation before it is discarded, so the picture keeps the way
   // up it was submitted.
   //
-  // `.flatten()` before `.jpeg()` matters specifically for this generator: a
-  // rounded or mixed-corner card (geometry.ts) has its four corners fully
-  // transparent, and sharp's JPEG encoder — like a browser canvas — composites
-  // transparency onto BLACK when no background is given. Every submitted card
-  // was picking up solid black corners here even after the client-side fix in
-  // gallery.ts, because this re-encode runs independently and is what
-  // actually gets stored. #F0F0F0 matches the client's flatten colour
-  // (frames.ts / stickers.ts "paper") so a card looks the same wherever it
-  // was produced.
+  // **WebP, and the transparency survives.** The corners of a card are fully
+  // transparent by construction (geometry.ts draws inside a clipped rounded
+  // rect). JPEG has no alpha channel, so storing one meant compositing those
+  // corners onto something — and every encoder, sharp and browser canvas
+  // alike, composites onto BLACK unless told otherwise. Flattening onto paper
+  // hid that, but only by baking a colour into the card: any wall background other
+  // than #F0F0F0 showed a pale rectangle behind every rounded corner.
+  //
+  // WebP carries alpha, so there is nothing to flatten and nothing to bake.
+  // The card is stored exactly as it was composed and sits on whatever the
+  // wall is painted, the way the PNG download always did.
+  //
+  // Quality rather than `lossless: true` on purpose: these are photographs,
+  // and a lossless card runs several times larger for a difference nobody can
+  // see on a wall tile — while `alphaQuality: 100` keeps the one channel that
+  // actually has to be exact, because a soft alpha edge is a visible halo.
   return image
     .rotate()
-    .flatten({ background: "#F0F0F0" })
-    .jpeg({ quality: 82, mozjpeg: true })
+    .webp({ quality: 92, alphaQuality: 100, effort: 4 })
     .toBuffer();
 }
 
@@ -170,16 +185,22 @@ export function initialStatus(): "approved" | "pending" {
   return process.env.DP_GALLERY_REVIEW === "1" ? "pending" : "approved";
 }
 
-/** Storage path. Generated id, never the nickname — that is user input. */
+/**
+ * Storage path. Generated id, never the nickname — that is user input.
+ *
+ * `.webp` since the format change. Rows written before it keep their `.jpg`
+ * path in the database and go on resolving: the extension is whatever was
+ * stored, not something recomputed at read time.
+ */
 export function storagePath(id: string): string {
-  return `${new Date().getFullYear()}/${id}.jpg`;
+  return `${new Date().getFullYear()}/${id}.webp`;
 }
 
 export async function storeCard(path: string, bytes: Buffer): Promise<void> {
   const supabase = createAdminSupabase();
   const { error } = await supabase.storage
     .from(GALLERY_BUCKET)
-    .upload(path, bytes, { contentType: "image/jpeg", upsert: false });
+    .upload(path, bytes, { contentType: "image/webp", upsert: false });
   if (error) throw new Error(`could not store the card: ${error.message}`);
 }
 
@@ -194,6 +215,73 @@ export async function removeCard(path: string): Promise<void> {
   const { error } = await supabase.storage.from(GALLERY_BUCKET).remove([path]);
   if (error)
     console.warn("[dp-gallery] could not remove object", error.message);
+}
+
+/** How many cards one page of the wall carries. */
+export const WALL_PAGE_SIZE = 24;
+
+export interface WallPage {
+  cards: { id: string; nickname: string; imageUrl: string }[];
+  page: number;
+  hasMore: boolean;
+}
+
+/**
+ * One page of the wall, read straight from the database.
+ *
+ * Extracted so the PAGE and the API route share it. The page used to fetch
+ * its own API route over HTTP — `fetch(NEXT_PUBLIC_APP_BASE_URL + "/api/...")`
+ * — which is a server calling itself across the network to reach a function
+ * it already has. That was not merely wasteful: when the self-call failed for
+ * any reason (a cold start, a base URL that is wrong on a preview
+ * deployment), the wall rendered with zero cards and looked broken until
+ * someone reloaded. There is no network hop left to fail.
+ *
+ * Shuffled by default so an early submission is not buried under a late rush.
+ */
+export async function readWallPage(
+  page = 0,
+  shuffle = true,
+): Promise<WallPage> {
+  const supabase = createAdminSupabase();
+  const { data, error } = await supabase
+    .from("dp_cards")
+    .select("id, nickname, storage_path, created_at")
+    .eq("status", "approved")
+    .eq("visible", true)
+    .order("created_at", { ascending: false })
+    .range(page * WALL_PAGE_SIZE, page * WALL_PAGE_SIZE + WALL_PAGE_SIZE - 1);
+
+  if (error) {
+    console.error("[dp-gallery] read failed", error.message);
+    throw new Error(error.message);
+  }
+
+  const rows = data ?? [];
+  if (shuffle) {
+    for (let i = rows.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [rows[i], rows[j]] = [rows[j], rows[i]];
+    }
+  }
+
+  // No IP, no consent timestamps, no tokens — the contract is explicit.
+  const cards = await Promise.all(
+    rows.map(async (row) => ({
+      id: row.id,
+      nickname: row.nickname,
+      imageUrl: await signedUrl(row.storage_path),
+    })),
+  );
+
+  return {
+    cards: cards.filter(
+      (card): card is { id: string; nickname: string; imageUrl: string } =>
+        Boolean(card.imageUrl),
+    ),
+    page,
+    hasMore: rows.length === WALL_PAGE_SIZE,
+  };
 }
 
 /** A short-lived URL for one approved card. */

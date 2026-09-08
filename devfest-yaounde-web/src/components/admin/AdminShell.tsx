@@ -5,16 +5,20 @@ import {
   ChartBar,
   Gear,
   Image as ImageIcon,
+  List,
   Package,
   Percent,
   Receipt,
   Table,
   Ticket,
   Users,
+  X,
 } from "@phosphor-icons/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useMediaQuery } from "@/lib/use-media-query";
+import { lockScroll } from "@/lib/scroll-source";
 import { useSearchParams } from "next/navigation";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import type { AdminData, AdminSettings, MissingPhoto } from "@/lib/admin/shape";
 import { AdminOverview } from "./views/AdminOverview";
@@ -152,32 +156,143 @@ export function AdminShell({
   settings: AdminSettings;
   missingPhotos: MissingPhoto[];
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const params = useSearchParams();
-  const view = parseView(params.get("view"));
+  // Seeded from the URL once, then owned here. Reading `params` on every
+  // render would tie the view back to the router and undo the point below.
+  const [view, setView] = useState<ViewId>(() => parseView(params.get("view")));
+
+  /**
+   * The sidebar as a real drawer on a phone.
+   *
+   * It used to be a rounded card sitting at the top of the page with the
+   * sections wrapped into pills underneath it — always there, taking a screen
+   * of height before any content, and not actually usable. On a small screen
+   * it is now a full-bleed drawer behind a floating button, and the layout
+   * below it starts at the top of the page where it belongs.
+   */
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Admin · DevFest Yaoundé";
   }, []);
 
+  /** From `lg` the sidebar is permanent, so none of the drawer rules apply. */
+  const permanent = useMediaQuery("(min-width: 1024px)");
+  const shown = permanent || drawerOpen;
+
+  useEffect(() => {
+    if (!drawerOpen || permanent) return;
+    /*
+     * `lockScroll`, not `document.body.style.overflow`.
+     *
+     * The document element is what scrolls here, so hiding overflow on the
+     * body alone leaves the page moving under the drawer — which is exactly
+     * what it did. `lockScroll` covers <html> too, compensates for a native
+     * scrollbar gutter, and stops Lenis, which keeps gliding regardless of
+     * any overflow rule.
+     */
+    const releaseScroll = lockScroll();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setDrawerOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      releaseScroll();
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [drawerOpen, permanent]);
+
+  /**
+   * Switch view, and write the URL WITHOUT navigating.
+   *
+   * This used to call `router.replace`. In the App Router that is a real
+   * navigation: it asks the server for the route again, which re-runs the
+   * admin page — six database reads, every one of them for data already
+   * sitting in this component's props — before the new tab can paint.
+   * Moving between tabs was therefore slower than moving between pages of
+   * the public site, which is the opposite of what a dashboard should feel
+   * like and exactly what was reported.
+   *
+   * `history.replaceState` gives the same shareable, reload-safe URL with no
+   * round trip at all. Nothing on the server depends on `?view=`: the page
+   * takes no `searchParams`, so there was never anything to re-render for.
+   */
   function go(id: ViewId) {
-    const next = new URLSearchParams(params.toString());
+    setView(id);
+    setDrawerOpen(false);
+    const next = new URLSearchParams(window.location.search);
     if (id === "overview") next.delete("view");
     else next.set("view", id);
     const query = next.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, {
-      scroll: false,
-    });
+    window.history.replaceState(
+      null,
+      "",
+      query ? `${window.location.pathname}?${query}` : window.location.pathname,
+    );
   }
 
   const header = HEADERS[view];
 
   return (
-    <div className="min-h-screen bg-pastel px-4 py-5 sm:px-6">
+    <div className="min-h-screen bg-pastel px-4 pb-5 pt-20 sm:px-6 lg:pt-5">
+      {/*
+        The only way into the drawer on a phone, and it floats above the
+        content so it is reachable from anywhere on a long table without
+        scrolling back up. Hidden from `lg`, where the sidebar is permanent.
+      */}
+      <button
+        type="button"
+        onClick={() => setDrawerOpen(true)}
+        aria-label="Open admin menu"
+        aria-expanded={drawerOpen}
+        aria-controls="admin-drawer"
+        className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_3px_0_0_var(--color-black02)] lg:hidden"
+      >
+        <List size={20} weight="bold" />
+      </button>
+
       <div className="mx-auto flex max-w-[100rem] flex-col gap-6 lg:flex-row">
         <aside className="shrink-0 lg:w-56">
-          <div className="rounded-lg border border-black02/20 bg-offwhite p-4 lg:fixed lg:top-5 lg:bottom-5 lg:flex lg:w-56 lg:flex-col lg:overflow-y-auto">
+          {/*
+            The scrim. It fades rather than appearing, and it is what makes
+            the drawer read as sitting ABOVE the page instead of replacing it.
+            Tapping it closes, like every other dismissable surface here.
+          */}
+          <div
+            aria-hidden
+            onClick={() => setDrawerOpen(false)}
+            className={`fixed inset-0 z-30 bg-black02/50 transition-opacity duration-300 ease-out motion-reduce:transition-none lg:hidden ${
+              drawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
+            }`}
+          />
+
+          {/*
+            Kept MOUNTED and slid in and out, rather than switched between
+            `hidden` and `flex` — an element that does not exist cannot
+            animate, which is why every open and close was instantaneous.
+
+            `inert` while it is off-screen, so its buttons are not tabbable
+            from a page that appears to be showing no menu at all. Driven by
+            the media query rather than by a class, because `inert` is an
+            attribute and cannot be scoped to a breakpoint.
+          */}
+          <div
+            id="admin-drawer"
+            inert={!shown}
+            className={`fixed inset-0 z-40 flex flex-col overflow-y-auto overscroll-contain border-0 bg-offwhite p-5 transition-transform duration-300 ease-out motion-reduce:transition-none lg:inset-auto lg:bottom-5 lg:top-5 lg:w-56 lg:translate-x-0 lg:rounded-lg lg:border lg:border-black02/20 lg:p-4 lg:transition-none ${
+              drawerOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            {/* Square on a phone: a full-bleed panel with rounded corners
+                reads as a card that failed to fill the screen. */}
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close admin menu"
+              className="mb-4 self-end rounded-pill border-2 border-black02 p-2 text-black02 lg:hidden"
+            >
+              <X size={18} weight="bold" />
+            </button>
             <Link
               href="/"
               className="flex items-center gap-2.5"

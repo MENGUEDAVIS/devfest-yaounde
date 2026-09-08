@@ -32,8 +32,14 @@ export interface TeamMember {
   id: string;
   name: string;
   role: LocalizedString;
-  /** Personality-forward one-liner, not a formal bio (PAGES.md §6). */
-  oneLiner: LocalizedString;
+  /**
+   * Personality-forward one-liner, not a formal bio (PAGES.md §6).
+   *
+   * Optional: a real organiser's words are theirs to write. See the note on
+   * `teamSchema` — the alternative was inventing a sentence and putting a
+   * named person's face next to it.
+   */
+  oneLiner?: LocalizedString;
   /**
    * What they actually do for the event (Organising, Sponsoring, Ushering,
    * Design, Logistics, Programme…). This doubles as the grouping/filter axis
@@ -43,10 +49,10 @@ export interface TeamMember {
   contribution: LocalizedString;
   photoUrl: string;
   social?: { x?: string; linkedin?: string; website?: string };
-  /** Casual interview-style question shown in the detail reveal. */
-  icebreakerQuestion: LocalizedString;
-  /** Their short answer to it. */
-  icebreakerAnswer: LocalizedString;
+  /** Casual interview-style question shown in the detail reveal. Optional. */
+  icebreakerQuestion?: LocalizedString;
+  /** Their short answer to it. Optional, for the same reason. */
+  icebreakerAnswer?: LocalizedString;
   /** Optional short, shareable funny note. */
   funnyMoment?: LocalizedString;
   /** true = rendered in the Alumni / Past Organizers section. */

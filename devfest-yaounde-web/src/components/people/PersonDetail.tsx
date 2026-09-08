@@ -23,8 +23,13 @@ export interface PersonLike {
   /** Speakers have a bio; team members have a one-liner. */
   bio?: LocalizedString;
   oneLiner?: LocalizedString;
-  icebreakerQuestion: LocalizedString;
-  icebreakerAnswer: LocalizedString;
+  /*
+   * Optional since the team file holds real organisers rather than invented
+   * placeholders — their words are theirs to write, and nothing here will
+   * write words for them. Speakers still supply both.
+   */
+  icebreakerQuestion?: LocalizedString;
+  icebreakerAnswer?: LocalizedString;
   funnyMoment?: LocalizedString;
   social?: { x?: string; linkedin?: string; website?: string };
 }
@@ -126,8 +131,10 @@ export function PersonDetail({
         </p>
       )}
 
-      {/* Icebreaker — a quote moment, not a data row */}
-      {personality && (
+      {/* Icebreaker — a quote moment, not a data row. Skipped entirely when
+          the person has not written one: an empty quote block with a stray
+          quotation mark reads as a rendering failure. */}
+      {personality && person.icebreakerQuestion && person.icebreakerAnswer && (
         <div className={`person-icebreaker border-t-2 pt-5 ${ruleCls}`}>
           <p
             className={`font-mono text-mono-tag font-bold uppercase tracking-wide ${labelCls}`}

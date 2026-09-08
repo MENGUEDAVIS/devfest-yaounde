@@ -65,7 +65,8 @@
       "shop": "Boutique",
       "dpGenerator": "Générateur de PP",
       "communityWall": "Mur de la communauté",
-      "community": "Rejoindre la communauté"
+      "community": "Rejoindre la communauté",
+      "account": "Mon compte"
     },
     "legal": {
       "title": "Légal",
@@ -82,7 +83,7 @@
     "hero": {
       "eyebrow": "GDG Yaoundé présente",
       "headline": "DevFest Yaoundé {year}",
-      "dates": "Dates bientôt annoncées",
+      "dates": "21–22 novembre 2026",
       "venue": "Yaoundé, Cameroun",
       "ctaPrimary": "Prends ta place",
       "ctaSecondary": "Voir le swag",
@@ -255,11 +256,17 @@
       "signInPrefill": "Te connecter remplit tes informations automatiquement. Facultatif — tu peux continuer sans.",
       "addDiscount": "Ajouter un code de réduction",
       "apply": "Appliquer",
-      "discountStaged": "On l'applique au moment de la commande, et on t'indique ce qui a été déduit.",
+      "subtotal": "Sous-total",
+      "discountRow": "Réduction",
+      "removeDiscount": "Retirer",
+      "applying": "On vérifie…",
+      "totalToPay": "Total à payer",
+      "discountConfirmedAtPayment": "Ce montant est confirmé au moment du paiement.",
       "refundTitle": "Les billets ne sont pas remboursables",
       "refundBody": "Une fois payé, un billet ne peut être ni remboursé ni annulé — ni en cas de changement de programme, ni après l'événement. Tu peux en revanche y mettre le nom de quelqu'un d'autre avant le jour J.",
       "refundAck": "Je comprends que les billets ne sont pas remboursables.",
-      "metaDesc": "Choisis ton pass et paie en Mobile Money. Tous les tarifs, ce qu'ils incluent, et comment entrer."
+      "metaDesc": "Choisis ton pass et paie en Mobile Money. Tous les tarifs, ce qu'ils incluent, et comment entrer.",
+      "myTicketsLink": "Déjà commandé ? Voir mes billets"
     },
     "shop": {
       "title": "Boutique",
@@ -320,7 +327,8 @@
       "fulfilmentPickup": "Je récupère sur place",
       "fulfilmentShipping": "Je préfère être livré",
       "fulfilmentNoteLabel": "Un repère pour nous aider (facultatif)",
-      "fulfilmentNotePlaceholder": "Quartier, point de repère, quand tu es dispo…"
+      "fulfilmentNotePlaceholder": "Quartier, point de repère, quand tu es dispo…",
+      "myOrdersLink": "Voir mes commandes"
     },
     "dpGenerator": {
       "title": "Générateur de PP",
@@ -456,6 +464,7 @@
     "paymentReturn": {
       "title": "Confirmation de ton paiement",
       "waitingTitle": "Un instant — on confirme ton paiement",
+      "slowTitle": "On vérifie encore",
       "waitingHint": "Garde cette page ouverte. C'est elle qui transforme ton paiement en billet, et ça prend généralement quelques secondes.",
       "successTitle": "C'est bon, tu es des nôtres.",
       "charged": "Débité : {amount} {currency}",
@@ -493,6 +502,13 @@
       "valid": "Valide",
       "checkedIn": "Enregistré",
       "size": "Taille {size}",
+      "yours": "Le tien",
+      "included": "Ce qui est compris",
+      "pricePaid": "Prix du billet",
+      "orderDiscount": "Réduction {code}",
+      "orderTotal": "Total de la commande",
+      "purchasedOn": "Acheté le {date}",
+      "reference": "Réf. {ref}",
       "noTicketsTitle": "Pas encore de billet",
       "noTicketsBody": "Dès que tu en prends un, il apparaît ici avec le code qui te fait entrer.",
       "browseTickets": "Voir les formules",

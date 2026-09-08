@@ -65,7 +65,8 @@
       "shop": "Shop",
       "dpGenerator": "DP Generator",
       "communityWall": "Community Wall",
-      "community": "Join the Community"
+      "community": "Join the Community",
+      "account": "My account"
     },
     "legal": {
       "title": "Legal",
@@ -82,7 +83,7 @@
     "hero": {
       "eyebrow": "GDG Yaoundé presents",
       "headline": "DevFest Yaoundé {year}",
-      "dates": "Dates dropping soon",
+      "dates": "21–22 November 2026",
       "venue": "Yaoundé, Cameroon",
       "ctaPrimary": "Grab your ticket",
       "ctaSecondary": "Check the swag",
@@ -255,11 +256,17 @@
       "signInPrefill": "Signing in fills your details in for you. Optional — you can carry on without it.",
       "addDiscount": "Add a discount code",
       "apply": "Apply",
-      "discountStaged": "We'll apply this when you place the order, and show what came off.",
+      "subtotal": "Subtotal",
+      "discountRow": "Discount",
+      "removeDiscount": "Remove",
+      "applying": "Checking…",
+      "totalToPay": "Total to pay",
+      "discountConfirmedAtPayment": "This total is confirmed when you pay.",
       "refundTitle": "Tickets are non-refundable",
       "refundBody": "Once a ticket is paid for it can't be refunded or cancelled — not for a change of plans, and not after the event. You can put someone else's name on it before the day.",
       "refundAck": "I understand tickets are non-refundable.",
-      "metaDesc": "Pick your pass and pay with Mobile Money. Every tier, what's included, and how to get in."
+      "metaDesc": "Pick your pass and pay with Mobile Money. Every tier, what's included, and how to get in.",
+      "myTicketsLink": "Already bought? See my tickets"
     },
     "shop": {
       "title": "Shop",
@@ -320,7 +327,8 @@
       "fulfilmentPickup": "I'll collect it",
       "fulfilmentShipping": "I'd rather have it delivered",
       "fulfilmentNoteLabel": "A landmark to help us (optional)",
-      "fulfilmentNotePlaceholder": "Neighbourhood, landmark, when you're around…"
+      "fulfilmentNotePlaceholder": "Neighbourhood, landmark, when you're around…",
+      "myOrdersLink": "See my orders"
     },
     "dpGenerator": {
       "title": "DP Generator",
@@ -456,6 +464,7 @@
     "paymentReturn": {
       "title": "Confirming your payment",
       "waitingTitle": "Hang tight — confirming your payment",
+      "slowTitle": "Still checking",
       "waitingHint": "Keep this page open. It's what turns your payment into a ticket, and it usually takes a few seconds.",
       "successTitle": "You're in.",
       "charged": "Charged {amount} {currency}",
@@ -493,6 +502,13 @@
       "valid": "Valid",
       "checkedIn": "Checked in",
       "size": "Size {size}",
+      "yours": "Yours",
+      "included": "What's included",
+      "pricePaid": "Ticket price",
+      "orderDiscount": "Discount {code}",
+      "orderTotal": "Order total",
+      "purchasedOn": "Bought on {date}",
+      "reference": "Ref. {ref}",
       "noTicketsTitle": "No tickets yet",
       "noTicketsBody": "Once you grab one, it'll show up here with the code that gets you through the door.",
       "browseTickets": "See ticket tiers",

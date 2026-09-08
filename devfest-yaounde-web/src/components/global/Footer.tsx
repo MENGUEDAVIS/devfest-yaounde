@@ -149,6 +149,15 @@ export async function Footer() {
                       {t("getInvolved.community")}
                     </a>
                   </li>
+                  <li>
+                    {/* The only way back to a ticket, until now, was to buy
+                        another one: nothing linked to /account except the
+                        confirmation screen you had already navigated away
+                        from. It belongs in the footer, on every page. */}
+                    <Link href="/account" className={LINK_CLASS}>
+                      {t("getInvolved.account")}
+                    </Link>
+                  </li>
                 </ul>
               </div>
 

@@ -35,10 +35,13 @@ the one this guide is mostly about.
 You do not need any other variable for the dashboard. The community wall is
 on (ADR 0033). Click a card on the Wall panel to hide or show it — grey and
 faded means off, but the file is still there, so this is reversible. The
-trash icon in the corner of a card is not: it deletes the stored image
-outright and drops the card off the public wall for good, same as a takedown
-request. A card with a small flag badge has been reported by a visitor; that
-count is the only signal the panel gives you for which ones to look at first.
+trash icon in the corner of a card is not: it removes the image and the
+record together, the same as a takedown request, and the card does not come
+back. The download icon beside it saves a copy — that is deliberately
+possible here and deliberately blocked on the public wall, because this side
+sits behind a server-checked organiser session. A card with a small flag
+badge has been reported by a visitor; that count is the only signal the panel
+gives you for which ones to look at first.
 The active section lives in `?view=` so a reload keeps your place. **Back to
 site** in the sidebar returns to the public homepage.
 

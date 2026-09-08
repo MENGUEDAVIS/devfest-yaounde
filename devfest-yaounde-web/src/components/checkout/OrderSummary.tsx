@@ -1,8 +1,8 @@
 "use client";
 
-import { Tag } from "@phosphor-icons/react";
+import { CaretDown, CircleNotch, Tag, X } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 export interface SummaryLine {
   id: string;
@@ -12,6 +12,15 @@ export interface SummaryLine {
   amount: number;
 }
 
+/** What the server said this basket costs. Null until a code is applied. */
+export interface AppliedDiscount {
+  code: string;
+  /** Whole XAF taken off. Always the server's number, never computed here. */
+  amount: number;
+  /** What is left to pay. Also the server's. */
+  charged: number;
+}
+
 /**
  * The sticky "Your order" card — shared by tickets and shop.
  *
@@ -19,11 +28,17 @@ export interface SummaryLine {
  * have a code, and a whole step asking about something most people skip is a
  * step that mostly gets clicked through.
  *
- * There is deliberately no pre-validation call behind "Apply": an endpoint
- * that says whether a code is real would be a free oracle for guessing codes
- * (GAPS.md G4). Apply stages the code, and the server's verdict arrives with
- * the order — which is exactly what the copy says, rather than implying the
- * code has been checked.
+ * **Applying a code prices it immediately** (`POST /api/checkout/quote`). It
+ * used to only stage the code, with the deduction revealed on the payment
+ * page — which meant the first honest total appeared after the point of no
+ * return. `GAPS.md` G4 had ruled a preview endpoint out as an oracle for
+ * guessing codes; ADR 0036 reverses that, because the oracle already existed
+ * behind checkout and the real fence was always the rate limit.
+ *
+ * Every number in the discount rows comes from the server. This component
+ * does no discount arithmetic of its own — a percentage recomputed on the
+ * client is a second opinion nobody asked for, and it will eventually
+ * disagree with the amount actually charged.
  */
 export function OrderSummary({
   title,
@@ -36,6 +51,7 @@ export function OrderSummary({
 }: {
   title: string;
   lines: SummaryLine[];
+  /** Basket total BEFORE any discount, priced from the catalog. */
   total: number;
   emptyLabel: string;
   note: string;
@@ -44,8 +60,10 @@ export function OrderSummary({
     setOpen: (v: boolean) => void;
     code: string;
     setCode: (v: string) => void;
-    applied: boolean;
     apply: () => void;
+    remove: () => void;
+    pending: boolean;
+    applied: AppliedDiscount | null;
     error: string | null;
     errorText: (code: string) => string;
   };
@@ -56,107 +74,236 @@ export function OrderSummary({
   const money = (v: number) =>
     new Intl.NumberFormat(locale === "fr" ? "fr-CM" : "en-CM").format(v);
 
+  const applied = discount.applied;
+  // The server's `charged` wins over anything derivable here. It already
+  // accounts for a discount larger than the basket, which clamps to zero.
+  const payable = applied ? applied.charged : total;
+
+  /**
+   * Collapsed by default on a phone, always open on a wide screen.
+   *
+   * The card is pinned to the bottom of a small screen so the total stays in
+   * view while someone picks tiers. Pinned AND fully expanded, it would cover
+   * most of what it is summarising — so it behaves like the FAQ accordions:
+   * the header is the toggle, and it carries the one number that has to be
+   * legible whether or not anything is open.
+   */
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className="rounded-lg border-2 border-black02 bg-offwhite p-6">
-      <h2 className="font-sans text-heading-m font-bold text-black02">
-        {title}
-      </h2>
-
-      {lines.length === 0 ? (
-        <p className="mt-4 text-body-m text-black02/70">{emptyLabel}</p>
-      ) : (
-        <>
-          <ul className="mt-4 flex flex-col gap-3">
-            {lines.map((line) => (
-              <li
-                key={line.id}
-                className="flex items-baseline justify-between gap-4"
-              >
-                <span className="min-w-0 text-body-m text-black02">
-                  {line.label} × {line.quantity}
-                  {line.sublabel && (
-                    <span className="block text-caption text-black02/60">
-                      {line.sublabel}
-                    </span>
-                  )}
-                </span>
-                <span className="shrink-0 font-mono text-body-m font-bold text-black02">
-                  {money(line.amount)}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-5 flex items-baseline justify-between gap-4 border-t-2 border-black02/15 pt-4">
-            <span className="font-sans text-body-l font-bold text-black02">
-              {t("total")}
+    <div className="overflow-hidden rounded-2xl border-2 border-black02 bg-offwhite shadow-[0_4px_0_0_var(--color-black02)] lg:rounded-lg lg:shadow-none">
+      {/*
+        The header is the toggle on mobile and a plain heading from `lg`,
+        where the body never collapses and there is nothing to press.
+      */}
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-controls="order-summary-body"
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left lg:cursor-default lg:px-6 lg:pb-0 lg:pt-6"
+      >
+        <h2 className="font-sans text-heading-m font-bold text-black02">
+          {title}
+        </h2>
+        <span className="flex shrink-0 items-center gap-2 lg:hidden">
+          {lines.length > 0 && (
+            <span className="font-mono text-body-l font-bold text-black02">
+              {money(applied ? applied.charged : total)} XAF
             </span>
-            <span className="font-mono text-heading-m font-bold text-black02">
-              {money(total)} XAF
-            </span>
-          </div>
-          {/* The server recomputes every total from the catalog, so this is an
-              estimate until the order comes back with its quote. */}
-          <p className="mt-3 text-caption text-black02/60">{note}</p>
+          )}
+          <CaretDown
+            size={18}
+            weight="bold"
+            aria-hidden
+            className={`transition-transform duration-200 motion-reduce:transition-none ${
+              open ? "rotate-180" : ""
+            }`}
+          />
+        </span>
+      </button>
 
-          <div className="mt-5 border-t-2 border-black02/15 pt-4">
-            {!discount.open ? (
-              <button
-                type="button"
-                onClick={() => discount.setOpen(true)}
-                className="inline-flex items-center gap-2 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 underline decoration-2 underline-offset-4 hover:text-black02/60"
-              >
-                <Tag size={14} weight="bold" aria-hidden />
-                {t("addDiscount")}
-              </button>
+      {/*
+        The grid-rows collapse, the same trick the FAQ accordions use: an
+        element cannot transition to or from `display: none`, so the row
+        track animates between `0fr` and `1fr` instead and the inner wrapper
+        clips. Classes rather than an inline `gridTemplateRows`, because an
+        inline style would beat the `lg` rule and keep the desktop column
+        collapsed.
+      */}
+      <div
+        id="order-summary-body"
+        className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none lg:grid-rows-[1fr] ${
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="px-5 pb-5 lg:px-6 lg:pb-6">
+            {lines.length === 0 ? (
+              <p className="mt-4 text-body-m text-black02/70">{emptyLabel}</p>
             ) : (
-              <div>
-                <label
-                  htmlFor="discount-code"
-                  className="text-body-m font-bold text-black02"
-                >
-                  {t("discountLabel")}
-                </label>
-                <div className="mt-2 flex gap-2">
-                  <input
-                    id="discount-code"
-                    value={discount.code}
-                    onChange={(e) =>
-                      discount.setCode(e.target.value.toUpperCase())
-                    }
-                    placeholder="GDG-2026"
-                    maxLength={32}
-                    className="min-w-0 flex-1 rounded-lg border-2 border-black02 bg-offwhite px-3 py-2 font-mono text-body-m uppercase tracking-wide text-black02"
-                  />
-                  <button
-                    type="button"
-                    onClick={discount.apply}
-                    disabled={discount.code.trim().length < 3}
-                    className="shrink-0 rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02 disabled:opacity-40"
+              <>
+                <ul className="mt-4 flex flex-col gap-3">
+                  {lines.map((line) => (
+                    <li
+                      key={line.id}
+                      className="flex items-baseline justify-between gap-4"
+                    >
+                      <span className="min-w-0 text-body-m text-black02">
+                        {line.label} × {line.quantity}
+                        {line.sublabel && (
+                          <span className="block text-caption text-black02/60">
+                            {line.sublabel}
+                          </span>
+                        )}
+                      </span>
+                      <span className="shrink-0 font-mono text-body-m font-bold text-black02">
+                        {money(line.amount)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-5 border-t-2 border-black02/15 pt-4">
+                  {applied && (
+                    <>
+                      <div className="flex items-baseline justify-between gap-4">
+                        <span className="text-body-m text-black02/75">
+                          {t("subtotal")}
+                        </span>
+                        <span className="shrink-0 font-mono text-body-m text-black02/75">
+                          {money(total)}
+                        </span>
+                      </div>
+
+                      {/* The deduction, stated as a number rather than as a
+                    reassurance. "Your code was applied" is not an answer to
+                    "how much did it take off". */}
+                      <div className="mt-2 flex items-baseline justify-between gap-4">
+                        <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 text-body-m font-bold text-black02">
+                          <span className="inline-flex items-center gap-1.5">
+                            <Tag size={14} weight="bold" aria-hidden />
+                            {t("discountRow")}
+                          </span>
+                          <span className="font-mono text-caption uppercase tracking-wide text-black02/70">
+                            {applied.code}
+                          </span>
+                        </span>
+                        <span className="shrink-0 font-mono text-body-m font-bold text-black02">
+                          −{money(applied.amount)}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={discount.remove}
+                        disabled={discount.pending}
+                        className="mt-2 inline-flex items-center gap-1 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70 underline decoration-2 underline-offset-4 hover:text-black02 disabled:opacity-40"
+                      >
+                        <X size={12} weight="bold" aria-hidden />
+                        {t("removeDiscount")}
+                      </button>
+                    </>
+                  )}
+
+                  <div
+                    className={`flex items-baseline justify-between gap-4 ${
+                      applied ? "mt-4 border-t-2 border-black02/15 pt-4" : ""
+                    }`}
                   >
-                    {t("apply")}
-                  </button>
+                    <span className="font-sans text-body-l font-bold text-black02">
+                      {applied ? t("totalToPay") : t("total")}
+                    </span>
+                    <span className="font-mono text-heading-m font-bold text-black02">
+                      {money(payable)} XAF
+                    </span>
+                  </div>
                 </div>
-                {discount.error && (
-                  <p
-                    role="alert"
-                    className="mt-2 text-body-m font-bold text-danger"
-                  >
-                    {discount.errorText(discount.error)}
-                  </p>
-                )}
-                {discount.applied && !discount.error && (
-                  <p className="mt-2 text-body-m text-black02/75">
-                    {t("discountStaged")}
-                  </p>
-                )}
-              </div>
+
+                {/* The server re-prices from the catalog at checkout, so this is an
+              estimate until the order comes back with its quote. */}
+                <p className="mt-3 text-caption text-black02/60">{note}</p>
+
+                <div className="mt-5 border-t-2 border-black02/15 pt-4">
+                  {!discount.open && !applied ? (
+                    <button
+                      type="button"
+                      onClick={() => discount.setOpen(true)}
+                      className="inline-flex items-center gap-2 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 underline decoration-2 underline-offset-4 hover:text-black02/60"
+                    >
+                      <Tag size={14} weight="bold" aria-hidden />
+                      {t("addDiscount")}
+                    </button>
+                  ) : applied ? (
+                    <p className="text-body-m text-black02/75">
+                      {t("discountConfirmedAtPayment")}
+                    </p>
+                  ) : (
+                    <div>
+                      <label
+                        htmlFor="discount-code"
+                        className="text-body-m font-bold text-black02"
+                      >
+                        {t("discountLabel")}
+                      </label>
+                      <div className="mt-2 flex gap-2">
+                        <input
+                          id="discount-code"
+                          value={discount.code}
+                          onChange={(e) =>
+                            discount.setCode(e.target.value.toUpperCase())
+                          }
+                          onKeyDown={(e) => {
+                            // Typing a code and pressing Enter is the obvious
+                            // gesture; without this it submits the page instead.
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              if (discount.code.trim().length >= 3)
+                                discount.apply();
+                            }
+                          }}
+                          placeholder="GDG-2026"
+                          maxLength={32}
+                          disabled={discount.pending}
+                          className="min-w-0 flex-1 rounded-lg border-2 border-black02 bg-offwhite px-3 py-2 font-mono text-body-m uppercase tracking-wide text-black02 disabled:opacity-60"
+                        />
+                        <button
+                          type="button"
+                          onClick={discount.apply}
+                          disabled={
+                            discount.code.trim().length < 3 || discount.pending
+                          }
+                          className="inline-flex shrink-0 items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02 disabled:opacity-40"
+                        >
+                          {discount.pending && (
+                            <CircleNotch
+                              size={14}
+                              weight="bold"
+                              aria-hidden
+                              className="motion-safe:animate-spin"
+                            />
+                          )}
+                          {discount.pending ? t("applying") : t("apply")}
+                        </button>
+                      </div>
+                      {discount.error && (
+                        <p
+                          role="alert"
+                          className="mt-2 text-body-m font-bold text-danger"
+                        >
+                          {discount.errorText(discount.error)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {children}
+              </>
             )}
           </div>
-
-          {children}
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

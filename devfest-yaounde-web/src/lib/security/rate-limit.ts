@@ -22,7 +22,21 @@ export interface RateLimitRule {
 export const RATE_LIMITS = {
   /** Creating a checkout is cheap for us, expensive for PawaPay. */
   checkout: { bucket: "checkout", limit: 10, windowSeconds: 300 },
-  /** Discount codes are guessable by design — this is the brute-force fence. */
+  /**
+   * Pricing a basket. Touches nothing and creates nothing, so this is
+   * generous — a buyer changing their mind about quantities re-prices on
+   * every click, and that is the feature working, not abuse.
+   */
+  quote: { bucket: "quote", limit: 60, windowSeconds: 300 },
+  /**
+   * Discount codes are guessable by design — this is the brute-force fence.
+   *
+   * **Only a WRONG code advances it** (`consumeOnDiscountFailure`). Counting
+   * every submission fenced the wrong thing: an attacker's guesses all fail
+   * and so all count either way, while a buyer holding a real code was
+   * spending the budget just by re-pricing their own basket, and got locked
+   * out of the checkout they were in the middle of.
+   */
   discountCode: { bucket: "discount-code", limit: 8, windowSeconds: 300 },
   /** Status polling from the return page. Generous: the page legitimately polls. */
   paymentStatus: { bucket: "payment-status", limit: 120, windowSeconds: 300 },
@@ -92,6 +106,26 @@ export async function rateLimit(
     limit: rule.limit,
     retryAfterSeconds: rule.windowSeconds,
   };
+}
+
+/**
+ * Charge the brute-force fence for a discount failure, and say whether the
+ * caller has now run out of attempts.
+ *
+ * Call this ONLY once a code has actually been rejected. Order matters: the
+ * lookup happens first and is unmetered, the counter moves only on a wrong
+ * answer. That still throttles guessing — every guess an attacker makes is
+ * wrong, so every guess costs — while leaving a valid code free to re-price
+ * as often as the basket changes.
+ *
+ * @returns true when the caller should be told `rate_limited` instead of
+ *          which flavour of wrong their code was.
+ */
+export async function consumeOnDiscountFailure(
+  identifier: string,
+): Promise<boolean> {
+  const result = await rateLimit(RATE_LIMITS.discountCode, identifier);
+  return !result.allowed;
 }
 
 /** Identity for rate limiting: user id when we have one, client IP otherwise. */

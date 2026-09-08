@@ -70,7 +70,7 @@ export class CheckoutError extends Error {
   }
 }
 
-async function post(path: string, body: unknown): Promise<CheckoutResult> {
+async function post<T>(path: string, body: unknown): Promise<T> {
   let res: Response;
   try {
     res = await fetch(path, {
@@ -92,7 +92,58 @@ async function post(path: string, body: unknown): Promise<CheckoutResult> {
       typeof payload.retryAfter === "number" ? payload.retryAfter : undefined,
     );
   }
-  return payload as CheckoutResult;
+  return payload as T;
+}
+
+/**
+ * "That code did not work", in any of its flavours.
+ *
+ * Mirrors `isDiscountFailure` in `@/lib/payments/errors`, deliberately rather
+ * than importing it: that module is the server's, and the two lists agreeing
+ * is checked by a test rather than by a bundle-crossing import.
+ */
+export function isDiscountFailure(code: string): boolean {
+  return (
+    code === "discount_invalid" ||
+    code === "discount_expired" ||
+    code === "discount_exhausted" ||
+    code === "discount_not_applicable"
+  );
+}
+
+/** What the server says a basket costs. Every number here is its, not ours. */
+export interface BasketQuote {
+  subtotal: number;
+  discountCode: string | null;
+  discountAmount: number;
+  charged: number;
+  currency: string;
+}
+
+/** A basket to price. Ids and counts — there is still no field for money. */
+export type QuoteBasket =
+  | { kind: "tickets"; tiers: { tierId: string; quantity: number }[] }
+  | {
+      kind: "shop";
+      cart: {
+        productId: string;
+        quantity: number;
+        variant?: Record<string, string>;
+      }[];
+    };
+
+/**
+ * Price a basket without committing to it.
+ *
+ * This is what lets the buyer see a discount before paying instead of
+ * discovering it on the payment page (ADR 0036). It reserves nothing and
+ * redeems nothing — the number it returns is the server's arithmetic, not a
+ * held price.
+ */
+export function quoteBasket(
+  input: QuoteBasket & { discountCode?: string },
+): Promise<BasketQuote> {
+  return post<BasketQuote>("/api/checkout/quote", input);
 }
 
 export function checkoutTickets(input: {
@@ -107,7 +158,7 @@ export function checkoutTickets(input: {
   contact: CheckoutContact;
   locale: string;
 }) {
-  return post("/api/checkout/tickets", input);
+  return post<CheckoutResult>("/api/checkout/tickets", input);
 }
 
 export function checkoutShop(input: {
@@ -127,7 +178,7 @@ export function checkoutShop(input: {
   contact: CheckoutContact;
   locale: string;
 }) {
-  return post("/api/checkout/shop", input);
+  return post<CheckoutResult>("/api/checkout/shop", input);
 }
 
 /**

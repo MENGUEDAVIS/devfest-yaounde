@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Flag, Trash } from "@phosphor-icons/react";
+import { DownloadSimple, Flag, Trash } from "@phosphor-icons/react";
 import type { AdminData, AdminWallCard } from "@/lib/admin/shape";
 import { InfoBanner } from "./shared";
 
@@ -42,23 +42,21 @@ export function AdminWall({ data }: { data: AdminData }) {
   }
 
   /**
-   * The only "delete" an organiser can perform.
+   * Delete the card — the row and the image.
    *
-   * `DELETE /api/dp/gallery/:id` needs `X-Deletion-Token`, which only the
-   * SUBMITTER's browser ever holds — there is no path for an organiser to
-   * call it. `PATCH { status: "rejected" }` is the real equivalent: it drops
-   * the row off the public wall (`GET` there filters on `status=approved`)
-   * and removes the stored image outright, same as a takedown. The DB row
-   * stays as moderation history, which is why it disappears from THIS grid
-   * rather than turning into another grey tile.
+   * This used to send `PATCH { status: "rejected" }`, because `DELETE` needed
+   * the submitter's token and an organiser has no way to hold one. The
+   * comment here claimed rejecting was "the real equivalent". It was not:
+   * rejecting removes the IMAGE and keeps the ROW, so the card came straight
+   * back into this grid on the next load, now with nothing to show — you
+   * could press delete on the same card four times and it would still be
+   * there. `DELETE` now accepts an organiser session, so delete deletes.
    */
   async function remove(card: AdminWallCard) {
     setBusy(card.id);
     setError(null);
     const res = await fetch(`/api/dp/gallery/${card.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "rejected" }),
+      method: "DELETE",
     });
     if (!res.ok) {
       setError("Could not delete that card.");
@@ -136,6 +134,23 @@ export function AdminWall({ data }: { data: AdminData }) {
                     <Flag size={11} weight="fill" aria-hidden />
                     {card.reportCount}
                   </span>
+                )}
+
+                {/*
+                  Downloading is blocked on the PUBLIC wall — no context menu,
+                  no drag, no long-press save — and allowed here. The
+                  difference is not the file, it is who is asking: this side
+                  has a server-checked organiser session in front of it.
+                */}
+                {card.imageUrl && (
+                  <a
+                    href={card.imageUrl}
+                    download={`${card.nickname}-${card.id.slice(0, 8)}.webp`}
+                    aria-label={`Download ${card.nickname}'s card`}
+                    className="absolute right-10 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 transition-colors hover:bg-primary"
+                  >
+                    <DownloadSimple size={14} weight="bold" />
+                  </a>
                 )}
 
                 <button
