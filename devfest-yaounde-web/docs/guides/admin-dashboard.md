@@ -119,6 +119,40 @@ short version:
 - **Fallback:** until a collection is published, the public site still reads
   `src/data/*.json`. See ADR 0031.
 
+### Editing content record by record
+
+**Content** in the sidebar is now four editors — Speakers, Schedule, Team,
+Sponsors — plus **Bulk & photos** for CSV and JSON imports. Each list has an
+add button, a pencil to edit and a bin to delete, and editing opens a panel
+over the list rather than a separate page.
+
+A few things worth knowing before you use them:
+
+- **The id is the URL.** It fills itself in from the name for a new record and
+  is then left alone — changing it on an existing one breaks any link to it,
+  and photos are attached by id.
+- **Photos come second.** Save the person first, then upload — the upload
+  attaches a picture to a record that already exists, so the button stays
+  disabled until it does and says why.
+- **Every save writes the whole collection**, because that is how the store
+  works (ADR 0031). If somebody else changed the same list while you had the
+  panel open, your save is refused with a note asking you to reload — rather
+  than quietly overwriting their work.
+- **Order matters where it is shown.** Schedule, Team and Sponsors have
+  up/down arrows, and each press saves immediately.
+- **Team past/current** is the switch on each member. Past organisers move to
+  the alumni section on the public page.
+- The **day** picker only offers days the event actually has, and shows the
+  real date beside each one, so a session cannot be scheduled onto a day that
+  does not exist.
+
+### The DP wall
+
+Cards flip immediately when you hide or show one and wear a shimmer until the
+change lands. If it fails, the card goes back the way it was and a message
+says so — the screen never disagrees with the wall. The filter above the grid
+narrows to what is live or what is hidden.
+
 ## Still 404 after all three?
 
 - Check you are on the right **project** — a `.env.local` pointing at a

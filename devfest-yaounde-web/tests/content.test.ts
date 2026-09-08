@@ -19,6 +19,7 @@ import {
 } from "@/lib/content/schemas";
 import { dryRun, parseCsv } from "@/lib/admin/csv";
 import { SPEAKER_CSV_SPEC, speakersFromCsv } from "@/lib/content/from-csv";
+import { endsAt, slugify } from "@/lib/admin/form-helpers";
 import {
   applyPhotoUrl,
   entryNeedsPhoto,
@@ -268,5 +269,37 @@ describe("editorial photos", () => {
       ),
       true,
     );
+  });
+});
+
+describe("crm form helpers", () => {
+  it("folds accents into a slug rather than dropping the letter", () => {
+    // "Joël" must become joel, not jol — the id ends up in a URL and is what
+    // the photo upload looks the record up by.
+    assert.equal(slugify("Joël Fah"), "joel-fah");
+    assert.equal(slugify("Abdel Aziz MFOSSA"), "abdel-aziz-mfossa");
+    assert.equal(
+      slugify("Grace Divine Tchuenteu Ebe'ete"),
+      "grace-divine-tchuenteu-ebe-ete",
+    );
+  });
+
+  it("never leaves a slug with stray separators", () => {
+    assert.equal(slugify("  --Hello,   World!! "), "hello-world");
+    assert.equal(slugify(""), "");
+  });
+
+  it("adds a duration to a start time", () => {
+    assert.equal(endsAt("09:00", 30), "09:30");
+    assert.equal(endsAt("14:45", 90), "16:15");
+  });
+
+  it("wraps past midnight instead of showing an hour no clock has", () => {
+    assert.equal(endsAt("23:30", 60), "00:30");
+  });
+
+  it("says so rather than guessing when the time is unparseable", () => {
+    assert.equal(endsAt("", 30), "—");
+    assert.equal(endsAt("nonsense", 30), "—");
   });
 });

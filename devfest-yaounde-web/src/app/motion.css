@@ -1527,3 +1527,72 @@
     transform: none !important;
   }
 }
+
+/*
+ * ------------------------------------------------------ admin card shimmer --
+ *
+ * A card in the admin wall waits on a round trip to Supabase when its
+ * visibility is toggled, and a click with no feedback reads as a click that
+ * did not land — so people click again, which is the one thing that must not
+ * happen to a toggle.
+ *
+ * A sweep rather than a spinner: it covers the card it belongs to, so there is
+ * no question which one is busy, and it needs no layout of its own.
+ *
+ * The sweep is a SOLID white band revealed through an alpha MASK, not a
+ * painted gradient. DESIGN.md §2.6 bans gradients as design surfaces, and the
+ * first version of this reached for `background: linear-gradient(...)` — which
+ * is a paint gradient however transparent its stops are. `mask-image` varies
+ * alpha instead: the colour is one flat white, and the mask decides how much
+ * of it shows. Same precedent as the wall's edge fade in globals.css.
+ */
+@keyframes df-admin-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.admin-shimmer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.35);
+  pointer-events: none;
+}
+
+.admin-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(255 255 255 / 0.75);
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 50%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 50%,
+    transparent 100%
+  );
+  animation: df-admin-shimmer 1100ms linear infinite;
+}
+
+/*
+ * Reduced motion keeps the OVERLAY and drops the travel. The point of it is
+ * "this card is busy", which a still veil still says — removing it entirely
+ * would take the feedback away from the people most likely to click twice.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .admin-shimmer::after {
+    animation: none;
+    background: rgb(255 255 255 / 0.35);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
