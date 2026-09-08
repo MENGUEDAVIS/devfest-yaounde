@@ -61,13 +61,42 @@ export const SOCIAL_LINKS = {
   facebook: "#",
 }; // TODO: real DevFest Yaoundé social profile URLs
 
-/**
- * Privacy Policy and Code of Conduct are referenced by PAGES.md §1.3 but
- * aren't in the sitemap (PAGES.md §0) — no route exists for them yet. Kept
- * as "#" placeholders until that's resolved (new routes vs. external docs).
- */
 /** Last edition's recap post or album. Not published yet. */
 export const RECAP_URL = "#";
 
-export const PRIVACY_POLICY_URL = "#";
+/**
+ * The legal links, as published in the chapter's own Bevy footer.
+ *
+ * These are the repo fallback. `site_settings.legal` overrides them once an
+ * organiser edits them in the dashboard (ADR 0038), same rule as every other
+ * setting: the database wins, the repo keeps a fresh clone working.
+ *
+ * They are Google's and GDG's pages rather than ours, which is correct — the
+ * chapter runs under those terms and does not publish its own.
+ */
+export const PARTICIPATION_TERMS_URL =
+  "https://gdg.community.dev/participation-terms/";
+export const PRIVACY_POLICY_URL = "https://policies.google.com/privacy";
+export const TERMS_URL = "https://policies.google.com/terms";
+
+/**
+ * STILL A PLACEHOLDER, and deliberately not pointed at the participation
+ * terms.
+ *
+ * GDG's participation terms very likely cover conduct at events, but "likely"
+ * is not good enough for the link the FAQ offers someone who is asking what
+ * happens if they are harassed. If that page IS the chapter's code of
+ * conduct, this becomes that URL and the FAQ CTA reappears; until somebody
+ * confirms it, a "#" renders as plain text rather than a wrong promise
+ * (`isPlaceholderUrl`).
+ */
 export const CODE_OF_CONDUCT_URL = "#";
+
+/** The call for speakers. Overridden by `site_settings.cfs`. */
+export const CFS_URL = "https://sessionize.com/devfest-yaounde-2026";
+export const CFS_OPENS_AT = "2026-09-05T01:00:00+01:00";
+export const CFS_CLOSES_AT = "2026-10-31T23:59:00+01:00";
+
+/** The sponsor prospectus. Overridden by `site_settings.sponsor_call`. */
+export const SPONSOR_PROSPECTUS_URL =
+  "https://drive.google.com/file/d/1Bof8zhqp5aOtweXL_qmXXGAvyGb1VAAQ/view?usp=sharing";

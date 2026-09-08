@@ -10,16 +10,16 @@ sale, what is missing, and what was deliberately not built.
 Nothing here is code. All of it is configuration, and each item fails in a way
 that is hard to notice.
 
-| #   | Do this                                                                                                                                                                                                                                                      | If you skip it                                                                                   |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| #   | Do this                                                                                                                                                                                                                                                                                               | If you skip it                                                                                   |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | 1   | **`CRON_SECRET` on Vercel, plus Vault secrets `app-base-url` and `cron-secret` (same values), and migration 0010 applied.** The five-minute sweep is Supabase `pg_cron` (ADR 0028) — Hobby cannot run Vercel Cron more than once a day. Confirm a row in `cron.job` and a 200 in `net._http_response` | Anyone who closes the tab after paying never gets their ticket, and their seats stay reserved    |
-| 1b  | _Optional:_ point the PawaPay **Checkouts** callback at `https://DOMAIN/api/payments/pawapay/callback`. Only an optimisation — settlement becomes instant instead of within five minutes                                                                     | Nothing breaks; payments settle a little later                                                   |
-| 2   | `PAWAPAY_ENV=production` **and** a production token                                                                                                                                                                                                          | `AUTHENTICATION_ERROR` with no useful detail                                                     |
-| 3   | `BADGE_CODE_SECRET` set (copy the one already in `.env.local`)                                                                                                                                                                                               | Fulfilment throws _after_ payment. PawaPay retries forever, the buyer has paid and has no ticket |
-| 4   | `APP_BASE_URL` on the real **public HTTPS** domain. Verified 2026-09-03 by a live 100 XAF payment: PawaPay rejects a `localhost` returnUrl outright with `INVALID_PARAMETER`, so the payment page is **never created at all**                                | Nobody returns from the payment page                                                             |
-| 5   | Supabase → Auth → URL Configuration: Site URL + `https://DOMAIN/auth/callback` allow-listed                                                                                                                                                                  | Google sign-in fails silently                                                                    |
-| 6   | `SUPABASE_SERVICE_ROLE_KEY` + the two `NEXT_PUBLIC_SUPABASE_*`                                                                                                                                                                                               | Nothing commerce-related works at all                                                            |
-| 7   | **Replace the mock ticket tiers and shop products**                                                                                                                                                                                                          | You would sell `SONNET` at an invented price with invented perks                                 |
+| 1b  | _Optional:_ point the PawaPay **Checkouts** callback at `https://DOMAIN/api/payments/pawapay/callback`. Only an optimisation — settlement becomes instant instead of within five minutes                                                                                                              | Nothing breaks; payments settle a little later                                                   |
+| 2   | `PAWAPAY_ENV=production` **and** a production token                                                                                                                                                                                                                                                   | `AUTHENTICATION_ERROR` with no useful detail                                                     |
+| 3   | `BADGE_CODE_SECRET` set (copy the one already in `.env.local`)                                                                                                                                                                                                                                        | Fulfilment throws _after_ payment. PawaPay retries forever, the buyer has paid and has no ticket |
+| 4   | `APP_BASE_URL` on the real **public HTTPS** domain. Verified 2026-09-03 by a live 100 XAF payment: PawaPay rejects a `localhost` returnUrl outright with `INVALID_PARAMETER`, so the payment page is **never created at all**                                                                         | Nobody returns from the payment page                                                             |
+| 5   | Supabase → Auth → URL Configuration: Site URL + `https://DOMAIN/auth/callback` allow-listed                                                                                                                                                                                                           | Google sign-in fails silently                                                                    |
+| 6   | `SUPABASE_SERVICE_ROLE_KEY` + the two `NEXT_PUBLIC_SUPABASE_*`                                                                                                                                                                                                                                        | Nothing commerce-related works at all                                                            |
+| 7   | **Replace the mock ticket tiers and shop products**                                                                                                                                                                                                                                                   | You would sell `SONNET` at an invented price with invented perks                                 |
 
 Item 3 deserves repeating: `BADGE_CODE_SECRET` must be **identical everywhere
 and never change**. Every badge code is derived from it, so rotating it
@@ -68,19 +68,32 @@ decision, a key or a person.
 
 ### Content
 
-Everything in `src/data/` is placeholder — speakers, sessions, team, sponsors,
-and now ticket tiers and shop products. The tier names (`HAIKYU`, `SONNET`,
-`OPUS`), prices and perks are **invented mock data**. Only the shape comes from
-`PAGES.md` §7. See `docs/guides/updating-tickets-and-shop.md`.
+**Team is real.** Ten organisers from the chapter's own listing, with their
+GDG position, socials and Bevy profiles; Cyprien Tankeu is marked `alumni`
+(ADR 0038). Their **photographs are deliberately empty** — they could not be
+pulled from the listing, and the cards show initials until somebody uploads
+them through the dashboard.
 
-**The date and the venue block one more thing than they look like.** Setting
-`EVENT_BASE_DATE` in `src/lib/calendar.ts` does three jobs at once: it reveals
-the add-to-calendar buttons, it fills the hero's dates, and it switches on the
-`Event` structured data that makes the site eligible for rich results in
-search. Until then that block is deliberately absent rather than published
-with an invented date — see `docs/guides/seo.md`. The venue lives beside it in
-`src/lib/event.ts` (`venue`, `venueStreet`), and fills in the address in the
-same block.
+**Speakers, sessions and sponsors are empty**, not placeholder. The call for
+speakers is open, no schedule is published and no sponsor has signed, so the
+invented people and companies are gone rather than shipping as if real.
+
+**Ticket tiers and shop products are still invented mock data.** The tier
+names (`HAIKYU`, `SONNET`, `OPUS`), prices and perks come from nobody — only
+the shape comes from `PAGES.md` §7. See
+`docs/guides/updating-tickets-and-shop.md`.
+
+**The dates are confirmed; the venue is not.** `EVENT_DATES` in
+`src/lib/calendar.ts` holds **21 and 28 November 2026** — two Saturdays a week
+apart, confirmed by the organisers on 2026-09-08 (ADR 0038). That list is what
+reveals the add-to-calendar buttons, fills the hero's dates, and switches on
+the `Event` structured data. **Add a day by adding a date to the array** — the
+day count derives from its length, and nothing infers a date by counting
+forward, which is what previously put day 2 on the wrong Saturday.
+
+The venue is still unset. It lives in `src/lib/event.ts` (`venue`,
+`venueStreet`) and turns the `Place` in the rich result from a city into an
+address.
 
 ---
 

@@ -25,6 +25,30 @@ import {
   isPlaceholderPhoto,
 } from "@/lib/content/photos";
 
+/**
+ * A speaker, built here rather than borrowed from `speakers.json`.
+ *
+ * These tests used to reach for `speakers[0]` as a convenient fixture. That
+ * broke the moment the seed was emptied for the real event — the call for
+ * speakers is open, so the file is legitimately `[]`, and TypeScript infers
+ * `never[]` from it. A test about schema behaviour should not depend on how
+ * much content happens to be seeded.
+ */
+const A_SPEAKER = {
+  id: "ama-nkeng",
+  name: "Ama Nkeng",
+  role: { fr: "Ingénieure", en: "Engineer" },
+  company: "Acme",
+  photoUrl: "",
+  bio: { fr: "Bio", en: "Bio" },
+  track: { fr: "Cloud", en: "Cloud" },
+  day: 1,
+  sessionIds: [],
+  social: {},
+  icebreakerQuestion: { fr: "Q", en: "Q" },
+  icebreakerAnswer: { fr: "A", en: "A" },
+};
+
 describe("editorial schemas", () => {
   it("accept the repo files as they stand", () => {
     const files = {
@@ -56,7 +80,7 @@ describe("editorial schemas", () => {
   });
 
   it("refuses a duplicate speaker id", () => {
-    const copy = [...speakers, speakers[0]];
+    const copy = [A_SPEAKER, A_SPEAKER];
     assert.equal(collectionSchemas.speakers.safeParse(copy).success, false);
   });
 
@@ -144,6 +168,44 @@ describe("editorial schemas", () => {
     );
   });
 
+  it("accepts the seeded call-for-speakers and sponsor settings", () => {
+    const parsed = settingsSchema.safeParse({
+      cfs: {
+        url: "https://sessionize.com/devfest-yaounde-2026",
+        opensAt: "2026-09-05T01:00:00+01:00",
+        closesAt: "2026-10-31T23:59:00+01:00",
+        override: "auto",
+      },
+      sponsorCall: {
+        prospectusUrl: "https://drive.google.com/file/d/abc/view",
+        enabled: true,
+        closesAt: null,
+      },
+      legal: {
+        participationTermsUrl: "https://gdg.community.dev/participation-terms/",
+        privacyUrl: "https://policies.google.com/privacy",
+        termsUrl: "https://policies.google.com/terms",
+      },
+    });
+    assert.equal(parsed.success, true);
+  });
+
+  it("refuses a nonsense deadline and an unknown override", () => {
+    assert.equal(
+      settingsSchema.safeParse({ cfs: { closesAt: "next tuesday" } }).success,
+      false,
+    );
+    assert.equal(
+      settingsSchema.safeParse({ cfs: { override: "maybe" } }).success,
+      false,
+    );
+    // A cleared deadline is a real state — the call is open with no end.
+    assert.equal(
+      settingsSchema.safeParse({ cfs: { closesAt: null } }).success,
+      true,
+    );
+  });
+
   it("refuses a javascript: URL", () => {
     assert.equal(
       settingsSchema.safeParse({ privacyUrl: "javascript:alert(1)" }).success,
@@ -163,11 +225,7 @@ describe("csv of names, photos later", () => {
     const dry = dryRun(sheet, SPEAKER_CSV_SPEC);
     assert.equal(dry.issues.length, 0);
     const payload = speakersFromCsv(dry, [
-      {
-        ...speakers[0],
-        id: "ama-nkeng",
-        photoUrl: "https://example.com/kept.jpg",
-      },
+      { ...A_SPEAKER, photoUrl: "https://example.com/kept.jpg" },
     ]);
     assert.equal(payload[0].photoUrl, "https://example.com/kept.jpg");
     assert.equal(collectionSchemas.speakers.safeParse(payload).success, true);

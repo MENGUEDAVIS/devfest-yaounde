@@ -420,27 +420,36 @@ export type Database = {
         Row: {
           announcement: Json | null
           bevy_url: string | null
+          cfs: Json | null
           coc_url: string | null
           id: string
+          legal: Json | null
           privacy_url: string | null
+          sponsor_call: Json | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           announcement?: Json | null
           bevy_url?: string | null
+          cfs?: Json | null
           coc_url?: string | null
           id?: string
+          legal?: Json | null
           privacy_url?: string | null
+          sponsor_call?: Json | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           announcement?: Json | null
           bevy_url?: string | null
+          cfs?: Json | null
           coc_url?: string | null
           id?: string
+          legal?: Json | null
           privacy_url?: string | null
+          sponsor_call?: Json | null
           updated_at?: string
           updated_by?: string | null
         }

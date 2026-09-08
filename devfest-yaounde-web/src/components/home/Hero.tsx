@@ -24,9 +24,6 @@ import {
   tileStyle,
 } from "@/lib/motion";
 
-
-
-
 /** Backdrop collage tilts — uneven so it reads as pinned prints. */
 const TILE_ROTATION = [-7, 4, -3, 6, -5, 3];
 
@@ -219,32 +216,39 @@ export async function Hero() {
         <CaretDown size={24} weight="bold" className={scrollCue} />
       </div>
 
-      {/* ---- Layer 4: sponsor strip, anchored inside the first viewport ---- */}
-      <div
-        className={`${heroRise} relative z-20 shrink-0 border-t-2 border-black02 bg-offwhite py-3.5`}
-        style={heroDelayStyle(1300)}
-      >
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
-            {t("sponsorsLabel")}
-          </p>
-        </div>
-        <div className={`${marqueeTrack} mt-2.5 overflow-hidden`}>
-          {/* No flex `gap` here — spacing is a per-item margin so the
+      {/* ---- Layer 4: sponsor strip, anchored inside the first viewport ----
+          Hidden until there is a sponsor to show. An empty marquee is not
+          nothing: it is a labelled, bordered strip with a blank track where
+          logos should be, which reads as broken rather than as early. The
+          empty-seat teaser that fills this gap deliberately is PHASE19
+          Part 4. */}
+      {sponsorList.length > 0 && (
+        <div
+          className={`${heroRise} relative z-20 shrink-0 border-t-2 border-black02 bg-offwhite py-3.5`}
+          style={heroDelayStyle(1300)}
+        >
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+              {t("sponsorsLabel")}
+            </p>
+          </div>
+          <div className={`${marqueeTrack} mt-2.5 overflow-hidden`}>
+            {/* No flex `gap` here — spacing is a per-item margin so the
               -50% loop lands exactly on the seam. See .anim-marquee. */}
-          <div className={`${marqueeLoop} flex w-max items-center`}>
-            {[...sponsorList, ...sponsorList].map((sponsor, i) => (
-              <img
-                key={`${sponsor.id}-${i}`}
-                src={sponsor.logoUrl}
-                alt={sponsor.name}
-                aria-hidden={i >= sponsorList.length}
-                className="h-9 w-auto shrink-0 sm:h-11"
-              />
-            ))}
+            <div className={`${marqueeLoop} flex w-max items-center`}>
+              {[...sponsorList, ...sponsorList].map((sponsor, i) => (
+                <img
+                  key={`${sponsor.id}-${i}`}
+                  src={sponsor.logoUrl}
+                  alt={sponsor.name}
+                  aria-hidden={i >= sponsorList.length}
+                  className="h-9 w-auto shrink-0 sm:h-11"
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

@@ -49,12 +49,13 @@ export default async function HomePage({
   return (
     <main id="main-content" className="flex-1">
       {/*
-        `Event` structured data, which appears only once a real date exists.
-        `startDate` is REQUIRED by schema.org, so emitting the block without
-        one is invalid data that Search Console reports and no rich result
-        comes from — and inventing a date would publish a wrong one to every
-        crawler that read it. It switches itself on with `EVENT_BASE_DATE` in
-        calendar.ts, the same flag that reveals the add-to-calendar buttons.
+        `Event` structured data, live since the dates were confirmed — 21 and
+        28 November 2026 (ADR 0038). It reads `EVENT_DATES` in calendar.ts,
+        the same list that reveals the add-to-calendar buttons, and returns
+        null if that list is ever emptied: `startDate` is REQUIRED by
+        schema.org, so a block without one is invalid data Search Console
+        reports, and inventing a date would publish a wrong one to every
+        crawler that read it.
       */}
       <JsonLd
         data={eventJsonLd(locale === "en" ? "en" : "fr", t("metaDesc"))}

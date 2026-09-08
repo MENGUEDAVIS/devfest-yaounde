@@ -101,11 +101,38 @@ export interface MissingPhoto {
   name: string;
 }
 
+/** How the speakers surface decides between a lineup and an invitation. */
+export type CfsOverride = "auto" | "force-on" | "force-off";
+
+export interface CfsSettings {
+  url: string;
+  /** ISO instants, or null for "no window" — the call is simply open. */
+  opensAt: string | null;
+  closesAt: string | null;
+  override: CfsOverride;
+}
+
+export interface SponsorCallSettings {
+  prospectusUrl: string;
+  /** Whether the "become a sponsor" CTA is still up. */
+  enabled: boolean;
+  closesAt: string | null;
+}
+
+export interface LegalSettings {
+  participationTermsUrl: string;
+  privacyUrl: string;
+  termsUrl: string;
+}
+
 export interface AdminSettings {
   announcement: { fr: string; en: string } | null;
   privacyUrl: string;
   cocUrl: string;
   bevyUrl: string;
+  cfs: CfsSettings;
+  sponsorCall: SponsorCallSettings;
+  legal: LegalSettings;
   source: "database" | "repo";
 }
 

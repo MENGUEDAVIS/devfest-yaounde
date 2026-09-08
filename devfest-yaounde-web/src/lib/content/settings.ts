@@ -8,8 +8,14 @@
 import "server-only";
 import {
   BEVY_URL,
+  CFS_CLOSES_AT,
+  CFS_OPENS_AT,
+  CFS_URL,
   CODE_OF_CONDUCT_URL,
+  PARTICIPATION_TERMS_URL,
   PRIVACY_POLICY_URL,
+  SPONSOR_PROSPECTUS_URL,
+  TERMS_URL,
 } from "@/lib/site-config";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { toJson } from "@/lib/supabase/json";
@@ -24,13 +30,54 @@ const REPO_DEFAULTS: SiteSettings = {
   privacyUrl: PRIVACY_POLICY_URL,
   cocUrl: CODE_OF_CONDUCT_URL,
   bevyUrl: BEVY_URL,
+  cfs: {
+    url: CFS_URL,
+    opensAt: CFS_OPENS_AT,
+    closesAt: CFS_CLOSES_AT,
+    override: "auto",
+  },
+  sponsorCall: {
+    prospectusUrl: SPONSOR_PROSPECTUS_URL,
+    enabled: true,
+    closesAt: null,
+  },
+  legal: {
+    participationTermsUrl: PARTICIPATION_TERMS_URL,
+    privacyUrl: PRIVACY_POLICY_URL,
+    termsUrl: TERMS_URL,
+  },
   source: "repo",
 };
+
+/**
+ * Merge a stored jsonb blob over the repo default.
+ *
+ * Field by field rather than wholesale: a settings row written before this
+ * column existed, or written by a dashboard that only sent one key, must not
+ * blank out the rest. Anything missing or the wrong type falls back.
+ */
+function merge<T extends object>(fallback: T, stored: unknown): T {
+  if (!stored || typeof stored !== "object" || Array.isArray(stored)) {
+    return fallback;
+  }
+  const source = stored as Record<string, unknown>;
+  const out = { ...fallback };
+  for (const key of Object.keys(fallback) as (keyof T)[]) {
+    const value = source[key as string];
+    if (value === undefined) continue;
+    // `null` is meaningful for the nullable date fields — "no deadline" —
+    // so it is kept, while a wrong type is not.
+    if (value === null || typeof value === typeof fallback[key]) {
+      out[key] = value as T[keyof T];
+    }
+  }
+  return out;
+}
 
 function supabaseConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
   );
 }
 
@@ -41,7 +88,9 @@ export async function loadSettings(): Promise<SiteSettings> {
     const db = createAdminSupabase();
     const { data, error } = await db
       .from("site_settings")
-      .select("announcement, privacy_url, coc_url, bevy_url")
+      .select(
+        "announcement, privacy_url, coc_url, bevy_url, cfs, sponsor_call, legal",
+      )
       .eq("id", "site")
       .maybeSingle();
     if (error || !data) return REPO_DEFAULTS;
@@ -53,12 +102,8 @@ export async function loadSettings(): Promise<SiteSettings> {
       "fr" in data.announcement &&
       "en" in data.announcement
         ? {
-            fr: String(
-              (data.announcement as { fr?: unknown }).fr ?? "",
-            ),
-            en: String(
-              (data.announcement as { en?: unknown }).en ?? "",
-            ),
+            fr: String((data.announcement as { fr?: unknown }).fr ?? ""),
+            en: String((data.announcement as { en?: unknown }).en ?? ""),
           }
         : null;
 
@@ -67,6 +112,9 @@ export async function loadSettings(): Promise<SiteSettings> {
       privacyUrl: data.privacy_url || PRIVACY_POLICY_URL,
       cocUrl: data.coc_url || CODE_OF_CONDUCT_URL,
       bevyUrl: data.bevy_url || BEVY_URL,
+      cfs: merge(REPO_DEFAULTS.cfs, data.cfs),
+      sponsorCall: merge(REPO_DEFAULTS.sponsorCall, data.sponsor_call),
+      legal: merge(REPO_DEFAULTS.legal, data.legal),
       source: "database",
     };
   } catch (err) {
@@ -93,6 +141,21 @@ export async function saveSettings(
     privacy_url: parsed.data.privacyUrl || null,
     coc_url: parsed.data.cocUrl || null,
     bevy_url: parsed.data.bevyUrl || null,
+    // Only written when the caller sent them. A dashboard form that edits the
+    // announcement must not blank the call for speakers by omission.
+    ...(parsed.data.cfs !== undefined
+      ? { cfs: parsed.data.cfs ? toJson(parsed.data.cfs) : null }
+      : {}),
+    ...(parsed.data.sponsorCall !== undefined
+      ? {
+          sponsor_call: parsed.data.sponsorCall
+            ? toJson(parsed.data.sponsorCall)
+            : null,
+        }
+      : {}),
+    ...(parsed.data.legal !== undefined
+      ? { legal: parsed.data.legal ? toJson(parsed.data.legal) : null }
+      : {}),
     updated_at: new Date().toISOString(),
     updated_by: actor,
   });

@@ -65,7 +65,8 @@ export interface Sponsor {
   id: string;
   name: string;
   logoUrl: string;
-  tier?: "platinum" | "gold" | "silver" | "community";
+  /** `partner` is a tier rather than a separate entity — see `sponsorSchema`. */
+  tier?: "platinum" | "gold" | "silver" | "community" | "partner";
   websiteUrl?: string;
 }
 

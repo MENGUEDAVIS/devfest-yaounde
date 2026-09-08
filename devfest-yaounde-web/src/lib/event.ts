@@ -1,4 +1,4 @@
-import { EVENT_BASE_DATE } from "./calendar";
+import { EVENT_DATES } from "./calendar";
 import { SITE_URL } from "./site-config";
 
 /**
@@ -9,9 +9,13 @@ import { SITE_URL } from "./site-config";
  * confirmed — and nothing that can disagree with the calendar buttons about
  * when DevFest actually is.
  *
- * WHAT IS STILL UNCONFIRMED: the date (`EVENT_BASE_DATE`, still null) and the
- * venue. `docs/setup/remaining-work.md` §1 tracks both. The `Event`
- * structured data below switches itself ON the moment a date lands.
+ * WHAT IS CONFIRMED: the dates. 21 and 28 November 2026, confirmed by the
+ * organisers on 2026-09-08 — two Saturdays, not a range. They live in
+ * `EVENT_DATES` in `calendar.ts`.
+ *
+ * WHAT IS STILL UNCONFIRMED: the venue. `docs/setup/remaining-work.md` §1
+ * tracks it; filled in, it turns the `Place` below from a city into an
+ * address.
  */
 export const EVENT = {
   name: "DevFest Yaoundé",
@@ -23,8 +27,14 @@ export const EVENT = {
    * listing before launch.
    */
   year: 2026,
-  /** Two days, the second derived — same assumption `calendar.ts` makes. */
-  days: 2,
+  /**
+   * How many days the event runs. Derived from `EVENT_DATES` rather than
+   * stated separately, so the count and the dates cannot disagree — they
+   * previously could, and the arithmetic that reconciled them was wrong.
+   */
+  get days() {
+    return EVENT_DATES.length;
+  },
   /** Local start/end times, used only when a real date exists. */
   startTime: "09:00",
   endTime: "18:00",
@@ -44,17 +54,25 @@ export const EVENT = {
  * today, so it has to be reachable somehow.
  */
 export function eventDates(
-  baseDate: string | null = EVENT_BASE_DATE,
+  dates: readonly string[] = EVENT_DATES,
 ): { start: string; end: string } | null {
-  if (!baseDate) return null;
-  const [y, m, d] = baseDate.split("-").map(Number);
-  const start = new Date(y, m - 1, d);
-  const end = new Date(y, m - 1, d + (EVENT.days - 1));
-  const iso = (date: Date, time: string) =>
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-      date.getDate(),
-    ).padStart(2, "0")}T${time}:00`;
-  return { start: iso(start, EVENT.startTime), end: iso(end, EVENT.endTime) };
+  if (dates.length === 0) return null;
+  const first = dates[0];
+  const last = dates[dates.length - 1];
+  return {
+    start: `${first}T${EVENT.startTime}:00`,
+    end: `${last}T${EVENT.endTime}:00`,
+  };
+}
+
+/** Each event day as its own start/end pair, in order. */
+export function eventDayRanges(
+  dates: readonly string[] = EVENT_DATES,
+): { start: string; end: string }[] {
+  return dates.map((date) => ({
+    start: `${date}T${EVENT.startTime}:00`,
+    end: `${date}T${EVENT.endTime}:00`,
+  }));
 }
 
 /**
@@ -85,25 +103,44 @@ export function organizationJsonLd() {
  * satisfy the validator would be worse still: it would publish a wrong date
  * to every crawler that reads it.
  *
- * So this stays silent, and turns itself on the moment `EVENT_BASE_DATE` is
- * set in `calendar.ts` — the same switch that reveals the add-to-calendar
+ * So this stays silent, and turns itself on the moment `EVENT_DATES` has an
+ * entry in `calendar.ts` — the same switch that reveals the add-to-calendar
  * buttons. One edit, both features.
+ *
+ * **`subEvent` is why this is not just a start and an end.** The two days are
+ * a week apart, so `startDate: 21 Nov` with `endDate: 28 Nov` on its own
+ * tells a crawler this is one continuous eight-day event, which is wrong in
+ * exactly the way a rich result would show: "Nov 21 – 28". The outer range
+ * still spans the whole thing, because that IS when the event begins and
+ * ends, and each real day is listed as a `subEvent` so the shape is
+ * recoverable rather than implied.
  */
 export function eventJsonLd(
   locale: "fr" | "en",
   description: string,
-  baseDate: string | null = EVENT_BASE_DATE,
+  dates: readonly string[] = EVENT_DATES,
 ) {
-  const dates = eventDates(baseDate);
-  if (!dates) return null;
+  const range = eventDates(dates);
+  if (!range) return null;
+  const days = eventDayRanges(dates);
 
   return {
     "@context": "https://schema.org",
     "@type": "Event",
     name: EVENT.name,
     description,
-    startDate: dates.start,
-    endDate: dates.end,
+    startDate: range.start,
+    endDate: range.end,
+    ...(days.length > 1
+      ? {
+          subEvent: days.map((day, i) => ({
+            "@type": "Event",
+            name: `${EVENT.name} — ${locale === "fr" ? "Jour" : "Day"} ${i + 1}`,
+            startDate: day.start,
+            endDate: day.end,
+          })),
+        }
+      : {}),
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     url: `${SITE_URL}/${locale}`,
