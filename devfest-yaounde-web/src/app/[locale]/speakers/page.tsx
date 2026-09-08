@@ -6,6 +6,9 @@ import { SpeakerBrowser } from "@/components/speakers/SpeakerBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { getSpeakers } from "@/lib/content/store";
+import { loadSettings } from "@/lib/content/settings";
+import { cfsView } from "@/lib/content/cfs";
+import { CallForSpeakers } from "@/components/speakers/CallForSpeakers";
 
 export async function generateMetadata({
   params,
@@ -30,7 +33,17 @@ export default async function SpeakersPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.speakers");
-  const allSpeakers = await getSpeakers();
+  const [allSpeakers, settings] = await Promise.all([
+    getSpeakers(),
+    loadSettings(),
+  ]);
+  /*
+   * Decided on the SERVER, from the store. Until somebody is announced this
+   * page is an invitation rather than an empty grid with filters over it —
+   * and the switch happens the moment the first speaker is saved, with no
+   * deploy and nothing to remember to turn off.
+   */
+  const cfs = cfsView(settings.cfs, allSpeakers.length);
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
@@ -42,18 +55,22 @@ export default async function SpeakersPage({
           <ScrambleText text={t("title")} />
         </h1>
         <p className="mt-6 max-w-2xl text-body-l text-black02/80">
-          {t("lead")}
+          {cfs.state === "lineup" ? t("lead") : t("cfsLead")}
         </p>
 
         <div className="mt-16">
-          {/*
-            SpeakerGrid reads `?spk=` via useSearchParams, which needs a
-            Suspense boundary so the rest of the page can still be
-            statically prerendered.
-          */}
-          <Suspense fallback={null}>
-            <SpeakerBrowser speakers={allSpeakers} />
-          </Suspense>
+          {cfs.state === "lineup" ? (
+            /*
+              SpeakerGrid reads `?spk=` via useSearchParams, which needs a
+              Suspense boundary so the rest of the page can still be
+              statically prerendered.
+            */
+            <Suspense fallback={null}>
+              <SpeakerBrowser speakers={allSpeakers} />
+            </Suspense>
+          ) : (
+            <CallForSpeakers view={cfs} />
+          )}
         </div>
       </SectionContainer>
     </main>

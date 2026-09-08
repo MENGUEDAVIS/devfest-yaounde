@@ -21,6 +21,7 @@ export function AnnouncementBanner({
   dismissible = true,
   messageKey = "message",
   messageOverride,
+  cta,
 }: {
   onDismiss: () => void;
   hidden: boolean;
@@ -34,6 +35,15 @@ export function AnnouncementBanner({
   messageKey?: string;
   /** Live copy from the dashboard. Falls back to the i18n file when unset. */
   messageOverride?: string;
+  /**
+   * An optional action beside the message — currently the call for speakers,
+   * because there is no ticket to sell yet.
+   *
+   * It is pinned OUTSIDE the marquee track on purpose. A link that slides
+   * past is a link you have to chase, which is a poor target on a phone and
+   * an unreachable one for anyone using a pointer they cannot move quickly.
+   */
+  cta?: { href: string; label: string };
 }) {
   const t = useTranslations("announcement");
   const message =
@@ -98,6 +108,18 @@ export function AnnouncementBanner({
           </span>
         )}
       </div>
+
+      {cta && (
+        <a
+          href={cta.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          tabIndex={hidden ? -1 : undefined}
+          className="hidden shrink-0 rounded-pill border-2 border-black02 bg-offwhite px-3 py-1 font-sans text-caption font-bold text-black02 transition-transform duration-200 ease-bouncy hover:scale-105 active:scale-95 motion-reduce:transition-none sm:inline-block"
+        >
+          {cta.label}
+        </a>
+      )}
 
       {dismissible && (
         <button

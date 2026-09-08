@@ -181,17 +181,15 @@ export function SpeakerShowcase({ speakers }: { speakers: Speaker[] }) {
   }, [reduceMotion, paused, userTookOver, openId, featured.length]);
 
   /*
-   * NO SPEAKERS YET IS THE NORMAL STATE RIGHT NOW — the call for speakers is
-   * still open, so the store is legitimately empty.
+   * AN EMPTY REEL CANNOT BE RENDERED: every navigation here is `(i + n) % n`,
+   * and with nothing featured that is a division by zero producing NaN, which
+   * React then writes into a transform.
    *
-   * It also cannot be rendered: every navigation here is `(i + n) % n`, and
-   * with nothing featured that is a division by zero producing NaN, which
-   * React then writes into a transform. Bailing out is correct rather than
-   * defensive.
-   *
-   * This is a placeholder for the real thing. PHASE19 Part 3 replaces the
-   * bail with the Call-for-Speakers view — an invitation to submit, with a
-   * countdown — so the section stops being absent and starts being an ask.
+   * The home page no longer relies on this to handle "no speakers yet" — it
+   * renders the call for speakers instead of this section when the store is
+   * empty. What is left is the last case that still reaches here: an
+   * organiser who forced the call off before entering anyone, where showing
+   * nothing is exactly what they asked for.
    */
   if (featured.length === 0) return null;
 

@@ -182,7 +182,8 @@
       "clear": "Réinitialiser",
       "hint": "Touche une carte pour tout savoir",
       "trackLabel": "Piste",
-      "dayLabel": "Jour"
+      "dayLabel": "Jour",
+      "cfsLead": "Le programme n'est pas encore annoncé — et c'est l'appel à orateurs qui l'écrit."
     },
     "faqs": {
       "title": "FAQ",
@@ -611,5 +612,24 @@
       "home": "Retour à l'accueil",
       "reference": "Référence"
     }
+  },
+  "cfs": {
+    "eyebrow": "Appel à orateurs",
+    "openTitle": "Tu as quelque chose à partager ? Monte sur scène.",
+    "openBody": "Le programme n'est pas encore écrit — il t'attend. Ce que tu construis, ce que tu débogues à 2h du matin, ce sur quoi tu débats dans les groupes : quelqu'un dans la salle veut l'entendre. Une première conf compte ; pas besoin d'une collection de badges pour proposer un sujet.",
+    "cta": "Proposer un sujet",
+    "closesIn": "Fermeture dans",
+    "days": "jours",
+    "hours": "h",
+    "minutes": "min",
+    "seconds": "sec",
+    "deadline": "Les propositions ferment le {date} (heure de Yaoundé).",
+    "waitingTitle": "L'appel ouvre bientôt.",
+    "waitingBody": "Commence à réfléchir à ton sujet — les propositions ouvrent sous peu, et on préfère que tu aies l'idée prête plutôt que le formulaire.",
+    "closedTitle": "Les propositions sont closes. Le programme arrive.",
+    "closedBody": "Merci à toutes celles et ceux qui ont proposé quelque chose — il y en a eu beaucoup, et tout est lu sérieusement. Les orateurs seront annoncés ici en premier.",
+    "bannerOpen": "L'appel à orateurs est ouvert — tu as quelque chose à partager ? Monte sur scène.",
+    "bannerCta": "Proposer",
+    "banner": "L'appel à orateurs est ouvert — la scène de DevFest Yaoundé 2026 attend ton sujet."
   }
 }

@@ -6,6 +6,7 @@
  * dashboard writes the single `site` row.
  */
 import "server-only";
+import { cache } from "react";
 import {
   BEVY_URL,
   CFS_CLOSES_AT,
@@ -81,7 +82,17 @@ function supabaseConfigured(): boolean {
   );
 }
 
-export async function loadSettings(): Promise<SiteSettings> {
+/**
+ * Per-request memo, not a cross-request cache.
+ *
+ * The layout and the page both need the settings now (the banner reads the
+ * call for speakers), and React's `cache` collapses those into one query for
+ * the duration of a single render. It deliberately does NOT survive the
+ * request: a dashboard save must show on the very next load.
+ */
+export const loadSettings = cache(readSettings);
+
+async function readSettings(): Promise<SiteSettings> {
   if (!supabaseConfigured()) return REPO_DEFAULTS;
 
   try {

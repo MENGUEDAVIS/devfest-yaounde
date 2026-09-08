@@ -146,6 +146,29 @@ A few things worth knowing before you use them:
   real date beside each one, so a session cannot be scheduled onto a day that
   does not exist.
 
+### The call for speakers
+
+**Configuration** in the sidebar has a call-for-speakers block under the
+announcement. It drives three places at once: the section on the home page,
+the `/speakers` page and — when nothing has been typed in the announcement
+boxes — the banner above the navbar.
+
+- **Show the call** is normally left on _Automatic_: the call shows while the
+  speaker list is empty and switches to the lineup the moment you add one.
+  _Always_ and _Never_ are for the two weeks where those disagree — a lineup
+  announced before it is entered, or a call reopened after the first speaker.
+- **Both dates are Yaoundé time**, whichever clock you are reading them on.
+  Leave one empty for no bound: an empty close date means the countdown
+  disappears and the call runs until you change it.
+- **With no submission URL the call never shows**, because there would be
+  nothing to click.
+- The line under the heading tells you what the public site is doing _right
+  now_ — it is computed by the same code the site runs, so it cannot go stale.
+
+A typed announcement always wins over the call. If you write something in the
+announcement boxes, that is what the banner says and the submit button goes
+away with it.
+
 ### The DP wall
 
 Cards flip immediately when you hide or show one and wear a shimmer until the

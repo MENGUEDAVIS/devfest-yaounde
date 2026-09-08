@@ -11,6 +11,7 @@
  * the request body. See ADR 0031.
  */
 import "server-only";
+import { cache } from "react";
 import speakersJson from "@/data/speakers.json";
 import teamJson from "@/data/team.json";
 import sessionsJson from "@/data/sessions.json";
@@ -35,11 +36,7 @@ import type {
 } from "@/data/types";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { toJson } from "@/lib/supabase/json";
-import {
-  COLLECTIONS,
-  collectionSchemas,
-  type CollectionId,
-} from "./schemas";
+import { COLLECTIONS, collectionSchemas, type CollectionId } from "./schemas";
 
 export type { CollectionId };
 export { COLLECTIONS, isCollectionId } from "./schemas";
@@ -60,11 +57,20 @@ const FALLBACKS: Record<CollectionId, unknown> = {
 function supabaseConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
   );
 }
 
-export async function loadCollection<T>(id: CollectionId): Promise<T> {
+/**
+ * Per-request memo — see the note on `loadSettings`. Several pages read the
+ * same collection twice (the speaker list is both the grid and the count the
+ * call-for-speakers view decides on), and this makes that one query.
+ */
+export const loadCollection = cache(readCollection) as <T>(
+  id: CollectionId,
+) => Promise<T>;
+
+async function readCollection<T>(id: CollectionId): Promise<T> {
   const fallback = FALLBACKS[id] as T;
   if (!supabaseConfigured()) return fallback;
 
@@ -118,7 +124,9 @@ export async function saveCollection(
   return { ok: true };
 }
 
-export async function collectionCounts(): Promise<Record<CollectionId, number>> {
+export async function collectionCounts(): Promise<
+  Record<CollectionId, number>
+> {
   const entries = await Promise.all(
     COLLECTIONS.map(async (id) => {
       const rows = await loadCollection<unknown[]>(id);

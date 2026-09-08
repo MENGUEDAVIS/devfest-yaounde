@@ -13,6 +13,8 @@ import { routing } from "@/i18n/routing";
 import { organizationJsonLd } from "@/lib/event";
 import { JsonLd } from "@/lib/seo";
 import { loadSettings } from "@/lib/content/settings";
+import { cfsAcceptsSubmissions, cfsView } from "@/lib/content/cfs";
+import { getSpeakers } from "@/lib/content/store";
 import { SITE_URL } from "@/lib/site-config";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "../globals.css";
@@ -85,11 +87,32 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
   const t = await getTranslations("nav");
-  const settings = await loadSettings();
+  const [settings, speakers] = await Promise.all([
+    loadSettings(),
+    getSpeakers(),
+  ]);
+  const custom =
+    locale === "en" ? settings.announcement?.en : settings.announcement?.fr;
+
+  /*
+    The banner is the site's one loud line, and right now it has nothing to
+    sell — tickets aren't open. So it carries the call for speakers instead,
+    but only when there is genuinely something to click: an open window and a
+    submission URL (PHASE19 Part 3).
+
+    A message typed in the dashboard always wins. If an organiser has written
+    something there, that is the thing they wanted said today, and quietly
+    replacing it with our own — or hanging a "submit a talk" button off the
+    side of an unrelated sentence — would be the site overruling them.
+  */
+  const cfs = cfsView(settings.cfs, speakers.length);
+  const cfsBanner = !custom && cfsAcceptsSubmissions(cfs);
+  const tCfs = await getTranslations("cfs");
   const announcementMessage =
-    locale === "en"
-      ? settings.announcement?.en
-      : settings.announcement?.fr;
+    custom || (cfsBanner ? tCfs("banner") : undefined);
+  const announcementCta = cfsBanner
+    ? { href: cfs.url, label: tCfs("bannerCta") }
+    : undefined;
 
   return (
     <html
@@ -135,7 +158,10 @@ export default async function LocaleLayout({
               shows it again. */}
           <Preloader />
           <SmoothScrollProvider />
-          <GlobalChrome announcementMessage={announcementMessage} />
+          <GlobalChrome
+            announcementMessage={announcementMessage}
+            announcementCta={announcementCta}
+          />
           <FloatingScrollbar />
           <CustomCursor />
           {/*

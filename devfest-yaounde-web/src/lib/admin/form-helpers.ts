@@ -36,3 +36,38 @@ export function endsAt(time: string, durationMin: number): string {
   const mm = String(((total % 60) + 60) % 60).padStart(2, "0");
   return `${hh}:${mm}`;
 }
+
+/**
+ * West Africa Time, as a fixed offset.
+ *
+ * Cameroon is UTC+1 all year — no daylight saving, and none in its history
+ * that a 2026 date could fall into. So the offset is a constant rather than a
+ * timezone lookup, and the conversion below is exact instead of approximate.
+ */
+const WAT_OFFSET = "+01:00";
+
+/**
+ * An ISO instant as the wall-clock a `datetime-local` input wants, in WAT.
+ *
+ * Deliberately NOT the browser's timezone. The call for speakers closes at
+ * "31 October, 23:59, Yaoundé" — that is the sentence on the public page and
+ * in the organisers' heads. An organiser editing from another timezone should
+ * still type the number they mean; converting to their local clock would make
+ * them do the arithmetic and get it wrong in one direction or the other.
+ */
+export function isoToWatLocal(iso: string | null): string {
+  if (!iso) return "";
+  const ms = Date.parse(iso);
+  if (Number.isNaN(ms)) return "";
+  // Shift the instant by the offset, then read the UTC fields: the result is
+  // the WAT wall clock, and `toISOString` gives it in exactly the shape the
+  // input parses.
+  return new Date(ms + 60 * 60 * 1000).toISOString().slice(0, 16);
+}
+
+/** The inverse: "2026-10-31T23:59" typed as WAT, back to an ISO instant. */
+export function watLocalToIso(local: string): string | null {
+  if (!local) return null;
+  const ms = Date.parse(`${local}:00${WAT_OFFSET}`);
+  return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+}

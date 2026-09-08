@@ -421,7 +421,12 @@ export function AdminShell({
             {view === "content" && (
               <AdminContent content={content} initialMissing={missingPhotos} />
             )}
-            {view === "config" && <AdminConfig settings={settings} />}
+            {view === "config" && (
+              <AdminConfig
+                settings={settings}
+                speakerCount={collections.speakers.length}
+              />
+            )}
           </main>
         </div>
       </div>

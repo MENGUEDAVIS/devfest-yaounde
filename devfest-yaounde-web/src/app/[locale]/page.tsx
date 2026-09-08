@@ -8,6 +8,10 @@ import { MemoryLane } from "@/components/home/MemoryLane";
 import { QuotesInterstitial } from "@/components/home/QuotesInterstitial";
 import { ScheduleOverviewPreview } from "@/components/home/ScheduleOverviewPreview";
 import { SpeakerShowcase } from "@/components/home/SpeakerShowcase";
+import { CallForSpeakers } from "@/components/speakers/CallForSpeakers";
+import { SectionContainer } from "@/components/ui/SectionContainer";
+import { cfsView } from "@/lib/content/cfs";
+import { loadSettings } from "@/lib/content/settings";
 import { StatsInterstitial } from "@/components/home/StatsInterstitial";
 import { getFaqs, getQuotes, getSpeakers } from "@/lib/content/store";
 import { eventJsonLd } from "@/lib/event";
@@ -40,11 +44,13 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
-  const [speakers, quotes, faqs] = await Promise.all([
+  const [speakers, quotes, faqs, settings] = await Promise.all([
     getSpeakers(),
     getQuotes(),
     getFaqs(),
+    loadSettings(),
   ]);
+  const cfs = cfsView(settings.cfs, speakers.length);
 
   return (
     <main id="main-content" className="flex-1">
@@ -63,7 +69,17 @@ export default async function HomePage({
       <Hero />
       <About />
       <StatsInterstitial />
-      <SpeakerShowcase speakers={speakers} />
+      {/*
+        The lineup, or the ask that fills it. Decided on the server from the
+        store, so the front page never shows an empty speaker reel.
+      */}
+      {cfs.state === "lineup" ? (
+        <SpeakerShowcase speakers={speakers} />
+      ) : (
+        <SectionContainer background="yellow-wash" maxWidth="6xl">
+          <CallForSpeakers view={cfs} compact />
+        </SectionContainer>
+      )}
       <ScheduleOverviewPreview />
       <QuotesInterstitial quotes={quotes} />
       <MemoryLane />

@@ -78,6 +78,14 @@ them through the dashboard.
 speakers is open, no schedule is published and no sponsor has signed, so the
 invented people and companies are gone rather than shipping as if real.
 
+The empty speaker list is now a **designed** state rather than an absence: the
+home section, `/speakers` and the announcement banner all show the call for
+speakers instead, with a countdown to the close, and switch to the lineup by
+themselves once the first speaker is entered (ADR 0039). The URL, both dates
+and the manual override are in **Configuration** in the dashboard. Nothing has
+been verified against a live Sessionize submission — the URL is the one the
+chapter published and has not been clicked through end to end.
+
 **Ticket tiers and shop products are still invented mock data.** The tier
 names (`HAIKYU`, `SONNET`, `OPUS`), prices and perks come from nobody — only
 the shape comes from `PAGES.md` §7. See
