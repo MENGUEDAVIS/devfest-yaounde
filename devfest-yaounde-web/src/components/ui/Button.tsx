@@ -53,6 +53,15 @@ interface CommonProps {
 
 interface ButtonAsLink extends CommonProps {
   href: string;
+  /**
+   * The destination is not ours.
+   *
+   * Renders a plain anchor rather than a `Link` — next/link would try to
+   * prefetch and client-route a URL it does not own — and opens it in a new
+   * tab. Somebody clicking through to Bevy or a prospectus is branching off,
+   * not leaving, and losing the page they were reading is a worse trade than
+   * an extra tab.
+   */
   external?: boolean;
   onClick?: () => void;
   type?: never;
@@ -122,7 +131,13 @@ export function Button({
   if (href) {
     if (external) {
       return (
-        <a href={href} onClick={onClick} className={classes}>
+        <a
+          href={href}
+          onClick={onClick}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={classes}
+        >
           {children}
         </a>
       );

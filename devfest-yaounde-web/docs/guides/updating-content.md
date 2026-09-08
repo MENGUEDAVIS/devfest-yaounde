@@ -144,7 +144,9 @@ Day 2 is worked out automatically as the following day. The buttons appear on
 ```
 
 - **`category`** must be one of: `general`, `tickets`, `venue`, `shop`,
-  `code-of-conduct`. Anything else won't display — the page only renders the
+  `code-of-conduct` (which is labelled **Participation Terms** on the page —
+  the id stayed so existing records keep working, ADR 0040). Anything else
+  won't display — the page only renders the
   five known categories, in that order.
 - Categories with no questions are hidden automatically, so you can't end up
   with an empty heading.

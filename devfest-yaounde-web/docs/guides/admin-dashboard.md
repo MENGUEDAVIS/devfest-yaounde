@@ -169,6 +169,39 @@ A typed announcement always wins over the call. If you write something in the
 announcement boxes, that is what the banner says and the submit button goes
 away with it.
 
+### Sponsors, and the ask for more
+
+The sponsor **strip on the home page always shows six seats**, filled from the
+left by whoever is in Content → Sponsors. Empty ones are dashed outlines, and
+that is deliberate: a company reading the site can see there is room. It only
+starts scrolling once every seat is taken.
+
+**Configuration → Become a sponsor** controls the ask beside them:
+
+- **Prospectus URL** is what the button opens, in a new tab. Empty hides the
+  button — there would be nothing behind it.
+- **Closes** is a Yaoundé-time deadline, and empty means none.
+- **Show the CTA** takes it down everywhere at once, deadline or not. Use it
+  when the deck is out of date or a conversation is mid-flight.
+
+The line under the heading says what the strip is doing right now, counted
+from the sponsors you have actually saved.
+
+### Legal links
+
+**Configuration → Legal links** holds the three at the bottom of the footer:
+participation terms, privacy policy, terms of service. All three are other
+people's pages — GDG's and Google's — because the chapter runs under those and
+publishes none of its own.
+
+**There is no code-of-conduct field.** The participation terms are that
+document here, and the FAQ's "rules of conduct" answer links the same URL
+(ADR 0040).
+
+Blank any of the three and the label stays in the footer but stops being a
+link. That is on purpose: people look for those words, and quiet text is
+honest where a link that goes nowhere is not.
+
 ### The DP wall
 
 Cards flip immediately when you hide or show one and wear a shimmer until the

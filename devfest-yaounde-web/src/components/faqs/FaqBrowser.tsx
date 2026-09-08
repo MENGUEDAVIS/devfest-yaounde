@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { FilterLayout } from "@/components/ui/FilterLayout";
 import { Reveal } from "@/components/ui/Reveal";
-import { CODE_OF_CONDUCT_URL, isPlaceholderUrl } from "@/lib/site-config";
+import { isPlaceholderUrl } from "@/lib/site-config";
 import { scrollToY } from "@/lib/scroll-source";
 import { FaqAccordion } from "./FaqAccordion";
 import type { FaqItem } from "@/data/types";
@@ -51,7 +51,17 @@ const sectionId = (cat: string) => `faq-section-${cat}`;
  * and it updates BOTH copies of the nav — rail and drawer — with one write,
  * since they share the `data-faq-nav` attribute.
  */
-export function FaqBrowser({ faqs }: { faqs: FaqItem[] }) {
+export function FaqBrowser({
+  faqs,
+  participationTermsUrl,
+}: {
+  faqs: FaqItem[];
+  /**
+   * From `site_settings.legal`, not a constant — an organiser can repoint it.
+   * Empty or "#" hides the button rather than rendering a dead one.
+   */
+  participationTermsUrl: string;
+}) {
   const t = useTranslations("pages.faqs");
   const locale = useLocale() as "fr" | "en";
   const [query, setQuery] = useState("");
@@ -198,15 +208,23 @@ export function FaqBrowser({ faqs }: { faqs: FaqItem[] }) {
                         setOpenId(openId === faq.id ? null : faq.id)
                       }
                     >
-                      {/* Not a `faq.cta`: this URL is still an unconfirmed
-                          placeholder living in site-config, so it can't be
-                          authored into the content file yet — and while it is
-                          a placeholder the button is not rendered at all,
-                          because a CTA that goes nowhere is worse than none. */}
+                      {/* Not a `faq.cta`: the destination is a SETTING, so
+                          it cannot be authored into the content file — and if
+                          it is ever blanked the button disappears rather than
+                          going nowhere, which is worse than no button.
+
+                          The category id stays `code-of-conduct` on purpose.
+                          It groups questions about behaviour at the event,
+                          which is what these are; renaming it would mean
+                          rewriting stored payloads that already use it, for
+                          a string nobody sees. The LABEL and the destination
+                          are the participation terms (ADR 0040). */}
                       {cat === "code-of-conduct" &&
-                        !isPlaceholderUrl(CODE_OF_CONDUCT_URL) && (
+                        !isPlaceholderUrl(participationTermsUrl) && (
                           <a
-                            href={CODE_OF_CONDUCT_URL}
+                            href={participationTermsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="mt-4 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
                           >
                             {t("readConduct")}

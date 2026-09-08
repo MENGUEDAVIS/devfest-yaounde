@@ -287,8 +287,6 @@ export const legalSchema = z.object({
 
 export const settingsSchema = z.object({
   announcement: localized.optional().nullable(),
-  privacyUrl: urlOrEmpty.optional().nullable(),
-  cocUrl: urlOrEmpty.optional().nullable(),
   bevyUrl: urlOrEmpty.optional().nullable(),
   cfs: cfsSchema.optional().nullable(),
   sponsorCall: sponsorCallSchema.optional().nullable(),

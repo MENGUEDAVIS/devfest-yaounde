@@ -71,7 +71,8 @@
     "legal": {
       "title": "Légal",
       "privacy": "Politique de confidentialité",
-      "codeOfConduct": "Code de conduite"
+      "participationTerms": "Conditions de participation",
+      "terms": "Conditions d'utilisation"
     },
     "followUs": "Suivez-nous",
     "copyright": "DevFest Yaoundé · GDG Yaoundé",
@@ -87,7 +88,6 @@
       "venue": "Yaoundé, Cameroun",
       "ctaPrimary": "Prends ta place",
       "ctaSecondary": "Voir le swag",
-      "sponsorsLabel": "Portés par des gens biens",
       "headlineLead": "DevFest",
       "headlineCity": "Yaoundé",
       "tagline": "Une journée. Toute la communauté. Une salle pleine de gens qui construisent des trucs fous — et toi, on espère, au milieu.",
@@ -96,6 +96,13 @@
       "photoCredit": "Scènes des éditions précédentes",
       "dateLabel": "Quand",
       "venueLabel": "Où"
+    },
+    "sponsors": {
+      "label": "Portés par des gens bien",
+      "labelEmpty": "Places libres pour vos logos",
+      "seat": "Votre logo ici",
+      "cta": "Devenir sponsor",
+      "openSeats": "{count, plural, one {# place de sponsor encore libre} other {# places de sponsor encore libres}}."
     },
     "about": {
       "title": "C'est quoi, DevFest Yaoundé ?",
@@ -189,7 +196,7 @@
       "title": "FAQ",
       "placeholder": "Les questions fréquentes arrivent bientôt.",
       "lead": "Les questions qu'on nous pose vraiment. Si la tienne n'y est pas, viens nous voir.",
-      "metaDesc": "Questions fréquentes sur DevFest Yaoundé — billets, lieu, swag et code de conduite.",
+      "metaDesc": "Questions fréquentes sur DevFest Yaoundé — billets, lieu, swag et conditions de participation.",
       "search": "Rechercher une question",
       "searchLabel": "Rechercher dans la FAQ",
       "noResults": "Aucune question ne correspond — essaie moins de mots.",
@@ -197,8 +204,8 @@
       "catTickets": "Billets & tarifs",
       "catVenue": "Lieu & logistique",
       "catShop": "Boutique & swag",
-      "catCodeOfConduct": "Code de conduite",
-      "readConduct": "Lire le code de conduite",
+      "catCodeOfConduct": "Conditions de participation",
+      "readConduct": "Lire les conditions de participation",
       "jumpLabel": "Aller à"
     },
     "team": {

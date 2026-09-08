@@ -102,7 +102,7 @@ The rule now is: **never render a link to a placeholder.**
 - Icon-only links (socials, profiles) are **filtered out at their source** —
   `realSocials()` in `lib/people-socials.ts`, and the footer's own list. There
   is nothing useful to show without a destination.
-- Labels people expect to see named — "Privacy Policy", "Code of Conduct" —
+- Labels people expect to see named — "Privacy Policy", "Participation Terms" —
   render through `MaybeLink`, which degrades to plain text. They become links
   again the moment a real URL lands in `site-config.ts`, with no other edit.
 

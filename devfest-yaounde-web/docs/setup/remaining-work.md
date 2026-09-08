@@ -86,6 +86,16 @@ and the manual override are in **Configuration** in the dashboard. Nothing has
 been verified against a live Sessionize submission — the URL is the one the
 chapter published and has not been clicked through end to end.
 
+The empty sponsor list is designed too: the strip shows six seats with the
+confirmed ones filled in and a "become a sponsor" CTA beside them, all
+editable in Configuration (ADR 0040). Nobody has signed, so today that is six
+open seats.
+
+**The legal links are settled.** Participation terms, privacy and terms of
+service, all pointing at GDG's and Google's pages. There is no code of
+conduct and there is not meant to be — the participation terms are it,
+confirmed by the organisers on 2026-09-08.
+
 **Ticket tiers and shop products are still invented mock data.** The tier
 names (`HAIKYU`, `SONNET`, `OPUS`), prices and perks come from nobody — only
 the shape comes from `PAGES.md` §7. See

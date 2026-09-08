@@ -71,7 +71,8 @@
     "legal": {
       "title": "Legal",
       "privacy": "Privacy Policy",
-      "codeOfConduct": "Code of Conduct"
+      "participationTerms": "Participation Terms",
+      "terms": "Terms of Service"
     },
     "followUs": "Follow us",
     "copyright": "DevFest Yaoundé · GDG Yaoundé",
@@ -87,7 +88,6 @@
       "venue": "Yaoundé, Cameroon",
       "ctaPrimary": "Grab your ticket",
       "ctaSecondary": "Check the swag",
-      "sponsorsLabel": "Powered by good people",
       "headlineLead": "DevFest",
       "headlineCity": "Yaoundé",
       "tagline": "One day. The whole community. A room full of people building wild things — and you, hopefully, in it.",
@@ -96,6 +96,13 @@
       "photoCredit": "Scenes from past editions",
       "dateLabel": "When",
       "venueLabel": "Where"
+    },
+    "sponsors": {
+      "label": "Powered by good people",
+      "labelEmpty": "Seats open for your logo",
+      "seat": "Your logo here",
+      "cta": "Become a sponsor",
+      "openSeats": "{count, plural, one {# sponsor seat still open} other {# sponsor seats still open}}."
     },
     "about": {
       "title": "What is DevFest Yaoundé?",
@@ -197,8 +204,8 @@
       "catTickets": "Tickets & Pricing",
       "catVenue": "Venue & Logistics",
       "catShop": "Shop & Swag",
-      "catCodeOfConduct": "Code of Conduct",
-      "readConduct": "Read the code of conduct",
+      "catCodeOfConduct": "Participation Terms",
+      "readConduct": "Read the participation terms",
       "jumpLabel": "Jump to"
     },
     "team": {

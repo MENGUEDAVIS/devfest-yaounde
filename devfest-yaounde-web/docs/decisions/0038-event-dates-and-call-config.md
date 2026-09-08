@@ -118,10 +118,9 @@ tier enum.
   being invented.
 - A fresh clone with no database still renders: every new setting falls back
   to `site-config.ts`, which now holds the real URLs rather than `"#"`.
-- **The code of conduct link is still `"#"`, on purpose.** GDG's participation
-  terms probably cover conduct, but "probably" is not good enough for the link
-  offered to somebody asking what happens if they are harassed. It stays a
-  placeholder — rendering as plain text, not a broken promise — until somebody
-  confirms whether that page is the chapter's code of conduct.
+- ~~**The code of conduct link is still `"#"`, on purpose.**~~ **Answered
+  2026-09-08: there is no separate code of conduct — the chapter runs under
+  GDG's participation terms, and the site links those. `CODE_OF_CONDUCT_URL`
+  is gone. See ADR 0040.**
 - `database.types.ts` was hand-extended for the three new columns. It is a
   generated file; regenerate it from the live schema when convenient.

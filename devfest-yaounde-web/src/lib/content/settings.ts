@@ -12,7 +12,6 @@ import {
   CFS_CLOSES_AT,
   CFS_OPENS_AT,
   CFS_URL,
-  CODE_OF_CONDUCT_URL,
   PARTICIPATION_TERMS_URL,
   PRIVACY_POLICY_URL,
   SPONSOR_PROSPECTUS_URL,
@@ -28,8 +27,6 @@ export type SiteSettings = AdminSettings;
 
 const REPO_DEFAULTS: SiteSettings = {
   announcement: null,
-  privacyUrl: PRIVACY_POLICY_URL,
-  cocUrl: CODE_OF_CONDUCT_URL,
   bevyUrl: BEVY_URL,
   cfs: {
     url: CFS_URL,
@@ -100,7 +97,7 @@ async function readSettings(): Promise<SiteSettings> {
     const { data, error } = await db
       .from("site_settings")
       .select(
-        "announcement, privacy_url, coc_url, bevy_url, cfs, sponsor_call, legal",
+        "announcement, bevy_url, cfs, sponsor_call, legal",
       )
       .eq("id", "site")
       .maybeSingle();
@@ -120,8 +117,6 @@ async function readSettings(): Promise<SiteSettings> {
 
     return {
       announcement,
-      privacyUrl: data.privacy_url || PRIVACY_POLICY_URL,
-      cocUrl: data.coc_url || CODE_OF_CONDUCT_URL,
       bevyUrl: data.bevy_url || BEVY_URL,
       cfs: merge(REPO_DEFAULTS.cfs, data.cfs),
       sponsorCall: merge(REPO_DEFAULTS.sponsorCall, data.sponsor_call),
@@ -149,8 +144,6 @@ export async function saveSettings(
     announcement: parsed.data.announcement
       ? toJson(parsed.data.announcement)
       : null,
-    privacy_url: parsed.data.privacyUrl || null,
-    coc_url: parsed.data.cocUrl || null,
     bevy_url: parsed.data.bevyUrl || null,
     // Only written when the caller sent them. A dashboard form that edits the
     // announcement must not blank the call for speakers by omission.

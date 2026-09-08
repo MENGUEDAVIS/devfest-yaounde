@@ -27,6 +27,12 @@ import {
 } from "@/lib/admin/form-helpers";
 import { cfsAcceptsSubmissions, cfsView } from "@/lib/content/cfs";
 import {
+  SPONSOR_SEATS,
+  sponsorCallOpen,
+  sponsorSeats,
+} from "@/lib/content/sponsors";
+import type { Sponsor } from "@/data/types";
+import {
   applyPhotoUrl,
   entryNeedsPhoto,
   isPlaceholderPhoto,
@@ -167,9 +173,8 @@ describe("editorial schemas", () => {
     assert.equal(
       settingsSchema.safeParse({
         announcement: { fr: "", en: "Hello" },
-        privacyUrl: "https://example.com/privacy",
-        cocUrl: "#",
         bevyUrl: "https://gdg.community.dev/x",
+        legal: { privacyUrl: "https://example.com/privacy", termsUrl: "" },
       }).success,
       true,
     );
@@ -213,9 +218,21 @@ describe("editorial schemas", () => {
     );
   });
 
-  it("refuses a javascript: URL", () => {
+  it("refuses a javascript: URL in every link it accepts", () => {
+    const bad = "javascript:alert(1)";
+    assert.equal(settingsSchema.safeParse({ bevyUrl: bad }).success, false);
     assert.equal(
-      settingsSchema.safeParse({ privacyUrl: "javascript:alert(1)" }).success,
+      settingsSchema.safeParse({ legal: { privacyUrl: bad } }).success,
+      false,
+    );
+    assert.equal(
+      settingsSchema.safeParse({ legal: { participationTermsUrl: bad } })
+        .success,
+      false,
+    );
+    assert.equal(settingsSchema.safeParse({ cfs: { url: bad } }).success, false);
+    assert.equal(
+      settingsSchema.safeParse({ sponsorCall: { prospectusUrl: bad } }).success,
       false,
     );
   });
@@ -326,6 +343,81 @@ describe("crm form helpers", () => {
     assert.equal(isoToWatLocal("nonsense"), "");
     assert.equal(watLocalToIso(""), null);
     assert.equal(watLocalToIso("nonsense"), null);
+  });
+});
+
+describe("sponsor seats and the sponsor call", () => {
+  const CALL = {
+    prospectusUrl: "https://drive.google.com/file/d/abc/view",
+    enabled: true,
+    closesAt: null as string | null,
+  };
+  const sponsor = (id: string): Sponsor => ({
+    id,
+    name: id,
+    logoUrl: `/logos/${id}.svg`,
+    tier: "gold",
+  });
+
+  it("leaves the rest of the row visibly open when nobody has signed", () => {
+    const seats = sponsorSeats([]);
+    assert.equal(seats.length, SPONSOR_SEATS);
+    assert.ok(seats.every((s) => s.kind === "empty"));
+  });
+
+  it("fills from the left and keeps the remaining seats", () => {
+    const seats = sponsorSeats([sponsor("a"), sponsor("b")]);
+    assert.equal(seats.length, SPONSOR_SEATS);
+    assert.deepEqual(
+      seats.map((s) => s.kind),
+      ["filled", "filled", "empty", "empty", "empty", "empty"],
+    );
+  });
+
+  it("shows every sponsor when there are more of them than seats", () => {
+    const many = Array.from({ length: 9 }, (_, i) => sponsor(`s${i}`));
+    const seats = sponsorSeats(many);
+    assert.equal(seats.length, 9);
+    assert.ok(seats.every((s) => s.kind === "filled"));
+  });
+
+  it("asks while the call is on and the deadline has not arrived", () => {
+    assert.equal(sponsorCallOpen(CALL), true);
+    assert.equal(
+      sponsorCallOpen(
+        { ...CALL, closesAt: "2026-10-01T00:00:00Z" },
+        new Date("2026-09-20T00:00:00Z"),
+      ),
+      true,
+    );
+  });
+
+  it("stops asking after the close date", () => {
+    assert.equal(
+      sponsorCallOpen(
+        { ...CALL, closesAt: "2026-10-01T00:00:00Z" },
+        new Date("2026-10-02T00:00:00Z"),
+      ),
+      false,
+    );
+  });
+
+  it("lets the switch beat a deadline that has not arrived", () => {
+    assert.equal(
+      sponsorCallOpen(
+        { ...CALL, enabled: false, closesAt: "2026-12-01T00:00:00Z" },
+        new Date("2026-09-20T00:00:00Z"),
+      ),
+      false,
+    );
+  });
+
+  it("does not ask when there is no prospectus behind the button", () => {
+    assert.equal(sponsorCallOpen({ ...CALL, prospectusUrl: "   " }), false);
+  });
+
+  it("treats an unparseable close date as a typo, not as closed", () => {
+    assert.equal(sponsorCallOpen({ ...CALL, closesAt: "soon" }), true);
   });
 });
 

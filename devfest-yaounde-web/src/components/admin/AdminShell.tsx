@@ -425,6 +425,7 @@ export function AdminShell({
               <AdminConfig
                 settings={settings}
                 speakerCount={collections.speakers.length}
+                sponsorCount={collections.sponsors.length}
               />
             )}
           </main>

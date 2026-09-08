@@ -79,18 +79,12 @@ export const PARTICIPATION_TERMS_URL =
 export const PRIVACY_POLICY_URL = "https://policies.google.com/privacy";
 export const TERMS_URL = "https://policies.google.com/terms";
 
-/**
- * STILL A PLACEHOLDER, and deliberately not pointed at the participation
- * terms.
- *
- * GDG's participation terms very likely cover conduct at events, but "likely"
- * is not good enough for the link the FAQ offers someone who is asking what
- * happens if they are harassed. If that page IS the chapter's code of
- * conduct, this becomes that URL and the FAQ CTA reappears; until somebody
- * confirms it, a "#" renders as plain text rather than a wrong promise
- * (`isPlaceholderUrl`).
+/*
+ * THERE IS NO SEPARATE CODE OF CONDUCT, and that is a decision rather than a
+ * gap (ADR 0040). The chapter runs under GDG's participation terms — that is
+ * what its Bevy page links — so the site names and links the same document
+ * instead of promising a second one it does not have.
  */
-export const CODE_OF_CONDUCT_URL = "#";
 
 /** The call for speakers. Overridden by `site_settings.cfs`. */
 export const CFS_URL = "https://sessionize.com/devfest-yaounde-2026";

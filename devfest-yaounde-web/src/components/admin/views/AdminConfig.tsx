@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { AdminSettings, CfsOverride } from "@/lib/admin/shape";
 import { isoToWatLocal, watLocalToIso } from "@/lib/admin/form-helpers";
 import { cfsView } from "@/lib/content/cfs";
+import { sponsorCallOpen, SPONSOR_SEATS } from "@/lib/content/sponsors";
 import { Segmented } from "../forms/fields";
 import { Panel } from "./shared";
 
@@ -12,10 +13,13 @@ const ANNOUNCE_MAX = 180;
 export function AdminConfig({
   settings,
   speakerCount,
+  sponsorCount,
 }: {
   settings: AdminSettings;
   /** How many speakers the store holds — what the automatic rule reads. */
   speakerCount: number;
+  /** How many sponsors have signed — how many seats are still open. */
+  sponsorCount: number;
 }) {
   const [announcementFr, setAnnouncementFr] = useState(
     settings.announcement?.fr ?? "",
@@ -23,9 +27,9 @@ export function AdminConfig({
   const [announcementEn, setAnnouncementEn] = useState(
     settings.announcement?.en ?? "",
   );
-  const [privacyUrl, setPrivacyUrl] = useState(settings.privacyUrl);
-  const [cocUrl, setCocUrl] = useState(settings.cocUrl);
   const [bevyUrl, setBevyUrl] = useState(settings.bevyUrl);
+  const [legal, setLegal] = useState(settings.legal);
+  const [sponsorCall, setSponsorCall] = useState(settings.sponsorCall);
   const [cfsUrl, setCfsUrl] = useState(settings.cfs.url);
   const [cfsOpens, setCfsOpens] = useState(isoToWatLocal(settings.cfs.opensAt));
   const [cfsCloses, setCfsCloses] = useState(
@@ -50,9 +54,9 @@ export function AdminConfig({
           fr: announcementFr,
           en: announcementEn,
         },
-        privacyUrl,
-        cocUrl,
         bevyUrl,
+        legal,
+        sponsorCall,
         cfs: {
           url: cfsUrl,
           opensAt: watLocalToIso(cfsOpens),
@@ -90,6 +94,19 @@ export function AdminConfig({
     },
     speakerCount,
   );
+  /* Same function the hero strip calls, so this cannot describe a different site. */
+  const asking = sponsorCallOpen(sponsorCall);
+  const openSeats = Math.max(0, SPONSOR_SEATS - sponsorCount);
+  const sponsorExplain = asking
+    ? openSeats > 0
+      ? `Live — the strip shows ${sponsorCount} confirmed and ${openSeats} open ${openSeats === 1 ? "seat" : "seats"}, with the CTA beside them.`
+      : `Live — every seat is filled, so the strip scrolls. The CTA is still up.`
+    : !sponsorCall.enabled
+      ? "Switched off. The strip still shows the seats; nothing asks for them."
+      : sponsorCall.prospectusUrl.trim()
+        ? "The close date has passed, so the CTA is down."
+        : "No prospectus URL, so there is nothing to open. Add one above.";
+
   const explain =
     preview.state === "lineup"
       ? `Hidden — the site is showing the speaker lineup (${speakerCount} on the list).`
@@ -138,29 +155,143 @@ export function AdminConfig({
           </span>
         </label>
         <label className="block text-body-m font-bold text-black02">
-          Privacy policy URL
-          <input
-            className={field}
-            value={privacyUrl}
-            onChange={(e) => setPrivacyUrl(e.target.value)}
-          />
-        </label>
-        <label className="block text-body-m font-bold text-black02">
-          Code of conduct URL
-          <input
-            className={field}
-            value={cocUrl}
-            onChange={(e) => setCocUrl(e.target.value)}
-          />
-        </label>
-        <label className="block text-body-m font-bold text-black02">
           Bevy event URL
           <input
             className={field}
             value={bevyUrl}
             onChange={(e) => setBevyUrl(e.target.value)}
           />
+          <span className="mt-1 block text-caption font-normal text-black02/60">
+            Where “Join the community” goes. Opens in a new tab.
+          </span>
         </label>
+
+        {/*
+          The sponsor call. Separate from the sponsor LIST (Content →
+          Sponsors) because this is the ask, not the answer: it is up before
+          anybody has signed and comes down once the deck is closed.
+        */}
+        <div className="flex flex-col gap-5 rounded-lg border border-black02/15 bg-pastel/40 p-4">
+          <div>
+            <h3 className="font-sans text-body-l font-bold text-black02">
+              Become a sponsor
+            </h3>
+            <p className="mt-1 text-caption text-black02/70">
+              {sponsorExplain}
+            </p>
+          </div>
+
+          <label className="block text-body-m font-bold text-black02">
+            Prospectus URL
+            <input
+              className={field}
+              value={sponsorCall.prospectusUrl}
+              placeholder="https://drive.google.com/…"
+              onChange={(e) =>
+                setSponsorCall({
+                  ...sponsorCall,
+                  prospectusUrl: e.target.value,
+                })
+              }
+            />
+            <span className="mt-1 block text-caption font-normal text-black02/60">
+              The deck the CTA opens, in a new tab. Empty hides the CTA — there
+              would be nothing behind it.
+            </span>
+          </label>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-body-m font-bold text-black02">
+              Closes
+              <input
+                type="datetime-local"
+                className={field}
+                value={isoToWatLocal(sponsorCall.closesAt)}
+                onChange={(e) =>
+                  setSponsorCall({
+                    ...sponsorCall,
+                    closesAt: watLocalToIso(e.target.value),
+                  })
+                }
+              />
+              <span className="mt-1 block text-caption font-normal text-black02/60">
+                Yaoundé time. Empty means no deadline.
+              </span>
+            </label>
+            <div className="text-body-m font-bold text-black02">
+              Show the CTA
+              <span className="mt-1.5 block">
+                <Segmented
+                  name="sponsor-call-enabled"
+                  value={sponsorCall.enabled ? "on" : "off"}
+                  options={[
+                    { value: "on", label: "Yes" },
+                    { value: "off", label: "No" },
+                  ]}
+                  onChange={(v) =>
+                    setSponsorCall({ ...sponsorCall, enabled: v === "on" })
+                  }
+                />
+              </span>
+              <span className="mt-1.5 block text-caption font-normal text-black02/60">
+                Off takes it down everywhere at once, deadline or not.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/*
+          Three links, all somebody else's documents. There is no "code of
+          conduct" field: the participation terms are that document for this
+          chapter, and a second box would invite somebody to fill it with a
+          page that does not exist (ADR 0040).
+        */}
+        <div className="flex flex-col gap-5 rounded-lg border border-black02/15 bg-pastel/40 p-4">
+          <div>
+            <h3 className="font-sans text-body-l font-bold text-black02">
+              Legal links
+            </h3>
+            <p className="mt-1 text-caption text-black02/70">
+              The small print at the bottom of the footer. Blank one and the
+              label stays but stops being a link — better than a link that goes
+              nowhere.
+            </p>
+          </div>
+
+          <label className="block text-body-m font-bold text-black02">
+            Participation terms
+            <input
+              className={field}
+              value={legal.participationTermsUrl}
+              onChange={(e) =>
+                setLegal({ ...legal, participationTermsUrl: e.target.value })
+              }
+            />
+            <span className="mt-1 block text-caption font-normal text-black02/60">
+              Also what the “rules of conduct” answer in the FAQ links to.
+            </span>
+          </label>
+
+          <label className="block text-body-m font-bold text-black02">
+            Privacy policy
+            <input
+              className={field}
+              value={legal.privacyUrl}
+              onChange={(e) =>
+                setLegal({ ...legal, privacyUrl: e.target.value })
+              }
+            />
+          </label>
+
+          <label className="block text-body-m font-bold text-black02">
+            Terms of service
+            <input
+              className={field}
+              value={legal.termsUrl}
+              onChange={(e) => setLegal({ ...legal, termsUrl: e.target.value })}
+            />
+          </label>
+        </div>
         {/*
           The call for speakers, which is currently what the whole speaker
           half of the site hangs off. It lives beside the announcement rather

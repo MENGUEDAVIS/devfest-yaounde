@@ -127,8 +127,6 @@ export interface LegalSettings {
 
 export interface AdminSettings {
   announcement: { fr: string; en: string } | null;
-  privacyUrl: string;
-  cocUrl: string;
   bevyUrl: string;
   cfs: CfsSettings;
   sponsorCall: SponsorCallSettings;
