@@ -41,7 +41,7 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 | **Community wall** (`/wall`)            | A tilted, self-moving wall of community cards — alternating columns, hover to spotlight. Placeholders until the wall is switched on; `noindex` by decision                                                                                                   |
 | **404 / 500**                           | Real error states in both languages — a localised not-found with somewhere to go, an error boundary with a retry and a reference                                                                                                                             |
 
-### Systems behind it
+### Systems behind it yes
 
 - **Runtime theming** — four dominant colours switchable from the footer, applied before first paint and persisted. Status green/red are fixed tokens so meaning survives a theme swap. See ADR 0011 and `docs/guides/theming.md`.
 - **Momentum scroll** (Lenis) behind a single seam, with a floating pill scrollbar reproduced in every nested scroll context. See ADR 0007.
