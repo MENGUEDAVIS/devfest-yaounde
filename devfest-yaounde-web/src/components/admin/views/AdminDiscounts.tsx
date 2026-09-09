@@ -216,23 +216,61 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
           ]}
           empty="No discount codes."
           rows={rows.map((d) => [
-            <span key="c" className="font-mono font-bold">
+            <span
+              key="c"
+              className={`font-mono font-bold ${
+                d.active ? "" : "text-black02/45 line-through"
+              }`}
+            >
               {d.code}
             </span>,
             d.kind,
             d.kind === "percent" ? `${d.value}%` : `${d.value} XAF`,
             d.appliesTo,
             `${d.redeemedCount}${d.maxRedemptions ? ` / ${d.maxRedemptions}` : ""}`,
-            d.active ? "Yes" : "No",
+            /*
+              A live code and a dead one used to differ by one word in a
+              column of words — "Yes" or "No" in a table you are scanning for
+              the one you need to switch off. A pill carries the state at a
+              glance, and the dot means it still reads as different for
+              anybody who cannot separate the two greens and reds.
+            */
+            <span
+              key="a"
+              className={`inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-caption font-bold ${
+                d.active
+                  ? "bg-success-pastel text-black02"
+                  : "bg-danger-pastel text-black02"
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`h-2 w-2 rounded-pill ${
+                  d.active ? "bg-success" : "bg-danger"
+                }`}
+              />
+              {d.active ? "Active" : "Disabled"}
+            </span>,
             when(d.expiresAt),
+            /*
+              The button is coloured by WHAT IT DOES, not by the row's state —
+              red to take a code out of service, green to put one back. The
+              two are next to each other in a list, and a button that matched
+              the row's colour instead would mean the red button sometimes
+              enables things.
+            */
             <button
               key="t"
               type="button"
               disabled={busy === d.code}
               onClick={() => void toggle(d.code, d.active)}
-              className="rounded-pill border-2 border-black02 px-3 py-1 text-caption font-bold"
+              className={`rounded-pill border-2 px-3 py-1 text-caption font-bold transition-colors disabled:opacity-50 ${
+                d.active
+                  ? "border-danger text-danger hover:bg-danger-pastel"
+                  : "border-success text-success hover:bg-success-pastel"
+              }`}
             >
-              {d.active ? "Disable" : "Enable"}
+              {busy === d.code ? "…" : d.active ? "Disable" : "Enable"}
             </button>,
           ])}
         />

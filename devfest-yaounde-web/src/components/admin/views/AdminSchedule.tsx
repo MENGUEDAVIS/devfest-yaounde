@@ -64,7 +64,7 @@ export function AdminSchedule({ rows }: { rows: Session[] }) {
 
             <Field label="Kind">
               <Segmented
-                name={`session-kind-${draft.id || "new"}`}
+                name="session-kind"
                 value={draft.kind}
                 options={KINDS}
                 onChange={(kind) => patch({ kind })}
@@ -73,7 +73,7 @@ export function AdminSchedule({ rows }: { rows: Session[] }) {
 
             <Field label="Day">
               <Segmented
-                name={`session-day-${draft.id || "new"}`}
+                name="session-day"
                 value={String(draft.day)}
                 options={EVENT_DATES.map((date, i) => ({
                   value: String(i + 1),
@@ -103,7 +103,7 @@ export function AdminSchedule({ rows }: { rows: Session[] }) {
                 hint={`Ends at ${endsAt(draft.time, draft.durationMin)}`}
               >
                 <Segmented
-                  name={`session-dur-${draft.id || "new"}`}
+                  name="session-dur"
                   value={String(draft.durationMin)}
                   options={[15, 30, 45, 60, 90, 120].map((n) => ({
                     value: String(n),

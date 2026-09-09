@@ -69,6 +69,7 @@ or amend an earlier one.
 | [0040](decisions/0040-participation-terms-and-open-seats.md)    | Participation terms, and a sponsor strip that shows its empty seats | Accepted — **supersedes the CoC placeholder in 0038** |
 | [0041](decisions/0041-hero-weight-and-the-preloader-handoff.md) | A lighter hero, and a splash that hands over                        | Accepted — **fixes the date in the ticket email**     |
 | [0042](decisions/0042-admin-saves-reach-the-site.md)            | Admin saves reach the site; the Save button exists                  | Accepted — **fixes four reported defects**            |
+| [0043](decisions/0043-admin-forms-and-navigation.md)            | Photos before save, filters, accordion sidebar                      | Accepted                                              |
 
 **Site and design**
 

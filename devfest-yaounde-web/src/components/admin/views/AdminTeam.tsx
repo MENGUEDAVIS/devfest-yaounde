@@ -7,7 +7,9 @@ import { EntityCrud } from "../forms/EntityCrud";
 import {
   ChipInput,
   Field,
+  FilterBar,
   ImageField,
+  usePendingPhoto,
   LocalizedInput,
   Segmented,
   SocialLinks,
@@ -20,30 +22,57 @@ const EMPTY = { fr: "", en: "" };
 export function AdminTeam({ rows }: { rows: TeamMember[] }) {
   const toast = useToast();
   const [uploading, setUploading] = useState(false);
+  const photo = usePendingPhoto();
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+
+  /*
+    Name, role and id. Role is bilingual, so both are searched — an organiser
+    thinking in French should not have to think in English to find someone.
+  */
+  const matches = (row: TeamMember) => {
+    const q = query.trim().toLowerCase();
+    if (
+      q &&
+      ![row.name, row.id, row.role?.fr, row.role?.en].some((v) =>
+        v?.toLowerCase().includes(q),
+      )
+    )
+      return false;
+    if (status === "current" && row.alumni) return false;
+    if (status === "past" && !row.alumni) return false;
+    return true;
+  };
 
   /**
-   * Photos go up separately, and only for a member who already exists.
+   * Attach the picked file to a member who now exists.
    *
-   * `POST /api/admin/content/:id/photo` looks the entry up by id and writes
-   * the URL onto it, so the record has to be saved first — names first,
-   * photos second. For a brand-new member the control is disabled and says
-   * why rather than failing after the fact.
+   * Called from `afterSave`, never from the picker: the endpoint updates an
+   * entry by id and writes the URL onto it, so the entry has to have been
+   * written first. That constraint is real — what changed is that the FORM
+   * absorbs it instead of making somebody save, hunt for the record and
+   * reopen it just to add a face.
    */
-  async function uploadPhoto(entryId: string, file: File) {
+  async function uploadPending(entryId: string) {
+    if (!photo.pending) return;
     setUploading(true);
     const body = new FormData();
     body.set("entryId", entryId);
-    body.set("image", file);
+    body.set("image", photo.pending.file);
     const res = await fetch("/api/admin/content/team/photo", {
       method: "POST",
       body,
     });
     setUploading(false);
-    if (!res.ok) {
-      toast.push("error", "That photo did not upload.");
+    if (res.ok) {
+      photo.clear();
       return;
     }
-    toast.push("ok", "Photo saved. Reload to see it on the card.");
+    // The member saved even if this did not, so say which half failed.
+    toast.push(
+      "error",
+      "The member saved, but the picture did not upload. Open them again and retry.",
+    );
   }
 
   return (
@@ -51,9 +80,31 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
       <EntityCrud<TeamMember & { id: string }>
         collection="team"
         rows={rows as (TeamMember & { id: string })[]}
+        filter={matches}
+        toolbar={
+          <FilterBar
+            query={query}
+            onQuery={setQuery}
+            placeholder="Search name or role"
+            chips={[
+              {
+                label: "Status",
+                value: status,
+                onChange: setStatus,
+                options: [
+                  { value: "all", label: "All" },
+                  { value: "current", label: "Current" },
+                  { value: "past", label: "Past" },
+                ],
+              },
+            ]}
+          />
+        }
         addLabel="Add a member"
         emptyLabel="Nobody here yet."
         reorderable
+        afterSave={(saved) => uploadPending(saved.id)}
+        onClose={photo.clear}
         blank={() =>
           ({
             id: "",
@@ -121,7 +172,7 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
 
             <Field label="Status">
               <Segmented
-                name={`team-status-${draft.id || "new"}`}
+                name="team-status"
                 value={draft.alumni ? "past" : "current"}
                 options={[
                   { value: "current", label: "Current organiser" },
@@ -160,9 +211,8 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
                 url={draft.photoUrl}
                 name={draft.name}
                 busy={uploading}
-                disabled={!rows.some((r) => r.id === draft.id)}
-                disabledHint="Save this member first — the upload attaches the picture to an existing record."
-                onPick={(file) => void uploadPhoto(draft.id, file)}
+                preview={photo.pending?.preview}
+                onPick={photo.pick}
               />
             </Field>
 

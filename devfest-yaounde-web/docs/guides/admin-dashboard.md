@@ -131,9 +131,10 @@ A few things worth knowing before you use them:
 - **The id is the URL.** It fills itself in from the name for a new record and
   is then left alone — changing it on an existing one breaks any link to it,
   and photos are attached by id.
-- **Photos come second.** Save the person first, then upload — the upload
-  attaches a picture to a record that already exists, so the button stays
-  disabled until it does and says why.
+- **Photos go in the form.** Pick one while adding somebody and it previews
+  straight away; saving writes the record and then attaches the picture. If
+  the record saves but the upload fails you are told which half failed, so you
+  can reopen them and retry rather than wondering (ADR 0043).
 - **A save shows on the public site immediately.** The public pages are
   prerendered for speed, so saving also tells Next to rebuild the pages that
   change — reload the public page after a save and it is there. If it is not,
@@ -205,6 +206,17 @@ document here, and the FAQ's "rules of conduct" answer links the same URL
 Blank any of the three and the label stays in the footer but stops being a
 link. That is on purpose: people look for those words, and quiet text is
 honest where a link that goes nowhere is not.
+
+### Finding a record
+
+Speakers and Team have a search box and a couple of chips above the list —
+name, company or role, plus day/featured for speakers and current/past for
+team. It narrows **what you see, never what is saved**: a save always writes
+the whole list, filtered view or not.
+
+The up/down arrows disappear while a filter is on. They swap a row with its
+neighbour, and under a filter the row above on screen is not the row above in
+the list — clear the filter to reorder.
 
 ### The DP wall
 
