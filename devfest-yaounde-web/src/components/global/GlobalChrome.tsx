@@ -67,6 +67,9 @@ export function GlobalChrome({
 
   return (
     <header
+      /* Named so the admin can suppress the site chrome without a tag
+         selector that also hits the dashboard's own headers. */
+      data-site-chrome
       className={`pointer-events-none fixed inset-x-0 z-50 flex justify-center px-3 sm:px-6 ${
         onWall ? "bottom-0 pb-3 sm:pb-5" : "top-0 pt-3 sm:pt-5"
       }`}

@@ -134,6 +134,10 @@ A few things worth knowing before you use them:
 - **Photos come second.** Save the person first, then upload — the upload
   attaches a picture to a record that already exists, so the button stays
   disabled until it does and says why.
+- **A save shows on the public site immediately.** The public pages are
+  prerendered for speed, so saving also tells Next to rebuild the pages that
+  change — reload the public page after a save and it is there. If it is not,
+  the save failed; it is not a cache you need to wait out (ADR 0042).
 - **Every save writes the whole collection**, because that is how the store
   works (ADR 0031). If somebody else changed the same list while you had the
   panel open, your save is refused with a note asking you to reload — rather

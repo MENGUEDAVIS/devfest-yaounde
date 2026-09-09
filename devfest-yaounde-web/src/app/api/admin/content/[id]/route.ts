@@ -9,6 +9,7 @@ import {
   loadCollection,
   saveCollection,
 } from "@/lib/content/store";
+import { revalidateCollection } from "@/lib/content/revalidate";
 import { CHECKOUT_ERRORS, errorResponse } from "@/lib/payments/errors";
 import { currentOrganiser } from "@/lib/security/organisers";
 import { RATE_LIMITS, rateLimit } from "@/lib/security/rate-limit";
@@ -65,7 +66,10 @@ export async function PUT(
   const before = await loadCollection(id);
   const saved = await saveCollection(id, payload, organiser.userId);
   if (!saved.ok) {
-    return Response.json({ error: "invalid_body", detail: saved.error }, { status: 400 });
+    return Response.json(
+      { error: "invalid_body", detail: saved.error },
+      { status: 400 },
+    );
   }
 
   await recordAudit({
@@ -75,6 +79,10 @@ export async function PUT(
     before,
     after: payload,
   });
+
+  // The public pages are prerendered, so without this the save is real and
+  // invisible — the database changes and the site does not.
+  revalidateCollection(id);
 
   return Response.json({ id, saved: true });
 }

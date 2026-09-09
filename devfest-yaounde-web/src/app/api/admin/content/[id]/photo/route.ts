@@ -23,6 +23,7 @@ import {
   loadCollection,
   saveCollection,
 } from "@/lib/content/store";
+import { revalidateCollection } from "@/lib/content/revalidate";
 import { CHECKOUT_ERRORS, errorResponse } from "@/lib/payments/errors";
 import { currentOrganiser } from "@/lib/security/organisers";
 import { RATE_LIMITS, rateLimit } from "@/lib/security/rate-limit";
@@ -110,6 +111,10 @@ export async function POST(
     before: { photo: before[spec.field] },
     after: { photo: url },
   });
+
+  // The reason a photo uploaded here never showed up on the public page: the
+  // record was updated and the prerendered HTML was not.
+  revalidateCollection(id);
 
   return Response.json({ id, entryId, url });
 }

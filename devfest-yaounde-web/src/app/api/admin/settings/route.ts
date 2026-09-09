@@ -4,6 +4,7 @@
  */
 import { NextRequest } from "next/server";
 import { recordAudit } from "@/lib/admin/audit";
+import { revalidateSettings } from "@/lib/content/revalidate";
 import { loadSettings, saveSettings } from "@/lib/content/settings";
 import { CHECKOUT_ERRORS, errorResponse } from "@/lib/payments/errors";
 import { currentOrganiser } from "@/lib/security/organisers";
@@ -47,6 +48,10 @@ export async function PUT(request: NextRequest) {
     before,
     after: body,
   });
+
+  // Settings reach the announcement banner, which lives in the root layout —
+  // so this is every page, not a list of them.
+  revalidateSettings();
 
   return Response.json({ saved: true });
 }

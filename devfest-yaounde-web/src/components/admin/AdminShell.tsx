@@ -115,6 +115,14 @@ const VIEW_IDS: ViewId[] = GROUPS.flatMap((group) =>
   group.items.map((item) => item.id),
 );
 
+/**
+ * The title for every view, in ONE place.
+ *
+ * The CRM views used to render their own `PageHeader` on top of the one the
+ * shell already renders, so those four pages carried the heading twice. The
+ * shell's is the one that is guaranteed to exist for every view, so it wins,
+ * and the blurbs the views were carrying moved here rather than being lost.
+ */
 const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
   overview: {
     title: "Overview",
@@ -151,23 +159,28 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
   },
   speakers: {
     title: "Speakers",
-    blurb: "The lineup. Empty means the site shows the call for speakers.",
+    blurb:
+      "The lineup. While this list is empty the public pages show the call for speakers instead — adding the first one switches them over.",
   },
   team: {
     title: "Team",
-    blurb: "The organisers, current and past.",
+    blurb:
+      "The organisers, as the public team page shows them. Role is their GDG position; contribution is what they did for this event — they are not the same thing, and the page groups by contribution.",
   },
   schedule: {
     title: "Schedule",
-    blurb: "Sessions across both days of the event.",
+    blurb:
+      "Sessions across both event days. Order here is the order on the timeline, and the day picker only offers days the event actually has.",
   },
   sponsors: {
     title: "Sponsors & partners",
-    blurb: "Confirmed supporters, and the tier each one sits in.",
+    blurb:
+      "Confirmed supporters. Each one fills a seat on the public strip, and their logo links to their own site.",
   },
   config: {
     title: "Info bar and policies",
-    blurb: "Announcement, privacy, code of conduct, and the Bevy URL.",
+    blurb:
+      "The announcement, the two calls, and the legal links — everything the site says that is not a record in a list.",
   },
 };
 

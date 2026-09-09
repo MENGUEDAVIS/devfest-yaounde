@@ -75,7 +75,10 @@ export async function Footer() {
   const legal = settings.legal;
 
   return (
-    <footer className="flex min-h-svh flex-col justify-between bg-black02 text-offwhite">
+    <footer
+      data-site-footer
+      className="flex min-h-svh flex-col justify-between bg-black02 text-offwhite"
+    >
       {/* ---- Band 1: wordmark flourish | link groups ---- */}
       <div className="mx-auto w-full max-w-6xl px-6 pt-24 sm:px-8 sm:pt-28">
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-[1.1fr_1fr] lg:gap-20">

@@ -6,7 +6,7 @@ import { slugify } from "@/lib/admin/form-helpers";
 import { EntityCrud } from "../forms/EntityCrud";
 import { Field, ImageField, Segmented, TextInput } from "../forms/fields";
 import { useToast } from "../forms/Toast";
-import { InfoBanner, PageHeader } from "./shared";
+import { InfoBanner } from "./shared";
 
 /**
  * `partner` sits in the same list as the sponsor tiers.
@@ -45,11 +45,6 @@ export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Sponsors & partners"
-        blurb="Confirmed supporters. Each one fills a seat on the public strip, and their logo links to their own site."
-      />
-
       {rows.length === 0 && (
         <InfoBanner>
           Nobody signed yet, so the public sponsor strip is hidden. Adding the
