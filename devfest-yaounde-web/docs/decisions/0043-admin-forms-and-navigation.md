@@ -125,6 +125,46 @@ take a code out of service, green to put one back. Colouring it to match the
 row would mean the red button sometimes enables things, in a list where both
 buttons sit inches apart.
 
+## Hiding a person instead of deleting them
+
+Taking somebody off the public site meant deleting their record — a speaker
+who withdrew, an organiser not announced yet — and typing it all back in if
+they returned. That is how records get lost.
+
+`hidden?: boolean` on `Speaker` and `TeamMember`, flipped from a button on the
+listing row. **Optional, and absent means visible**, so every record written
+before this field existed is still valid and still shown.
+
+### The default read is the safe one
+
+There are seven public surfaces reading speakers alone — home, `/speakers`,
+`/schedule`, the schedule preview, the layout's banner count. A filter applied
+at each of them is a filter somebody forgets on the eighth, and the failure is
+silent: a person who asked to come off the page is still on it.
+
+So **`getSpeakers()` and `getTeam()` now return only visible people**, and the
+dashboard — the one caller that genuinely wants everything — says so with
+`getAllSpeakers()` / `getAllTeam()`. Reaching for the obvious name has to be
+the thing that does not leak.
+
+That has a knock-on the state machine gets right for free: a lineup where
+every speaker is hidden reads as an empty lineup, so the site shows the call
+for speakers rather than a blank section (ADR 0039).
+
+### The toggle saves through `commit`
+
+Not its own `fetch`. It goes through the same whole-array write, concurrency
+check, error toast and rollback as every other save — a view flipping a
+boolean and PUTting on its own would be a second, quieter write path with none
+of that.
+
+### CSV re-import does not un-hide
+
+`hidden` is not a CSV column, so rebuilding a record from the sheet alone
+would put somebody back on the public site without anybody choosing to — the
+exact opposite of what hiding them was for, and silent. It is carried over
+like `featured`, `alumni` and the photo already were. A test pins it.
+
 ## Consequences
 
 - Verified: lint, typecheck, 162 tests, build. **Not verified in a browser** —

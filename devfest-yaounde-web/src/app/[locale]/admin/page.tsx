@@ -7,9 +7,9 @@ import { loadSettings } from "@/lib/content/settings";
 import {
   collectionCounts,
   getSessions,
-  getSpeakers,
+  getAllSpeakers,
   getSponsors,
-  getTeam,
+  getAllTeam,
 } from "@/lib/content/store";
 
 /**
@@ -36,8 +36,8 @@ export default async function AdminPage() {
       loadAdminData(),
       collectionCounts(),
       loadSettings(),
-      getSpeakers(),
-      getTeam(),
+      getAllSpeakers(),
+      getAllTeam(),
       getSponsors(),
       getSessions(),
     ]);

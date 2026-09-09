@@ -25,6 +25,7 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
   const photo = usePendingPhoto();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
+  const [live, setLive] = useState("all");
 
   /*
     Name, role and id. Role is bilingual, so both are searched — an organiser
@@ -41,6 +42,8 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
       return false;
     if (status === "current" && row.alumni) return false;
     if (status === "past" && !row.alumni) return false;
+    if (live === "live" && row.hidden) return false;
+    if (live === "hidden" && !row.hidden) return false;
     return true;
   };
 
@@ -97,9 +100,26 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
                   { value: "past", label: "Past" },
                 ],
               },
+              {
+                label: "Visibility",
+                value: live,
+                onChange: setLive,
+                options: [
+                  { value: "all", label: "All" },
+                  { value: "live", label: "On the site" },
+                  { value: "hidden", label: "Hidden" },
+                ],
+              },
             ]}
           />
         }
+        rowToggle={{
+          value: (row) => !row.hidden,
+          apply: (row, next) => ({ ...row, hidden: next ? undefined : true }),
+          label: (on) => (on ? "Hide" : "Show"),
+          saved: (on) =>
+            on ? "Back on the site." : "Hidden from the site — still here.",
+        }}
         addLabel="Add a member"
         emptyLabel="Nobody here yet."
         reorderable

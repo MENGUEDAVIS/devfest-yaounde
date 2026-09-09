@@ -29,6 +29,7 @@ export function AdminSpeakers({ rows }: { rows: Speaker[] }) {
   const [query, setQuery] = useState("");
   const [day, setDay] = useState("all");
   const [shown, setShown] = useState("all");
+  const [live, setLive] = useState("all");
 
   /*
     Matches on what somebody would actually type to find a speaker: their
@@ -44,6 +45,8 @@ export function AdminSpeakers({ rows }: { rows: Speaker[] }) {
       return false;
     if (day !== "all" && String(row.day) !== day) return false;
     if (shown === "featured" && !row.featured) return false;
+    if (live === "live" && row.hidden) return false;
+    if (live === "hidden" && !row.hidden) return false;
     return true;
   };
 
@@ -116,9 +119,26 @@ export function AdminSpeakers({ rows }: { rows: Speaker[] }) {
                   { value: "featured", label: "Featured" },
                 ],
               },
+              {
+                label: "Visibility",
+                value: live,
+                onChange: setLive,
+                options: [
+                  { value: "all", label: "All" },
+                  { value: "live", label: "On the site" },
+                  { value: "hidden", label: "Hidden" },
+                ],
+              },
             ]}
           />
         }
+        rowToggle={{
+          value: (row) => !row.hidden,
+          apply: (row, next) => ({ ...row, hidden: next ? undefined : true }),
+          label: (on) => (on ? "Hide" : "Show"),
+          saved: (on) =>
+            on ? "Back on the site." : "Hidden from the site — still here.",
+        }}
         addLabel="Add a speaker"
         afterSave={(saved) => uploadPending(saved.id)}
         onClose={photo.clear}

@@ -26,6 +26,17 @@ export interface Speaker {
   funnyMoment?: LocalizedString;
   /** true = shown in the Home preview slider. */
   featured?: boolean;
+  /**
+   * Hidden from the public site, but kept.
+   *
+   * Somebody who has withdrawn, is not announced yet, or should come off the
+   * page for a while. The alternative was deleting them and typing everything
+   * back in later, which is how records get lost.
+   *
+   * Optional, and absent means visible — so every record written before this
+   * existed is still valid and still shown.
+   */
+  hidden?: boolean;
 }
 
 export interface TeamMember {
@@ -59,6 +70,17 @@ export interface TeamMember {
   alumni?: boolean;
   /** Year(s) they organised — alumni only. */
   years?: string;
+  /**
+   * Hidden from the public site, but kept.
+   *
+   * Somebody who has withdrawn, is not announced yet, or should come off the
+   * page for a while. The alternative was deleting them and typing everything
+   * back in later, which is how records get lost.
+   *
+   * Optional, and absent means visible — so every record written before this
+   * existed is still valid and still shown.
+   */
+  hidden?: boolean;
 }
 
 export interface Sponsor {

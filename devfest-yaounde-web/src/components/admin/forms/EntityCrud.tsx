@@ -75,6 +75,24 @@ export interface EntityCrudProps<T extends EntityRow> {
   filter?: (row: T) => boolean;
   /** A search or filter bar, rendered above the list. */
   toolbar?: ReactNode;
+  /**
+   * A switch on each row that saves the moment it is pressed.
+   *
+   * Lives here rather than in each view so it goes through `commit` — the
+   * same whole-array write, concurrency check, error toast and rollback as
+   * every other save. A view flipping a boolean and PUTting on its own would
+   * be a second, quieter write path with none of that.
+   */
+  rowToggle?: {
+    /** Reads the current state off a row. */
+    value: (row: T) => boolean;
+    /** Returns the row with the state flipped. */
+    apply: (row: T, next: boolean) => T;
+    /** Button label, given the row's CURRENT state. */
+    label: (on: boolean) => string;
+    /** Toast on success, given the NEW state. */
+    saved: (on: boolean) => string;
+  };
 }
 
 export function EntityCrud<T extends EntityRow>({
@@ -90,6 +108,7 @@ export function EntityCrud<T extends EntityRow>({
   onClose,
   filter,
   toolbar,
+  rowToggle,
 }: EntityCrudProps<T>) {
   const toast = useToast();
   const [rows, setRows] = useState<T[]>(initialRows);
@@ -205,6 +224,15 @@ export function EntityCrud<T extends EntityRow>({
     );
   }
 
+  async function flip(row: T) {
+    if (!rowToggle) return;
+    const next = !rowToggle.value(row);
+    await commit(
+      rows.map((r) => (r.id === row.id ? rowToggle.apply(r, next) : r)),
+      rowToggle.saved(next),
+    );
+  }
+
   async function move(index: number, dir: -1 | 1) {
     const target = index + dir;
     if (target < 0 || target >= rows.length) return;
@@ -251,7 +279,18 @@ export function EntityCrud<T extends EntityRow>({
               key={row.id}
               className="flex flex-wrap items-center gap-3 rounded-lg border border-black02/15 bg-offwhite px-4 py-3"
             >
-              <div className="min-w-0 flex-1">{renderRow(row)}</div>
+              {/*
+                Faded, not struck through or greyed to unreadable: the record
+                is intact and one press from being back, and it still has to
+                be legible enough to find.
+              */}
+              <div
+                className={`min-w-0 flex-1 ${
+                  rowToggle && !rowToggle.value(row) ? "opacity-45" : ""
+                }`}
+              >
+                {renderRow(row)}
+              </div>
 
               {/*
                 REORDERING IS HIDDEN WHILE FILTERED, not disabled-looking.
@@ -294,6 +333,22 @@ export function EntityCrud<T extends EntityRow>({
                     <ArrowsDownUp size={14} weight="bold" />
                   </button>
                 </span>
+              )}
+
+              {rowToggle && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void flip(row)}
+                  aria-pressed={rowToggle.value(row)}
+                  className={`rounded-pill border-2 px-3 py-1 text-caption font-bold transition-colors disabled:opacity-50 ${
+                    rowToggle.value(row)
+                      ? "border-black02/25 text-black02/60 hover:bg-pastel hover:text-black02"
+                      : "border-success text-success hover:bg-success-pastel"
+                  }`}
+                >
+                  {rowToggle.label(rowToggle.value(row))}
+                </button>
               )}
 
               <button

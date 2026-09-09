@@ -207,6 +207,20 @@ Blank any of the three and the label stays in the footer but stops being a
 link. That is on purpose: people look for those words, and quiet text is
 honest where a link that goes nowhere is not.
 
+### Taking somebody off the site without deleting them
+
+Speakers and Team rows have a **Hide** button. Press it and that person stops
+appearing anywhere public — the lineup, the home slider, the schedule, the
+team page — while the record stays exactly as it was. **Show** puts them back.
+
+Use it for anyone who has withdrawn, is not announced yet, or should come off
+the page for a while. Deleting them and typing it all back in later is how
+records get lost.
+
+A hidden row is faded in the list, and the **Hidden** filter finds them again.
+Bulk CSV re-imports do not un-hide anybody: the flag is carried over, because
+the sheet has no column for it.
+
 ### Finding a record
 
 Speakers and Team have a search box and a couple of chips above the list —

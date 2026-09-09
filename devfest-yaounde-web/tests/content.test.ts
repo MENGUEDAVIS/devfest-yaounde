@@ -258,6 +258,77 @@ describe("csv of names, photos later", () => {
     assert.equal(payload[0].photoUrl, "https://example.com/kept.jpg");
     assert.equal(collectionSchemas.speakers.safeParse(payload).success, true);
   });
+
+  it("does not un-hide somebody by re-importing the sheet", () => {
+    // `hidden` is not a CSV column, so a rebuild from the sheet alone would
+    // silently put a person back on the public site. Nobody would choose
+    // that, and nobody would see it happen.
+    const sheet = parseCsv(
+      [
+        "id,name,role_en,role_fr,company,bio_en,bio_fr,photoUrl",
+        "ama-nkeng,Ama Nkeng,Engineer,Ingénieure,Acme,Bio,Bio,",
+      ].join("\n"),
+    );
+    const dry = dryRun(sheet, SPEAKER_CSV_SPEC);
+    const payload = speakersFromCsv(dry, [{ ...A_SPEAKER, hidden: true }]);
+    assert.equal(payload[0].hidden, true);
+  });
+});
+
+describe("hiding somebody without deleting them", () => {
+  const visible = <T extends { id: string; hidden?: boolean }>(rows: T[]) =>
+    rows.filter((row) => !row.hidden);
+
+  it("keeps a record that is off the site", () => {
+    const rows = [
+      { ...A_SPEAKER, id: "shown" },
+      { ...A_SPEAKER, id: "gone", hidden: true },
+    ];
+    assert.equal(rows.length, 2);
+    assert.deepEqual(
+      visible(rows).map((r) => r.id),
+      ["shown"],
+    );
+  });
+
+  it("treats a record with no flag as visible", () => {
+    // Every speaker and organiser written before this field existed has no
+    // `hidden` key. They must stay on the site.
+    assert.equal(visible([{ ...A_SPEAKER }]).length, 1);
+    assert.equal(visible([{ ...A_SPEAKER, hidden: false }]).length, 1);
+  });
+
+  it("accepts the flag in the stored payload, and its absence", () => {
+    assert.equal(
+      collectionSchemas.speakers.safeParse([{ ...A_SPEAKER, hidden: true }])
+        .success,
+      true,
+    );
+    assert.equal(
+      collectionSchemas.speakers.safeParse([A_SPEAKER]).success,
+      true,
+    );
+  });
+
+  it("shows the call for speakers when every speaker is hidden", () => {
+    // The public list is what the state machine reads, so a lineup that is
+    // entirely hidden is an empty lineup as far as the site is concerned —
+    // and an empty lineup is an invitation, not a blank section.
+    const all = [
+      { ...A_SPEAKER, id: "a", hidden: true },
+      { ...A_SPEAKER, id: "b", hidden: true },
+    ];
+    const view = cfsView(
+      {
+        url: "https://sessionize.com/devfest-yaounde-2026",
+        opensAt: null,
+        closesAt: null,
+        override: "auto",
+      },
+      visible(all).length,
+    );
+    assert.equal(view.state, "open");
+  });
 });
 
 describe("editorial photos", () => {
