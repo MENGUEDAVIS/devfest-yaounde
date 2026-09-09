@@ -700,8 +700,26 @@ body:has(main[data-wall]) footer {
  * Keyed on `[data-admin]`, which only the admin layout renders — and that
  * layout only renders at all for an organiser.
  */
-body:has([data-admin]) header,
-body:has([data-admin]) footer,
+/*
+ * TARGETED BY ATTRIBUTE, NOT BY TAG NAME, and that distinction was a bug that
+ * shipped.
+ *
+ * This used to read `body:has([data-admin]) header, ... footer`. Those are
+ * ELEMENT selectors, so they matched every <header> and <footer> anywhere
+ * inside the dashboard — not just the site's. What they actually hid:
+ *
+ *   - `PageHeader`, so no admin page had a title;
+ *   - every `Panel` header, so panels lost their heading AND their action
+ *     button;
+ *   - the edit drawer's header (title + Close) and its footer — which is
+ *     where Save lives. There was no way to save an edited record.
+ *
+ * A dashboard where nothing can be saved is a dashboard that does not work,
+ * and the cause was a selector that was one word too broad. The site chrome
+ * now says which elements it is, and only those are suppressed.
+ */
+body:has([data-admin]) [data-site-chrome],
+body:has([data-admin]) [data-site-footer],
 body:has([data-admin]) [data-preloader],
 body:has([data-admin]) [data-floating-scrollbar] {
   display: none;

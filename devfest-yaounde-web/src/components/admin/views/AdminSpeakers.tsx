@@ -16,7 +16,7 @@ import {
   Toggle,
 } from "../forms/fields";
 import { useToast } from "../forms/Toast";
-import { InfoBanner, PageHeader } from "./shared";
+import { InfoBanner } from "./shared";
 
 const EMPTY = { fr: "", en: "" };
 
@@ -44,11 +44,6 @@ export function AdminSpeakers({ rows }: { rows: Speaker[] }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Speakers"
-        blurb="The lineup. While this list is empty the public pages show the call for speakers instead — adding the first one switches them over."
-      />
-
       {rows.length === 0 && (
         <InfoBanner>
           No speakers yet, so `/speakers` and the home section are showing the

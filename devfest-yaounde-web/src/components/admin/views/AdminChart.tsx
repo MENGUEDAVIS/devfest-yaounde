@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "@/lib/use-media-query";
 
 export interface ChartSeries {
@@ -36,12 +36,58 @@ export function AdminChart({
   caption: string;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const frame = useRef<HTMLDivElement>(null);
   const calm = useMediaQuery("(prefers-reduced-motion: reduce)");
   const payload = JSON.stringify({ labels, series });
+  /**
+   * Whether the chart has ever been on screen.
+   *
+   * IT DID ANIMATE — nobody ever saw it. The chart sits well below the stat
+   * tiles on Overview, so it mounted on page load, drew its 900ms entrance
+   * to an empty room, and was already finished by the time anybody scrolled
+   * down to it. The same mistake the hero made behind the preloader.
+   *
+   * So the chart is not CONSTRUCTED until it comes into view. Chart.js
+   * animates from construction, which makes "when it is built" and "when the
+   * animation plays" the same moment — no second animation system, and
+   * nothing to keep in sync.
+   *
+   * One-way: once seen it stays built, so scrolling past does not replay the
+   * entrance every time, which would be a fidget rather than an entrance.
+   */
+  const [seen, setSeen] = useState(false);
+
+  useEffect(() => {
+    const node = frame.current;
+    if (!node || seen) return;
+
+    // No IntersectionObserver — an old browser, or a test environment.
+    // Draw it anyway: a chart that is there beats an entrance. On the next
+    // tick rather than here, because a setState in an effect BODY is what
+    // `react-hooks/set-state-in-effect` refuses, and rightly.
+    if (typeof IntersectionObserver === "undefined") {
+      const id = window.setTimeout(() => setSeen(true), 0);
+      return () => window.clearTimeout(id);
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setSeen(true);
+          observer.disconnect();
+        }
+      },
+      // A little early, so the entrance starts as the chart clears the fold
+      // rather than after it has already stopped.
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [seen]);
 
   useEffect(() => {
     const node = canvas.current;
-    if (!node) return;
+    if (!node || !seen) return;
     let chart: { destroy: () => void } | null = null;
     let cancelled = false;
 
@@ -132,7 +178,7 @@ export function AdminChart({
       chart?.destroy();
     };
     // payload is the stable signature of labels + series
-  }, [payload, calm, labels, series]);
+  }, [payload, calm, labels, series, seen]);
 
   if (labels.length === 0) {
     return (
@@ -142,7 +188,7 @@ export function AdminChart({
 
   return (
     <div>
-      <div className="h-[28rem] w-full">
+      <div ref={frame} className="h-[28rem] w-full">
         <canvas ref={canvas} />
       </div>
       <p className="mt-3 text-caption text-black02/60">{caption}</p>

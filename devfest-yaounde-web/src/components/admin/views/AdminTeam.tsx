@@ -14,7 +14,6 @@ import {
   TextInput,
 } from "../forms/fields";
 import { useToast } from "../forms/Toast";
-import { PageHeader } from "./shared";
 
 const EMPTY = { fr: "", en: "" };
 
@@ -49,11 +48,6 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Team"
-        blurb="The organisers, as the public team page shows them. Role is their GDG position; contribution is what they did for this event — they are not the same thing, and the page groups by contribution."
-      />
-
       <EntityCrud<TeamMember & { id: string }>
         collection="team"
         rows={rows as (TeamMember & { id: string })[]}

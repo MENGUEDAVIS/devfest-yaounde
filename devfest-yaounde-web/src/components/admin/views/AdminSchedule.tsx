@@ -11,7 +11,6 @@ import {
   Segmented,
   TextInput,
 } from "../forms/fields";
-import { PageHeader } from "./shared";
 
 const EMPTY = { fr: "", en: "" };
 
@@ -25,11 +24,6 @@ const KINDS: { value: SessionKind; label: string }[] = [
 export function AdminSchedule({ rows }: { rows: Session[] }) {
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Schedule"
-        blurb="Sessions across both event days. Order here is the order on the timeline, and the day picker only offers days the event actually has."
-      />
-
       <EntityCrud<Session>
         collection="sessions"
         rows={rows}
