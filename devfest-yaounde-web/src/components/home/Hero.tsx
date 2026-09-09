@@ -1,310 +1,290 @@
 import {
-  CaretDown,
-  MapPin,
+  ArrowDown,
   CalendarBlank,
+  MapPin,
 } from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
-import { ContentImage } from "@/components/ui/ContentImage";
-import { ScrambleText } from "@/components/ui/ScrambleText";
 import { Button } from "@/components/ui/Button";
-import { SponsorStrip } from "@/components/home/SponsorStrip";
-import { getPastEditions, getSponsors } from "@/lib/content/store";
-import { loadSettings } from "@/lib/content/settings";
-import { formatEventDates } from "@/lib/event";
-import {
-  heroBgDrift,
-  heroDelayStyle,
-  heroRise,
-  lineStyle,
-  maskLine,
-  scrollCue,
-  stampIn,
-  stampStyle,
-  tileIn,
-  tileStyle,
-} from "@/lib/motion";
-
-/** Backdrop collage tilts — uneven so it reads as pinned prints. */
-const TILE_ROTATION = [-7, 4, -3, 6, -5, 3];
+import { HeroField, Satellite } from "@/components/home/HeroField";
+import { HeroWordmark } from "@/components/home/HeroWordmark";
+import { EVENT, formatEventDates } from "@/lib/event";
 
 /**
- * How many photos the backdrop uses.
+ * The landing hero — a clean-sheet redesign (ADR 0044).
  *
- * SIX, down from eighteen. The old grid repeated four placeholder images
- * five times over to fill 18 cells, which meant eighteen `<img>` elements,
- * eighteen staggered entrance animations and the same four pictures showing
- * three times each behind a scrim that hides most of them anyway.
+ * ## What it replaced, and why none of it came back
  *
- * At this size the collage is texture, not content: nobody studies it, and
- * more of it is not more atmosphere. Six is enough for the tilt pattern to
- * read as pinned prints without repeating a photo on the same screen, and it
- * is a third of the work.
+ * The old hero was a centred stack of text over a drifting collage of
+ * eighteen photographs. It was expensive, it packed and clipped on a phone,
+ * and — the actual problem — it was forgettable. Every element sat in one
+ * column in the middle of the screen, which is the layout a page falls into
+ * when nobody decides on one.
  *
- * The first three are enough on a phone — see the grid below.
- */
-const TILE_COUNT = 6;
-
-/**
- * Full-page vertical hero — PHASE6 §1 structure, PHASE7 §2 refinement.
+ * ## The composition
  *
- * The background layers are unchanged (approved in Phase 6): drifting photo
- * collage, then two FLAT scrims (Black02 haze + Pastel Yellow wash) that
- * guarantee legibility over busy real photos. Never a gradient (§2.6).
+ * **The mass is at the BOTTOM.** The navbar owns the top, so the hero's star
+ * element hugs the lower edge and the space above it is left deliberately
+ * empty. That emptiness is the design: a huge thing in a crowded frame is
+ * just noise, and the same thing with room around it reads as confident
+ * (DESIGN.md §7b — "exaggerated size only reads as confident if it has
+ * room").
  *
- * What changed in PHASE7 §2:
- *  - The overlaid text was "plain". It now carries the §7b boldness: the
- *    headline is a two-line masked reveal where the second line sits inside
- *    a solid Yellow 600 stamp block, giving dramatic weight/colour contrast
- *    without adding a new hue or a gradient. Solid fills keep the measured
- *    contrast headroom intact.
- *  - Entrance is a staged, masked line-rise (lines climb out from behind a
- *    clip), not a gentle fade.
- *  - "Too long" fixed by LAYERING rather than stacking: the date/venue moved
- *    into a compact inline ticket stub (§3), the eyebrow now sits beside the
- *    logo instead of under it, the scroll cue is absolutely positioned so it
- *    costs no vertical row, and the RSVP tertiary link is gone (§4).
+ * **The facts float.** Date and venue are not a text block under a headline;
+ * they are placed around the empty half, absolutely positioned, leaning
+ * toward the pointer. They cost no layout space, which is what lets the
+ * wordmark have all of it.
+ *
+ * **Two flat shapes and the bracket mark** furnish the upper space. Three
+ * elements, each large and each doing one job, rather than a texture of small
+ * ones. Flat fills only.
+ *
+ * ## It has to work standing still
+ *
+ * Under `prefers-reduced-motion` nothing here moves: no reveal, no drift, no
+ * cursor response. What is left is the composition — the giant bottom-anchored
+ * wordmark, the placed facts, the negative space, two shapes — which is the
+ * thing that was designed. The motion is a reward for the people who can take
+ * it, never the reason the screen works.
  */
 export async function Hero({ locale }: { locale: string }) {
   const t = await getTranslations("home.hero");
-  /*
-    From EVENT_DATES, not from a copy string. The translation files held
-    "21–22 November 2026" — hand-typed from the Bevy listing's "Nov 21–28"
-    and wrong in exactly the way ADR 0038 fixed everywhere else. A date is a
-    fact about the event, not a phrase to translate, so it is derived and the
-    key is gone.
-  */
-  const dates = formatEventDates(locale === "en" ? "en" : "fr");
-  const year = new Date().getFullYear();
-  const [photos, sponsorList, settings] = await Promise.all([
-    getPastEditions(),
-    getSponsors(),
-    loadSettings(),
-  ]);
-
-  /*
-    Take what there is, and repeat only if we must.
-
-    The store holds four placeholder images today and will hold real
-    photographs later. Slicing without repeating would leave holes in the
-    grid; repeating unconditionally would show the same picture twice even
-    when there are plenty. So: use each photo once, and only wrap around if
-    there are fewer than the grid needs.
-  */
-  const tiles =
-    photos.length === 0
-      ? []
-      : Array.from({ length: TILE_COUNT }, (_, i) => photos[i % photos.length]);
+  const lang = locale === "en" ? "en" : "fr";
+  /* Real data, from the list that also fills the .ics files and the OG card. */
+  const dates = formatEventDates(lang);
 
   return (
-    <section className="relative flex min-h-svh flex-col overflow-hidden bg-pastel">
-      {/* ---- Layer 1: drifting community photo collage ----
-          Six cells at every width, so nothing is downloaded and then hidden
-          by a breakpoint. The shape changes, the count does not. */}
-      <div aria-hidden className={`${heroBgDrift} absolute inset-0 z-0`}>
-        <div className="grid h-full w-full grid-cols-2 grid-rows-3 gap-2.5 p-2.5 sm:grid-cols-3 sm:grid-rows-2 sm:gap-3 sm:p-3">
-          {tiles.map((photo, i) => (
-            <div
-              key={`${photo.id}-${i}`}
-              className={`${tileIn} relative overflow-hidden rounded-lg border-2 border-black02/70`}
-              style={tileStyle(i, TILE_ROTATION[i % TILE_ROTATION.length])}
-            >
-              {/*
-                `sizes` is honest about the layout above: half the viewport on
-                a phone, a third from `sm` up. Without it `fill` assumes 100vw
-                and every tile downloads a full-width source for a cell a
-                third that size.
-
-                Decorative — the alt is empty and the whole layer is
-                aria-hidden — so these are texture, not content, and the two
-                statements agree.
-              */}
-              <ContentImage
-                src={photo.imageUrl}
-                alt=""
-                sizes="(min-width: 640px) 33vw, 50vw"
-                /* The backdrop is above the fold and behind the headline. It
-                   should not be lazy — but only the first row matters for
-                   what a visitor sees first. */
-                priority={i < 2}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ---- Layer 2: flat legibility scrim (unchanged, verified 8.7:1) ---- */}
-      <div aria-hidden className="absolute inset-0 z-10 bg-black02/30" />
-      <div aria-hidden className="absolute inset-0 z-10 bg-pastel/80" />
-
-      {/* ---- Layer 3: content ---- */}
-      {/*
-        PHASE11 §6: more breathing room around the hero text block, weighted
-        VERTICAL over horizontal (py 3.5rem vs px 1.75rem at base) so the
-        headline keeps its full measure while gaining air above and below.
-        The large `pt` is unchanged in intent — it still clears the fixed
-        chrome — it just no longer doubles as the block's only padding.
-      */}
-      {/*
-        Block padding, weighted vertical over horizontal (PHASE11 §6) but now
-        RESPONSIVE (PHASE13 §3): 144px of top padding is a lot of a 640px
-        phone screen. It scales from snug on mobile up to the original
-        desktop values.
-      */}
-      {/*
-        `min-w-0` matters more than it looks: without it a flex child refuses
-        to shrink below its content's intrinsic width, which is how a long
-        unbreakable headline pushes a hero into horizontal scroll.
-      */}
-      <div className="relative z-20 flex min-w-0 flex-1 flex-col items-center justify-center px-5 pb-12 pt-28 text-center sm:px-8 sm:pb-14 sm:pt-32 lg:px-10 lg:pb-16 lg:pt-36">
-        {/* Logo + eyebrow on ONE row — was two stacked rows */}
-        <div
-          className={`${heroRise} flex items-center gap-3 sm:gap-4`}
-          style={heroDelayStyle(0)}
-        >
-          <DevFestLogo
-            animateIn
-            interactive
-            title="DevFest"
-            className="h-9 w-auto cursor-pointer sm:h-11"
-          />
-          <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70">
-            {t("eyebrow")}
-          </span>
-        </div>
-
+    <section className="relative isolate flex min-h-svh flex-col overflow-hidden bg-pastel">
+      <HeroField className="relative flex flex-1 flex-col">
         {/*
-          Headline — the §7b bold moment. Line 1 plain, line 2 stamped into a
-          solid yellow block for dramatic contrast. Both rise out of masks.
+          THREE HORIZONTAL BANDS, and every absolute position below belongs to
+          exactly one of them. Written down because a floating layout has no
+          layout engine to stop two things sharing a spot — the first pass put
+          the venue pill on top of the wordmark and the eyebrow under the
+          navbar, and both are invisible until somebody looks.
+
+            0   – 24vh   the fixed chrome (--chrome-h is 13rem). Keep clear.
+            24  – 56vh   satellites and shapes. The composed empty half.
+            56  – 100vh  the bottom cluster: tagline, CTAs, wordmark.
         */}
-        {/*
-          Easter egg (PHASE11 §1): hovering "DevFest" scrambles it and
-          decodes it back. Only line 1 carries it — the stamped city block on
-          line 2 is the hero's loudest element already, and animating both
-          would read as a glitch rather than a secret.
-        */}
-        {/*
-          `leading-[0.82]` (was 0.88) plus the stamp's removed top margin is
-          what closes the gap between "DevFest" and the "Yaoundé ####" block
-          so they nearly touch (PHASE11 §6). The mask-line padding in
-          motion.css still keeps the é accent and cap-heights from clipping.
-        */}
-        <h1 className="mt-5 font-sans text-display-hero font-bold leading-[0.82] text-black02 sm:mt-6">
-          <span className={maskLine}>
-            <span style={lineStyle(0, 260)}>
-              <ScrambleText text={t("headlineLead")} />
-            </span>
-          </span>
-          <span className={maskLine}>
-            <span style={lineStyle(1, 260)}>
-              <span
-                /*
-                  PHASE13 §3. The previous values (`-mt-6 px-10! p-8`) were a
-                  desktop-only edit that mobile inherited wholesale:
-                    - `px-10!` used `!important`, so it BEAT the `sm:` variant
-                      and forced 40px of horizontal padding at every width.
-                    - `p-8` added 32px vertically, and with `-mt-6` pulling
-                      the block up, the stamp's top was clipped by 15px by the
-                      mask-line's `overflow: hidden` (measured on 360x640,
-                      390x844 and 640x360).
-                  Now the padding and the tightening negative margin both
-                  scale with the breakpoint: snug on a phone, and the full
-                  desktop tightening from `sm` up.
-                */
-                className={`${stampIn} -mt-1.5 inline-block rounded-lg border-4 border-black02 bg-primary px-4 py-2 shadow-[0_8px_0_0_var(--color-black02)] sm:-mt-3 sm:px-7 sm:py-4 lg:-mt-5 lg:px-10 lg:py-6`}
-                style={stampStyle(760, -1.5)}
-              >
-                {t("headlineCity")} {year}
-              </span>
-            </span>
-          </span>
-        </h1>
 
-        <p
-          className={`${heroRise} mt-7 max-w-xl text-body-l text-black02/85 sm:mt-8`}
-          style={heroDelayStyle(1000)}
-        >
-          {t("tagline")}
-        </p>
+        {/* ---------- The empty upper half, furnished ---------- */}
 
         {/*
-          §3 — date/venue as a compact single "ticket stub" strip: one row,
-          mono type, a perforated divider between the two halves. Replaces
-          the two space-hungry stacked pills.
-        */}
-        {/*
-          MOBILE STACKING FIX. This was one nowrap row containing a full date
-          and a city, and at 360px the two halves ran past the stub's rounded
-          ends — the perforation and the venue text sat outside the border.
-
-          It is a flex COLUMN below `sm` now, with the perforation turning
-          from a vertical rule into a horizontal one. Same object, folded.
-          `rounded-lg` on a phone rather than `rounded-pill`, because a pill
-          around two stacked lines is a lozenge.
+          Two shapes, sized the way §7b asks for — one big bold shape beats
+          five timid ones. They are `bg-primary` and `bg-halftone`, so the
+          theme switcher repaints them with everything else, and they are
+          behind the facts in both z-order and parallax depth.
         */}
         <div
-          className={`${heroRise} mt-6 flex max-w-full flex-col items-stretch overflow-hidden rounded-lg border-2 border-black02 bg-offwhite font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 shadow-[0_4px_0_0_var(--color-black02)] sm:flex-row sm:rounded-pill`}
-          style={heroDelayStyle(1080)}
-        >
-          <span className="flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5">
-            <CalendarBlank
-              size={16}
-              weight="bold"
-              aria-hidden
-              className="shrink-0"
+          aria-hidden
+          className="hero-shape pointer-events-none absolute -right-[14vmin] top-[26vh] -z-10 h-[34vmin] w-[34vmin] rounded-pill bg-primary/80 lg:right-[4vw]"
+          style={{ ["--depth" as string]: "46px" }}
+        />
+        <div
+          aria-hidden
+          className="hero-shape pointer-events-none absolute -left-[8vmin] top-[40vh] -z-10 h-[20vmin] w-[20vmin] rotate-12 rounded-lg bg-halftone/60 sm:left-[2vw]"
+          style={{ ["--depth" as string]: "70px" }}
+        />
+
+        {/*
+          THE FLOATING LAYER IS FOR SCREENS THAT HAVE ROOM, and `sm` is where
+          they stop having it.
+
+          On a 390×844 phone the bottom cluster — tagline, two CTAs, a
+          two-line wordmark — already reaches past halfway, so a fact
+          positioned at "41vh" lands on top of the tagline. It did, and it was
+          unreadable. No amount of tuning the percentages survives a cluster
+          whose height depends on how long the French copy runs.
+
+          So below `sm` the same facts are laid out statically in the cluster
+          (further down), which is the "tasteful static placement" the brief
+          asks for on touch — and which cannot collide with anything, because
+          it is in the flow.
+        */}
+        <div className="hidden sm:contents">
+          {/* The bracket mark, big and clickable — the split-and-spin egg. */}
+          <Satellite
+            depth={26}
+            tilt={-3}
+            float={-14}
+            drift={11}
+            settle={160}
+            className="left-[7vw] top-[27vh] lg:left-[9vw]"
+          >
+            <DevFestLogo
+              animateIn
+              interactive
+              title="DevFest"
+              className="h-14 w-auto cursor-pointer sm:h-20 lg:h-24"
             />
-            <span className="sr-only">{t("dateLabel")}: </span>
-            {dates}
-          </span>
-          {/* Perforation — the stub's tear line. Turns with the fold. */}
-          <span
-            aria-hidden
-            className="h-0 self-stretch border-t-2 border-dashed border-black02 sm:h-auto sm:w-0 sm:border-l-2 sm:border-t-0"
-          />
-          <span className="flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5">
-            <MapPin size={16} weight="bold" aria-hidden className="shrink-0" />
-            <span className="sr-only">{t("venueLabel")}: </span>
-            {t("venue")}
-          </span>
+          </Satellite>
+
+          {/* ---------- The floating facts ---------- */}
+
+          {/*
+          DOM ORDER IS READING ORDER: presented-by, then when, then where,
+          then the tagline. Where each one sits on screen is a `top`/`left`,
+          which a screen reader never sees — so the composition can be
+          scattered while the content stays a sensible sequence.
+        */}
+          <Satellite
+            depth={12}
+            tilt={2}
+            float={-8}
+            drift={8}
+            delay={600}
+            settle={240}
+            /* Under the bracket mark, not opposite it. On the right it sat on
+             the yellow circle, where dark-on-yellow at caption size is not a
+             contrast anybody should have to work at — and it pairs with the
+             GDG mark anyway, which is whose name it is. */
+            className="left-[7vw] top-[calc(27vh+7rem)] lg:left-[9vw] lg:top-[calc(27vh+8.5rem)]"
+          >
+            <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+              {t("eyebrow")}
+            </p>
+          </Satellite>
+
+          <Satellite
+            depth={22}
+            tilt={-2}
+            float={-12}
+            drift={10}
+            delay={300}
+            settle={320}
+            /* Below the eyebrow's band, never beside it: at 1440 the two were
+             a few pixels apart and the pill's border cropped the last letter
+             of "PRÉSENTE". */
+            className="left-[7vw] top-[47vh] sm:left-[16vw] lg:left-[22vw]"
+          >
+            <Fact icon={<CalendarBlank size={16} weight="bold" aria-hidden />}>
+              <span className="sr-only">{t("dateLabel")}: </span>
+              {dates}
+            </Fact>
+          </Satellite>
+
+          <Satellite
+            depth={18}
+            tilt={3}
+            float={-9}
+            drift={12}
+            delay={1200}
+            settle={400}
+            skittish
+            className="right-[7vw] top-[37vh] sm:right-[12vw] lg:right-[16vw]"
+          >
+            <Fact icon={<MapPin size={16} weight="bold" aria-hidden />}>
+              <span className="sr-only">{t("venueLabel")}: </span>
+              {EVENT.venue ?? t("venue")}
+            </Fact>
+          </Satellite>
         </div>
 
-        <div
-          className={`${heroRise} mt-7 flex flex-wrap items-center justify-center gap-3 sm:gap-4`}
-          style={heroDelayStyle(1160)}
-        >
-          <Button tone="primary" href="/tickets" size="lg">
-            {t("ctaPrimary")}
-          </Button>
-          <Button tone="black02" variant="secondary" href="/shop" size="lg">
-            {t("ctaSecondary")}
-          </Button>
-        </div>
-      </div>
+        {/* ---------- The bottom cluster ---------- */}
 
-      {/* Scroll cue — absolutely positioned so it costs no vertical row.
-          HIDDEN ON A PHONE: at 360x640 the content column already fills the
-          viewport, so a cue pinned above the sponsor strip sits on top of the
-          buttons rather than below them. Nobody needs telling that a phone
-          scrolls. */}
-      <div
-        className={`${heroRise} pointer-events-none absolute bottom-28 left-1/2 z-20 hidden -translate-x-1/2 text-black02/45 sm:block sm:bottom-32`}
-        style={heroDelayStyle(1500)}
+        <div className="mt-auto w-full px-4 pb-4 sm:px-6 sm:pb-6">
+          {/*
+            The tagline and the way forward, on one row above the wordmark.
+            A conference landing page still has to sell a ticket — the brief
+            moved the FACTS out of a stacked block, not the action.
+          */}
+          {/*
+            The phone's copy of the facts: in the flow, above the tagline, so
+            nothing can land on anything. Hidden from `sm` up, where the
+            floating layer takes over.
+          */}
+          <div className="mb-5 flex flex-wrap items-center gap-2 sm:hidden">
+            <Fact icon={<CalendarBlank size={14} weight="bold" aria-hidden />}>
+              <span className="sr-only">{t("dateLabel")}: </span>
+              {dates}
+            </Fact>
+            <Fact icon={<MapPin size={14} weight="bold" aria-hidden />}>
+              <span className="sr-only">{t("venueLabel")}: </span>
+              {EVENT.venue ?? t("venue")}
+            </Fact>
+          </div>
+
+          {/*
+            NO max-width, and that is the point: the wordmark below is
+            full-bleed to the section's padding, so anything that does not
+            share its left and right edges reads as misaligned. On a 2560
+            screen a centred `max-w-[100rem]` started the tagline 400px inside
+            a headline that starts at the edge.
+          */}
+          <div className="relative z-10 flex flex-col items-start gap-5 pb-7 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
+            <p
+              className="hero-settle max-w-md text-body-l text-black02/80"
+              style={{ ["--settle-delay" as string]: "480ms" }}
+            >
+              {t("tagline")}
+            </p>
+
+            <div
+              className="hero-settle flex shrink-0 flex-wrap items-center gap-3"
+              style={{ ["--settle-delay" as string]: "560ms" }}
+            >
+              <Button tone="primary" href="/tickets" size="lg">
+                {t("ctaPrimary")}
+              </Button>
+              <Button tone="black02" variant="secondary" href="/shop" size="lg">
+                {t("ctaSecondary")}
+              </Button>
+            </div>
+          </div>
+
+          {/*
+            THE STAR. Full-bleed to the section's padding, hugging the bottom
+            edge. `-mb-[1.5vw]` crops the wordmark's own descender space
+            against the viewport edge, which is what makes it read as anchored
+            TO the edge rather than sitting near it.
+          */}
+          <div className="-mb-[1.2vw]">
+            <HeroWordmark srLabel={t("headline", { year: EVENT.year })} />
+          </div>
+        </div>
+      </HeroField>
+
+      {/*
+        The scroll cue, bottom-right and quiet. It is the one piece of the
+        composition that admits there is more page — the whole point of the
+        hero is that you forget for a moment.
+      */}
+      {/*
+        Bottom-right put it directly on the wordmark's é. It lives in the gap
+        between the floating layer and the cluster instead — the one band of
+        the composition nothing else is using.
+      */}
+      <span
+        aria-hidden
+        className="hero-settle pointer-events-none absolute left-1/2 top-[57vh] hidden -translate-x-1/2 items-center gap-2 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/40 lg:flex"
+        style={{ ["--settle-delay" as string]: "900ms" }}
       >
-        <span className="sr-only">{t("scrollCue")}</span>
-        <CaretDown size={24} weight="bold" className={scrollCue} />
-      </div>
-
-      {/* ---- Layer 4: sponsor strip, anchored inside the first viewport ----
-          Its own component now, and no longer hidden when empty: the open
-          seats ARE the message (ADR 0040). Extracted so the hero is one
-          concern again — the strip needs the store and the settings, and the
-          hero should not be the thing that fetches them. */}
-      <SponsorStrip
-        sponsors={sponsorList}
-        call={settings.sponsorCall}
-        className={heroRise}
-        style={heroDelayStyle(1300)}
-      />
+        {t("scrollCue")}
+        <ArrowDown size={14} weight="bold" />
+      </span>
     </section>
+  );
+}
+
+/**
+ * A floating fact: a chunky pill, big enough to read across the room.
+ *
+ * §7b again — these are the only text in the upper half, so they carry the
+ * boldness there. A 12px caption floating in that much space would look like
+ * a mistake rather than a decision.
+ */
+function Fact({
+  icon,
+  children,
+}: {
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <p className="inline-flex items-center gap-2.5 rounded-pill border-2 border-black02 bg-offwhite px-5 py-2.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 shadow-[0_4px_0_0_var(--color-black02)]">
+      {icon}
+      {children}
+    </p>
   );
 }

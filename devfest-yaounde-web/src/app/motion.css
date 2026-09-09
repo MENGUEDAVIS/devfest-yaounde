@@ -1628,3 +1628,186 @@ html:has([data-preloader="held"]) .anim-stamp,
 html:has([data-preloader="held"]) .mask-line > * {
   animation-play-state: paused;
 }
+
+/* ===========================================================================
+   HERO v2 — bottom-anchored wordmark, floating facts, flat drifting shapes.
+
+   Everything here is transform/opacity only. No gradients (DESIGN.md §2.6),
+   no filters, nothing that touches layout — a hero that reflows on mousemove
+   is the thing this composition was rebuilt to avoid.
+   =========================================================================== */
+
+/* --- The giant wordmark: two lines rising out of hard masks --------------- */
+
+@keyframes df-word-rise {
+  from {
+    transform: translate3d(0, 105%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/*
+  `105%`, not `100%`. A line pushed exactly its own height still shows the
+  overshoot of a bouncy curve above the mask edge for a frame or two; the
+  extra 5% keeps the reveal clean at the start.
+*/
+.hero-word-line {
+  animation: df-word-rise 1100ms var(--ease-bouncy) both;
+  animation-delay: var(--word-delay, 0ms);
+}
+
+/*
+  The click target is the glyphs, not the box.
+
+  The svg spans the full width and is mostly empty space; `pointer-events` on
+  the element would put a silent click handler across the whole bottom of the
+  page. On the <text> it is only the letters, which is where the easter egg
+  lives and nowhere else.
+*/
+.hero-word-line {
+  pointer-events: none;
+}
+
+.hero-word-line text {
+  pointer-events: auto;
+}
+
+/* --- Floating facts and shapes: cursor parallax + ambient drift ----------- */
+
+/*
+  `--px` / `--py` are unitless -1..1, written on the container by
+  `useCursorField`. `--depth` is how far THIS element travels at the edge of
+  the container, in px, so a satellite's parallax is one number to tune.
+
+  The inner span carries the ambient drift so the two never fight over one
+  transform: the outer element is the cursor's, the inner one is the idle
+  breathing. Composing them by nesting is cheaper and far more readable than
+  trying to sum two animations onto a single node.
+*/
+.hero-satellite {
+  transform: translate3d(
+    calc(var(--px, 0) * var(--depth, 16px)),
+    calc(var(--py, 0) * var(--depth, 16px)),
+    0
+  );
+  will-change: transform;
+}
+
+@keyframes df-satellite-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--tilt, 0deg));
+  }
+  50% {
+    transform: translate3d(0, var(--float, -10px), 0)
+      rotate(calc(var(--tilt, 0deg) * -1));
+  }
+}
+
+.hero-satellite-inner {
+  display: block;
+  animation: df-satellite-drift var(--drift, 9s) ease-in-out infinite;
+  animation-delay: var(--drift-delay, 0ms);
+}
+
+/*
+  The big flat shapes in the empty upper half. Slower and further than the
+  facts, which is what puts them "behind" without a gradient, a shadow or an
+  opacity trick — depth from parallax alone.
+*/
+.hero-shape {
+  transform: translate3d(
+    calc(var(--px, 0) * var(--depth, 40px)),
+    calc(var(--py, 0) * var(--depth, 40px)),
+    0
+  );
+  will-change: transform;
+}
+
+/* --- Entrance for everything that is not the wordmark -------------------- */
+
+@keyframes df-hero-settle {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.hero-settle {
+  animation: df-hero-settle 700ms var(--ease-out-devfest) both;
+  animation-delay: var(--settle-delay, 0ms);
+}
+
+/* --- The preloader handoff ----------------------------------------------- */
+
+/*
+  Held with everything else until the splash starts leaving (ADR 0041), so the
+  wordmark rises AS the preloader's copy of the same wordmark fades — one
+  object arriving, not two animations colliding.
+*/
+html:has([data-preloader="held"]) .hero-word-line,
+html:has([data-preloader="held"]) .hero-settle {
+  animation-play-state: paused;
+}
+
+/* --- Reduced motion: the composition, standing still --------------------- */
+
+/*
+  NOT `animation: none` alone — that would leave the wordmark parked at
+  translate(105%), i.e. off the bottom of its mask, and the hero would be
+  blank. Everything is forced to its resting state instead, which is the
+  composed layout the whole design is meant to hold up without motion.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .hero-word-line,
+  .hero-settle,
+  .hero-satellite-inner {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .hero-satellite,
+  .hero-shape {
+    transform: none !important;
+  }
+}
+
+/*
+  EASTER EGG — the skittish fact (EASTER-EGGS.md).
+
+  Hovering the venue pill makes it duck away and tilt, then settle back when
+  the pointer gives up. Pure CSS: `:hover` on the element, a transform on the
+  child, so there is no JS and no way for it to get stuck in the ducked state.
+
+  IT NEVER TAKES THE INFORMATION AWAY. The pill moves about its own height
+  and stays fully legible the whole time — the joke is that it dodges, not
+  that it hides. And it is `:hover`-only, so a touch device (where a tap
+  cannot be dodged) simply never sees it.
+*/
+@media (hover: hover) and (pointer: fine) {
+  .hero-skittish .hero-satellite-inner {
+    transition:
+      transform 420ms var(--ease-bouncy),
+      rotate 420ms var(--ease-bouncy);
+  }
+
+  .hero-skittish:hover .hero-satellite-inner {
+    /* Pauses the idle drift so the two transforms cannot fight. */
+    animation-play-state: paused;
+    transform: translate3d(0.9rem, -1.6rem, 0) rotate(-6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-skittish:hover .hero-satellite-inner {
+    transition: none;
+    transform: none;
+  }
+}
