@@ -55,8 +55,44 @@ export interface EntityCrudProps<T extends EntityRow> {
   reorderable?: boolean;
   addLabel: string;
   emptyLabel: string;
-  /** Runs after a successful save — used to upload a photo picked while new. */
+  /**
+   * Runs after the record is safely written — this is where a photo picked
+   * in the form gets uploaded, because the upload endpoint attaches to a
+   * record that has to exist first.
+   */
   afterSave?: (saved: T) => Promise<void>;
+  /** Called when the drawer closes, so a form can drop its unsaved state. */
+  onClose?: () => void;
+  /**
+   * Narrows what the LIST SHOWS. Never what is saved.
+   *
+   * That distinction is the whole reason this is a prop rather than something
+   * a caller does to `rows` before passing them in. Every save writes the
+   * WHOLE array (ADR 0031), so filtering upstream would mean saving a
+   * filtered list — one search for "Ada", one edit, and everybody else is
+   * deleted. Here the filter reaches the render and nothing else.
+   */
+  filter?: (row: T) => boolean;
+  /** A search or filter bar, rendered above the list. */
+  toolbar?: ReactNode;
+  /**
+   * A switch on each row that saves the moment it is pressed.
+   *
+   * Lives here rather than in each view so it goes through `commit` — the
+   * same whole-array write, concurrency check, error toast and rollback as
+   * every other save. A view flipping a boolean and PUTting on its own would
+   * be a second, quieter write path with none of that.
+   */
+  rowToggle?: {
+    /** Reads the current state off a row. */
+    value: (row: T) => boolean;
+    /** Returns the row with the state flipped. */
+    apply: (row: T, next: boolean) => T;
+    /** Button label, given the row's CURRENT state. */
+    label: (on: boolean) => string;
+    /** Toast on success, given the NEW state. */
+    saved: (on: boolean) => string;
+  };
 }
 
 export function EntityCrud<T extends EntityRow>({
@@ -69,6 +105,10 @@ export function EntityCrud<T extends EntityRow>({
   addLabel,
   emptyLabel,
   afterSave,
+  onClose,
+  filter,
+  toolbar,
+  rowToggle,
 }: EntityCrudProps<T>) {
   const toast = useToast();
   const [rows, setRows] = useState<T[]>(initialRows);
@@ -86,6 +126,8 @@ export function EntityCrud<T extends EntityRow>({
   const [busy, setBusy] = useState(false);
 
   function open(row: T, fresh: boolean) {
+    // Whatever was picked for the last record is not this record's.
+    onClose?.();
     setDraft({ ...row });
     setIsNew(fresh);
   }
@@ -130,7 +172,26 @@ export function EntityCrud<T extends EntityRow>({
       setRows(next);
       setBaseline(next);
       setDraft(null);
-      if (saved && afterSave) await afterSave(saved);
+      onClose?.();
+
+      if (saved && afterSave) {
+        await afterSave(saved);
+        /*
+          RE-READ, and it is not optional.
+
+          `afterSave` uploads a photo, and that endpoint writes `photoUrl`
+          onto the record server-side. Our `rows` and `baseline` still hold
+          the version without it — so the list would show no picture, and the
+          NEXT save would either post a payload that blanks the photo or be
+          refused by the concurrency guard as somebody else's edit. Both are
+          confusing and one loses the upload.
+        */
+        const fresh = await fetchCurrent();
+        if (fresh) {
+          setRows(fresh);
+          setBaseline(fresh);
+        }
+      }
       toast.push("ok", message);
     } catch {
       toast.push("error", "Could not reach the server.");
@@ -163,6 +224,15 @@ export function EntityCrud<T extends EntityRow>({
     );
   }
 
+  async function flip(row: T) {
+    if (!rowToggle) return;
+    const next = !rowToggle.value(row);
+    await commit(
+      rows.map((r) => (r.id === row.id ? rowToggle.apply(r, next) : r)),
+      rowToggle.saved(next),
+    );
+  }
+
   async function move(index: number, dir: -1 | 1) {
     const target = index + dir;
     if (target < 0 || target >= rows.length) return;
@@ -171,9 +241,17 @@ export function EntityCrud<T extends EntityRow>({
     await commit(next, "Order saved.");
   }
 
+  /*
+    What is on screen, which is not what gets written. `rows` stays whole for
+    every save; `shown` is only ever rendered.
+  */
+  const shown = filter ? rows.filter(filter) : rows;
+  const filtered = shown.length !== rows.length;
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">{toolbar}</div>
         <button
           type="button"
           onClick={() => open(blank(), true)}
@@ -184,20 +262,46 @@ export function EntityCrud<T extends EntityRow>({
         </button>
       </div>
 
-      {rows.length === 0 ? (
+      {rows.length > 0 && filtered && (
+        <p className="text-caption text-black02/60">
+          Showing {shown.length} of {rows.length}.
+        </p>
+      )}
+
+      {shown.length === 0 ? (
         <p className="rounded-lg border border-dashed border-black02/25 px-4 py-10 text-center text-body-m text-black02/60">
-          {emptyLabel}
+          {rows.length === 0 ? emptyLabel : "Nothing matches that."}
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {rows.map((row, i) => (
+          {shown.map((row, i) => (
             <li
               key={row.id}
               className="flex flex-wrap items-center gap-3 rounded-lg border border-black02/15 bg-offwhite px-4 py-3"
             >
-              <div className="min-w-0 flex-1">{renderRow(row)}</div>
+              {/*
+                Faded, not struck through or greyed to unreadable: the record
+                is intact and one press from being back, and it still has to
+                be legible enough to find.
+              */}
+              <div
+                className={`min-w-0 flex-1 ${
+                  rowToggle && !rowToggle.value(row) ? "opacity-45" : ""
+                }`}
+              >
+                {renderRow(row)}
+              </div>
 
-              {reorderable && (
+              {/*
+                REORDERING IS HIDDEN WHILE FILTERED, not disabled-looking.
+
+                The arrows swap a row with its neighbour by index, and under a
+                filter the row above on screen is not the row above in the
+                array. "Move up" would jump over however many rows the filter
+                is hiding — a silent, wrong reorder. Clear the filter and they
+                come back.
+              */}
+              {reorderable && !filtered && (
                 <span className="flex items-center gap-0.5">
                   {/*
                     Buttons, not a drag handle. Dragging is the nicer gesture
@@ -229,6 +333,22 @@ export function EntityCrud<T extends EntityRow>({
                     <ArrowsDownUp size={14} weight="bold" />
                   </button>
                 </span>
+              )}
+
+              {rowToggle && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void flip(row)}
+                  aria-pressed={rowToggle.value(row)}
+                  className={`rounded-pill border-2 px-3 py-1 text-caption font-bold transition-colors disabled:opacity-50 ${
+                    rowToggle.value(row)
+                      ? "border-black02/25 text-black02/60 hover:bg-pastel hover:text-black02"
+                      : "border-success text-success hover:bg-success-pastel"
+                  }`}
+                >
+                  {rowToggle.label(rowToggle.value(row))}
+                </button>
               )}
 
               <button
@@ -277,7 +397,10 @@ export function EntityCrud<T extends EntityRow>({
         <EditorDrawer
           title={isNew ? addLabel : `Edit ${draft.id}`}
           busy={busy}
-          onClose={() => setDraft(null)}
+          onClose={() => {
+            setDraft(null);
+            onClose?.();
+          }}
           onSave={() => void save()}
         >
           {renderForm(draft, (changes) =>

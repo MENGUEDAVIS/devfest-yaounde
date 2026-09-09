@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, X } from "@phosphor-icons/react";
-import { useId, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 /**
@@ -144,7 +144,19 @@ export function Toggle({
   hint?: string;
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-3">
+    /*
+      `relative` is load-bearing, not decoration.
+
+      The input below is `sr-only`, which is `position: absolute`. Without a
+      positioned ancestor here it anchors to the nearest one — the edit
+      drawer's panel — so the real input sat at the panel's top-left corner
+      while its switch was drawn hundreds of pixels lower. Clicking the switch
+      focused an element the browser then scrolled into view, yanking the
+      scroll container and making the whole drawer appear to jump and resize.
+
+      Anchoring it to its own label puts the input where it looks like it is.
+    */
+    <label className="relative flex cursor-pointer items-start gap-3">
       <input
         type="checkbox"
         checked={checked}
@@ -191,6 +203,13 @@ export function Segmented<T extends string>({
   value: T;
   options: { value: T; label: string }[];
   onChange: (v: T) => void;
+  /**
+   * Groups the radios. A CONSTANT per field, not per record: the drawer holds
+   * one record at a time, so there is nothing to disambiguate — and a name
+   * built from `draft.id` changes on every keystroke while the id is being
+   * slugified from the name, which is a group that keeps re-forming under the
+   * pointer.
+   */
   name: string;
 }) {
   return (
@@ -199,7 +218,8 @@ export function Segmented<T extends string>({
       className="inline-flex flex-wrap gap-1 rounded-pill border border-black02/25 bg-offwhite p-1"
     >
       {options.map((option) => (
-        <label key={option.value} className="cursor-pointer">
+        /* `relative` for the same reason as `Toggle` — see the note there. */
+        <label key={option.value} className="relative cursor-pointer">
           <input
             type="radio"
             name={name}
@@ -354,9 +374,24 @@ export function SocialLinks({
  * brand-new record saves itself before its picture goes up, and this control
  * says so rather than failing at the end.
  */
+/**
+ * A picture, saved or about to be.
+ *
+ * IT USED TO REFUSE A NEW RECORD. The upload endpoint attaches a photo to an
+ * existing entry, so the button was disabled until the record had been saved
+ * once — which meant filling a form, saving, finding the record again,
+ * reopening it and only then adding the picture. Nobody thinks of a person
+ * and their photograph as two separate errands.
+ *
+ * Now a picked file is held in the form and previewed immediately, and the
+ * save does both things in the order the server needs: write the record, then
+ * attach the photo to the record that now exists. Same endpoint, same rule —
+ * the form absorbs the two-step instead of exposing it.
+ */
 export function ImageField({
   url,
   name,
+  preview,
   disabled,
   disabledHint,
   onPick,
@@ -364,27 +399,33 @@ export function ImageField({
 }: {
   url: string;
   name: string;
+  /** A local object URL for a file chosen but not yet uploaded. */
+  preview?: string | null;
   disabled?: boolean;
   disabledHint?: string;
   onPick: (file: File) => void;
   busy?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
-  const has = Boolean(url && url.trim() && !url.startsWith("/placeholders/"));
+  const saved = Boolean(url && url.trim() && !url.startsWith("/placeholders/"));
+  const shown = preview ?? (saved ? url : null);
+  const has = Boolean(shown);
 
   return (
     <div className="flex items-center gap-4">
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-black02/20 bg-pastel">
-        {has ? (
+        {shown ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt="" className="h-full w-full object-cover" />
+          <img src={shown} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center font-sans text-heading-m font-bold text-black02/35">
             {(name.trim()[0] ?? "?").toUpperCase()}
           </div>
         )}
       </div>
-      <div className="flex min-w-0 flex-col gap-1.5">
+      {/* `relative` anchors the sr-only file input here rather than at the
+          drawer panel — see the note on `Toggle`. */}
+      <div className="relative flex min-w-0 flex-col gap-1.5">
         <button
           type="button"
           disabled={disabled || busy}
@@ -395,6 +436,11 @@ export function ImageField({
         </button>
         {disabled && disabledHint && (
           <p className="text-caption text-black02/60">{disabledHint}</p>
+        )}
+        {preview && !busy && (
+          <p className="text-caption text-black02/60">
+            Chosen — it uploads when you save.
+          </p>
         )}
         <input
           ref={input}
@@ -408,6 +454,112 @@ export function ImageField({
           }}
         />
       </div>
+    </div>
+  );
+}
+
+/**
+ * A photograph chosen in a form but not uploaded yet.
+ *
+ * The object URL is created and revoked in the EVENT HANDLER, never in render
+ * or an effect. `URL.createObjectURL` is a side effect that allocates: doing
+ * it while rendering leaks a blob on every re-render, and doing it in an
+ * effect means a `setState` in an effect body, which the lint rules refuse
+ * for good reason. A click is exactly the right place for it.
+ *
+ * The previous URL is revoked before a replacement is made, so choosing four
+ * photos in a row holds one blob, not four.
+ */
+export function usePendingPhoto() {
+  const [pending, setPending] = useState<{
+    file: File;
+    preview: string;
+  } | null>(null);
+  const live = useRef<string | null>(null);
+
+  const pick = useCallback((file: File) => {
+    if (live.current) URL.revokeObjectURL(live.current);
+    const preview = URL.createObjectURL(file);
+    live.current = preview;
+    setPending({ file, preview });
+  }, []);
+
+  const clear = useCallback(() => {
+    if (live.current) URL.revokeObjectURL(live.current);
+    live.current = null;
+    setPending(null);
+  }, []);
+
+  return { pending, pick, clear };
+}
+
+/**
+ * Search plus a few chips, above a list.
+ *
+ * Kept deliberately small. These lists are tens of records, not thousands —
+ * the job is "find the one I came here to edit", which a name box and two or
+ * three chips solve. A faceted panel would be more machinery than the data
+ * justifies.
+ *
+ * The chips are a `Segmented` in everything but name; they are separate
+ * because these are FILTERS, where "All" is a real option and the group can
+ * be cleared, rather than a value the record has to have.
+ */
+export function FilterBar({
+  query,
+  onQuery,
+  placeholder,
+  chips,
+}: {
+  query: string;
+  onQuery: (v: string) => void;
+  placeholder: string;
+  chips?: {
+    label: string;
+    value: string;
+    options: { value: string; label: string }[];
+    onChange: (v: string) => void;
+  }[];
+}) {
+  const id = useId();
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="relative">
+        <label htmlFor={id} className="sr-only">
+          {placeholder}
+        </label>
+        <input
+          id={id}
+          type="search"
+          value={query}
+          placeholder={placeholder}
+          onChange={(e) => onQuery(e.target.value)}
+          className="w-56 rounded-pill border border-black02/25 bg-offwhite px-4 py-1.5 font-sans text-body-m text-black02"
+        />
+      </span>
+
+      {chips?.map((chip) => (
+        <span key={chip.label} className="flex items-center gap-1.5">
+          <span className="sr-only">{chip.label}</span>
+          <span className="inline-flex flex-wrap gap-1 rounded-pill border border-black02/25 bg-offwhite p-1">
+            {chip.options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={chip.value === option.value}
+                onClick={() => chip.onChange(option.value)}
+                className={`rounded-pill px-3 py-1 font-sans text-caption font-bold transition-colors ${
+                  chip.value === option.value
+                    ? "bg-primary text-black02"
+                    : "text-black02/60 hover:bg-black02/5 hover:text-black02"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </span>
+        </span>
+      ))}
     </div>
   );
 }

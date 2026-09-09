@@ -136,8 +136,26 @@ export async function collectionCounts(): Promise<
   return Object.fromEntries(entries) as Record<CollectionId, number>;
 }
 
-export const getSpeakers = () => loadCollection<Speaker[]>("speakers");
-export const getTeam = () => loadCollection<TeamMember[]>("team");
+/**
+ * People, as the PUBLIC SITE should see them — hidden ones removed.
+ *
+ * THE DEFAULT NAME IS THE SAFE ONE, deliberately. There are seven public
+ * surfaces reading speakers alone (home, /speakers, /schedule, the schedule
+ * preview, the layout's banner count…), and a filter applied at each of them
+ * is a filter somebody forgets on the eighth. Reaching for the obvious
+ * function has to be the thing that does not leak a person who asked to come
+ * off the page.
+ *
+ * The admin wants the whole list and says so — `getAllSpeakers`.
+ */
+export const getSpeakers = async () =>
+  (await loadCollection<Speaker[]>("speakers")).filter((row) => !row.hidden);
+export const getTeam = async () =>
+  (await loadCollection<TeamMember[]>("team")).filter((row) => !row.hidden);
+
+/** Everything, hidden included. For the dashboard, which edits what it hides. */
+export const getAllSpeakers = () => loadCollection<Speaker[]>("speakers");
+export const getAllTeam = () => loadCollection<TeamMember[]>("team");
 export const getSessions = () => loadCollection<Session[]>("sessions");
 export const getSponsors = () => loadCollection<Sponsor[]>("sponsors");
 export const getFaqs = () => loadCollection<FaqItem[]>("faqs");

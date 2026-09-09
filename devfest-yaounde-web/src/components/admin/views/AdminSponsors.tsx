@@ -4,7 +4,13 @@ import { useState } from "react";
 import type { Sponsor } from "@/data/types";
 import { slugify } from "@/lib/admin/form-helpers";
 import { EntityCrud } from "../forms/EntityCrud";
-import { Field, ImageField, Segmented, TextInput } from "../forms/fields";
+import {
+  Field,
+  ImageField,
+  Segmented,
+  TextInput,
+  usePendingPhoto,
+} from "../forms/fields";
 import { useToast } from "../forms/Toast";
 import { InfoBanner } from "./shared";
 
@@ -26,21 +32,35 @@ const TIERS: { value: NonNullable<Sponsor["tier"]>; label: string }[] = [
 export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
   const toast = useToast();
   const [uploading, setUploading] = useState(false);
+  const photo = usePendingPhoto();
 
-  async function uploadLogo(entryId: string, file: File) {
+  /**
+   * Attach the picked file to a record that now exists.
+   *
+   * Called from `afterSave`, never straight from the picker — the endpoint
+   * updates an entry by id, so the entry has to have been written first.
+   */
+  async function uploadPending(entryId: string) {
+    if (!photo.pending) return;
     setUploading(true);
     const body = new FormData();
     body.set("entryId", entryId);
-    body.set("image", file);
+    body.set("image", photo.pending.file);
     const res = await fetch("/api/admin/content/sponsors/photo", {
       method: "POST",
       body,
     });
     setUploading(false);
-    toast.push(
-      res.ok ? "ok" : "error",
-      res.ok ? "Logo saved. Reload to see it." : "That logo did not upload.",
-    );
+    if (res.ok) {
+      // The record saved even if this had failed, so the two outcomes are
+      // reported separately rather than as one "saved" or "failed".
+      photo.clear();
+    } else {
+      toast.push(
+        "error",
+        "The record saved, but the logo did not upload. Open it again and retry.",
+      );
+    }
   }
 
   return (
@@ -58,6 +78,8 @@ export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
         addLabel="Add a sponsor"
         emptyLabel="No sponsors confirmed yet."
         reorderable
+        afterSave={(saved) => uploadPending(saved.id)}
+        onClose={photo.clear}
         blank={() => ({
           id: "",
           name: "",
@@ -108,7 +130,7 @@ export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
 
             <Field label="Tier">
               <Segmented
-                name={`sponsor-tier-${draft.id || "new"}`}
+                name="sponsor-tier"
                 value={draft.tier ?? "community"}
                 options={TIERS}
                 onChange={(tier) => patch({ tier })}
@@ -120,9 +142,8 @@ export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
                 url={draft.logoUrl}
                 name={draft.name}
                 busy={uploading}
-                disabled={!rows.some((r) => r.id === draft.id)}
-                disabledHint="Save first — the upload attaches the logo to an existing sponsor."
-                onPick={(file) => void uploadLogo(draft.id, file)}
+                preview={photo.pending?.preview}
+                onPick={photo.pick}
               />
             </Field>
 

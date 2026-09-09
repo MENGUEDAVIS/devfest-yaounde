@@ -77,6 +77,15 @@ export function speakersFromCsv(
       icebreakerAnswer: old?.icebreakerAnswer ?? BLANK,
       ...(old?.funnyMoment ? { funnyMoment: old.funnyMoment } : {}),
       ...(old?.featured ? { featured: true } : {}),
+      /*
+        CARRIED OVER, like every other flag the sheet does not carry.
+
+        `hidden` is not a CSV column, so a re-import that rebuilt the record
+        from the sheet alone would put somebody back on the public site
+        without anybody choosing to — the exact opposite of what hiding them
+        was for, and silent.
+      */
+      ...(old?.hidden ? { hidden: true } : {}),
       ...(old?.social ? { social: old.social } : {}),
     };
   });
@@ -101,6 +110,8 @@ export function teamFromCsv(
       icebreakerAnswer: old?.icebreakerAnswer ?? BLANK,
       ...(old?.funnyMoment ? { funnyMoment: old.funnyMoment } : {}),
       ...(old?.alumni ? { alumni: true } : {}),
+      // See the note in `speakersFromCsv` — re-importing must not un-hide.
+      ...(old?.hidden ? { hidden: true } : {}),
       ...(old?.years ? { years: old.years } : {}),
       ...(old?.social ? { social: old.social } : {}),
     };

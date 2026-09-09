@@ -50,6 +50,8 @@ export const speakerSchema = z.object({
   icebreakerAnswer: localizedRequired,
   funnyMoment: localized.optional(),
   featured: z.boolean().optional(),
+  // Absent means visible, so every payload written before this is valid.
+  hidden: z.boolean().optional(),
 });
 
 export const teamSchema = z.object({
@@ -75,6 +77,7 @@ export const teamSchema = z.object({
   icebreakerAnswer: localized.optional(),
   funnyMoment: localized.optional(),
   alumni: z.boolean().optional(),
+  hidden: z.boolean().optional(),
   years: z.string().max(40).optional(),
 });
 

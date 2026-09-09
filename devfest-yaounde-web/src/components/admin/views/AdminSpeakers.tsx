@@ -8,12 +8,14 @@ import { EntityCrud } from "../forms/EntityCrud";
 import {
   ChipInput,
   Field,
+  FilterBar,
   ImageField,
   LocalizedInput,
   Segmented,
   SocialLinks,
   TextInput,
   Toggle,
+  usePendingPhoto,
 } from "../forms/fields";
 import { useToast } from "../forms/Toast";
 import { InfoBanner } from "./shared";
@@ -23,23 +25,58 @@ const EMPTY = { fr: "", en: "" };
 export function AdminSpeakers({ rows }: { rows: Speaker[] }) {
   const toast = useToast();
   const [uploading, setUploading] = useState(false);
+  const photo = usePendingPhoto();
+  const [query, setQuery] = useState("");
+  const [day, setDay] = useState("all");
+  const [shown, setShown] = useState("all");
+  const [live, setLive] = useState("all");
 
-  async function uploadPhoto(entryId: string, file: File) {
+  /*
+    Matches on what somebody would actually type to find a speaker: their
+    name, their company, or the id if they are looking at a URL. Not the bio —
+    a search that matches on a paragraph returns half the list.
+  */
+  const matches = (row: Speaker) => {
+    const q = query.trim().toLowerCase();
+    if (
+      q &&
+      ![row.name, row.company, row.id].some((v) => v?.toLowerCase().includes(q))
+    )
+      return false;
+    if (day !== "all" && String(row.day) !== day) return false;
+    if (shown === "featured" && !row.featured) return false;
+    if (live === "live" && row.hidden) return false;
+    if (live === "hidden" && !row.hidden) return false;
+    return true;
+  };
+
+  /**
+   * Attach the picked file to a record that now exists.
+   *
+   * Called from `afterSave`, never straight from the picker — the endpoint
+   * updates an entry by id, so the entry has to have been written first.
+   */
+  async function uploadPending(entryId: string) {
+    if (!photo.pending) return;
     setUploading(true);
     const body = new FormData();
     body.set("entryId", entryId);
-    body.set("image", file);
+    body.set("image", photo.pending.file);
     const res = await fetch("/api/admin/content/speakers/photo", {
       method: "POST",
       body,
     });
     setUploading(false);
-    toast.push(
-      res.ok ? "ok" : "error",
-      res.ok
-        ? "Photo saved. Reload to see it on the card."
-        : "That photo did not upload.",
-    );
+    if (res.ok) {
+      // The record saved even if this had failed, so the two outcomes are
+      // reported separately rather than as one "saved" or "failed".
+      photo.clear();
+    } else {
+      toast.push(
+        "error",
+        "The record saved, but the picture did not upload. Open it again and retry.",
+      );
+    }
   }
 
   return (
@@ -54,7 +91,57 @@ export function AdminSpeakers({ rows }: { rows: Speaker[] }) {
       <EntityCrud<Speaker>
         collection="speakers"
         rows={rows}
+        filter={matches}
+        toolbar={
+          <FilterBar
+            query={query}
+            onQuery={setQuery}
+            placeholder="Search name or company"
+            chips={[
+              {
+                label: "Day",
+                value: day,
+                onChange: setDay,
+                options: [
+                  { value: "all", label: "All days" },
+                  ...EVENT_DATES.map((_, i) => ({
+                    value: String(i + 1),
+                    label: `Day ${i + 1}`,
+                  })),
+                ],
+              },
+              {
+                label: "Featured",
+                value: shown,
+                onChange: setShown,
+                options: [
+                  { value: "all", label: "All" },
+                  { value: "featured", label: "Featured" },
+                ],
+              },
+              {
+                label: "Visibility",
+                value: live,
+                onChange: setLive,
+                options: [
+                  { value: "all", label: "All" },
+                  { value: "live", label: "On the site" },
+                  { value: "hidden", label: "Hidden" },
+                ],
+              },
+            ]}
+          />
+        }
+        rowToggle={{
+          value: (row) => !row.hidden,
+          apply: (row, next) => ({ ...row, hidden: next ? undefined : true }),
+          label: (on) => (on ? "Hide" : "Show"),
+          saved: (on) =>
+            on ? "Back on the site." : "Hidden from the site — still here.",
+        }}
         addLabel="Add a speaker"
+        afterSave={(saved) => uploadPending(saved.id)}
+        onClose={photo.clear}
         emptyLabel="No speakers announced yet."
         blank={() => ({
           id: "",
@@ -126,9 +213,8 @@ export function AdminSpeakers({ rows }: { rows: Speaker[] }) {
                 url={draft.photoUrl}
                 name={draft.name}
                 busy={uploading}
-                disabled={!rows.some((r) => r.id === draft.id)}
-                disabledHint="Save first — the upload attaches the picture to an existing speaker."
-                onPick={(file) => void uploadPhoto(draft.id, file)}
+                preview={photo.pending?.preview}
+                onPick={photo.pick}
               />
             </Field>
 
@@ -154,7 +240,7 @@ export function AdminSpeakers({ rows }: { rows: Speaker[] }) {
             */}
             <Field label="Day">
               <Segmented
-                name={`speaker-day-${draft.id || "new"}`}
+                name="speaker-day"
                 value={String(draft.day)}
                 options={EVENT_DATES.map((date, i) => ({
                   value: String(i + 1),

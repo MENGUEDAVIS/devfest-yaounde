@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   CalendarBlank,
+  CaretDown,
   ChartBar,
   Gear,
   Handshake,
@@ -18,7 +19,7 @@ import {
   UsersThree,
   X,
 } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { lockScroll } from "@/lib/scroll-source";
 import { useSearchParams } from "next/navigation";
@@ -110,6 +111,43 @@ const GROUPS: {
     items: [{ id: "config", label: "Info bar & policies", Icon: Gear }],
   },
 ];
+
+type NavEntry = (typeof GROUPS)[number]["items"][number];
+
+/** One destination. Shared by the grouped items and the ungrouped ones. */
+function NavItem({
+  item,
+  active,
+  onGo,
+}: {
+  item: NavEntry;
+  active: boolean;
+  onGo: (id: ViewId) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onGo(item.id)}
+      aria-current={active ? "page" : undefined}
+      className={`flex items-center gap-2.5 rounded-pill px-3 py-2 text-left font-sans text-body-m transition-colors ${
+        active
+          ? "bg-primary font-bold text-black02"
+          : "font-medium text-black02/70 hover:bg-pastel hover:text-black02"
+      }`}
+    >
+      <item.Icon size={16} weight="bold" aria-hidden />
+      {item.label}
+    </button>
+  );
+}
+
+/** Which group holds a view — so arriving by URL opens the right one. */
+function groupOf(view: ViewId): string {
+  return (
+    GROUPS.find((g) => g.items.some((i) => i.id === view))?.label ??
+    GROUPS[0].label
+  );
+}
 
 const VIEW_IDS: ViewId[] = GROUPS.flatMap((group) =>
   group.items.map((item) => item.id),
@@ -232,6 +270,46 @@ export function AdminShell({
    */
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  /**
+   * Which nav group is open. Exactly one, or none.
+   *
+   * Seeded from the view rather than hardcoded to the first group: landing on
+   * `?view=speakers` should show Content open with Speakers marked, not
+   * Commerce open and the current page nowhere to be seen. With no `?view=`
+   * that resolves to Overview's group, and Overview is ungrouped, so
+   * `groupOf` falls back to the topmost group — which is the "first one open"
+   * behaviour asked for.
+   */
+  const [open, setOpen] = useState<string | null>(() =>
+    groupOf(parseView(params.get("view"))),
+  );
+
+  /**
+   * The sidebar's scrollbar, shown only while it is moving.
+   *
+   * A permanent gutter on a menu this short is a line of chrome that is
+   * almost never doing anything. It fades in on scroll and back out about a
+   * second after the last movement — the same bargain the public site's
+   * floating scrollbar makes.
+   */
+  const navRef = useRef<HTMLElement>(null);
+  const idle = useRef<number | null>(null);
+  const onNavScroll = useCallback(() => {
+    const node = navRef.current;
+    if (!node) return;
+    node.dataset.scrolling = "true";
+    if (idle.current) window.clearTimeout(idle.current);
+    idle.current = window.setTimeout(() => {
+      delete node.dataset.scrolling;
+    }, 900);
+  }, []);
+  useEffect(
+    () => () => {
+      if (idle.current) window.clearTimeout(idle.current);
+    },
+    [],
+  );
+
   useEffect(() => {
     document.title = "Admin · DevFest Yaoundé";
   }, []);
@@ -279,6 +357,7 @@ export function AdminShell({
    */
   function go(id: ViewId) {
     setView(id);
+    setOpen(groupOf(id));
     setDrawerOpen(false);
     const next = new URLSearchParams(window.location.search);
     if (id === "overview") next.delete("view");
@@ -365,48 +444,129 @@ export function AdminShell({
                   DevFest Yaoundé
                 </span>
               </Link>
-              <p className="mt-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
-                Admin
-              </p>
-              <p className="mt-0.5 truncate text-body-m font-bold text-black02">
-                {data.organiserEmail ?? "Organiser"}
-              </p>
 
-              <nav className="mt-5 flex flex-col gap-4">
-                {GROUPS.map((group) => (
-                  <div key={group.label}>
-                    <p className="mb-1.5 px-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/40">
-                      {group.label}
-                    </p>
-                    <div className="flex flex-wrap gap-1 lg:flex-col">
-                      {group.items.map(({ id, label, Icon }) => (
-                        <button
-                          key={id}
-                          type="button"
-                          onClick={() => go(id)}
-                          aria-current={view === id ? "page" : undefined}
-                          className={`flex items-center gap-2.5 rounded-pill px-3 py-2 text-left font-sans text-body-m transition-colors ${
-                            view === id
-                              ? "bg-primary font-bold text-black02"
-                              : "font-medium text-black02/70 hover:bg-pastel hover:text-black02"
+              {/*
+                ACCORDION, not a long scroll. Thirteen views in five groups
+                is more than fits a laptop sidebar, and the old answer was to
+                let it scroll — which hides half the dashboard behind a
+                gesture and gives no sense of what else is there.
+
+                One group open at a time, so the list is always about as tall
+                as the screen. Opening one closes the last; the group holding
+                the current view opens itself, so arriving by URL never lands
+                you in a collapsed section.
+              */}
+              <nav
+                ref={navRef}
+                onScroll={onNavScroll}
+                className="admin-nav mt-5 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
+              >
+                {GROUPS.map((group) => {
+                  /*
+                    A single-item group is not a group. "Overview" holding one
+                    entry would be a disclosure that reveals one thing —
+                    two clicks to reach what should take one — so it renders
+                    as a plain item.
+                  */
+                  if (group.items.length === 1) {
+                    const item = group.items[0];
+                    return (
+                      <NavItem
+                        key={group.label}
+                        item={item}
+                        active={view === item.id}
+                        onGo={go}
+                      />
+                    );
+                  }
+
+                  const isOpen = open === group.label;
+                  return (
+                    <div key={group.label}>
+                      <button
+                        type="button"
+                        onClick={() => setOpen(isOpen ? null : group.label)}
+                        aria-expanded={isOpen}
+                        className="flex w-full items-center justify-between gap-2 rounded-pill px-3 py-2 text-left font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50 transition-colors hover:bg-pastel hover:text-black02"
+                      >
+                        {group.label}
+                        <CaretDown
+                          size={12}
+                          weight="bold"
+                          aria-hidden
+                          className={`shrink-0 transition-transform duration-200 motion-reduce:transition-none ${
+                            isOpen ? "rotate-180" : ""
                           }`}
-                        >
-                          <Icon size={16} weight="bold" aria-hidden />
-                          {label}
-                        </button>
-                      ))}
+                        />
+                      </button>
+
+                      {/*
+                        grid-rows 1fr -> 0fr, the same technique the
+                        announcement banner uses to animate to zero height.
+                        `inert` while closed so a collapsed group's buttons
+                        are not tabbable from a menu that shows nothing.
+                      */}
+                      <div
+                        inert={!isOpen}
+                        className="grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none"
+                        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+                      >
+                        <div className="min-h-0 overflow-hidden">
+                          <div className="flex flex-col gap-1 pb-1 pl-2">
+                            {group.items.map((item) => (
+                              <NavItem
+                                key={item.id}
+                                item={item}
+                                active={view === item.id}
+                                onGo={go}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </nav>
 
-              <Link
-                href="/"
-                className="mt-auto inline-flex items-center gap-2 px-3 py-2 pt-6 font-sans text-body-m font-bold text-black02/70 hover:text-black02"
-              >
-                <ArrowLeft size={16} weight="bold" aria-hidden />
-                Back to site
-              </Link>
+              {/*
+                WHO IS SIGNED IN, pinned rather than scrolled past.
+
+                It used to sit at the top under the wordmark, above a nav that
+                scrolls — so on a short window it was the first thing to go.
+                It is the answer to "whose audit trail is this about to be",
+                which is worth having in view while you edit, so it is outside
+                the scrolling area and always on screen.
+              */}
+              <div className="mt-3 shrink-0 border-t border-black02/15 pt-3">
+                <div className="flex items-center gap-2.5 px-1">
+                  <span
+                    aria-hidden
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill border border-black02/20 bg-pastel font-sans text-body-m font-bold text-black02"
+                  >
+                    {(data.organiserEmail?.trim()[0] ?? "?").toUpperCase()}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/45">
+                      Signed in
+                    </span>
+                    <span
+                      className="block truncate text-body-m font-bold text-black02"
+                      title={data.organiserEmail ?? undefined}
+                    >
+                      {data.organiserEmail ?? "Organiser"}
+                    </span>
+                  </span>
+                </div>
+
+                <Link
+                  href="/"
+                  className="mt-2 inline-flex items-center gap-2 rounded-pill px-3 py-1.5 font-sans text-body-m font-bold text-black02/70 hover:bg-pastel hover:text-black02"
+                >
+                  <ArrowLeft size={16} weight="bold" aria-hidden />
+                  Back to site
+                </Link>
+              </div>
             </div>
           </aside>
 

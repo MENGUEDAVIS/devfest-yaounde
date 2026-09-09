@@ -860,3 +860,58 @@ html:has([data-preloader]) body {
   outline-offset: 3px;
   border-radius: var(--radius-sm);
 }
+
+/* ---------------------------------------------------------------------------
+   The admin sidebar's scrollbar, shown only while it is moving.
+
+   A permanent gutter on a menu that mostly fits is a strip of chrome doing
+   nothing, and it steals width from labels that are already tight. This
+   keeps the track transparent and only paints the thumb once
+   `data-scrolling` is set — which `AdminShell` sets on scroll and clears
+   about a second after the last movement.
+
+   `scrollbar-color` (Firefox, and Chromium from 121) and the WebKit
+   pseudo-elements say the same thing twice on purpose; neither is supported
+   everywhere and the fallback in both directions is a normal scrollbar,
+   which is a perfectly good outcome.
+
+   NOT `scrollbar-width: none`. Hiding it outright would take the scrollbar
+   away from anyone who drags it, and a menu you cannot drag-scroll is worse
+   than one with a visible gutter.
+--------------------------------------------------------------------------- */
+.admin-nav {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 300ms ease-out;
+}
+
+.admin-nav[data-scrolling] {
+  scrollbar-color: var(--color-black02) transparent;
+}
+
+.admin-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-nav::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+  transition: background-color 300ms ease-out;
+}
+
+.admin-nav[data-scrolling]::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-black02) 45%, transparent);
+}
+
+/* Someone who asked for less motion still gets the scrollbar — they just get
+   it without the fade, which is the part that was motion. */
+@media (prefers-reduced-motion: reduce) {
+  .admin-nav,
+  .admin-nav::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}
