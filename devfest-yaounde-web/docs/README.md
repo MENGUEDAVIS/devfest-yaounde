@@ -71,6 +71,7 @@ or amend an earlier one.
 | [0042](decisions/0042-admin-saves-reach-the-site.md)            | Admin saves reach the site; the Save button exists                  | Accepted — **fixes four reported defects**            |
 | [0043](decisions/0043-admin-forms-and-navigation.md)            | Photos before save, filters, accordion sidebar                      | Accepted                                              |
 | [0044](decisions/0044-hero-bottom-anchored-wordmark.md)         | A bottom-anchored wordmark and floating facts                       | Accepted — **replaces the hero in 0041**              |
+| [0045](decisions/0045-hero-weight-overlap-and-recede.md)        | Bolder, left-anchored, overlapping, reactive to leaving             | Accepted — **tunes 0044**                             |
 
 **Site and design**
 

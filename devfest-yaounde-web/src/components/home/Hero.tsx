@@ -11,7 +11,8 @@ import { HeroWordmark } from "@/components/home/HeroWordmark";
 import { EVENT, formatEventDates } from "@/lib/event";
 
 /**
- * The landing hero — a clean-sheet redesign (ADR 0044).
+ * The landing hero — a clean-sheet redesign (ADR 0044), tuned a second time
+ * for weight and depth (ADR 0045).
  *
  * ## What it replaced, and why none of it came back
  *
@@ -23,29 +24,43 @@ import { EVENT, formatEventDates } from "@/lib/event";
  *
  * ## The composition
  *
- * **The mass is at the BOTTOM.** The navbar owns the top, so the hero's star
- * element hugs the lower edge and the space above it is left deliberately
- * empty. That emptiness is the design: a huge thing in a crowded frame is
- * just noise, and the same thing with room around it reads as confident
- * (DESIGN.md §7b — "exaggerated size only reads as confident if it has
- * room").
+ * **The mass is at the BOTTOM, and it is a LEFT column, not a centred one.**
+ * The tagline, the CTAs and the wordmark all start from the same left edge
+ * now — the first pass had the CTAs pinned to the far right of that row,
+ * which split the bottom band into two balanced halves and read as safe. One
+ * strong left mass, with the right side left to the shapes and the venue
+ * fact, is the asymmetry that makes the left mass read as a decision.
  *
- * **The facts float.** Date and venue are not a text block under a headline;
- * they are placed around the empty half, absolutely positioned, leaning
- * toward the pointer. They cost no layout space, which is what lets the
- * wordmark have all of it.
+ * **The facts and shapes are allowed to touch the wordmark now.** The first
+ * pass kept three clean horizontal bands so nothing could collide — correct
+ * for shipping something that worked, and also why it read as tidy rather
+ * than as considered. The primary shape now hangs low enough to cross the
+ * wordmark's top edge, and the venue fact sits close enough to sit partly
+ * over it, both confirmed by screenshot rather than assumed from the
+ * coordinates.
  *
- * **Two flat shapes and the bracket mark** furnish the upper space. Three
- * elements, each large and each doing one job, rather than a texture of small
- * ones. Flat fills only.
+ * **The wordmark is left-anchored, tighter and heavier.** See the doc
+ * comment on `HeroWordmark` for the mechanics — bottom-left instead of a
+ * symmetric near-full-width block, ~5% tighter tracking, a stroke rim faking
+ * the weight the loaded font file does not have past 700.
+ *
+ * ## It reacts twice: to the pointer, and to leaving
+ *
+ * The facts and shapes already leaned toward the cursor; the wordmark itself
+ * now tilts a fraction of a degree with them, so the star element is not the
+ * one thing in the room standing still. And everything recedes — lifts,
+ * shrinks slightly, the wordmark also fades — as the hero scrolls out from
+ * under the navbar, driven by `--exit` in `useHeroField`. Both are transform/
+ * opacity only, so neither costs a reflow, and both are silent under
+ * `prefers-reduced-motion` (`useHeroField` never attaches either listener).
  *
  * ## It has to work standing still
  *
  * Under `prefers-reduced-motion` nothing here moves: no reveal, no drift, no
- * cursor response. What is left is the composition — the giant bottom-anchored
- * wordmark, the placed facts, the negative space, two shapes — which is the
- * thing that was designed. The motion is a reward for the people who can take
- * it, never the reason the screen works.
+ * cursor response, no recede. What is left is the composition — the giant
+ * bottom-left wordmark, the placed facts, the negative space, the shapes
+ * overlapping it — which is the thing that was designed. The motion is a
+ * reward for the people who can take it, never the reason the screen works.
  */
 export async function Hero({ locale }: { locale: string }) {
   const t = await getTranslations("home.hero");
@@ -68,7 +83,15 @@ export async function Hero({ locale }: { locale: string }) {
             56  – 100vh  the bottom cluster: tagline, CTAs, wordmark.
         */}
 
-        {/* ---------- The empty upper half, furnished ---------- */}
+        {/*
+          ---------- The empty upper half, furnished ----------
+          Desktop-only (`sm:block` on both). Enlarging and lowering the
+          primary circle to reach the wordmark (below) only works where the
+          composition has the vertical room for it — on mobile the same
+          vh-based position lands the circle on top of the tagline instead,
+          since the stacked layout is a different shape entirely. Mobile
+          already gets contrast from the two-colour split lines.
+        */}
 
         {/*
           Two shapes, sized the way §7b asks for — one big bold shape beats
@@ -76,14 +99,22 @@ export async function Hero({ locale }: { locale: string }) {
           theme switcher repaints them with everything else, and they are
           behind the facts in both z-order and parallax depth.
         */}
+        {/*
+          Bigger and lower than the first pass, on purpose: it now hangs low
+          enough to cross the wordmark's own top edge on `lg` (confirmed by
+          screenshot), so the circle and the giant type genuinely overlap
+          instead of occupying separate bands. `-z-10` keeps it behind the
+          text, which is what makes the crossing read as depth rather than as
+          a collision.
+        */}
         <div
           aria-hidden
-          className="hero-shape pointer-events-none absolute -right-[14vmin] top-[26vh] -z-10 h-[34vmin] w-[34vmin] rounded-pill bg-primary/80 lg:right-[4vw]"
+          className="hero-shape pointer-events-none absolute -right-[10vmin] top-[35vh] -z-10 hidden h-[44vmin] w-[44vmin] rounded-pill bg-primary/85 sm:block lg:right-[2vw]"
           style={{ ["--depth" as string]: "46px" }}
         />
         <div
           aria-hidden
-          className="hero-shape pointer-events-none absolute -left-[8vmin] top-[40vh] -z-10 h-[20vmin] w-[20vmin] rotate-12 rounded-lg bg-halftone/60 sm:left-[2vw]"
+          className="hero-shape pointer-events-none absolute -left-[8vmin] top-[44vh] -z-10 hidden h-[20vmin] w-[20vmin] rotate-12 rounded-lg bg-halftone/60 sm:left-[2vw] sm:block"
           style={{ ["--depth" as string]: "70px" }}
         />
 
@@ -206,22 +237,31 @@ export async function Hero({ locale }: { locale: string }) {
           </div>
 
           {/*
-            NO max-width, and that is the point: the wordmark below is
+            ONE LEFT COLUMN, not a split row. The first pass put the CTAs at
+            `justify-between` — pinned to the far right — which balanced the
+            row into two even halves and read as safe/centred rather than as
+            a deliberate left mass. Tagline and CTAs now share the wordmark's
+            own left edge and stack, so the eye reads "logo, eyebrow, date —
+            tagline, CTAs — WORDMARK" as one continuous left-anchored column,
+            with the shapes and the venue fact as the asymmetric counterweight
+            on the right.
+
+            NO max-width on the column either: the wordmark below is
             full-bleed to the section's padding, so anything that does not
-            share its left and right edges reads as misaligned. On a 2560
-            screen a centred `max-w-[100rem]` started the tagline 400px inside
-            a headline that starts at the edge.
+            share its left edge reads as misaligned. On a 2560 screen a
+            centred `max-w-[100rem]` started the tagline 400px inside a
+            headline that starts at the edge.
           */}
-          <div className="relative z-10 flex flex-col items-start gap-5 pb-7 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
+          <div className="relative z-10 flex max-w-xl flex-col items-start gap-4 pb-5">
             <p
-              className="hero-settle max-w-md text-body-l text-black02/80"
+              className="hero-settle text-body-l text-black02/80"
               style={{ ["--settle-delay" as string]: "480ms" }}
             >
               {t("tagline")}
             </p>
 
             <div
-              className="hero-settle flex shrink-0 flex-wrap items-center gap-3"
+              className="hero-settle flex flex-wrap items-center gap-3"
               style={{ ["--settle-delay" as string]: "560ms" }}
             >
               <Button tone="primary" href="/tickets" size="lg">

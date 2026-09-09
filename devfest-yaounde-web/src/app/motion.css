@@ -1687,9 +1687,16 @@ html:has([data-preloader="held"]) .mask-line > * {
   trying to sum two animations onto a single node.
 */
 .hero-satellite {
+  /*
+    Two influences on one transform, added rather than nested: the pointer
+    lean (--px/--py × this satellite's own --depth) and a shared upward
+    recede as --exit grows on scroll. They can share one `translate3d`
+    because both are already expressed as plain px offsets on the same axes
+    — there is nothing to compose that a sum does not already give.
+  */
   transform: translate3d(
     calc(var(--px, 0) * var(--depth, 16px)),
-    calc(var(--py, 0) * var(--depth, 16px)),
+    calc(var(--py, 0) * var(--depth, 16px) + var(--exit, 0) * -56px),
     0
   );
   will-change: transform;
@@ -1718,9 +1725,12 @@ html:has([data-preloader="held"]) .mask-line > * {
   opacity trick — depth from parallax alone.
 */
 .hero-shape {
+  /* Further and slower than the satellites (larger --depth already does
+     that for the pointer term); the exit term is shared so the whole scene
+     lifts as one plate rather than each shape drifting its own way. */
   transform: translate3d(
     calc(var(--px, 0) * var(--depth, 40px)),
-    calc(var(--py, 0) * var(--depth, 40px)),
+    calc(var(--py, 0) * var(--depth, 40px) + var(--exit, 0) * -56px),
     0
   );
   will-change: transform;
@@ -1742,6 +1752,26 @@ html:has([data-preloader="held"]) .mask-line > * {
 .hero-settle {
   animation: df-hero-settle 700ms var(--ease-out-devfest) both;
   animation-delay: var(--settle-delay, 0ms);
+}
+
+/* --- The wordmark's outer wrapper: cursor tilt + scroll recede ----------- */
+
+/*
+  `--px`/`--py` reach here by plain CSS inheritance from the hero root — no
+  second hook, no extra JS. The rotate is intentionally tiny (a fraction of a
+  degree at the pointer's extreme): this is the star element, and a giant
+  headline that visibly wobbles reads as broken rather than alive. `--exit`
+  drives the recede: lifted, very slightly shrunk, faded — the "leaving the
+  scene" cue the rest of the composition does not carry on its own, because
+  this is the one element with no pre-existing animation on this transform to
+  collide with.
+*/
+.hero-word-exit {
+  transform: translate3d(0, calc(var(--exit, 0) * -34px), 0)
+    scale(calc(1 - var(--exit, 0) * 0.06)) rotate(calc(var(--px, 0) * 0.6deg));
+  opacity: calc(1 - var(--exit, 0) * 0.85);
+  transform-origin: left bottom;
+  will-change: transform, opacity;
 }
 
 /* --- The preloader handoff ----------------------------------------------- */
@@ -1774,8 +1804,17 @@ html:has([data-preloader="held"]) .hero-settle {
   }
 
   .hero-satellite,
-  .hero-shape {
+  .hero-shape,
+  .hero-word-exit {
     transform: none !important;
+  }
+
+  /* `useHeroField` never attaches the scroll listener under reduced motion,
+     so `--exit` is already permanently unset — this is belt and braces for
+     the opacity term specifically, since a stray inherited value is cheaper
+     to rule out here than to trust never happened. */
+  .hero-word-exit {
+    opacity: 1 !important;
   }
 }
 
