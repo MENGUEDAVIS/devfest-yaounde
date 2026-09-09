@@ -169,3 +169,59 @@ export function eventJsonLd(
     },
   };
 }
+
+/**
+ * The dates as a person reads them: "21 & 28 November 2026".
+ *
+ * WHY THIS EXISTS. The hero and the ticket confirmation email both carried
+ * the string "21–22 November 2026" — hand-typed, from the Bevy listing's
+ * "Nov 21–28", and wrong in both the way ADR 0038 fixed everywhere else. One
+ * of them is sent to somebody who has paid.
+ *
+ * A dash is the thing to avoid. It means "through", and these two Saturdays
+ * are a week apart, so "21–28" tells a reader the event runs for eight days.
+ * An ampersand says exactly what is true: two days, both of them listed.
+ *
+ * Returns null when there are no dates — the same silence as `eventDates`,
+ * so a surface without a date shows nothing rather than a stray year.
+ */
+export function formatEventDates(
+  locale: "fr" | "en",
+  dates: readonly string[] = EVENT_DATES,
+): string | null {
+  if (dates.length === 0) return null;
+
+  const parsed = dates.map((d) => {
+    const [y, m, day] = d.split("-").map(Number);
+    // Midday UTC, not midnight: a date at 00:00 in one timezone is the
+    // previous day in another, and this string is read in Yaoundé.
+    return { y, m, day, at: new Date(Date.UTC(y, m - 1, day, 12)) };
+  });
+
+  const tag = locale === "fr" ? "fr-FR" : "en-GB";
+  const monthOf = (at: Date) =>
+    new Intl.DateTimeFormat(tag, { month: "long", timeZone: "UTC" }).format(at);
+
+  const sameMonth = parsed.every(
+    (p) => p.m === parsed[0].m && p.y === parsed[0].y,
+  );
+
+  // Days share a month: name it once. "21 & 28 November 2026", not
+  // "21 November 2026 & 28 November 2026", which nobody says out loud.
+  const parts = sameMonth
+    ? parsed.map((p) => String(p.day))
+    : parsed.map((p) => `${p.day} ${monthOf(p.at)}`);
+
+  const joined = joinList(parts, locale);
+  return sameMonth
+    ? `${joined} ${monthOf(parsed[0].at)} ${parsed[0].y}`
+    : `${joined} ${parsed[parsed.length - 1].y}`;
+}
+
+/** "a & b", "a, b & c" — and in French, "et". */
+function joinList(parts: string[], locale: "fr" | "en"): string {
+  if (parts.length <= 1) return parts[0] ?? "";
+  const last = parts[parts.length - 1];
+  const rest = parts.slice(0, -1).join(", ");
+  return `${rest} ${locale === "fr" ? "et" : "&"} ${last}`;
+}

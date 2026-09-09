@@ -66,7 +66,7 @@ export default async function HomePage({
       <JsonLd
         data={eventJsonLd(locale === "en" ? "en" : "fr", t("metaDesc"))}
       />
-      <Hero />
+      <Hero locale={locale} />
       <About />
       <StatsInterstitial />
       {/*

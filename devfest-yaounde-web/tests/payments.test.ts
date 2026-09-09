@@ -58,6 +58,7 @@ import {
   EVENT,
   eventDates,
   eventJsonLd,
+  formatEventDates,
   organizationJsonLd,
 } from "@/lib/event";
 import { dateForDay } from "@/lib/calendar";
@@ -542,6 +543,37 @@ describe("event structured data", () => {
     assert.equal(sub?.length, 2);
     assert.equal(sub![0].startDate, "2026-11-21T09:00:00");
     assert.equal(sub![1].startDate, "2026-11-28T09:00:00");
+  });
+
+  it("writes the dates the way a person says them, not as a range", () => {
+    // The bug this pins is a STRING one, and it shipped in an email somebody
+    // who has paid reads: "21–22 November 2026". A dash means "through", and
+    // these two Saturdays are a week apart — so a dash claims an eight-day
+    // event. An ampersand says what is true.
+    assert.equal(
+      formatEventDates("en", ["2026-11-21", "2026-11-28"]),
+      "21 & 28 November 2026",
+    );
+    assert.equal(
+      formatEventDates("fr", ["2026-11-21", "2026-11-28"]),
+      "21 et 28 novembre 2026",
+    );
+  });
+
+  it("names the month once when the days share one, and twice when they do not", () => {
+    assert.equal(formatEventDates("en", ["2026-11-21"]), "21 November 2026");
+    assert.equal(
+      formatEventDates("en", ["2026-11-28", "2026-12-05"]),
+      "28 November & 5 December 2026",
+    );
+    assert.equal(
+      formatEventDates("fr", ["2026-11-21", "2026-11-28", "2026-11-29"]),
+      "21, 28 et 29 novembre 2026",
+    );
+  });
+
+  it("says nothing rather than a bare year when there are no dates", () => {
+    assert.equal(formatEventDates("en", []), null);
   });
 
   it("does not add a subEvent list for a single-day event", () => {

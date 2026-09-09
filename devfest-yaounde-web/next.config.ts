@@ -54,7 +54,52 @@ const securityHeaders = [
   },
 ];
 
+/**
+ * Where a content photo can come from.
+ *
+ * Everything uploaded through the dashboard lands in the Supabase `editorial`
+ * bucket and is served from that project's own hostname, so the pattern is
+ * derived from the URL the app is already configured with rather than typed
+ * out a second time — one project, one place to change it.
+ *
+ * An unset or malformed URL yields an EMPTY list rather than a wildcard.
+ * `next/image` then refuses every remote host, which is a broken image in
+ * development and the correct failure: the alternative is an open image proxy
+ * that will resize anything on the internet at our expense.
+ */
+function supabaseImagePattern() {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!raw) return [];
+  try {
+    const { hostname } = new URL(raw);
+    return [
+      {
+        protocol: "https" as const,
+        hostname,
+        pathname: "/storage/v1/object/public/**",
+      },
+    ];
+  } catch {
+    return [];
+  }
+}
+
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: supabaseImagePattern(),
+    // AVIF first, WebP behind it. The optimiser picks per request from the
+    // browser's Accept header, so an old browser still gets a JPEG.
+    formats: ["image/avif", "image/webp"],
+    /*
+     * SVG is NOT enabled here, and that is deliberate.
+     *
+     * `dangerouslyAllowSVG` would let /_next/image serve arbitrary SVG, which
+     * can carry script. The placeholder art in `public/placeholders` is SVG,
+     * so those are passed through `unoptimized` instead — they are 500 bytes
+     * each and an optimiser round-trip would make them slower, not faster.
+     * See `ContentImage`.
+     */
+  },
   allowedDevOrigins: ["http://localhost:3000", "192.168.100.15", "10.34.2.185"],
   // The wall is on (ADR 0033). Only an explicit "0" turns it off — an empty
   // string copied from .env.example would otherwise keep it dark in production.

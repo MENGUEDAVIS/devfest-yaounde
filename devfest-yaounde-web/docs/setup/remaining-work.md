@@ -109,11 +109,31 @@ the `Event` structured data. **Add a day by adding a date to the array** — the
 day count derives from its length, and nothing infers a date by counting
 forward, which is what previously put day 2 on the wrong Saturday.
 
+Two places used to carry the string "21–22 November 2026" — the hero and the
+ticket confirmation email — hand-typed from the Bevy listing. Both derive it
+from `EVENT_DATES` now via `formatEventDates` (ADR 0041), so there is one
+place to edit and nowhere to get it wrong. **Do not reintroduce a date as a
+copy string.**
+
 The venue is still unset. It lives in `src/lib/event.ts` (`venue`,
 `venueStreet`) and turns the `Place` in the rich result from a city into an
 address.
 
 ---
+
+### Images
+
+`next/image` is wired and `remotePatterns` is derived from
+`NEXT_PUBLIC_SUPABASE_URL`, so uploaded photos are optimised and served as
+AVIF/WebP. Two things are worth knowing:
+
+- **There are no real photographs yet.** `past-editions` holds four 500-byte
+  placeholder SVGs, which are passed through unoptimised on purpose. The
+  pipeline is proven by the build, not by a real image.
+- **No blur placeholders.** They need a `blurDataURL` per photo, which nothing
+  computes. `normalisePhoto` already re-encodes uploads with sharp and could
+  emit one, but that needs a field on the content types and a migration of
+  stored payloads. See ADR 0041.
 
 ## 3. Deliberately not built
 

@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element -- frame renders arbitrary local/remote photo URLs from content JSON; next/image optimization isn't wired for these yet */
+import { ContentImage } from "@/components/ui/ContentImage";
 
 /**
  * DESIGN.md §4.2 interim directive: the two-rectangle-union morphed frame
@@ -23,6 +23,15 @@ export interface MorphedImageFrameProps {
   /** CSS aspect-ratio for the frame, e.g. "1/1" (default) or "4/3". */
   aspectRatio?: string;
   className?: string;
+  /**
+   * How wide this frame actually renders, for the srcset.
+   *
+   * The default assumes a card in a responsive grid, which is what most call
+   * sites are. Pass a real value anywhere that is wrong — a wide hero photo
+   * or a small avatar — because an over-generous `sizes` is a full-width
+   * download for a thumbnail.
+   */
+  sizes?: string;
 }
 
 /**
@@ -45,6 +54,7 @@ export function MorphedImageFrame({
   shape = "rounded",
   aspectRatio = "1/1",
   className = "",
+  sizes = "(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw",
 }: MorphedImageFrameProps) {
   const shapeClass = shape === "circle" ? "rounded-pill" : "rounded-lg";
 
@@ -64,7 +74,7 @@ export function MorphedImageFrame({
 
   return (
     <div
-      className={`overflow-hidden ${shapeClass} ${className}`}
+      className={`relative overflow-hidden ${shapeClass} ${className}`}
       style={{ aspectRatio }}
     >
       {missing ? (
@@ -81,7 +91,13 @@ export function MorphedImageFrame({
           </span>
         </div>
       ) : (
-        <img src={src} alt={alt} className="h-full w-full object-cover" />
+        /*
+          Optimised, and it matters most here: this frame is what the team
+          grid, the speaker cards and the memory lane all render, so it is
+          every uploaded photograph on the site. `fill` needs a positioned
+          parent, which the wrapper below now is.
+        */
+        <ContentImage src={src} alt={alt} sizes={sizes} />
       )}
     </div>
   );

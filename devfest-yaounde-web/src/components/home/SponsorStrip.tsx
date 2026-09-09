@@ -1,4 +1,15 @@
-/* eslint-disable @next/next/no-img-element -- sponsor logos are content-driven URLs from the store; next/image isn't wired for arbitrary remote hosts */
+/*
+ * eslint-disable @next/next/no-img-element
+ *
+ * A plain <img> here is the considered choice, not the unfinished one. Logo
+ * URLs are the least controlled in the store — uploaded to our bucket in the
+ * normal case, but a seed file or an import can carry any host — and
+ * `next/image` throws a 500 on a host that is not in `remotePatterns`. An
+ * unoptimised logo is a far better failure than a sponsor strip that takes
+ * the home page down. Logos are also small and frequently SVG, where the
+ * optimiser has nothing to win.
+ */
+/* eslint-disable @next/next/no-img-element */
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
 import type { Sponsor } from "@/data/types";

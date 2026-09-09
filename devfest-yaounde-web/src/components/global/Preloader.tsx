@@ -89,7 +89,22 @@ export function Preloader() {
   return (
     <div
       aria-hidden
-      data-preloader
+      /*
+        The value is the handoff signal, not just a marker.
+
+        `held` means the splash still owns the screen; `leaving` means it is
+        fading and the page underneath should start arriving. motion.css
+        pauses the hero's entrance while a held preloader is in the document,
+        so the sequence plays AS the splash lifts instead of finishing behind
+        it — which is what used to happen, since the animations started at
+        first paint and were long over by the time anyone saw the page.
+
+        Keyed off the element's presence rather than a class on <html>, so it
+        fails in the safe direction: no preloader in the DOM (a page without
+        one, or JS that never hydrated after the element was removed) means
+        nothing is paused and the hero simply animates.
+      */
+      data-preloader={leaving ? "leaving" : "held"}
       /* Above the chrome, the overlays and the floating scrollbar; below the
          custom cursor, which must never be occluded by what it points at. */
       className={`fixed inset-0 z-[9000] flex items-center justify-center overflow-hidden bg-pastel transition-opacity motion-reduce:transition-none ${

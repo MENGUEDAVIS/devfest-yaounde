@@ -1596,3 +1596,35 @@
     mask-image: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Preloader handoff — the hero arrives AS the splash lifts.
+
+   The entrance sequence is a chain of CSS animations with staggered delays,
+   and they used to start at first paint. The splash holds for 1.3s. So the
+   whole choreography — the logo row, the two masked headline lines, the
+   stamp landing, the tagline, the buttons, the collage tiles — played out
+   behind an opaque yellow screen and was finished before anybody saw it.
+   What you actually got was a splash, then a static page.
+
+   `animation-play-state: paused` is the whole fix, and it is the right
+   primitive rather than a clever one: these animations already use
+   `both` fill, so a paused animation sits in its `from` keyframe through its
+   delay and resumes from there. No timer to keep in sync with HOLD_MS, no
+   duplicate constant across a TS file and a stylesheet.
+
+   Gated on `[data-preloader="held"]` — the element's own state. When the
+   preloader starts fading it becomes `leaving`, the selector stops matching,
+   and everything resumes at once, each element still keeping its own stagger.
+
+   FAILS OPEN, on purpose. No preloader in the document (any other page, or a
+   client-side navigation, or a build where it is removed) means nothing
+   matches and the hero just animates. Nothing here can leave content stuck
+   invisible.
+--------------------------------------------------------------------------- */
+html:has([data-preloader="held"]) .anim-hero-rise,
+html:has([data-preloader="held"]) .anim-tile-in,
+html:has([data-preloader="held"]) .anim-stamp,
+html:has([data-preloader="held"]) .mask-line > * {
+  animation-play-state: paused;
+}

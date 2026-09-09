@@ -32,6 +32,7 @@ import {
   sponsorSeats,
 } from "@/lib/content/sponsors";
 import type { Sponsor } from "@/data/types";
+import { canOptimise } from "@/lib/images";
 import {
   applyPhotoUrl,
   entryNeedsPhoto,
@@ -230,7 +231,10 @@ describe("editorial schemas", () => {
         .success,
       false,
     );
-    assert.equal(settingsSchema.safeParse({ cfs: { url: bad } }).success, false);
+    assert.equal(
+      settingsSchema.safeParse({ cfs: { url: bad } }).success,
+      false,
+    );
     assert.equal(
       settingsSchema.safeParse({ sponsorCall: { prospectusUrl: bad } }).success,
       false,
@@ -343,6 +347,35 @@ describe("crm form helpers", () => {
     assert.equal(isoToWatLocal("nonsense"), "");
     assert.equal(watLocalToIso(""), null);
     assert.equal(watLocalToIso("nonsense"), null);
+  });
+});
+
+describe("which photos the optimiser is allowed to fetch", () => {
+  const HOST = "abcdef.supabase.co";
+
+  it("optimises our own paths and our own bucket", () => {
+    assert.equal(canOptimise("/placeholders/memory-1.svg", HOST), true);
+    assert.equal(
+      canOptimise(
+        `https://${HOST}/storage/v1/object/public/editorial/team/x.jpg`,
+        HOST,
+      ),
+      true,
+    );
+  });
+
+  it("refuses any other host instead of throwing at render", () => {
+    // next/image THROWS on a host missing from remotePatterns, and it throws
+    // while rendering — so one pasted URL in a CSV import would take the page
+    // down with a 500 rather than show one broken picture.
+    assert.equal(canOptimise("https://example.com/me.jpg", HOST), false);
+    assert.equal(canOptimise(`http://${HOST}/x.jpg`, HOST), false);
+    assert.equal(canOptimise("not a url at all", HOST), false);
+  });
+
+  it("refuses everything remote when no host is configured", () => {
+    assert.equal(canOptimise("https://example.com/me.jpg", null), false);
+    assert.equal(canOptimise("/placeholders/memory-1.svg", null), true);
   });
 });
 
