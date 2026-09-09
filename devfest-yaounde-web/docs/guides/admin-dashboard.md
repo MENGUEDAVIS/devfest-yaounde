@@ -35,10 +35,13 @@ the one this guide is mostly about.
 You do not need any other variable for the dashboard. The community wall is
 on (ADR 0033). Click a card on the Wall panel to hide or show it — grey and
 faded means off, but the file is still there, so this is reversible. The
-trash icon in the corner of a card is not: it deletes the stored image
-outright and drops the card off the public wall for good, same as a takedown
-request. A card with a small flag badge has been reported by a visitor; that
-count is the only signal the panel gives you for which ones to look at first.
+trash icon in the corner of a card is not: it removes the image and the
+record together, the same as a takedown request, and the card does not come
+back. The download icon beside it saves a copy — that is deliberately
+possible here and deliberately blocked on the public wall, because this side
+sits behind a server-checked organiser session. A card with a small flag
+badge has been reported by a visitor; that count is the only signal the panel
+gives you for which ones to look at first.
 The active section lives in `?view=` so a reload keeps your place. **Back to
 site** in the sidebar returns to the public homepage.
 
@@ -115,6 +118,96 @@ short version:
   legal URLs, creating a discount code.
 - **Fallback:** until a collection is published, the public site still reads
   `src/data/*.json`. See ADR 0031.
+
+### Editing content record by record
+
+**Content** in the sidebar is now four editors — Speakers, Schedule, Team,
+Sponsors — plus **Bulk & photos** for CSV and JSON imports. Each list has an
+add button, a pencil to edit and a bin to delete, and editing opens a panel
+over the list rather than a separate page.
+
+A few things worth knowing before you use them:
+
+- **The id is the URL.** It fills itself in from the name for a new record and
+  is then left alone — changing it on an existing one breaks any link to it,
+  and photos are attached by id.
+- **Photos come second.** Save the person first, then upload — the upload
+  attaches a picture to a record that already exists, so the button stays
+  disabled until it does and says why.
+- **Every save writes the whole collection**, because that is how the store
+  works (ADR 0031). If somebody else changed the same list while you had the
+  panel open, your save is refused with a note asking you to reload — rather
+  than quietly overwriting their work.
+- **Order matters where it is shown.** Schedule, Team and Sponsors have
+  up/down arrows, and each press saves immediately.
+- **Team past/current** is the switch on each member. Past organisers move to
+  the alumni section on the public page.
+- The **day** picker only offers days the event actually has, and shows the
+  real date beside each one, so a session cannot be scheduled onto a day that
+  does not exist.
+
+### The call for speakers
+
+**Configuration** in the sidebar has a call-for-speakers block under the
+announcement. It drives three places at once: the section on the home page,
+the `/speakers` page and — when nothing has been typed in the announcement
+boxes — the banner above the navbar.
+
+- **Show the call** is normally left on _Automatic_: the call shows while the
+  speaker list is empty and switches to the lineup the moment you add one.
+  _Always_ and _Never_ are for the two weeks where those disagree — a lineup
+  announced before it is entered, or a call reopened after the first speaker.
+- **Both dates are Yaoundé time**, whichever clock you are reading them on.
+  Leave one empty for no bound: an empty close date means the countdown
+  disappears and the call runs until you change it.
+- **With no submission URL the call never shows**, because there would be
+  nothing to click.
+- The line under the heading tells you what the public site is doing _right
+  now_ — it is computed by the same code the site runs, so it cannot go stale.
+
+A typed announcement always wins over the call. If you write something in the
+announcement boxes, that is what the banner says and the submit button goes
+away with it.
+
+### Sponsors, and the ask for more
+
+The sponsor **strip on the home page always shows six seats**, filled from the
+left by whoever is in Content → Sponsors. Empty ones are dashed outlines, and
+that is deliberate: a company reading the site can see there is room. It only
+starts scrolling once every seat is taken.
+
+**Configuration → Become a sponsor** controls the ask beside them:
+
+- **Prospectus URL** is what the button opens, in a new tab. Empty hides the
+  button — there would be nothing behind it.
+- **Closes** is a Yaoundé-time deadline, and empty means none.
+- **Show the CTA** takes it down everywhere at once, deadline or not. Use it
+  when the deck is out of date or a conversation is mid-flight.
+
+The line under the heading says what the strip is doing right now, counted
+from the sponsors you have actually saved.
+
+### Legal links
+
+**Configuration → Legal links** holds the three at the bottom of the footer:
+participation terms, privacy policy, terms of service. All three are other
+people's pages — GDG's and Google's — because the chapter runs under those and
+publishes none of its own.
+
+**There is no code-of-conduct field.** The participation terms are that
+document here, and the FAQ's "rules of conduct" answer links the same URL
+(ADR 0040).
+
+Blank any of the three and the label stays in the footer but stops being a
+link. That is on purpose: people look for those words, and quiet text is
+honest where a link that goes nowhere is not.
+
+### The DP wall
+
+Cards flip immediately when you hide or show one and wear a shimmer until the
+change lands. If it fails, the card goes back the way it was and a message
+says so — the screen never disagrees with the wall. The filter above the grid
+narrows to what is live or what is hidden.
 
 ## Still 404 after all three?
 

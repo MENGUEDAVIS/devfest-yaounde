@@ -10,7 +10,12 @@
       "fr": "Organisation",
       "en": "Organising"
     },
-    "photoUrl": "/placeholders/speaker-1.svg"
+    "photoUrl": "",
+    "social": {
+      "linkedin": "https://linkedin.com/in/abdelmfossa",
+      "website": "https://gdg.community.dev/u/m83rwb/",
+      "x": "https://x.com/AbdelMfossa"
+    }
   },
   {
     "id": "edmond-makolle",
@@ -23,7 +28,12 @@
       "fr": "Organisation",
       "en": "Organising"
     },
-    "photoUrl": "/placeholders/speaker-2.svg"
+    "photoUrl": "",
+    "social": {
+      "linkedin": "https://linkedin.com/in/edmondmakolle",
+      "website": "https://gdg.community.dev/u/mws79j/",
+      "x": "https://x.com/EdmondMakolle"
+    }
   },
   {
     "id": "murielle-kemwa",
@@ -36,7 +46,10 @@
       "fr": "Organisation",
       "en": "Organising"
     },
-    "photoUrl": "/placeholders/speaker-3.svg"
+    "photoUrl": "",
+    "social": {
+      "website": "https://gdg.community.dev/u/m65s8j/"
+    }
   },
   {
     "id": "joel-fah",
@@ -49,7 +62,11 @@
       "fr": "Design",
       "en": "Design"
     },
-    "photoUrl": "/placeholders/speaker-4.svg"
+    "photoUrl": "",
+    "social": {
+      "website": "https://gdg.community.dev/u/mnkgj5/",
+      "x": "https://x.com/FahDejon"
+    }
   },
   {
     "id": "jerry-ndjana",
@@ -62,7 +79,11 @@
       "fr": "Organisation",
       "en": "Organising"
     },
-    "photoUrl": "/placeholders/speaker-5.svg"
+    "photoUrl": "",
+    "social": {
+      "website": "https://gdg.community.dev/u/mmhb6k/",
+      "x": "https://x.com/Menguejerry"
+    }
   },
   {
     "id": "cabrel-domfang",
@@ -75,7 +96,11 @@
       "fr": "Communication",
       "en": "Communications"
     },
-    "photoUrl": "/placeholders/speaker-6.svg"
+    "photoUrl": "",
+    "social": {
+      "website": "https://gdg.community.dev/u/mgxrjt/",
+      "x": "https://x.com/CabrelLesage"
+    }
   },
   {
     "id": "nathanael-foka",
@@ -88,7 +113,10 @@
       "fr": "Organisation",
       "en": "Organising"
     },
-    "photoUrl": "/placeholders/speaker-1.svg"
+    "photoUrl": "",
+    "social": {
+      "website": "https://gdg.community.dev/u/mgts6x/"
+    }
   },
   {
     "id": "maxime-etoundi",
@@ -101,7 +129,10 @@
       "fr": "Organisation",
       "en": "Organising"
     },
-    "photoUrl": "/placeholders/speaker-2.svg"
+    "photoUrl": "",
+    "social": {
+      "website": "https://gdg.community.dev/u/m8uzjh/"
+    }
   },
   {
     "id": "grace-divine-tchuenteu",
@@ -114,7 +145,10 @@
       "fr": "Communauté",
       "en": "Community"
     },
-    "photoUrl": "/placeholders/speaker-3.svg"
+    "photoUrl": "",
+    "social": {
+      "website": "https://gdg.community.dev/u/grace_divine/"
+    }
   },
   {
     "id": "cyprien-tankeu",
@@ -127,6 +161,11 @@
       "fr": "Mentorat",
       "en": "Mentoring"
     },
-    "photoUrl": "/placeholders/speaker-4.svg"
+    "photoUrl": "",
+    "social": {
+      "website": "https://gdg.community.dev/u/mvdz6q/",
+      "x": "https://x.com/Cyprien_T"
+    },
+    "alumni": true
   }
 ]

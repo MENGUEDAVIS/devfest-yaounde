@@ -69,20 +69,24 @@ no image at all.
 - **`Organization`** — on every page, from `organizationJsonLd()`. Nothing in
   it is speculative, so it is always emitted.
 - **`Product`** — on each product page, with price and availability.
-- **`Event`** — **not emitted yet, on purpose.**
+- **`Event`** — **emitted since the dates were confirmed** (ADR 0038).
 
-`startDate` is required by schema.org, and the event date is still
-unconfirmed (`EVENT_BASE_DATE` in `calendar.ts` is `null`). An Event block
-without a start date is invalid data that Search Console reports as an error,
-and no rich result comes from it either way. Inventing a date would be worse:
-it would publish a wrong one to every crawler that read it.
+`startDate` is required by schema.org, so this stayed silent while the date
+was unknown rather than publishing an invented one. `EVENT_DATES` in
+`calendar.ts` now holds **21 and 28 November 2026**, and `eventJsonLd()`
+switches itself on from that list — the same list that reveals the
+add-to-calendar buttons. Empty it and both go quiet again.
 
-So `eventJsonLd()` returns `null` and renders nothing, and **switches itself
-on the moment `EVENT_BASE_DATE` is set** — the same flag that reveals the
-add-to-calendar buttons. One edit, both features, and no third place to
-remember. The venue in `src/lib/event.ts` is the other blank: fill `venue` and
-`venueStreet` and the `Place` in the rich result becomes an address instead of
-just "Yaoundé".
+**The two days are a week apart, which is why there is a `subEvent` array.**
+A bare `startDate: 21 Nov` / `endDate: 28 Nov` tells a crawler this is one
+continuous eight-day event, and a rich result would read "Nov 21 – 28". The
+outer range still spans the whole thing, because that is when the event starts
+and ends, and each real day is listed underneath so the shape is recoverable.
+A single-day event emits no `subEvent`.
+
+The venue is the remaining blank: fill `venue` and `venueStreet` in
+`src/lib/event.ts` and the `Place` becomes an address instead of just
+"Yaoundé".
 
 ## Dead links are an SEO defect, not just a UX one
 
@@ -98,7 +102,7 @@ The rule now is: **never render a link to a placeholder.**
 - Icon-only links (socials, profiles) are **filtered out at their source** —
   `realSocials()` in `lib/people-socials.ts`, and the footer's own list. There
   is nothing useful to show without a destination.
-- Labels people expect to see named — "Privacy Policy", "Code of Conduct" —
+- Labels people expect to see named — "Privacy Policy", "Participation Terms" —
   render through `MaybeLink`, which degrades to plain text. They become links
   again the moment a real URL lands in `site-config.ts`, with no other edit.
 

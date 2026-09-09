@@ -5,6 +5,7 @@ import { FaqBrowser } from "@/components/faqs/FaqBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { getFaqs } from "@/lib/content/store";
+import { loadSettings } from "@/lib/content/settings";
 
 export async function generateMetadata({
   params,
@@ -29,7 +30,7 @@ export default async function FaqsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.faqs");
-  const allFaqs = await getFaqs();
+  const [allFaqs, settings] = await Promise.all([getFaqs(), loadSettings()]);
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
@@ -42,7 +43,10 @@ export default async function FaqsPage({
         </p>
 
         <div className="mt-16">
-          <FaqBrowser faqs={allFaqs} />
+          <FaqBrowser
+            faqs={allFaqs}
+            participationTermsUrl={settings.legal.participationTermsUrl}
+          />
         </div>
       </SectionContainer>
     </main>

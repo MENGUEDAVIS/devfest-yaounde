@@ -72,8 +72,7 @@ export async function Footer() {
   const year = new Date().getFullYear();
   const settings = await loadSettings();
   const BEVY_URL = settings.bevyUrl;
-  const PRIVACY_POLICY_URL = settings.privacyUrl;
-  const CODE_OF_CONDUCT_URL = settings.cocUrl;
+  const legal = settings.legal;
 
   return (
     <footer className="flex min-h-svh flex-col justify-between bg-black02 text-offwhite">
@@ -144,8 +143,16 @@ export async function Footer() {
                     </Link>
                   </li>
                   <li>
-                    {/* Community join — distinct from the retired RSVP action */}
-                    <a href={BEVY_URL} className={LINK_CLASS}>
+                    {/* Community join — distinct from the retired RSVP
+                        action, and a different site: Bevy is where the
+                        chapter's membership lives, so it opens in its own tab
+                        rather than replacing the page somebody was reading. */}
+                    <a
+                      href={BEVY_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={LINK_CLASS}
+                    >
                       {t("getInvolved.community")}
                     </a>
                   </li>
@@ -163,13 +170,36 @@ export async function Footer() {
 
               <div className="link-group">
                 <h3 className={GROUP_TITLE_CLASS}>{t("legal.title")}</h3>
+                {/*
+                  All three are somebody else's documents — Google's policies
+                  and GDG's participation terms — which is correct: the
+                  chapter runs under them and does not publish its own. They
+                  open in a new tab for that reason.
+
+                  There is no separate "Code of Conduct" entry. The
+                  participation terms ARE the conduct document the chapter
+                  points at, and naming a second one would promise a page
+                  that does not exist (ADR 0040).
+
+                  Still `MaybeLink`: any of the three can be blanked in the
+                  dashboard, and the label then renders as quiet text rather
+                  than as a link that goes nowhere.
+                */}
                 <ul className="mt-5 flex flex-col gap-1">
-                  {/* Named even before the documents exist, because people
-                      look for them — but as text, not as a link that goes
-                      nowhere. They become links with no other edit. */}
                   <li>
                     <MaybeLink
-                      href={PRIVACY_POLICY_URL}
+                      href={legal.participationTermsUrl}
+                      external
+                      className={LINK_CLASS}
+                      placeholderClassName="cursor-default opacity-60"
+                    >
+                      {t("legal.participationTerms")}
+                    </MaybeLink>
+                  </li>
+                  <li>
+                    <MaybeLink
+                      href={legal.privacyUrl}
+                      external
                       className={LINK_CLASS}
                       placeholderClassName="cursor-default opacity-60"
                     >
@@ -178,11 +208,12 @@ export async function Footer() {
                   </li>
                   <li>
                     <MaybeLink
-                      href={CODE_OF_CONDUCT_URL}
+                      href={legal.termsUrl}
+                      external
                       className={LINK_CLASS}
                       placeholderClassName="cursor-default opacity-60"
                     >
-                      {t("legal.codeOfConduct")}
+                      {t("legal.terms")}
                     </MaybeLink>
                   </li>
                 </ul>

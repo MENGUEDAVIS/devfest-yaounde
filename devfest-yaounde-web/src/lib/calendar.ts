@@ -3,20 +3,38 @@ import type { Session } from "@/data/types";
 /**
  * Add-to-calendar links (PAGES.md §3).
  *
- * Sessions carry only a time of day; these helpers take an explicit
- * `baseDate`. While it was null the calendar UI stayed hidden rather than
- * exporting an event on a made-up day.
+ * Sessions carry only a time of day; these helpers resolve which DAY that
+ * time falls on. While the dates were unknown the calendar UI stayed hidden
+ * rather than exporting an event on a made-up day.
  *
- * **Set 2026-09-04 from the chapter's own listing** — GDG Yaoundé publishes
- * DevFest Yaoundé 2026 on **21 November 2026**:
- * https://gdg.community.dev/gdg-yaounde/
+ * **THE DAYS ARE NOT CONSECUTIVE, and that is the whole reason this is a
+ * list.** Confirmed by the organisers on 2026-09-08: DevFest Yaoundé 2026
+ * runs on **21 November and 28 November** — two Saturdays a week apart, not a
+ * range. The Bevy listing shows "Nov 21–28", which reads as an eight-day
+ * window and is what the previous model assumed: one base date, with day N
+ * derived as `base + (N - 1)`. That put every day-2 session on **22
+ * November**, six days early — in the add-to-calendar links people actually
+ * import, and in the `endDate` published to crawlers.
  *
- * Day 2 is derived as the following day, matching `EVENT.days = 2` and the
- * Bevy description ("a two-day experience"). Worth confirming: the Bevy
- * listing shows a single start date, so the second day is inferred from that
- * sentence rather than stated anywhere as a date.
+ * So the days are listed explicitly. A session's `day` is a 1-based index
+ * into this array, nothing is inferred, and a third day would be one more
+ * entry rather than a new assumption.
  */
-export const EVENT_BASE_DATE: string | null = "2026-11-21";
+export const EVENT_DATES: readonly string[] = ["2026-11-21", "2026-11-28"];
+
+/**
+ * The first day, or null if no dates are set.
+ *
+ * Kept because the calendar UI and the `Event` structured data both gate on
+ * "is there a date at all", and that question has one answer whatever the
+ * shape of the rest.
+ */
+export const EVENT_BASE_DATE: string | null = EVENT_DATES[0] ?? null;
+
+/** The calendar date a given 1-based event day falls on. */
+export function dateForDay(day: number): string | null {
+  return EVENT_DATES[day - 1] ?? null;
+}
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -30,11 +48,19 @@ function stamp(date: Date) {
   );
 }
 
+/**
+ * When a session actually happens.
+ *
+ * `baseDate` is a fallback for a session whose `day` has no entry in
+ * `EVENT_DATES` — a schedule edited to add a day 3 before the date exists.
+ * That case lands on day 1 rather than silently inventing a date by counting
+ * forward, which is the arithmetic that put day 2 on the wrong Saturday.
+ */
 function sessionRange(session: Session, baseDate: string) {
-  const [y, m, d] = baseDate.split("-").map(Number);
+  const dayDate = dateForDay(session.day) ?? baseDate;
+  const [y, m, d] = dayDate.split("-").map(Number);
   const [hh, mm] = session.time.split(":").map(Number);
-  // day 1 = baseDate, day 2 = next day, etc.
-  const start = new Date(y, m - 1, d + (session.day - 1), hh, mm);
+  const start = new Date(y, m - 1, d, hh, mm);
   const end = new Date(start.getTime() + session.durationMin * 60_000);
   return { start, end };
 }

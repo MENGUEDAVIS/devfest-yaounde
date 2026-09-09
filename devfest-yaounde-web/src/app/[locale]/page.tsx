@@ -8,6 +8,10 @@ import { MemoryLane } from "@/components/home/MemoryLane";
 import { QuotesInterstitial } from "@/components/home/QuotesInterstitial";
 import { ScheduleOverviewPreview } from "@/components/home/ScheduleOverviewPreview";
 import { SpeakerShowcase } from "@/components/home/SpeakerShowcase";
+import { CallForSpeakers } from "@/components/speakers/CallForSpeakers";
+import { SectionContainer } from "@/components/ui/SectionContainer";
+import { cfsView } from "@/lib/content/cfs";
+import { loadSettings } from "@/lib/content/settings";
 import { StatsInterstitial } from "@/components/home/StatsInterstitial";
 import { getFaqs, getQuotes, getSpeakers } from "@/lib/content/store";
 import { eventJsonLd } from "@/lib/event";
@@ -40,29 +44,42 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
-  const [speakers, quotes, faqs] = await Promise.all([
+  const [speakers, quotes, faqs, settings] = await Promise.all([
     getSpeakers(),
     getQuotes(),
     getFaqs(),
+    loadSettings(),
   ]);
+  const cfs = cfsView(settings.cfs, speakers.length);
 
   return (
     <main id="main-content" className="flex-1">
       {/*
-        `Event` structured data, which appears only once a real date exists.
-        `startDate` is REQUIRED by schema.org, so emitting the block without
-        one is invalid data that Search Console reports and no rich result
-        comes from — and inventing a date would publish a wrong one to every
-        crawler that read it. It switches itself on with `EVENT_BASE_DATE` in
-        calendar.ts, the same flag that reveals the add-to-calendar buttons.
+        `Event` structured data, live since the dates were confirmed — 21 and
+        28 November 2026 (ADR 0038). It reads `EVENT_DATES` in calendar.ts,
+        the same list that reveals the add-to-calendar buttons, and returns
+        null if that list is ever emptied: `startDate` is REQUIRED by
+        schema.org, so a block without one is invalid data Search Console
+        reports, and inventing a date would publish a wrong one to every
+        crawler that read it.
       */}
       <JsonLd
         data={eventJsonLd(locale === "en" ? "en" : "fr", t("metaDesc"))}
       />
-      <Hero />
+      <Hero locale={locale} />
       <About />
       <StatsInterstitial />
-      <SpeakerShowcase speakers={speakers} />
+      {/*
+        The lineup, or the ask that fills it. Decided on the server from the
+        store, so the front page never shows an empty speaker reel.
+      */}
+      {cfs.state === "lineup" ? (
+        <SpeakerShowcase speakers={speakers} />
+      ) : (
+        <SectionContainer background="yellow-wash" maxWidth="6xl">
+          <CallForSpeakers view={cfs} compact />
+        </SectionContainer>
+      )}
       <ScheduleOverviewPreview />
       <QuotesInterstitial quotes={quotes} />
       <MemoryLane />

@@ -101,6 +101,9 @@ export function FaqAccordion({
                 <div className="mt-1">
                   <a
                     href={faq.cta.href}
+                    // Same meaning as everywhere else: off-site, own tab.
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="faq-cta mt-5 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
                   >
                     {faq.cta.label[locale]}

@@ -2,16 +2,20 @@
 
 import {
   ArrowLeft,
+  CalendarBlank,
   ChartBar,
   Gear,
+  Handshake,
   Image as ImageIcon,
   List,
+  Microphone,
   Package,
   Percent,
   Receipt,
   Table,
   Ticket,
   Users,
+  UsersThree,
   X,
 } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
@@ -30,6 +34,12 @@ import { AdminUsers } from "./views/AdminUsers";
 import { AdminContent } from "./views/AdminContent";
 import { AdminWall } from "./views/AdminWall";
 import { AdminConfig } from "./views/AdminConfig";
+import { AdminSpeakers } from "./views/AdminSpeakers";
+import { AdminTeam } from "./views/AdminTeam";
+import { AdminSchedule } from "./views/AdminSchedule";
+import { AdminSponsors } from "./views/AdminSponsors";
+import { ToastProvider } from "./forms/Toast";
+import type { Session, Speaker, Sponsor, TeamMember } from "@/data/types";
 import { PageHeader } from "./views/shared";
 
 export interface ContentCounts {
@@ -51,6 +61,10 @@ export type ViewId =
   | "wall"
   | "users"
   | "content"
+  | "speakers"
+  | "team"
+  | "schedule"
+  | "sponsors"
   | "config";
 
 const GROUPS: {
@@ -83,7 +97,13 @@ const GROUPS: {
   },
   {
     label: "Content",
-    items: [{ id: "content", label: "Collections", Icon: Table }],
+    items: [
+      { id: "speakers", label: "Speakers", Icon: Microphone },
+      { id: "schedule", label: "Schedule", Icon: CalendarBlank },
+      { id: "team", label: "Team", Icon: UsersThree },
+      { id: "sponsors", label: "Sponsors", Icon: Handshake },
+      { id: "content", label: "Bulk & photos", Icon: Table },
+    ],
   },
   {
     label: "Settings",
@@ -125,8 +145,25 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
     blurb: "People who signed in with Google. Addresses are masked here.",
   },
   content: {
-    title: "Content",
-    blurb: "Publish JSON or a names CSV, then attach photos per profile.",
+    title: "Bulk import & photos",
+    blurb:
+      "Publish a whole collection from JSON or a CSV, and attach photos in bulk.",
+  },
+  speakers: {
+    title: "Speakers",
+    blurb: "The lineup. Empty means the site shows the call for speakers.",
+  },
+  team: {
+    title: "Team",
+    blurb: "The organisers, current and past.",
+  },
+  schedule: {
+    title: "Schedule",
+    blurb: "Sessions across both days of the event.",
+  },
+  sponsors: {
+    title: "Sponsors & partners",
+    blurb: "Confirmed supporters, and the tier each one sits in.",
   },
   config: {
     title: "Info bar and policies",
@@ -145,16 +182,26 @@ function parseView(raw: string | null): ViewId {
  * View lives in `?view=` so a reload keeps the place. The swap is still
  * client-side — no full reload, no second authorisation.
  */
+/** The collections the CRM edits, loaded once with the rest of the page. */
+export interface AdminCollections {
+  speakers: Speaker[];
+  team: TeamMember[];
+  sessions: Session[];
+  sponsors: Sponsor[];
+}
+
 export function AdminShell({
   data,
   content,
   settings,
   missingPhotos,
+  collections,
 }: {
   data: AdminData;
   content: ContentCounts;
   settings: AdminSettings;
   missingPhotos: MissingPhoto[];
+  collections: AdminCollections;
 }) {
   const params = useSearchParams();
   // Seeded from the URL once, then owned here. Reading `params` on every
@@ -234,39 +281,41 @@ export function AdminShell({
   const header = HEADERS[view];
 
   return (
-    <div className="min-h-screen bg-pastel px-4 pb-5 pt-20 sm:px-6 lg:pt-5">
-      {/*
+    // Every view inside can report a success or a failure the same way.
+    <ToastProvider>
+      <div className="min-h-screen bg-pastel px-4 pb-5 pt-20 sm:px-6 lg:pt-5">
+        {/*
         The only way into the drawer on a phone, and it floats above the
         content so it is reachable from anywhere on a long table without
         scrolling back up. Hidden from `lg`, where the sidebar is permanent.
       */}
-      <button
-        type="button"
-        onClick={() => setDrawerOpen(true)}
-        aria-label="Open admin menu"
-        aria-expanded={drawerOpen}
-        aria-controls="admin-drawer"
-        className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_3px_0_0_var(--color-black02)] lg:hidden"
-      >
-        <List size={20} weight="bold" />
-      </button>
+        <button
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Open admin menu"
+          aria-expanded={drawerOpen}
+          aria-controls="admin-drawer"
+          className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-pill border-2 border-black02 bg-offwhite text-black02 shadow-[0_3px_0_0_var(--color-black02)] lg:hidden"
+        >
+          <List size={20} weight="bold" />
+        </button>
 
-      <div className="mx-auto flex max-w-[100rem] flex-col gap-6 lg:flex-row">
-        <aside className="shrink-0 lg:w-56">
-          {/*
+        <div className="mx-auto flex max-w-[100rem] flex-col gap-6 lg:flex-row">
+          <aside className="shrink-0 lg:w-56">
+            {/*
             The scrim. It fades rather than appearing, and it is what makes
             the drawer read as sitting ABOVE the page instead of replacing it.
             Tapping it closes, like every other dismissable surface here.
           */}
-          <div
-            aria-hidden
-            onClick={() => setDrawerOpen(false)}
-            className={`fixed inset-0 z-30 bg-black02/50 transition-opacity duration-300 ease-out motion-reduce:transition-none lg:hidden ${
-              drawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
-            }`}
-          />
+            <div
+              aria-hidden
+              onClick={() => setDrawerOpen(false)}
+              className={`fixed inset-0 z-30 bg-black02/50 transition-opacity duration-300 ease-out motion-reduce:transition-none lg:hidden ${
+                drawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
+              }`}
+            />
 
-          {/*
+            {/*
             Kept MOUNTED and slid in and out, rather than switched between
             `hidden` and `flex` — an element that does not exist cannot
             animate, which is why every open and close was instantaneous.
@@ -276,95 +325,112 @@ export function AdminShell({
             the media query rather than by a class, because `inert` is an
             attribute and cannot be scoped to a breakpoint.
           */}
-          <div
-            id="admin-drawer"
-            inert={!shown}
-            className={`fixed inset-0 z-40 flex flex-col overflow-y-auto overscroll-contain border-0 bg-offwhite p-5 transition-transform duration-300 ease-out motion-reduce:transition-none lg:inset-auto lg:bottom-5 lg:top-5 lg:w-56 lg:translate-x-0 lg:rounded-lg lg:border lg:border-black02/20 lg:p-4 lg:transition-none ${
-              drawerOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-          >
-            {/* Square on a phone: a full-bleed panel with rounded corners
+            <div
+              id="admin-drawer"
+              inert={!shown}
+              className={`fixed inset-0 z-40 flex flex-col overflow-y-auto overscroll-contain border-0 bg-offwhite p-5 transition-transform duration-300 ease-out motion-reduce:transition-none lg:inset-auto lg:bottom-5 lg:top-5 lg:w-56 lg:translate-x-0 lg:rounded-lg lg:border lg:border-black02/20 lg:p-4 lg:transition-none ${
+                drawerOpen ? "translate-x-0" : "-translate-x-full"
+              }`}
+            >
+              {/* Square on a phone: a full-bleed panel with rounded corners
                 reads as a card that failed to fill the screen. */}
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Close admin menu"
-              className="mb-4 self-end rounded-pill border-2 border-black02 p-2 text-black02 lg:hidden"
-            >
-              <X size={18} weight="bold" />
-            </button>
-            <Link
-              href="/"
-              className="flex items-center gap-2.5"
-              aria-label="DevFest Yaoundé"
-            >
-              <DevFestLogo className="h-7 w-auto shrink-0" />
-              <span className="font-sans text-body-m font-bold leading-tight text-black02">
-                DevFest Yaoundé
-              </span>
-            </Link>
-            <p className="mt-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
-              Admin
-            </p>
-            <p className="mt-0.5 truncate text-body-m font-bold text-black02">
-              {data.organiserEmail ?? "Organiser"}
-            </p>
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(false)}
+                aria-label="Close admin menu"
+                className="mb-4 self-end rounded-pill border-2 border-black02 p-2 text-black02 lg:hidden"
+              >
+                <X size={18} weight="bold" />
+              </button>
+              <Link
+                href="/"
+                className="flex items-center gap-2.5"
+                aria-label="DevFest Yaoundé"
+              >
+                <DevFestLogo className="h-7 w-auto shrink-0" />
+                <span className="font-sans text-body-m font-bold leading-tight text-black02">
+                  DevFest Yaoundé
+                </span>
+              </Link>
+              <p className="mt-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
+                Admin
+              </p>
+              <p className="mt-0.5 truncate text-body-m font-bold text-black02">
+                {data.organiserEmail ?? "Organiser"}
+              </p>
 
-            <nav className="mt-5 flex flex-col gap-4">
-              {GROUPS.map((group) => (
-                <div key={group.label}>
-                  <p className="mb-1.5 px-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/40">
-                    {group.label}
-                  </p>
-                  <div className="flex flex-wrap gap-1 lg:flex-col">
-                    {group.items.map(({ id, label, Icon }) => (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => go(id)}
-                        aria-current={view === id ? "page" : undefined}
-                        className={`flex items-center gap-2.5 rounded-pill px-3 py-2 text-left font-sans text-body-m transition-colors ${
-                          view === id
-                            ? "bg-primary font-bold text-black02"
-                            : "font-medium text-black02/70 hover:bg-pastel hover:text-black02"
-                        }`}
-                      >
-                        <Icon size={16} weight="bold" aria-hidden />
-                        {label}
-                      </button>
-                    ))}
+              <nav className="mt-5 flex flex-col gap-4">
+                {GROUPS.map((group) => (
+                  <div key={group.label}>
+                    <p className="mb-1.5 px-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/40">
+                      {group.label}
+                    </p>
+                    <div className="flex flex-wrap gap-1 lg:flex-col">
+                      {group.items.map(({ id, label, Icon }) => (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => go(id)}
+                          aria-current={view === id ? "page" : undefined}
+                          className={`flex items-center gap-2.5 rounded-pill px-3 py-2 text-left font-sans text-body-m transition-colors ${
+                            view === id
+                              ? "bg-primary font-bold text-black02"
+                              : "font-medium text-black02/70 hover:bg-pastel hover:text-black02"
+                          }`}
+                        >
+                          <Icon size={16} weight="bold" aria-hidden />
+                          {label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </nav>
+                ))}
+              </nav>
 
-            <Link
-              href="/"
-              className="mt-auto inline-flex items-center gap-2 px-3 py-2 pt-6 font-sans text-body-m font-bold text-black02/70 hover:text-black02"
-            >
-              <ArrowLeft size={16} weight="bold" aria-hidden />
-              Back to site
-            </Link>
-          </div>
-        </aside>
+              <Link
+                href="/"
+                className="mt-auto inline-flex items-center gap-2 px-3 py-2 pt-6 font-sans text-body-m font-bold text-black02/70 hover:text-black02"
+              >
+                <ArrowLeft size={16} weight="bold" aria-hidden />
+                Back to site
+              </Link>
+            </div>
+          </aside>
 
-        <main id="main-content" className="min-w-0 flex-1 pb-16">
-          <PageHeader title={header.title} blurb={header.blurb} />
-          {view === "overview" && (
-            <AdminOverview data={data} content={content} onGo={go} />
-          )}
-          {view === "tickets" && <AdminTickets data={data} />}
-          {view === "transactions" && <AdminTransactions data={data} />}
-          {view === "orders" && <AdminOrders data={data} />}
-          {view === "discounts" && <AdminDiscounts data={data} />}
-          {view === "wall" && <AdminWall data={data} />}
-          {view === "users" && <AdminUsers data={data} />}
-          {view === "content" && (
-            <AdminContent content={content} initialMissing={missingPhotos} />
-          )}
-          {view === "config" && <AdminConfig settings={settings} />}
-        </main>
+          <main id="main-content" className="min-w-0 flex-1 pb-16">
+            <PageHeader title={header.title} blurb={header.blurb} />
+            {view === "overview" && (
+              <AdminOverview data={data} content={content} onGo={go} />
+            )}
+            {view === "tickets" && <AdminTickets data={data} />}
+            {view === "transactions" && <AdminTransactions data={data} />}
+            {view === "orders" && <AdminOrders data={data} />}
+            {view === "discounts" && <AdminDiscounts data={data} />}
+            {view === "wall" && <AdminWall data={data} />}
+            {view === "users" && <AdminUsers data={data} />}
+            {view === "speakers" && (
+              <AdminSpeakers rows={collections.speakers} />
+            )}
+            {view === "team" && <AdminTeam rows={collections.team} />}
+            {view === "schedule" && (
+              <AdminSchedule rows={collections.sessions} />
+            )}
+            {view === "sponsors" && (
+              <AdminSponsors rows={collections.sponsors} />
+            )}
+            {view === "content" && (
+              <AdminContent content={content} initialMissing={missingPhotos} />
+            )}
+            {view === "config" && (
+              <AdminConfig
+                settings={settings}
+                speakerCount={collections.speakers.length}
+                sponsorCount={collections.sponsors.length}
+              />
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }

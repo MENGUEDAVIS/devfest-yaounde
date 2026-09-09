@@ -71,7 +71,8 @@
     "legal": {
       "title": "Legal",
       "privacy": "Privacy Policy",
-      "codeOfConduct": "Code of Conduct"
+      "participationTerms": "Participation Terms",
+      "terms": "Terms of Service"
     },
     "followUs": "Follow us",
     "copyright": "DevFest Yaoundé · GDG Yaoundé",
@@ -83,19 +84,24 @@
     "hero": {
       "eyebrow": "GDG Yaoundé presents",
       "headline": "DevFest Yaoundé {year}",
-      "dates": "21–22 November 2026",
       "venue": "Yaoundé, Cameroon",
       "ctaPrimary": "Grab your ticket",
       "ctaSecondary": "Check the swag",
-      "sponsorsLabel": "Powered by good people",
       "headlineLead": "DevFest",
       "headlineCity": "Yaoundé",
-      "tagline": "One day. The whole community. A room full of people building wild things — and you, hopefully, in it.",
+      "tagline": "Two Saturdays. The whole community. A room full of people building wild things — and you, hopefully, in it.",
       "logoHint": "psst — click the logo",
       "scrollCue": "Scroll",
       "photoCredit": "Scenes from past editions",
       "dateLabel": "When",
       "venueLabel": "Where"
+    },
+    "sponsors": {
+      "label": "Powered by good people",
+      "labelEmpty": "Seats open for your logo",
+      "seat": "Your logo here",
+      "cta": "Become a sponsor",
+      "openSeats": "{count, plural, one {# sponsor seat still open} other {# sponsor seats still open}}."
     },
     "about": {
       "title": "What is DevFest Yaoundé?",
@@ -182,7 +188,8 @@
       "clear": "Clear filters",
       "hint": "Tap a card for the full story",
       "trackLabel": "Track",
-      "dayLabel": "Day"
+      "dayLabel": "Day",
+      "cfsLead": "The lineup is not announced yet — and the call for talks is how it gets written."
     },
     "faqs": {
       "title": "FAQs",
@@ -196,8 +203,8 @@
       "catTickets": "Tickets & Pricing",
       "catVenue": "Venue & Logistics",
       "catShop": "Shop & Swag",
-      "catCodeOfConduct": "Code of Conduct",
-      "readConduct": "Read the code of conduct",
+      "catCodeOfConduct": "Participation Terms",
+      "readConduct": "Read the participation terms",
       "jumpLabel": "Jump to"
     },
     "team": {
@@ -611,5 +618,24 @@
       "home": "Back to the home page",
       "reference": "Reference"
     }
+  },
+  "cfs": {
+    "eyebrow": "Call for speakers",
+    "openTitle": "Got something to share? Take the stage.",
+    "openBody": "The lineup is not written yet — it is waiting for you. Whatever you have been building, debugging at 2am or arguing about in group chats, somebody in this room wants to hear it. First talk counts; you do not need a conference badge collection to submit one.",
+    "cta": "Submit a talk",
+    "closesIn": "Closes in",
+    "days": "days",
+    "hours": "hrs",
+    "minutes": "min",
+    "seconds": "sec",
+    "deadline": "Submissions close {date} (Yaoundé time).",
+    "waitingTitle": "The call opens soon.",
+    "waitingBody": "Start thinking about what you would talk about — submissions open shortly, and we would rather you had the idea ready than the form.",
+    "closedTitle": "Submissions are closed. Lineup coming soon.",
+    "closedBody": "Thank you to everyone who sent something in — there was a lot of it, and it is being read properly. The speakers will be announced here first.",
+    "bannerOpen": "The call for speakers is open — got something to share? Take the stage.",
+    "bannerCta": "Submit",
+    "banner": "The call for speakers is open — the DevFest Yaoundé 2026 stage is waiting for your talk."
   }
 }

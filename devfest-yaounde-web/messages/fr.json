@@ -71,7 +71,8 @@
     "legal": {
       "title": "Légal",
       "privacy": "Politique de confidentialité",
-      "codeOfConduct": "Code de conduite"
+      "participationTerms": "Conditions de participation",
+      "terms": "Conditions d'utilisation"
     },
     "followUs": "Suivez-nous",
     "copyright": "DevFest Yaoundé · GDG Yaoundé",
@@ -83,19 +84,24 @@
     "hero": {
       "eyebrow": "GDG Yaoundé présente",
       "headline": "DevFest Yaoundé {year}",
-      "dates": "21–22 novembre 2026",
       "venue": "Yaoundé, Cameroun",
       "ctaPrimary": "Prends ta place",
       "ctaSecondary": "Voir le swag",
-      "sponsorsLabel": "Portés par des gens biens",
       "headlineLead": "DevFest",
       "headlineCity": "Yaoundé",
-      "tagline": "Une journée. Toute la communauté. Une salle pleine de gens qui construisent des trucs fous — et toi, on espère, au milieu.",
+      "tagline": "Deux samedis. Toute la communauté. Une salle pleine de gens qui construisent des trucs fous — et toi, on espère, au milieu.",
       "logoHint": "psst — clique sur le logo",
       "scrollCue": "Défiler",
       "photoCredit": "Scènes des éditions précédentes",
       "dateLabel": "Quand",
       "venueLabel": "Où"
+    },
+    "sponsors": {
+      "label": "Portés par des gens bien",
+      "labelEmpty": "Places libres pour vos logos",
+      "seat": "Votre logo ici",
+      "cta": "Devenir sponsor",
+      "openSeats": "{count, plural, one {# place de sponsor encore libre} other {# places de sponsor encore libres}}."
     },
     "about": {
       "title": "C'est quoi, DevFest Yaoundé ?",
@@ -182,13 +188,14 @@
       "clear": "Réinitialiser",
       "hint": "Touche une carte pour tout savoir",
       "trackLabel": "Piste",
-      "dayLabel": "Jour"
+      "dayLabel": "Jour",
+      "cfsLead": "Le programme n'est pas encore annoncé — et c'est l'appel à orateurs qui l'écrit."
     },
     "faqs": {
       "title": "FAQ",
       "placeholder": "Les questions fréquentes arrivent bientôt.",
       "lead": "Les questions qu'on nous pose vraiment. Si la tienne n'y est pas, viens nous voir.",
-      "metaDesc": "Questions fréquentes sur DevFest Yaoundé — billets, lieu, swag et code de conduite.",
+      "metaDesc": "Questions fréquentes sur DevFest Yaoundé — billets, lieu, swag et conditions de participation.",
       "search": "Rechercher une question",
       "searchLabel": "Rechercher dans la FAQ",
       "noResults": "Aucune question ne correspond — essaie moins de mots.",
@@ -196,8 +203,8 @@
       "catTickets": "Billets & tarifs",
       "catVenue": "Lieu & logistique",
       "catShop": "Boutique & swag",
-      "catCodeOfConduct": "Code de conduite",
-      "readConduct": "Lire le code de conduite",
+      "catCodeOfConduct": "Conditions de participation",
+      "readConduct": "Lire les conditions de participation",
       "jumpLabel": "Aller à"
     },
     "team": {
@@ -611,5 +618,24 @@
       "home": "Retour à l'accueil",
       "reference": "Référence"
     }
+  },
+  "cfs": {
+    "eyebrow": "Appel à orateurs",
+    "openTitle": "Tu as quelque chose à partager ? Monte sur scène.",
+    "openBody": "Le programme n'est pas encore écrit — il t'attend. Ce que tu construis, ce que tu débogues à 2h du matin, ce sur quoi tu débats dans les groupes : quelqu'un dans la salle veut l'entendre. Une première conf compte ; pas besoin d'une collection de badges pour proposer un sujet.",
+    "cta": "Proposer un sujet",
+    "closesIn": "Fermeture dans",
+    "days": "jours",
+    "hours": "h",
+    "minutes": "min",
+    "seconds": "sec",
+    "deadline": "Les propositions ferment le {date} (heure de Yaoundé).",
+    "waitingTitle": "L'appel ouvre bientôt.",
+    "waitingBody": "Commence à réfléchir à ton sujet — les propositions ouvrent sous peu, et on préfère que tu aies l'idée prête plutôt que le formulaire.",
+    "closedTitle": "Les propositions sont closes. Le programme arrive.",
+    "closedBody": "Merci à toutes celles et ceux qui ont proposé quelque chose — il y en a eu beaucoup, et tout est lu sérieusement. Les orateurs seront annoncés ici en premier.",
+    "bannerOpen": "L'appel à orateurs est ouvert — tu as quelque chose à partager ? Monte sur scène.",
+    "bannerCta": "Proposer",
+    "banner": "L'appel à orateurs est ouvert — la scène de DevFest Yaoundé 2026 attend ton sujet."
   }
 }

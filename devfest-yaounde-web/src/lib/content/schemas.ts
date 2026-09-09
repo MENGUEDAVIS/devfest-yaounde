@@ -98,11 +98,26 @@ export const sessionSchema = z.object({
   speakerIds: z.array(slug).max(20),
 });
 
+/**
+ * `partner` is a TIER, not a second collection.
+ *
+ * PHASE19 asks for Partners alongside Sponsors, and the tempting reading is
+ * another entity. But PAGES.md §1 describes one "sponsor/partner logo
+ * marquee", the site renders exactly one strip, and a Partner would be a
+ * byte-for-byte copy of this shape — same id, name, logo, link. That is two
+ * schemas, two admin screens and two publish paths to keep in step, for a
+ * distinction that only ever changes a label.
+ *
+ * So a partner is a sponsor whose tier says so. One collection, one form, and
+ * grouping by tier already exists.
+ */
 export const sponsorSchema = z.object({
   id: slug,
   name: z.string().trim().min(1).max(120),
   logoUrl: z.string().max(400),
-  tier: z.enum(["platinum", "gold", "silver", "community"]).optional(),
+  tier: z
+    .enum(["platinum", "gold", "silver", "community", "partner"])
+    .optional(),
   websiteUrl: z.string().max(400).optional(),
 });
 
@@ -231,11 +246,51 @@ const urlOrEmpty = z
     "expected a path, an https URL, or empty",
   );
 
+/** An ISO instant, or empty/absent for "no deadline". */
+const instantOrEmpty = z
+  .string()
+  .trim()
+  .max(40)
+  .refine(
+    (value) => value === "" || !Number.isNaN(Date.parse(value)),
+    "expected an ISO date-time, or empty",
+  );
+
+/**
+ * Whether the call-for-speakers view is forced.
+ *
+ * `auto` is the answer nearly always: show the invitation while no speaker is
+ * published, show the lineup once one is. The two overrides exist for the
+ * edges `auto` cannot read — a lineup that is announced before it is entered,
+ * or a call reopened after somebody was added.
+ */
+export const cfsOverrides = ["auto", "force-on", "force-off"] as const;
+
+export const cfsSchema = z.object({
+  url: urlOrEmpty.optional().nullable(),
+  opensAt: instantOrEmpty.optional().nullable(),
+  closesAt: instantOrEmpty.optional().nullable(),
+  override: z.enum(cfsOverrides).optional(),
+});
+
+export const sponsorCallSchema = z.object({
+  prospectusUrl: urlOrEmpty.optional().nullable(),
+  enabled: z.boolean().optional(),
+  closesAt: instantOrEmpty.optional().nullable(),
+});
+
+export const legalSchema = z.object({
+  participationTermsUrl: urlOrEmpty.optional().nullable(),
+  privacyUrl: urlOrEmpty.optional().nullable(),
+  termsUrl: urlOrEmpty.optional().nullable(),
+});
+
 export const settingsSchema = z.object({
   announcement: localized.optional().nullable(),
-  privacyUrl: urlOrEmpty.optional().nullable(),
-  cocUrl: urlOrEmpty.optional().nullable(),
   bevyUrl: urlOrEmpty.optional().nullable(),
+  cfs: cfsSchema.optional().nullable(),
+  sponsorCall: sponsorCallSchema.optional().nullable(),
+  legal: legalSchema.optional().nullable(),
 });
 
 function blankToNull(value: unknown): unknown {

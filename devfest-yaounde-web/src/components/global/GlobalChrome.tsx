@@ -24,8 +24,10 @@ const DISMISS_KEY = "devfest-announcement-dismissed";
  */
 export function GlobalChrome({
   announcementMessage,
+  announcementCta,
 }: {
   announcementMessage?: string;
+  announcementCta?: { href: string; label: string };
 } = {}) {
   const [dismissed, dismiss] = useSessionDismissed(DISMISS_KEY);
   const [scrolled, setScrolled] = useState(false);
@@ -108,6 +110,7 @@ export function GlobalChrome({
               dismissible={!onWall}
               messageKey={onWall ? "wall" : undefined}
               messageOverride={onWall ? undefined : announcementMessage}
+              cta={onWall ? undefined : announcementCta}
             />
           </div>
         </div>

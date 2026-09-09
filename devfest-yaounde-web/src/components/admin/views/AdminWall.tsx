@@ -1,15 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DownloadSimple, Flag, Trash } from "@phosphor-icons/react";
 import type { AdminData, AdminWallCard } from "@/lib/admin/shape";
+import { Segmented } from "../forms/fields";
+import { useToast } from "../forms/Toast";
 import { InfoBanner } from "./shared";
 
+type WallFilter = "all" | "visible" | "hidden";
+
 export function AdminWall({ data }: { data: AdminData }) {
+  const toast = useToast();
   const [cards, setCards] = useState<AdminWallCard[]>(data.wallCards);
   const [busy, setBusy] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<WallFilter>("all");
+
+  const shown = useMemo(() => {
+    if (filter === "all") return cards;
+    // A rejected card counts as hidden: it is not on the wall either.
+    const isVisible = (c: AdminWallCard) =>
+      c.visible && c.status !== "rejected";
+    return cards.filter((c) =>
+      filter === "visible" ? isVisible(c) : !isVisible(c),
+    );
+  }, [cards, filter]);
 
   if (!data.wallEnabled) {
     return (
@@ -20,24 +36,44 @@ export function AdminWall({ data }: { data: AdminData }) {
     );
   }
 
+  /**
+   * Hide or show a card.
+   *
+   * OPTIMISTIC, then reverted if the server disagrees. The card flips
+   * immediately and wears a shimmer until the round trip lands, because a
+   * toggle that does nothing for a second reads as a toggle that missed —
+   * and the reaction to that is to click it again, which would queue a second
+   * write undoing the first.
+   *
+   * On failure the flip is rolled back and a toast says so. Silently leaving
+   * the card flipped would be worse than not flipping it at all: the screen
+   * would disagree with the wall, and nobody would know which was right.
+   */
   async function toggle(card: AdminWallCard) {
-    if (card.status === "rejected") return;
+    if (card.status === "rejected" || busy) return;
     setBusy(card.id);
     setError(null);
     const next = !card.visible;
-    const res = await fetch(`/api/dp/gallery/${card.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visible: next }),
-    });
-    if (!res.ok) {
-      setError("Could not update that card.");
-      setBusy(null);
-      return;
-    }
     setCards((prev) =>
       prev.map((row) => (row.id === card.id ? { ...row, visible: next } : row)),
     );
+
+    try {
+      const res = await fetch(`/api/dp/gallery/${card.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visible: next }),
+      });
+      if (!res.ok) throw new Error("patch failed");
+      toast.push("ok", next ? "Back on the wall." : "Hidden from the wall.");
+    } catch {
+      setCards((prev) =>
+        prev.map((row) =>
+          row.id === card.id ? { ...row, visible: card.visible } : row,
+        ),
+      );
+      toast.push("error", "Could not update that card — put back as it was.");
+    }
     setBusy(null);
   }
 
@@ -82,13 +118,36 @@ export function AdminWall({ data }: { data: AdminData }) {
           {error}
         </p>
       )}
-      {cards.length === 0 ? (
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Segmented
+          name="wall-filter"
+          value={filter}
+          options={[
+            { value: "all" as const, label: `All (${cards.length})` },
+            {
+              value: "visible" as const,
+              label: `On the wall (${cards.filter((c) => c.visible && c.status !== "rejected").length})`,
+            },
+            {
+              value: "hidden" as const,
+              label: `Hidden (${cards.filter((c) => !c.visible || c.status === "rejected").length})`,
+            },
+          ]}
+          onChange={setFilter}
+        />
+      </div>
+      {shown.length === 0 ? (
         <p className="rounded-lg border border-dashed border-black02/30 px-4 py-10 text-center text-body-m text-black02/70">
-          No cards stored yet.
+          {filter === "all"
+            ? "No cards stored yet."
+            : filter === "visible"
+              ? "Nothing is on the wall right now."
+              : "Nothing is hidden."}
         </p>
       ) : (
         <ul className="columns-2 gap-3 sm:columns-3 lg:columns-4">
-          {cards.map((card) => {
+          {shown.map((card) => {
             const off = !card.visible || card.status === "rejected";
             const isBusy = busy === card.id;
             const isConfirming = confirming === card.id;
@@ -104,7 +163,7 @@ export function AdminWall({ data }: { data: AdminData }) {
                       ? `Show ${card.nickname} on the wall`
                       : `Hide ${card.nickname} from the wall`
                   }
-                  className={`block w-full text-left transition-[filter,opacity] ${
+                  className={`relative block w-full text-left transition-[filter,opacity] ${
                     off ? "opacity-40 grayscale" : ""
                   }`}
                 >
@@ -118,6 +177,9 @@ export function AdminWall({ data }: { data: AdminData }) {
                   ) : (
                     <div className="aspect-square bg-pastel" />
                   )}
+                  {/* Covers this card only, so there is no question which
+                      one the wait belongs to. */}
+                  {isBusy && <span aria-hidden className="admin-shimmer" />}
                 </button>
 
                 {/*

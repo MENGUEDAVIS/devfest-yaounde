@@ -54,7 +54,14 @@ import {
 } from "@/lib/payments/catalog";
 import { dpFileName } from "@/lib/dp/compose";
 import { shareCaption } from "@/lib/dp/share";
-import { eventDates, eventJsonLd, organizationJsonLd } from "@/lib/event";
+import {
+  EVENT,
+  eventDates,
+  eventJsonLd,
+  formatEventDates,
+  organizationJsonLd,
+} from "@/lib/event";
+import { dateForDay } from "@/lib/calendar";
 import { layoutCard, PAD, PLATE_INSET } from "@/lib/dp/geometry";
 import { ALL_STICKERS, TEXT_STICKERS, stickerName } from "@/lib/dp/stickers";
 import { galleryEnabled, GALLERY_MAX_EDGE } from "@/lib/dp/gallery";
@@ -507,23 +514,86 @@ describe("server-side pricing", () => {
 });
 
 describe("event structured data", () => {
-  it("stays silent while the date is unconfirmed", () => {
+  it("stays silent while the dates are unconfirmed", () => {
     // startDate is REQUIRED by schema.org. An Event block without one is
     // invalid data that Search Console reports, and inventing a date would
     // publish a wrong one to every crawler that read it.
-    assert.equal(eventDates(null), null);
-    assert.equal(eventJsonLd("fr", "x", null), null);
+    assert.equal(eventDates([]), null);
+    assert.equal(eventJsonLd("fr", "x", []), null);
   });
 
   it("switches itself on the moment a date lands", () => {
-    const data = eventJsonLd("en", "Two days in Yaoundé", "2026-11-14");
+    const data = eventJsonLd("en", "Two days in Yaoundé", ["2026-11-14"]);
     assert.ok(data, "a dated event must produce a block");
     assert.equal(data!["@type"], "Event");
     assert.equal(data!.startDate, "2026-11-14T09:00:00");
-    // Two days, so the end is the FOLLOWING day — the same assumption the
-    // add-to-calendar links make.
-    assert.equal(data!.endDate, "2026-11-15T18:00:00");
+    assert.equal(data!.endDate, "2026-11-14T18:00:00");
     assert.ok(String(data!.url).endsWith("/en"));
+  });
+
+  it("spans non-consecutive days without claiming the gap", () => {
+    // The real shape: 21 and 28 November, a week apart. The outer range is
+    // the whole span, because that IS when the event starts and ends — but
+    // on its own it reads as one continuous eight-day event, so each real
+    // day is listed as a subEvent.
+    const data = eventJsonLd("en", "x", ["2026-11-21", "2026-11-28"]);
+    assert.equal(data!.startDate, "2026-11-21T09:00:00");
+    assert.equal(data!.endDate, "2026-11-28T18:00:00");
+    const sub = (data as { subEvent?: { startDate: string }[] }).subEvent;
+    assert.equal(sub?.length, 2);
+    assert.equal(sub![0].startDate, "2026-11-21T09:00:00");
+    assert.equal(sub![1].startDate, "2026-11-28T09:00:00");
+  });
+
+  it("writes the dates the way a person says them, not as a range", () => {
+    // The bug this pins is a STRING one, and it shipped in an email somebody
+    // who has paid reads: "21–22 November 2026". A dash means "through", and
+    // these two Saturdays are a week apart — so a dash claims an eight-day
+    // event. An ampersand says what is true.
+    assert.equal(
+      formatEventDates("en", ["2026-11-21", "2026-11-28"]),
+      "21 & 28 November 2026",
+    );
+    assert.equal(
+      formatEventDates("fr", ["2026-11-21", "2026-11-28"]),
+      "21 et 28 novembre 2026",
+    );
+  });
+
+  it("names the month once when the days share one, and twice when they do not", () => {
+    assert.equal(formatEventDates("en", ["2026-11-21"]), "21 November 2026");
+    assert.equal(
+      formatEventDates("en", ["2026-11-28", "2026-12-05"]),
+      "28 November & 5 December 2026",
+    );
+    assert.equal(
+      formatEventDates("fr", ["2026-11-21", "2026-11-28", "2026-11-29"]),
+      "21, 28 et 29 novembre 2026",
+    );
+  });
+
+  it("says nothing rather than a bare year when there are no dates", () => {
+    assert.equal(formatEventDates("en", []), null);
+  });
+
+  it("does not add a subEvent list for a single-day event", () => {
+    const data = eventJsonLd("en", "x", ["2026-11-21"]);
+    assert.equal((data as { subEvent?: unknown }).subEvent, undefined);
+  });
+
+  it("puts day 2 on the real second Saturday, not the day after day 1", () => {
+    // The bug this pins: the old model derived day N as `base + (N - 1)`,
+    // which put every day-2 session on 22 November — six days early, in the
+    // .ics files people import. The days are a week apart and are listed,
+    // not counted.
+    assert.equal(dateForDay(1), "2026-11-21");
+    assert.equal(dateForDay(2), "2026-11-28");
+    assert.equal(
+      dateForDay(3),
+      null,
+      "a day with no date must not be invented",
+    );
+    assert.equal(EVENT.days, 2, "the count follows the list");
   });
 
   it("always describes the organiser, since none of that is speculative", () => {

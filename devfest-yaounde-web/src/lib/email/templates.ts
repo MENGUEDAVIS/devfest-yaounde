@@ -28,6 +28,22 @@
  */
 import type { PaymentIntentRow } from "@/lib/payments/intents";
 import { CHAPTER_EMAIL, SITE_URL } from "@/lib/site-config";
+import { formatEventDates } from "@/lib/event";
+
+/**
+ * The dates, from the one list that holds them.
+ *
+ * They used to be typed into the copy table as "21–22 November 2026", which
+ * was wrong — and wrong in an email somebody who has PAID reads, and then
+ * plans a Saturday around. Derived now, so `EVENT_DATES` is the only place a
+ * date can be edited or got wrong.
+ *
+ * The empty case falls back to the city alone rather than printing nothing
+ * around a stray separator.
+ */
+function eventDate(locale: "fr" | "en"): string {
+  return formatEventDates(locale) ?? "";
+}
 
 export interface RenderedEmail {
   subject: string;
@@ -104,7 +120,6 @@ const COPY = {
     orderNext:
       "On te préviendra dès que ta commande est prête à être récupérée.",
     venue: "Yaoundé, Cameroun",
-    date: "21–22 novembre 2026",
     why: "Tu reçois cet e-mail parce que tu as commandé sur",
     contact: "Une question ? Réponds simplement à cet e-mail.",
     ref: "Référence",
@@ -134,7 +149,6 @@ const COPY = {
     fulfilmentNote: "Your note",
     orderNext: "We'll let you know as soon as it's ready to collect.",
     venue: "Yaoundé, Cameroon",
-    date: "21–22 November 2026",
     why: "You're getting this because you ordered on",
     contact: "A question? Just reply to this email.",
     ref: "Reference",
@@ -363,7 +377,7 @@ ${cards}
 
 ${totalsHtml(intent, l)}
 
-<p style="margin:20px 0 0;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(c.date)} &nbsp;·&nbsp; ${escapeHtml(c.venue)}</p>
+<p style="margin:20px 0 0;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(eventDate(l))} &nbsp;·&nbsp; ${escapeHtml(c.venue)}</p>
 
 ${button(c.myTickets, `${SITE_URL}/${l}/account`)}
 
@@ -392,7 +406,7 @@ ${button(c.myTickets, `${SITE_URL}/${l}/account`)}
     }),
     ...totalsText(intent, l),
     "",
-    `${c.date} — ${c.venue}`,
+    `${eventDate(l)} — ${c.venue}`,
     `${c.myTickets} : ${SITE_URL}/${l}/account`,
     "",
     `${c.ref} ${intent.deposit_id}`,

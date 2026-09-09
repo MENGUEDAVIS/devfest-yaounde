@@ -6,6 +6,7 @@ import { isPlaceholderPhoto } from "@/lib/content/photos";
 import { loadSettings } from "@/lib/content/settings";
 import {
   collectionCounts,
+  getSessions,
   getSpeakers,
   getSponsors,
   getTeam,
@@ -30,14 +31,16 @@ import {
  * DISPLAYS is still bilingual data, shown in both languages where it has two.
  */
 export default async function AdminPage() {
-  const [data, counts, settings, speakers, team, sponsors] = await Promise.all([
-    loadAdminData(),
-    collectionCounts(),
-    loadSettings(),
-    getSpeakers(),
-    getTeam(),
-    getSponsors(),
-  ]);
+  const [data, counts, settings, speakers, team, sponsors, sessions] =
+    await Promise.all([
+      loadAdminData(),
+      collectionCounts(),
+      loadSettings(),
+      getSpeakers(),
+      getTeam(),
+      getSponsors(),
+      getSessions(),
+    ]);
 
   const missingPhotos: MissingPhoto[] = [
     ...speakers
@@ -72,6 +75,7 @@ export default async function AdminPage() {
         data={data}
         settings={settings}
         missingPhotos={missingPhotos}
+        collections={{ speakers, team, sessions, sponsors }}
         content={{
           speakers: counts.speakers,
           team: counts.team,

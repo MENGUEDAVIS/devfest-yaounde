@@ -22,13 +22,13 @@ Adding or removing an actual link (not just relabeling) requires a code change i
 ## Changing footer links and social profiles
 
 - **Link labels** (e.g. "Schedule", "Join the Community"): `messages/fr.json` / `messages/en.json` → `footer.*` keys.
-- **Where links actually point** (social profile URLs, the Bevy community URL, Privacy Policy / Code of Conduct pages): `src/lib/site-config.ts`. Every URL in that file is currently a `#` placeholder — replace them with the real ones. This is the one file to check before launch.
+- **Where links actually point**: the legal links, the Bevy community URL and the two calls are **settings**, edited in the dashboard under Configuration — `src/lib/site-config.ts` only holds the fallback a fresh clone renders with (ADR 0038). Social profile URLs are still constants in that file.
 
 ## Known gaps as of this bootstrap
 
 - **No real logo image** — the navbar shows a text wordmark ("DevFest Yaoundé") since no logo asset was supplied. Swapping in a real logo is a `Navbar.tsx` code change.
 - **No real community photos** — the footer's top strip is a flat Yellow 600 CTA block, not an actual photo strip. `DESIGN.md` §4.1 requires real photos here; this needs a developer to swap in actual images once they exist. (It was a gradient block until the design-foundation pass; gradients are now banned outright per `DESIGN.md` §2.6, so whatever replaces it must be flat fills or real photography.)
-- **Privacy Policy and Code of Conduct have no pages yet** — `PAGES.md` §1.3 links to them from the footer, but neither is in the sitemap (`PAGES.md` §0). Until that's resolved (new routes vs. an external doc), their footer links are `#` placeholders in `site-config.ts`.
+- **The legal links are somebody else's pages, deliberately** — GDG's participation terms and Google's privacy policy and terms. The chapter runs under those and publishes none of its own, so there are no routes for them and they are not in the sitemap. There is **no code of conduct entry**: the participation terms are that document here (ADR 0040).
 - **Bevy chapter URL is a placeholder** — every "RSVP" / "Join the Community" link points at `#` until the real GDG Yaoundé Bevy URL is added to `site-config.ts`.
 
 ## The logo easter egg
@@ -49,4 +49,5 @@ main button now goes to `/tickets`.
 
 Editing footer links and labels is unchanged: labels live under `footer.*` in
 `messages/fr.json` / `messages/en.json`, and the actual URLs (socials, Bevy,
-Privacy, Code of Conduct) are still all in `src/lib/site-config.ts`.
+Privacy, Terms) fall back to `src/lib/site-config.ts` when the database has
+nothing saved.

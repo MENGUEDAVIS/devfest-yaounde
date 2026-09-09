@@ -170,12 +170,12 @@
     "id": "faq-conduct",
     "category": "code-of-conduct",
     "question": {
-      "fr": "Y a-t-il un code de conduite ?",
-      "en": "Is there a code of conduct?"
+      "fr": "Y a-t-il des règles de conduite ?",
+      "en": "Are there rules of conduct?"
     },
     "answer": {
-      "fr": "Oui, et il s'applique à tout le monde — participants, intervenants, organisateurs, sponsors. Le lien est en bas de page.",
-      "en": "Yes, and it applies to everyone — attendees, speakers, organisers, sponsors. The link is in the footer."
+      "fr": "Oui — les conditions de participation GDG, et elles s'appliquent à tout le monde : participants, intervenants, organisateurs, sponsors. Le lien est en bas de page.",
+      "en": "Yes — the GDG participation terms, and they apply to everyone: attendees, speakers, organisers, sponsors. The link is in the footer."
     }
   },
   {
@@ -186,8 +186,8 @@
       "en": "How do I report a problem during the event?"
     },
     "answer": {
-      "fr": "Trouve n'importe quel organisateur (on est identifiables) ou écris à l'adresse indiquée dans le code de conduite. On te prend au sérieux.",
-      "en": "Find any organiser (we're identifiable) or use the contact in the code of conduct. We take it seriously."
+      "fr": "Trouve n'importe quel organisateur — on est identifiables — ou écris-nous sur les réseaux. On te prend au sérieux, et on ne te demandera pas de régler ça toi-même.",
+      "en": "Find any organiser — we're identifiable — or reach us on socials. We take it seriously, and we will not ask you to handle it yourself."
     }
   }
 ]

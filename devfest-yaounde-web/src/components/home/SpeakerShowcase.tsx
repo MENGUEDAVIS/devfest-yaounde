@@ -81,10 +81,13 @@ export function SpeakerShowcase({ speakers }: { speakers: Speaker[] }) {
     return () => window.removeEventListener("resize", recentre);
   }, [recentre]);
 
-  const go = useCallback((dir: 1 | -1) => {
-    setOpenId(null);
-    setFocused((i) => (i + dir + featured.length) % featured.length);
-  }, [featured.length]);
+  const go = useCallback(
+    (dir: 1 | -1) => {
+      setOpenId(null);
+      setFocused((i) => (i + dir + featured.length) % featured.length);
+    },
+    [featured.length],
+  );
 
   /*
    * Drag / swipe — PHASE11 §7. Matches the page slider's input handling:
@@ -176,6 +179,19 @@ export function SpeakerShowcase({ speakers }: { speakers: Speaker[] }) {
     }, AUTO_ADVANCE_MS);
     return () => clearInterval(id);
   }, [reduceMotion, paused, userTookOver, openId, featured.length]);
+
+  /*
+   * AN EMPTY REEL CANNOT BE RENDERED: every navigation here is `(i + n) % n`,
+   * and with nothing featured that is a division by zero producing NaN, which
+   * React then writes into a transform.
+   *
+   * The home page no longer relies on this to handle "no speakers yet" — it
+   * renders the call for speakers instead of this section when the store is
+   * empty. What is left is the last case that still reaches here: an
+   * organiser who forced the call off before entering anyone, where showing
+   * nothing is exactly what they asked for.
+   */
+  if (featured.length === 0) return null;
 
   return (
     <section className="overflow-hidden bg-pastel py-24 sm:py-32 lg:py-40">
