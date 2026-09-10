@@ -72,6 +72,7 @@ or amend an earlier one.
 | [0043](decisions/0043-admin-forms-and-navigation.md)            | Photos before save, filters, accordion sidebar                      | Accepted                                              |
 | [0044](decisions/0044-hero-bottom-anchored-wordmark.md)         | A bottom-anchored wordmark and floating facts                       | Accepted — **replaces the hero in 0041**              |
 | [0045](decisions/0045-hero-weight-overlap-and-recede.md)        | Bolder, left-anchored, overlapping, reactive to leaving             | Accepted — **tunes 0044**                             |
+| [0046](decisions/0046-hero-bar-chart-wordmark-and-stickers.md)  | Bar-chart wordmark, sticker cluster, photo backdrop                 | Accepted — **replaces the hero in 0044/0045**         |
 
 **Site and design**
 

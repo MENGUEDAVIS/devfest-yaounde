@@ -16,6 +16,7 @@ import { loadSettings } from "@/lib/content/settings";
 import { StatsInterstitial } from "@/components/home/StatsInterstitial";
 import {
   getFaqs,
+  getPastEditions,
   getQuotes,
   getSpeakers,
   getSponsors,
@@ -50,13 +51,17 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
-  const [speakers, quotes, faqs, sponsors, settings] = await Promise.all([
-    getSpeakers(),
-    getQuotes(),
-    getFaqs(),
-    getSponsors(),
-    loadSettings(),
-  ]);
+  const [speakers, quotes, faqs, sponsors, pastEditions, settings] =
+    await Promise.all([
+      getSpeakers(),
+      getQuotes(),
+      getFaqs(),
+      getSponsors(),
+      /* The hero uses ONE of these behind everything; Memory Lane shows them
+         all. Read here so both get it from the same memoised store read. */
+      getPastEditions(),
+      loadSettings(),
+    ]);
   const cfs = cfsView(settings.cfs, speakers.length);
 
   return (
@@ -73,7 +78,7 @@ export default async function HomePage({
       <JsonLd
         data={eventJsonLd(locale === "en" ? "en" : "fr", t("metaDesc"))}
       />
-      <Hero locale={locale} />
+      <Hero locale={locale} photo={pastEditions[0]} />
       {/*
         The sponsor strip used to be layer 4 INSIDE the hero. The redesign
         gives the bottom edge to the wordmark (ADR 0044), and two things

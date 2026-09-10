@@ -94,7 +94,9 @@
       "scrollCue": "Défiler",
       "photoCredit": "Scènes des éditions précédentes",
       "dateLabel": "Quand",
-      "venueLabel": "Où"
+      "venueLabel": "Où",
+      "photoAlt": "Une image d'une édition passée de DevFest Yaoundé",
+      "venueCaption": "Cameroun"
     },
     "sponsors": {
       "label": "Portés par des gens bien",

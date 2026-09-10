@@ -56,6 +56,7 @@ import { dpFileName } from "@/lib/dp/compose";
 import { shareCaption } from "@/lib/dp/share";
 import {
   EVENT,
+  eventDateParts,
   eventDates,
   eventJsonLd,
   formatEventDates,
@@ -574,6 +575,32 @@ describe("event structured data", () => {
 
   it("says nothing rather than a bare year when there are no dates", () => {
     assert.equal(formatEventDates("en", []), null);
+  });
+
+  it("splits the dates into a loud value and a quiet caption", () => {
+    // The hero sets these as a figure: "21 & 28" big, "November 2026" under
+    // it. Same information as `formatEventDates`, cut for that shape.
+    assert.deepEqual(eventDateParts("en", ["2026-11-21", "2026-11-28"]), {
+      value: "21 & 28",
+      caption: "November 2026",
+    });
+    assert.deepEqual(eventDateParts("fr", ["2026-11-21", "2026-11-28"]), {
+      value: "21 et 28",
+      caption: "novembre 2026",
+    });
+  });
+
+  it("keeps the months in the value when the days span two of them", () => {
+    // Bare days would read as "28 & 5", which is not a date anybody can
+    // parse — so that case promotes the whole thing and drops to the year.
+    assert.deepEqual(eventDateParts("en", ["2026-11-28", "2026-12-05"]), {
+      value: "28 November & 5 December 2026",
+      caption: "2026",
+    });
+  });
+
+  it("has no figure to set when there are no dates", () => {
+    assert.equal(eventDateParts("en", []), null);
   });
 
   it("does not add a subEvent list for a single-day event", () => {

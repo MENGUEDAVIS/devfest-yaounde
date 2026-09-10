@@ -1,268 +1,276 @@
-import {
-  ArrowDown,
-  CalendarBlank,
-  MapPin,
-} from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { Button } from "@/components/ui/Button";
-import { HeroField, Satellite } from "@/components/home/HeroField";
+import { HeroBackdrop } from "@/components/home/HeroBackdrop";
+import { HeroField } from "@/components/home/HeroField";
+import { HeroStickers, type HeroSticker } from "@/components/home/HeroStickers";
 import { HeroWordmark } from "@/components/home/HeroWordmark";
-import { EVENT, formatEventDates } from "@/lib/event";
+import { EVENT, eventDateParts } from "@/lib/event";
+import type { PastEditionPhoto } from "@/data/types";
 
 /**
- * The landing hero — a clean-sheet redesign (ADR 0044), tuned a second time
- * for weight and depth (ADR 0045).
- *
- * ## What it replaced, and why none of it came back
- *
- * The old hero was a centred stack of text over a drifting collage of
- * eighteen photographs. It was expensive, it packed and clipped on a phone,
- * and — the actual problem — it was forgettable. Every element sat in one
- * column in the middle of the screen, which is the layout a page falls into
- * when nobody decides on one.
+ * The landing hero (ADR 0046).
  *
  * ## The composition
  *
- * **The mass is at the BOTTOM, and it is a LEFT column, not a centred one.**
- * The tagline, the CTAs and the wordmark all start from the same left edge
- * now — the first pass had the CTAs pinned to the far right of that row,
- * which split the bottom band into two balanced halves and read as safe. One
- * strong left mass, with the right side left to the shapes and the venue
- * fact, is the asymmetry that makes the left mass read as a decision.
+ * A photograph under everything, a dot-field texture over it, and the content
+ * arranged in two columns above both. The left column is the mass: a small
+ * label, then a two-line wordmark hugging the bottom-left that grows in like
+ * a bar chart. The right column is the argument: tagline, the two CTAs, and
+ * the date and venue set as figures — the slot the reference this comes from
+ * gives its statistics. A cluster of the DP generator's own stickers is
+ * spread across the middle, some in front of the wordmark and some behind it.
  *
- * **The facts and shapes are allowed to touch the wordmark now.** The first
- * pass kept three clean horizontal bands so nothing could collide — correct
- * for shipping something that worked, and also why it read as tidy rather
- * than as considered. The primary shape now hangs low enough to cross the
- * wordmark's top edge, and the venue fact sits close enough to sit partly
- * over it, both confirmed by screenshot rather than assumed from the
- * coordinates.
+ * ## What is reactive and what is fixed
  *
- * **The wordmark is left-anchored, tighter and heavier.** See the doc
- * comment on `HeroWordmark` for the mechanics — bottom-left instead of a
- * symmetric near-full-width block, ~5% tighter tracking, a stroke rim faking
- * the weight the loaded font file does not have past 700.
+ * Deliberately split. The **wordmark does not move** — no pointer lean, no
+ * scroll recede; it reveals once and then holds still. The **date and venue
+ * do not move** either; they are figures, and figures that drift read as
+ * unreliable. Everything that IS reactive is scenery: the stickers lean and
+ * lift, the dot field's highlight follows the pointer, the photograph pulls
+ * back as the section leaves. The fixed things are the ones carrying
+ * information.
  *
- * ## It reacts twice: to the pointer, and to leaving
+ * ## Chrome clearance
  *
- * The facts and shapes already leaned toward the cursor; the wordmark itself
- * now tilts a fraction of a degree with them, so the star element is not the
- * one thing in the room standing still. And everything recedes — lifts,
- * shrinks slightly, the wordmark also fades — as the hero scrolls out from
- * under the navbar, driven by `--exit` in `useHeroField`. Both are transform/
- * opacity only, so neither costs a reflow, and both are silent under
- * `prefers-reduced-motion` (`useHeroField` never attaches either listener).
- *
- * ## It has to work standing still
- *
- * Under `prefers-reduced-motion` nothing here moves: no reveal, no drift, no
- * cursor response, no recede. What is left is the composition — the giant
- * bottom-left wordmark, the placed facts, the negative space, the shapes
- * overlapping it — which is the thing that was designed. The motion is a
- * reward for the people who can take it, never the reason the screen works.
+ * The navbar and the announcement banner float over the top of the page, and
+ * the banner can be dismissed — so the space they occupy is not constant.
+ * The content column starts below `--chrome-h`, which is the token sized for
+ * the taller case (banner up). Dismissing it only ever gives the hero more
+ * room, never less, so the label and the top of the cluster cannot end up
+ * behind the chrome.
  */
-export async function Hero({ locale }: { locale: string }) {
+
+/**
+ * The cluster, placed by hand.
+ *
+ * Percentages rather than pixels, so it scales with the section instead of
+ * bunching at one width. Positions overlap the wordmark and run off the right
+ * edge on purpose — a cluster that politely stays inside the safe area reads
+ * as a row of icons, not as something scattered.
+ *
+ * `depth` and `blur` move together: near stickers lean further and stay
+ * sharp, far ones barely move and go soft.
+ */
+const STICKERS: HeroSticker[] = [
+  // --- desktop: behind the wordmark, softer and further away ------------
+  {
+    id: "burst",
+    left: "50%",
+    top: "22%",
+    size: 96,
+    tilt: -14,
+    depth: 8,
+    blur: 2.4,
+    layer: "behind",
+    bob: -10,
+    bobDur: 13,
+    bobDelay: 0,
+    only: "desktop",
+  },
+  {
+    id: "cloud",
+    left: "77%",
+    top: "21%",
+    size: 74,
+    tilt: 9,
+    depth: 6,
+    blur: 3,
+    layer: "behind",
+    bob: -7,
+    bobDur: 15,
+    bobDelay: 1400,
+    only: "desktop",
+  },
+  {
+    id: "code",
+    left: "38%",
+    top: "58%",
+    size: 84,
+    tilt: 11,
+    depth: 10,
+    blur: 1.6,
+    layer: "behind",
+    bob: -9,
+    bobDur: 12,
+    bobDelay: 700,
+    only: "desktop",
+  },
+  // --- desktop: in front, sharp, leaning most ---------------------------
+  {
+    id: "cup",
+    left: "43%",
+    top: "36%",
+    size: 104,
+    tilt: -8,
+    depth: 26,
+    blur: 0,
+    layer: "front",
+    bob: -14,
+    bobDur: 9,
+    bobDelay: 300,
+    only: "desktop",
+  },
+  {
+    id: "spark",
+    left: "62%",
+    top: "44%",
+    size: 74,
+    tilt: 16,
+    depth: 20,
+    blur: 0,
+    layer: "front",
+    bob: -11,
+    bobDur: 11,
+    bobDelay: 900,
+    only: "desktop",
+  },
+  {
+    id: "pin",
+    left: "56%",
+    top: "70%",
+    size: 88,
+    tilt: -6,
+    depth: 24,
+    blur: 0,
+    layer: "front",
+    bob: -12,
+    bobDur: 10,
+    bobDelay: 1800,
+    only: "desktop",
+  },
+  {
+    id: "terminal",
+    left: "13%",
+    top: "26%",
+    size: 92,
+    tilt: 7,
+    depth: 22,
+    blur: 0,
+    layer: "front",
+    bob: -8,
+    bobDur: 14,
+    bobDelay: 1100,
+    only: "desktop",
+  },
+  // --- desktop: bleeding off the right edge -----------------------------
+  {
+    id: "bolt",
+    left: "95%",
+    top: "60%",
+    size: 104,
+    tilt: 22,
+    depth: 18,
+    blur: 0,
+    layer: "front",
+    bob: -10,
+    bobDur: 12,
+    bobDelay: 2300,
+    only: "desktop",
+  },
+
+  /*
+    Mobile: three, in the bands the stacked layout leaves empty — beside the
+    tagline, under the figures, and off the right edge. The desktop set put
+    one squarely on top of "Check the swag", which is what authoring the
+    cluster once and hoping taught us.
+  */
+  {
+    id: "spark",
+    left: "72%",
+    top: "17%",
+    size: 64,
+    tilt: 14,
+    depth: 16,
+    blur: 0,
+    layer: "front",
+    bob: -9,
+    bobDur: 11,
+    bobDelay: 400,
+    only: "mobile",
+  },
+  {
+    id: "pin",
+    left: "63%",
+    top: "68%",
+    size: 72,
+    tilt: -7,
+    depth: 20,
+    blur: 0,
+    layer: "front",
+    bob: -11,
+    bobDur: 10,
+    bobDelay: 1500,
+    only: "mobile",
+  },
+  {
+    id: "burst",
+    left: "88%",
+    top: "45%",
+    size: 70,
+    tilt: -12,
+    depth: 9,
+    blur: 2,
+    layer: "behind",
+    bob: -8,
+    bobDur: 14,
+    bobDelay: 900,
+    only: "mobile",
+  },
+];
+
+export async function Hero({
+  locale,
+  photo,
+}: {
+  locale: string;
+  /** The hero's one photograph, from the content store. */
+  photo: PastEditionPhoto | undefined;
+}) {
   const t = await getTranslations("home.hero");
   const lang = locale === "en" ? "en" : "fr";
-  /* Real data, from the list that also fills the .ics files and the OG card. */
-  const dates = formatEventDates(lang);
+  const when = eventDateParts(lang);
 
   return (
     <section className="relative isolate flex min-h-svh flex-col overflow-hidden bg-pastel">
-      <HeroField className="relative flex flex-1 flex-col">
-        {/*
-          THREE HORIZONTAL BANDS, and every absolute position below belongs to
-          exactly one of them. Written down because a floating layout has no
-          layout engine to stop two things sharing a spot — the first pass put
-          the venue pill on top of the wordmark and the eyebrow under the
-          navbar, and both are invisible until somebody looks.
+      <HeroBackdrop
+        src={photo?.imageUrl}
+        alt={photo?.alt?.[lang] ?? t("photoAlt")}
+      />
 
-            0   – 24vh   the fixed chrome (--chrome-h is 13rem). Keep clear.
-            24  – 56vh   satellites and shapes. The composed empty half.
-            56  – 100vh  the bottom cluster: tagline, CTAs, wordmark.
-        */}
-
-        {/*
-          ---------- The empty upper half, furnished ----------
-          Desktop-only (`sm:block` on both). Enlarging and lowering the
-          primary circle to reach the wordmark (below) only works where the
-          composition has the vertical room for it — on mobile the same
-          vh-based position lands the circle on top of the tagline instead,
-          since the stacked layout is a different shape entirely. Mobile
-          already gets contrast from the two-colour split lines.
-        */}
-
-        {/*
-          Two shapes, sized the way §7b asks for — one big bold shape beats
-          five timid ones. They are `bg-primary` and `bg-halftone`, so the
-          theme switcher repaints them with everything else, and they are
-          behind the facts in both z-order and parallax depth.
-        */}
-        {/*
-          Bigger and lower than the first pass, on purpose: it now hangs low
-          enough to cross the wordmark's own top edge on `lg` (confirmed by
-          screenshot), so the circle and the giant type genuinely overlap
-          instead of occupying separate bands. `-z-10` keeps it behind the
-          text, which is what makes the crossing read as depth rather than as
-          a collision.
-        */}
-        <div
-          aria-hidden
-          className="hero-shape pointer-events-none absolute -right-[10vmin] top-[35vh] -z-10 hidden h-[44vmin] w-[44vmin] rounded-pill bg-primary/85 sm:block lg:right-[2vw]"
-          style={{ ["--depth" as string]: "46px" }}
-        />
-        <div
-          aria-hidden
-          className="hero-shape pointer-events-none absolute -left-[8vmin] top-[44vh] -z-10 hidden h-[20vmin] w-[20vmin] rotate-12 rounded-lg bg-halftone/60 sm:left-[2vw] sm:block"
-          style={{ ["--depth" as string]: "70px" }}
-        />
-
-        {/*
-          THE FLOATING LAYER IS FOR SCREENS THAT HAVE ROOM, and `sm` is where
-          they stop having it.
-
-          On a 390×844 phone the bottom cluster — tagline, two CTAs, a
-          two-line wordmark — already reaches past halfway, so a fact
-          positioned at "41vh" lands on top of the tagline. It did, and it was
-          unreadable. No amount of tuning the percentages survives a cluster
-          whose height depends on how long the French copy runs.
-
-          So below `sm` the same facts are laid out statically in the cluster
-          (further down), which is the "tasteful static placement" the brief
-          asks for on touch — and which cannot collide with anything, because
-          it is in the flow.
-        */}
-        <div className="hidden sm:contents">
-          {/* The bracket mark, big and clickable — the split-and-spin egg. */}
-          <Satellite
-            depth={26}
-            tilt={-3}
-            float={-14}
-            drift={11}
-            settle={160}
-            className="left-[7vw] top-[27vh] lg:left-[9vw]"
-          >
-            <DevFestLogo
-              animateIn
-              interactive
-              title="DevFest"
-              className="h-14 w-auto cursor-pointer sm:h-20 lg:h-24"
-            />
-          </Satellite>
-
-          {/* ---------- The floating facts ---------- */}
-
-          {/*
-          DOM ORDER IS READING ORDER: presented-by, then when, then where,
-          then the tagline. Where each one sits on screen is a `top`/`left`,
-          which a screen reader never sees — so the composition can be
-          scattered while the content stays a sensible sequence.
-        */}
-          <Satellite
-            depth={12}
-            tilt={2}
-            float={-8}
-            drift={8}
-            delay={600}
-            settle={240}
-            /* Under the bracket mark, not opposite it. On the right it sat on
-             the yellow circle, where dark-on-yellow at caption size is not a
-             contrast anybody should have to work at — and it pairs with the
-             GDG mark anyway, which is whose name it is. */
-            className="left-[7vw] top-[calc(27vh+7rem)] lg:left-[9vw] lg:top-[calc(27vh+8.5rem)]"
-          >
-            <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
-              {t("eyebrow")}
-            </p>
-          </Satellite>
-
-          <Satellite
-            depth={22}
-            tilt={-2}
-            float={-12}
-            drift={10}
-            delay={300}
-            settle={320}
-            /* Below the eyebrow's band, never beside it: at 1440 the two were
-             a few pixels apart and the pill's border cropped the last letter
-             of "PRÉSENTE". */
-            className="left-[7vw] top-[47vh] sm:left-[16vw] lg:left-[22vw]"
-          >
-            <Fact icon={<CalendarBlank size={16} weight="bold" aria-hidden />}>
-              <span className="sr-only">{t("dateLabel")}: </span>
-              {dates}
-            </Fact>
-          </Satellite>
-
-          <Satellite
-            depth={18}
-            tilt={3}
-            float={-9}
-            drift={12}
-            delay={1200}
-            settle={400}
-            skittish
-            className="right-[7vw] top-[37vh] sm:right-[12vw] lg:right-[16vw]"
-          >
-            <Fact icon={<MapPin size={16} weight="bold" aria-hidden />}>
-              <span className="sr-only">{t("venueLabel")}: </span>
-              {EVENT.venue ?? t("venue")}
-            </Fact>
-          </Satellite>
+      <HeroField className="relative flex flex-1 flex-col px-5 sm:px-8">
+        {/* Behind the wordmark, in front of the backdrop. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+          <HeroStickers stickers={STICKERS} locale={lang} layer="behind" />
         </div>
 
-        {/* ---------- The bottom cluster ---------- */}
+        {/* ---------- The right column: the argument ---------- */}
 
-        <div className="mt-auto w-full px-4 pb-4 sm:px-6 sm:pb-6">
-          {/*
-            The tagline and the way forward, on one row above the wordmark.
-            A conference landing page still has to sell a ticket — the brief
-            moved the FACTS out of a stacked block, not the action.
-          */}
-          {/*
-            The phone's copy of the facts: in the flow, above the tagline, so
-            nothing can land on anything. Hidden from `sm` up, where the
-            floating layer takes over.
-          */}
-          <div className="mb-5 flex flex-wrap items-center gap-2 sm:hidden">
-            <Fact icon={<CalendarBlank size={14} weight="bold" aria-hidden />}>
-              <span className="sr-only">{t("dateLabel")}: </span>
-              {dates}
-            </Fact>
-            <Fact icon={<MapPin size={14} weight="bold" aria-hidden />}>
-              <span className="sr-only">{t("venueLabel")}: </span>
-              {EVENT.venue ?? t("venue")}
-            </Fact>
-          </div>
-
-          {/*
-            ONE LEFT COLUMN, not a split row. The first pass put the CTAs at
-            `justify-between` — pinned to the far right — which balanced the
-            row into two even halves and read as safe/centred rather than as
-            a deliberate left mass. Tagline and CTAs now share the wordmark's
-            own left edge and stack, so the eye reads "logo, eyebrow, date —
-            tagline, CTAs — WORDMARK" as one continuous left-anchored column,
-            with the shapes and the venue fact as the asymmetric counterweight
-            on the right.
-
-            NO max-width on the column either: the wordmark below is
-            full-bleed to the section's padding, so anything that does not
-            share its left edge reads as misaligned. On a 2560 screen a
-            centred `max-w-[100rem]` started the tagline 400px inside a
-            headline that starts at the edge.
-          */}
-          <div className="relative z-10 flex max-w-xl flex-col items-start gap-4 pb-5">
+        {/*
+          `mt-[--chrome-h]` is the clearance the floating navbar and banner
+          need. It is the banner-up height, so dismissing the banner only
+          adds room.
+        */}
+        {/*
+          `max()` is the chrome-clearance guarantee from the brief. The column
+          wants to sit around a quarter of the way down, matching the
+          reference — but on a short window a quarter of the height is less
+          than the navbar and banner occupy, and the tagline would slide
+          underneath them. Whichever is larger wins, so dismissing the banner
+          only ever gives the hero more room.
+        */}
+        <div className="relative z-20 mt-[max(var(--chrome-h),24vh)] sm:absolute sm:right-8 sm:top-[max(var(--chrome-h),24vh)] sm:mt-0 sm:w-[21rem] lg:w-[23rem]">
+          <div>
             <p
-              className="hero-settle text-body-l text-black02/80"
-              style={{ ["--settle-delay" as string]: "480ms" }}
+              className="hero-settle text-body-l text-black02/85"
+              style={{ ["--settle-delay" as string]: "260ms" }}
             >
               {t("tagline")}
             </p>
 
             <div
-              className="hero-settle flex flex-wrap items-center gap-3"
-              style={{ ["--settle-delay" as string]: "560ms" }}
+              className="hero-settle mt-7 flex flex-wrap items-center gap-3"
+              style={{ ["--settle-delay" as string]: "340ms" }}
             >
               <Button tone="primary" href="/tickets" size="lg">
                 {t("ctaPrimary")}
@@ -271,60 +279,89 @@ export async function Hero({ locale }: { locale: string }) {
                 {t("ctaSecondary")}
               </Button>
             </div>
+
+            {/*
+              The figures. Where the reference puts "98% / 120+", we put the
+              two facts a visitor actually needs, set the same way: a loud
+              value over a quiet caption. Static — see the note at the top of
+              the file about which things in this hero move.
+            */}
+            <dl
+              className="hero-settle mt-10 flex flex-wrap gap-x-12 gap-y-6"
+              style={{ ["--settle-delay" as string]: "440ms" }}
+            >
+              {when && (
+                <div>
+                  <dt className="sr-only">{t("dateLabel")}</dt>
+                  <dd>
+                    <span className="block font-sans text-display-l font-bold leading-none text-black02">
+                      {when.value}
+                    </span>
+                    <span className="mt-2 block max-w-36 font-mono text-mono-tag uppercase tracking-wide text-black02/55">
+                      {when.caption}
+                    </span>
+                  </dd>
+                </div>
+              )}
+
+              <div>
+                <dt className="sr-only">{t("venueLabel")}</dt>
+                <dd>
+                  <span className="block font-sans text-display-l font-bold leading-none text-black02">
+                    {EVENT.city}
+                  </span>
+                  <span className="mt-2 block max-w-36 font-mono text-mono-tag uppercase tracking-wide text-black02/55">
+                    {EVENT.venue ?? t("venueCaption")}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        {/* ---------- The left column: the mass ---------- */}
+
+        <div className="relative z-20 mt-auto pb-[2vh]">
+          {/*
+            The label: our mark plus who is putting this on, in the slot the
+            reference gives its own small-caps line. Quiet on purpose — it is
+            a credit, and the thing under it is the loud one.
+          */}
+          <div
+            className="hero-settle mb-5 flex items-center gap-3"
+            style={{ ["--settle-delay" as string]: "180ms" }}
+          >
+            <DevFestLogo
+              animateIn
+              interactive
+              title="DevFest"
+              className="h-7 w-auto shrink-0 cursor-pointer sm:h-8"
+            />
+            <span className="font-mono text-mono-tag font-bold uppercase tracking-[0.16em] text-black02/60">
+              {EVENT.organizer}
+            </span>
           </div>
 
           {/*
-            THE STAR. Full-bleed to the section's padding, hugging the bottom
-            edge. `-mb-[1.5vw]` crops the wordmark's own descender space
-            against the viewport edge, which is what makes it read as anchored
-            TO the edge rather than sitting near it.
+            Sized against measured boxes, not guessed. Two earlier attempts
+            put the bottom of "Yaoundé" below the fold on a 1440×900 screen —
+            the reference crops its own second line slightly, but half a
+            missing line reads as a bug rather than as a crop.
+
+            `2xl` steps it back down: `vw` sizing on a 2560px monitor produced
+            a wordmark half the viewport tall, which is past confident and
+            into unreadable.
           */}
-          <div className="-mb-[1.2vw]">
+          <div className="text-[17vw] sm:text-[13.5vw] 2xl:text-[10.5vw]">
             <HeroWordmark srLabel={t("headline", { year: EVENT.year })} />
           </div>
         </div>
+
+        {/* In front of the wordmark. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-30">
+          <HeroStickers stickers={STICKERS} locale={lang} layer="front" />
+        </div>
       </HeroField>
-
-      {/*
-        The scroll cue, bottom-right and quiet. It is the one piece of the
-        composition that admits there is more page — the whole point of the
-        hero is that you forget for a moment.
-      */}
-      {/*
-        Bottom-right put it directly on the wordmark's é. It lives in the gap
-        between the floating layer and the cluster instead — the one band of
-        the composition nothing else is using.
-      */}
-      <span
-        aria-hidden
-        className="hero-settle pointer-events-none absolute left-1/2 top-[57vh] hidden -translate-x-1/2 items-center gap-2 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/40 lg:flex"
-        style={{ ["--settle-delay" as string]: "900ms" }}
-      >
-        {t("scrollCue")}
-        <ArrowDown size={14} weight="bold" />
-      </span>
     </section>
-  );
-}
-
-/**
- * A floating fact: a chunky pill, big enough to read across the room.
- *
- * §7b again — these are the only text in the upper half, so they carry the
- * boldness there. A 12px caption floating in that much space would look like
- * a mistake rather than a decision.
- */
-function Fact({
-  icon,
-  children,
-}: {
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <p className="inline-flex items-center gap-2.5 rounded-pill border-2 border-black02 bg-offwhite px-5 py-2.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02 shadow-[0_4px_0_0_var(--color-black02)]">
-      {icon}
-      {children}
-    </p>
   );
 }

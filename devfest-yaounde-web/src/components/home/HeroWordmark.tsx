@@ -3,234 +3,114 @@
 import { useScramble } from "@/lib/use-scramble";
 
 /**
- * The hero's anchor: "DevFest Yaoundé", bottom-LEFT, dense, and reactive.
+ * "DevFest" over "Yaoundé", bottom-left, revealed like a bar chart.
  *
- * ## Why SVG and not an <h1> with a font-size
+ * ## HTML text, not SVG — and why that is a reversal
  *
- * The brief is "spanning most of the width" at every viewport, and CSS cannot
- * do that honestly. `clamp()` guesses a size from the viewport and hopes the
- * string happens to fill it — which is how the old hero packed and clipped on
- * a phone, and how French copy breaks a layout tuned on English.
+ * The previous hero drew this as one SVG `<text>` with `textLength`, because
+ * that guarantees a width and so cannot pack or clip. It also makes every
+ * glyph a single indivisible node, and this direction needs each CHARACTER to
+ * be clipped and timed on its own. There is no way to do that inside one
+ * `<text>` element.
  *
- * `textLength` with `lengthAdjust="spacing"` states the width as a fact: the
- * line occupies a stated number of units of a 100-unit viewBox, and the
- * letter-spacing absorbs whatever the glyphs need. The viewBox scales to any
- * container, so mobile and ultrawide are the same drawing at different sizes
- * — nothing to pack, nothing to clip, and the é keeps its accent because it
- * is real text.
+ * The packing risk that SVG was protecting against does not apply here, for a
+ * reason specific to this string: **both lines are seven characters, and the
+ * wordmark is a brand name that is identical in both locales.** There is no
+ * French length to blow the layout up, and the two lines cannot disagree
+ * about their width. A `vw`-based size is safe when the content is fixed;
+ * it was not safe when the old single line had fifteen characters and had to
+ * span the full viewport.
  *
- * It is also exactly what the preloader does, which is the point: the splash
- * and the hero are the same wordmark drawn the same way, so the handoff reads
- * as one object arriving rather than two animations colliding.
+ * ## The reveal
  *
- * ## Left, not centred — and tighter
+ * Each character sits in its own box and is clipped from the bottom —
+ * `inset(0 0 100% 0)` to `inset(0 0 0 0)` — so it grows upward out of nothing
+ * to its full height, like a bar in a chart. The delay is a function of the
+ * character's index, so they arrive **left to right in sequence** rather than
+ * together; that progression across the line is the whole analogy. Line two
+ * starts after line one is under way, not after it finishes, so the two read
+ * as one gesture.
  *
- * A first pass anchored the line at the viewBox's centre with `textLength`
- * nearly equal to the full width, which is visually indistinguishable from a
- * DELIBERATE left alignment: the string reaches almost edge to edge either
- * way. That read as safe rather than composed — a block that happens to fill
- * its container, not one placed with intent.
+ * `clip-path` rather than a height animation or a masked wrapper: it is
+ * composited, it costs no layout, and it clips the glyph exactly — including
+ * the é's accent, which grows in with the letter it belongs to instead of
+ * being revealed by a separate box.
  *
- * `textAnchor="start"` at a small fixed inset makes the left edge an actual
- * decision, and **`textLength` is now 5% short of the previous value**
- * (matching a -5% tracking request) rather than 98% of the box — so the line
- * visibly stops before the right edge instead of reaching it, leaving room
- * that is filled by the shapes and facts placed deliberately over it (see
- * `Hero.tsx`).
+ * ## No parallax, on purpose
  *
- * ## Thicker, without a heavier font file
+ * This element does not lean toward the pointer and does not recede on
+ * scroll. It is the fixed thing the rest of the composition moves against;
+ * everything reactive in this hero — the stickers, the dot field — is
+ * deliberately something else.
  *
- * Google Sans is loaded at 700 only (ADR 0004) — there is no 800/900 to reach
- * for. `stroke="currentColor"` at a small fraction of the font size adds a
- * consistent rim to every glyph, which is the standard way to fake a heavier
- * cut without shipping a second font weight. `strokeLinejoin="round"` keeps
- * the added weight rounded at the corners rather than sharpening them, which
- * would fight the brand's rounded-everything rule (DESIGN.md §5).
+ * ## Weight
  *
- * ## Reactive: it leans and it recedes
- *
- * `--px`/`--py` (written by `useHeroField` on the hero root) reach this
- * element by ordinary CSS inheritance — no extra JS — and drive a very small
- * rotate, so the giant type itself tilts fractionally toward the pointer
- * rather than only the small satellites doing it. `--exit` drives the same
- * wrapper's lift, scale-down and fade as the hero scrolls out from under the
- * navbar. Both live on ONE wrapper outside the reveal mask, because the mask
- * span already owns the entrance transform (`.hero-word-line`) and a second
- * transform source on the same element would mean one silently overwriting
- * the other rather than combining.
- *
- * ## One line, or two
- *
- * ONE line on `sm` and up. Fifteen characters across the width is a dense,
- * solid block of grotesk — the §7b look — and it still leaves the upper half
- * of the viewport clear, which the composition is built on.
- *
- * TWO lines below `sm`, because one line of fifteen characters on a 390px
- * phone renders too thin to be the star of anything at a height that fits.
- * Split, each half is seven characters and reads as big again.
- *
- * **"DevFest" and "Yaoundé" are both seven characters**, so the two mobile
- * lines take almost identical letter-spacing and stack as a deliberately set
- * block. That is luck, and it is why the split works as cleanly as it does.
- *
- * ## Capped by height on the aspect ratios that break width-driven scaling
- *
- * The line's rendered HEIGHT follows its width, because a `viewBox` scales
- * uniformly — that is the whole reason it never packs or clips. On an
- * ordinary screen that is exactly right. On an ultrawide monitor it is not:
- * the same width is much taller relative to the viewport, and a line sized
- * to "span most of the width" there rendered at nearly 40% of the viewport's
- * height, tall enough to push the tagline and the floating date fact into
- * each other — found by screenshot at 2560×1080, not by inspecting the
- * numbers.
- *
- * `maxVh` bounds the rendered height (`max-h-[Xvh]`, with `w-auto h-auto
- * max-w-full` replacing a flat `w-full`), which is the standard
- * responsive-image sizing algorithm applied to an SVG: width is capped at
- * 100% of the container, height at the given fraction of the viewport,
- * aspect ratio preserved, whichever bound binds first. On every aspect ratio
- * this project actually ships on, the width bound is the tighter one and the
- * line renders exactly as before, full width. Only when a screen is wide
- * enough relative to its own height for the height bound to bind first does
- * it stop reaching the right edge — which is the one case where reaching it
- * would have been too tall, not the normal case degrading.
+ * `700` is the boldest cut of Google Sans that is loaded (ADR 0004 — the
+ * family ships 400/500/600/700). The reference's wordmark is heavier than
+ * that, so `-webkit-text-stroke` adds a rim to every glyph: the standard way
+ * to reach a weight the font file does not contain, without shipping a second
+ * font just for two words.
  */
+const LINES = [
+  { text: "DevFest", tone: "text-black02" },
+  { text: "Yaoundé", tone: "text-black02" },
+] as const;
+
+/** Milliseconds between one character starting and the next. */
+const CHAR_STEP = 52;
+/** How far into line one, line two starts. */
+const LINE_STEP = 240;
+
 export function HeroWordmark({ srLabel }: { srLabel: string }) {
   /*
-    The click-scramble easter egg (EASTER-EGGS.md), on the same hook every
-    page title uses. Three text nodes share two scramble handles: the wide
-    line is its own, and the two stacked lines each decode separately, like
-    the footer wordmark — so clicking "Yaoundé" leaves "DevFest" alone.
+    The click-scramble easter egg (EASTER-EGGS.md) survives the rewrite. Each
+    line decodes on its own, so clicking "Yaoundé" leaves "DevFest" alone.
+
+    THE SCRAMBLE EATS THE PER-CHARACTER SPANS, and that is fine. It rewrites
+    the line's `textContent`, so the first click replaces the split-up
+    characters with one plain string. By then the reveal has finished and
+    every character is at its resting state, where the only thing the spans
+    were doing was carrying an animation that has already ended — so there is
+    nothing left to lose. Clicking mid-reveal jumps the line to fully shown,
+    which is a reasonable answer to "I clicked it" rather than a glitch.
+
+    The alternative was a second hidden copy for the scramble to chew on, and
+    two copies of an h1's text is a worse problem than a decoration that
+    outlives its purpose.
   */
-  const whole = useScramble<SVGTextElement>({ text: "DevFest Yaoundé" });
-  const top = useScramble<SVGTextElement>({ text: "DevFest" });
-  const bottom = useScramble<SVGTextElement>({ text: "Yaoundé" });
+  const first = useScramble<HTMLSpanElement>({ text: LINES[0].text });
+  const second = useScramble<HTMLSpanElement>({ text: LINES[1].text });
+  const handles = [first, second];
 
   return (
-    <h1 className="select-none">
+    <h1 className="hero-wordmark select-none">
       <span className="sr-only">{srLabel}</span>
 
-      {/* Phone: two stacked lines, each seven characters wide. */}
-      <span className="block sm:hidden">
-        <Line
-          refObject={top.ref}
-          onClick={top.start}
-          text="DevFest"
-          height={34}
-          fontSize={27.5}
-          baseline={27.5}
-          delayMs={0}
-          maxVh={16}
-          className="text-black02"
-        />
-        <Line
-          refObject={bottom.ref}
-          onClick={bottom.start}
-          text="Yaoundé"
-          height={34}
-          fontSize={27.5}
-          baseline={27.5}
-          delayMs={130}
-          maxVh={16}
-          className="text-primary"
-        />
-      </span>
-
-      {/* Everything else: one dense line. */}
-      <span className="hidden sm:block">
-        <Line
-          refObject={whole.ref}
-          onClick={whole.start}
-          text="DevFest Yaoundé"
-          height={16.5}
-          fontSize={14}
-          baseline={13.5}
-          delayMs={0}
-          maxVh={28}
-          className="text-black02"
-        />
-      </span>
-    </h1>
-  );
-}
-
-function Line({
-  refObject,
-  onClick,
-  text,
-  height,
-  fontSize,
-  baseline,
-  delayMs,
-  maxVh,
-  className,
-}: {
-  refObject: React.RefObject<SVGTextElement | null>;
-  onClick: () => void;
-  text: string;
-  height: number;
-  fontSize: number;
-  baseline: number;
-  delayMs: number;
-  /** Caps the rendered height, in vh — see the file doc comment. */
-  maxVh: number;
-  className: string;
-}) {
-  /*
-    -5% tracking as a WIDTH, not a CSS letter-spacing value. `textLength`
-    already states the line's rendered width as a fact rather than letting
-    the browser guess it (see the file doc comment); the natural width this
-    face renders at this fontSize/character-count ratio was tuned to ~98% of
-    the box in the previous pass, so 5% off that is 93.
-  */
-  const textLength = 93;
-  /* A rim around each glyph, thick enough to read as a heavier cut and thin
-     enough not to fatten the é's accent into the mask edge above it. */
-  const strokeWidth = fontSize * 0.05;
-
-  return (
-    /*
-      OUTER: the reactive wrapper, and ONLY that. `--px`/`--py` and `--exit`
-      inherit from the hero root. It carries no entrance of its own — at
-      --exit:0 its transform is the identity and its opacity is 1, so it
-      starts exactly where the mask reveal below already looks right. Giving
-      it a second fade-in would be two entrances stacked on one wordmark.
-    */
-    <span className="hero-word-exit block">
-      {/* The mask: a block exactly the line's height with the drawing
-          starting below it, so the line rises out of a hard edge. */}
-      <span className="hero-word block overflow-hidden">
-        <svg
-          viewBox={`0 0 100 ${height}`}
+      {LINES.map((line, lineIndex) => (
+        <span
+          key={line.text}
           aria-hidden
-          onClick={onClick}
-          className={`hero-word-line block h-auto w-auto max-w-full ${className}`}
-          style={{
-            ["--word-delay" as string]: `${delayMs}ms`,
-            maxHeight: `${maxVh}vh`,
-          }}
+          onClick={handles[lineIndex].start}
+          ref={handles[lineIndex].ref}
+          className={`hero-line block cursor-default ${line.tone}`}
         >
-          <text
-            ref={refObject}
-            x="1"
-            y={baseline}
-            textLength={textLength}
-            lengthAdjust="spacing"
-            textAnchor="start"
-            fill="currentColor"
-            stroke="currentColor"
-            strokeWidth={strokeWidth}
-            strokeLinejoin="round"
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 700,
-              fontSize: `${fontSize}px`,
-            }}
-          >
-            {text}
-          </text>
-        </svg>
-      </span>
-    </span>
+          {[...line.text].map((char, charIndex) => (
+            <span
+              // Index is the right key here: the characters of a fixed brand
+              // name, in a fixed order, that never reorder.
+              key={`${lineIndex}-${charIndex}`}
+              className="hero-char"
+              style={
+                {
+                  "--bar-delay": `${lineIndex * LINE_STEP + charIndex * CHAR_STEP}ms`,
+                } as React.CSSProperties
+              }
+            >
+              {char}
+            </span>
+          ))}
+        </span>
+      ))}
+    </h1>
   );
 }
