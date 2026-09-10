@@ -1628,3 +1628,237 @@ html:has([data-preloader="held"]) .anim-stamp,
 html:has([data-preloader="held"]) .mask-line > * {
   animation-play-state: paused;
 }
+
+/* ===========================================================================
+   HERO v3 — a two-line wordmark that grows like a bar chart, a sticker
+   cluster that leans toward the pointer, and a dot field over a photograph.
+
+   Transform, opacity and clip-path only. Nothing here touches layout, so a
+   pointer moving across the hero costs no reflow.
+   =========================================================================== */
+
+/* --- The wordmark ------------------------------------------------------- */
+
+.hero-wordmark {
+  /*
+    -3% tracking, as asked. On a line this large, tracking is the difference
+    between a wordmark and a row of separate letters.
+  */
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  line-height: 0.86;
+  /*
+    Google Sans is loaded at 400–700 (ADR 0004); there is no extrabold cut to
+    ask for. The stroke adds a rim to every glyph, which is how you reach a
+    weight the font file does not contain without shipping a second family
+    for two words. `currentColor` so it follows the line's own colour and the
+    theme switch.
+  */
+  -webkit-text-stroke: 0.018em currentColor;
+}
+
+.hero-line {
+  /* The clipped children are inline-blocks; without this the line collapses
+     its own height around them inconsistently across browsers. */
+  white-space: nowrap;
+}
+
+/*
+  THE BAR. Each character is its own box, clipped from the bottom edge up:
+  100% of it hidden, then none of it. That is a bar growing from zero height,
+  and because the delay is a function of the character's index they arrive in
+  sequence across the line rather than together.
+
+  `clip-path` and not a height animation: height would relayout the line on
+  every frame, and a wrapper with `overflow: hidden` would need a box per
+  character that the accent on the é would then be clipped by separately.
+*/
+@keyframes df-bar-grow {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.hero-char {
+  display: inline-block;
+  /* A space collapses to nothing as an inline-block; the wordmark has none,
+     but this keeps the rule honest if a line ever gains one. */
+  white-space: pre;
+  animation: df-bar-grow 620ms var(--ease-out-devfest) both;
+  animation-delay: var(--bar-delay, 0ms);
+  will-change: clip-path;
+}
+
+/* --- The sticker cluster ------------------------------------------------ */
+
+/*
+  Each sticker leans toward the pointer by its own `--depth`, exactly like the
+  satellites did — bigger depth reads as nearer. The blur on some of them is
+  the other half of that: near things move more AND are sharp, far things move
+  less and are soft. `--blur` is per sticker, and it is a fake depth of field,
+  not an effect for its own sake.
+*/
+.hero-sticker {
+  position: absolute;
+  transform: translate3d(
+      calc(var(--px, 0) * var(--depth, 14px)),
+      calc(var(--py, 0) * var(--depth, 14px) + var(--exit, 0) * -60px),
+      0
+    )
+    rotate(var(--tilt, 0deg));
+  filter: blur(var(--blur, 0px));
+  will-change: transform;
+}
+
+/* A slow bob so the cluster is alive even when the pointer is still. */
+@keyframes df-sticker-bob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, var(--bob, -8px), 0);
+  }
+}
+
+.hero-sticker-inner {
+  display: block;
+  animation: df-sticker-bob var(--bob-dur, 10s) ease-in-out infinite;
+  animation-delay: var(--bob-delay, 0ms);
+}
+
+/*
+  Hover lifts and straightens the one under the pointer — the same "picked up"
+  beat the DP generator gives a focused sticker, so the two surfaces agree
+  about what a sticker does when you touch it.
+*/
+@media (hover: hover) and (pointer: fine) {
+  .hero-sticker-hit {
+    transition: transform 320ms var(--ease-bouncy);
+  }
+
+  .hero-sticker-hit:hover {
+    transform: scale(1.12) rotate(calc(var(--tilt, 0deg) * -0.5));
+  }
+}
+
+/* --- Leaving the scene -------------------------------------------------- */
+
+/*
+  `--exit` runs 0 → 1 as the hero scrolls out from under the navbar, written
+  by `useHeroField`. Everything in the hero recedes together: lifted a little,
+  scaled back a little, faded — so the section reads as a scene being left
+  rather than as content sliding off a fixed picture.
+
+  This DOES apply to the wordmark, which an earlier pass deliberately excluded
+  on the reading that "only the reveal animation applies" to it. It is the
+  hero's mass; a scene where everything recedes except the biggest thing in it
+  reads as the biggest thing being stuck.
+
+  On its own wrapper, not on `.hero-wordmark`: the characters own `clip-path`
+  and the line owns nothing, but putting a transform on an ancestor keeps the
+  reveal and the recede from ever contending for one property.
+*/
+.hero-leave {
+  transform: translate3d(0, calc(var(--exit, 0) * -48px), 0)
+    scale(calc(1 - var(--exit, 0) * 0.05));
+  opacity: calc(1 - var(--exit, 0) * 0.9);
+  transform-origin: left bottom;
+  will-change: transform, opacity;
+}
+
+/*
+  The right-hand column leaves the other way — down and out — so the two
+  halves of the composition part rather than sliding in convoy. Small enough
+  to read as depth, not as two things disagreeing.
+*/
+.hero-leave-trail {
+  transform: translate3d(0, calc(var(--exit, 0) * 26px), 0);
+  opacity: calc(1 - var(--exit, 0) * 0.95);
+  will-change: transform, opacity;
+}
+
+/* --- The backdrop ------------------------------------------------------- */
+
+/*
+  The photograph itself pulls back a little as the hero leaves, so the scene
+  recedes as one plate rather than the content sliding off a fixed picture.
+*/
+.hero-backdrop {
+  transform: translate3d(0, calc(var(--exit, 0) * -40px), 0) scale(1.06);
+  will-change: transform;
+}
+
+/* --- Entrance for the composed content ---------------------------------- */
+
+@keyframes df-hero-settle {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.hero-settle {
+  animation: df-hero-settle 700ms var(--ease-out-devfest) both;
+  animation-delay: var(--settle-delay, 0ms);
+}
+
+/* --- The preloader handoff ---------------------------------------------- */
+
+/*
+  Held until the splash starts leaving (ADR 0041), so the bar-chart reveal
+  plays AS the preloader fades rather than behind it.
+*/
+html:has([data-preloader="held"]) .hero-char,
+html:has([data-preloader="held"]) .hero-settle {
+  animation-play-state: paused;
+}
+
+/* --- Reduced motion: the composition, standing still -------------------- */
+
+/*
+  The wordmark is fully revealed INSTANTLY — `clip-path: none`, not
+  `animation: none`, which would leave every character parked at
+  `inset(0 0 100% 0)` and the hero's star element invisible to exactly the
+  people who cannot see it arrive.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .hero-char {
+    animation: none !important;
+    clip-path: none !important;
+  }
+
+  .hero-settle,
+  .hero-sticker-inner {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .hero-sticker {
+    transform: rotate(var(--tilt, 0deg)) !important;
+  }
+
+  .hero-sticker-hit:hover {
+    transform: none !important;
+  }
+
+  .hero-backdrop {
+    transform: scale(1.06) !important;
+  }
+
+  /* Nothing recedes for someone who asked for less motion — the hero simply
+     scrolls away the way any other section does. */
+  .hero-leave,
+  .hero-leave-trail {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

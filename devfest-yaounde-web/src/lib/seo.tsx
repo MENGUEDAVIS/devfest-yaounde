@@ -16,9 +16,16 @@ export function localeUrl(locale: string, path = ""): string {
  * title changes, the design does not, and 12 hand-made PNGs would drift from
  * the brand the first time a colour moved.
  */
-export function ogImageUrl(title: string, subtitle?: string): string {
+export function ogImageUrl(
+  title: string,
+  subtitle?: string,
+  locale?: string,
+): string {
   const params = new URLSearchParams({ title });
   if (subtitle) params.set("subtitle", subtitle);
+  // The card's own eyebrow ("DevFest Yaoundé 2026 · 21 & 28 November") is
+  // written in this language, so a French page unfurls in French.
+  if (locale === "en") params.set("locale", "en");
   return `${SITE_URL}/og?${params.toString()}`;
 }
 
@@ -57,7 +64,7 @@ export function pageMetadata({
 }): Metadata {
   const url = localeUrl(locale, path);
   const full = `${title} · DevFest Yaoundé`;
-  const image = ogImageUrl(ogTitle ?? title, description);
+  const image = ogImageUrl(ogTitle ?? title, description, locale);
 
   const languages: Record<string, string> = {};
   for (const other of routing.locales)

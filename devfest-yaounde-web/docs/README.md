@@ -45,31 +45,35 @@ or amend an earlier one.
 
 **Payments and commerce**
 
-| #                                                               | Subject                                                             | Status                                                |
-| --------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------- |
-| [0003](decisions/0003-payments-and-auth.md)                     | Payments & auth provider                                            | Superseded by 0013 / 0014                             |
-| [0013](decisions/0013-payments-pawapay.md)                      | PawaPay, Mobile Money                                               | Accepted, **amended by 0019**                         |
-| [0014](decisions/0014-persistence-and-auth-supabase.md)         | Supabase, Google-only sign-in                                       | Accepted                                              |
-| [0016](decisions/0016-capacity-reservations.md)                 | Capacity & discount reservations                                    | Accepted                                              |
-| [0017](decisions/0017-pawapay-token-from-ssm.md)                | Token from AWS SSM                                                  | Accepted, **not the default — see 0018**              |
-| [0018](decisions/0018-secrets-in-supabase-vault.md)             | Supabase Vault as secret store                                      | Accepted — **current default**                        |
-| [0019](decisions/0019-settle-by-polling-not-callback.md)        | Settle by polling, not callback                                     | Accepted, **amended by 0028**                         |
-| [0028](decisions/0028-cleanup-sweep-from-supabase.md)           | Sweep invoked by Supabase cron                                      | Accepted — **Hobby cannot use Vercel `*/5`**          |
-| [0029](decisions/0029-editorial-content-store.md)               | Editorial content has no writable store                             | **Accepted by 0031**                                  |
-| [0031](decisions/0031-editorial-store-in-postgres.md)           | Postgres store, JSON fallback                                       | Accepted, **amended by 0032**                         |
-| [0032](decisions/0032-editorial-photo-upload.md)                | Photos attached per profile after sheet                             | Accepted                                              |
-| [0030](decisions/0030-wall-page-and-what-it-shows.md)           | What the community wall shows                                       | Accepted, **amended by 0033**                         |
-| [0033](decisions/0033-community-wall-is-on.md)                  | Wall on; visitors can report a card                                 | Accepted — closes G21                                 |
-| [0034](decisions/0034-dp-save-on-action.md)                     | Download/share/copy saves the card                                  | Accepted — **supersedes 0015**                        |
-| [0035](decisions/0035-chartjs-admin-overview.md)                | Chart.js on the admin overview                                      | Accepted                                              |
-| [0036](decisions/0036-discount-preview-before-payment.md)       | Show the discount before the payment page                           | Accepted — **reverses G4**                            |
-| [0037](decisions/0037-wall-stores-webp.md)                      | The wall stores WebP, keeping card corners                          | Accepted — supersedes the flatten fix                 |
-| [0038](decisions/0038-event-dates-and-call-config.md)           | Two dates a week apart; the calls are config                        | Accepted — **fixes the day-2 date**                   |
-| [0039](decisions/0039-call-for-speakers-as-a-state.md)          | The call for speakers is a state, not a page                        | Accepted                                              |
-| [0040](decisions/0040-participation-terms-and-open-seats.md)    | Participation terms, and a sponsor strip that shows its empty seats | Accepted — **supersedes the CoC placeholder in 0038** |
-| [0041](decisions/0041-hero-weight-and-the-preloader-handoff.md) | A lighter hero, and a splash that hands over                        | Accepted — **fixes the date in the ticket email**     |
-| [0042](decisions/0042-admin-saves-reach-the-site.md)            | Admin saves reach the site; the Save button exists                  | Accepted — **fixes four reported defects**            |
-| [0043](decisions/0043-admin-forms-and-navigation.md)            | Photos before save, filters, accordion sidebar                      | Accepted                                              |
+| #                                                                 | Subject                                                             | Status                                                |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------- |
+| [0003](decisions/0003-payments-and-auth.md)                       | Payments & auth provider                                            | Superseded by 0013 / 0014                             |
+| [0013](decisions/0013-payments-pawapay.md)                        | PawaPay, Mobile Money                                               | Accepted, **amended by 0019**                         |
+| [0014](decisions/0014-persistence-and-auth-supabase.md)           | Supabase, Google-only sign-in                                       | Accepted                                              |
+| [0016](decisions/0016-capacity-reservations.md)                   | Capacity & discount reservations                                    | Accepted                                              |
+| [0017](decisions/0017-pawapay-token-from-ssm.md)                  | Token from AWS SSM                                                  | Accepted, **not the default — see 0018**              |
+| [0018](decisions/0018-secrets-in-supabase-vault.md)               | Supabase Vault as secret store                                      | Accepted — **current default**                        |
+| [0019](decisions/0019-settle-by-polling-not-callback.md)          | Settle by polling, not callback                                     | Accepted, **amended by 0028**                         |
+| [0028](decisions/0028-cleanup-sweep-from-supabase.md)             | Sweep invoked by Supabase cron                                      | Accepted — **Hobby cannot use Vercel `*/5`**          |
+| [0029](decisions/0029-editorial-content-store.md)                 | Editorial content has no writable store                             | **Accepted by 0031**                                  |
+| [0031](decisions/0031-editorial-store-in-postgres.md)             | Postgres store, JSON fallback                                       | Accepted, **amended by 0032**                         |
+| [0032](decisions/0032-editorial-photo-upload.md)                  | Photos attached per profile after sheet                             | Accepted                                              |
+| [0030](decisions/0030-wall-page-and-what-it-shows.md)             | What the community wall shows                                       | Accepted, **amended by 0033**                         |
+| [0033](decisions/0033-community-wall-is-on.md)                    | Wall on; visitors can report a card                                 | Accepted — closes G21                                 |
+| [0034](decisions/0034-dp-save-on-action.md)                       | Download/share/copy saves the card                                  | Accepted — **supersedes 0015**                        |
+| [0035](decisions/0035-chartjs-admin-overview.md)                  | Chart.js on the admin overview                                      | Accepted                                              |
+| [0036](decisions/0036-discount-preview-before-payment.md)         | Show the discount before the payment page                           | Accepted — **reverses G4**                            |
+| [0037](decisions/0037-wall-stores-webp.md)                        | The wall stores WebP, keeping card corners                          | Accepted — supersedes the flatten fix                 |
+| [0038](decisions/0038-event-dates-and-call-config.md)             | Two dates a week apart; the calls are config                        | Accepted — **fixes the day-2 date**                   |
+| [0039](decisions/0039-call-for-speakers-as-a-state.md)            | The call for speakers is a state, not a page                        | Accepted                                              |
+| [0040](decisions/0040-participation-terms-and-open-seats.md)      | Participation terms, and a sponsor strip that shows its empty seats | Accepted — **supersedes the CoC placeholder in 0038** |
+| [0041](decisions/0041-hero-weight-and-the-preloader-handoff.md)   | A lighter hero, and a splash that hands over                        | Accepted — **fixes the date in the ticket email**     |
+| [0042](decisions/0042-admin-saves-reach-the-site.md)              | Admin saves reach the site; the Save button exists                  | Accepted — **fixes four reported defects**            |
+| [0043](decisions/0043-admin-forms-and-navigation.md)              | Photos before save, filters, accordion sidebar                      | Accepted                                              |
+| [0044](decisions/0044-hero-bottom-anchored-wordmark.md)           | A bottom-anchored wordmark and floating facts                       | Accepted — **replaces the hero in 0041**              |
+| [0045](decisions/0045-hero-weight-overlap-and-recede.md)          | Bolder, left-anchored, overlapping, reactive to leaving             | Accepted — **tunes 0044**                             |
+| [0046](decisions/0046-hero-bar-chart-wordmark-and-stickers.md)    | Bar-chart wordmark, sticker cluster, photo backdrop                 | Accepted — **replaces the hero in 0044/0045**         |
+| [0047](decisions/0047-hero-random-stickers-and-admin-backdrop.md) | Re-rolling sticker scatter, year pill, backdrop from the dashboard  | Accepted — extends 0046                               |
 
 **Site and design**
 

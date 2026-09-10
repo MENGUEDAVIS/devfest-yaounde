@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
+import { EVENT, formatEventDates } from "@/lib/event";
 
 /**
  * The branded social card, rendered on demand.
@@ -47,6 +48,34 @@ import type { NextRequest } from "next/server";
  * Nothing looked broken. The card had simply stopped existing.
  */
 export const runtime = "nodejs";
+
+/**
+ * The eyebrow line, from the one list that holds the dates.
+ *
+ * It used to read "DEVFEST YAOUNDÉ 2026 · 21–22 NOV" — typed by hand, and
+ * wrong in the way ADR 0038 fixed everywhere else. A social card is the worst
+ * place for a stale date: it is cached by whoever unfurls the link, so the
+ * wrong one keeps being served long after the site is right.
+ *
+ * `locale` picks the language the CARD is in. Uppercased here rather than
+ * with `text-transform`, which satori does not implement.
+ */
+function eyebrow(locale: "fr" | "en"): string {
+  const dates = formatEventDates(locale);
+  /*
+    WHEN and WHERE — not the event's name, which is the headline directly
+    below it in type three times the size. Repeating it there cost a line:
+    "DEVFEST YAOUNDÉ · 21 & 28 NOVEMBER 2026" wrapped onto two rows and
+    pushed the card's whole text column down.
+
+    Falls back to the year when no date is confirmed, because then nothing
+    else on the card says which edition this is.
+  */
+  const where = EVENT.venue ?? EVENT.city;
+  return (
+    dates ? `${dates} · ${where}` : `${EVENT.name} ${EVENT.year}`
+  ).toUpperCase();
+}
 
 const YELLOW = "#F9AB00";
 const BLUE = "#4285F4";
@@ -193,6 +222,9 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   // Clamped: a long description pasted in would otherwise overflow the card.
   const title = (searchParams.get("title") ?? "DevFest Yaoundé").slice(0, 90);
+  // The card is rendered per link, so it can honour the locale of the page
+  // that asked for it — a French page should not unfurl in English.
+  const locale = searchParams.get("locale") === "en" ? "en" : "fr";
   const subtitle = (searchParams.get("subtitle") ?? "").slice(0, 130);
   const mark = await devfestMark();
 
@@ -292,7 +324,7 @@ export async function GET(request: NextRequest) {
             opacity: 0.72,
           }}
         >
-          DEVFEST YAOUNDÉ 2026 · 21–22 NOV
+          {eyebrow(locale)}
         </div>
         <div
           style={{

@@ -225,3 +225,58 @@ function joinList(parts: string[], locale: "fr" | "en"): string {
   const rest = parts.slice(0, -1).join(", ");
   return `${rest} ${locale === "fr" ? "et" : "&"} ${last}`;
 }
+
+/**
+ * The dates split into the two halves a stat block wants: a loud value and a
+ * quiet caption.
+ *
+ * "21 & 28" is the numeral you read across the room; "November 2026" is the
+ * line under it. `formatEventDates` already produces the whole sentence, and
+ * this is the same information cut differently rather than a second place
+ * where a date could be typed and get out of step.
+ *
+ * Null when there are no dates, for the same reason as everything else here:
+ * a caption with no value above it is worse than neither.
+ */
+export function eventDateParts(
+  locale: "fr" | "en",
+  dates: readonly string[] = EVENT_DATES,
+): { value: string; caption: string } | null {
+  if (dates.length === 0) return null;
+
+  const parsed = dates.map((d) => {
+    const [y, m, day] = d.split("-").map(Number);
+    return { y, m, day, at: new Date(Date.UTC(y, m - 1, day, 12)) };
+  });
+
+  const last = parsed[parsed.length - 1];
+  const sameMonth = parsed.every(
+    (p) => p.m === parsed[0].m && p.y === parsed[0].y,
+  );
+
+  const month = new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-GB", {
+    month: "long",
+    timeZone: "UTC",
+  }).format(last.at);
+
+  /*
+    Days alone as the value only works when they share a month — "21 & 5"
+    across a month boundary would be unreadable without the months, so that
+    case puts the whole date in the value and the year underneath.
+  */
+  if (!sameMonth) {
+    return {
+      value: formatEventDates(locale, dates) ?? "",
+      caption: String(last.y),
+    };
+  }
+
+  const days = parsed.map((p) => String(p.day));
+  const joiner = locale === "fr" ? "et" : "&";
+  const value =
+    days.length === 1
+      ? days[0]
+      : `${days.slice(0, -1).join(", ")} ${joiner} ${days[days.length - 1]}`;
+
+  return { value, caption: `${month} ${last.y}` };
+}

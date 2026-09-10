@@ -420,6 +420,7 @@ export type Database = {
         Row: {
           announcement: Json | null
           bevy_url: string | null
+          hero: Json | null
           cfs: Json | null
           id: string
           legal: Json | null
@@ -430,6 +431,7 @@ export type Database = {
         Insert: {
           announcement?: Json | null
           bevy_url?: string | null
+          hero?: Json | null
           cfs?: Json | null
           id?: string
           legal?: Json | null
@@ -440,6 +442,7 @@ export type Database = {
         Update: {
           announcement?: Json | null
           bevy_url?: string | null
+          hero?: Json | null
           cfs?: Json | null
           id?: string
           legal?: Json | null

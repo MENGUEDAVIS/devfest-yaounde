@@ -94,7 +94,9 @@
       "scrollCue": "Scroll",
       "photoCredit": "Scenes from past editions",
       "dateLabel": "When",
-      "venueLabel": "Where"
+      "venueLabel": "Where",
+      "photoAlt": "A frame from a past DevFest Yaoundé",
+      "venueCaption": "Cameroon"
     },
     "sponsors": {
       "label": "Powered by good people",

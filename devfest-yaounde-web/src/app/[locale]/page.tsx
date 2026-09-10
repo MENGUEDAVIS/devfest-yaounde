@@ -8,12 +8,18 @@ import { MemoryLane } from "@/components/home/MemoryLane";
 import { QuotesInterstitial } from "@/components/home/QuotesInterstitial";
 import { ScheduleOverviewPreview } from "@/components/home/ScheduleOverviewPreview";
 import { SpeakerShowcase } from "@/components/home/SpeakerShowcase";
+import { SponsorStrip } from "@/components/home/SponsorStrip";
 import { CallForSpeakers } from "@/components/speakers/CallForSpeakers";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { cfsView } from "@/lib/content/cfs";
 import { loadSettings } from "@/lib/content/settings";
 import { StatsInterstitial } from "@/components/home/StatsInterstitial";
-import { getFaqs, getQuotes, getSpeakers } from "@/lib/content/store";
+import {
+  getFaqs,
+  getQuotes,
+  getSpeakers,
+  getSponsors,
+} from "@/lib/content/store";
 import { eventJsonLd } from "@/lib/event";
 import { JsonLd, pageMetadata } from "@/lib/seo";
 
@@ -44,10 +50,11 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
-  const [speakers, quotes, faqs, settings] = await Promise.all([
+  const [speakers, quotes, faqs, sponsors, settings] = await Promise.all([
     getSpeakers(),
     getQuotes(),
     getFaqs(),
+    getSponsors(),
     loadSettings(),
   ]);
   const cfs = cfsView(settings.cfs, speakers.length);
@@ -66,7 +73,14 @@ export default async function HomePage({
       <JsonLd
         data={eventJsonLd(locale === "en" ? "en" : "fr", t("metaDesc"))}
       />
-      <Hero locale={locale} />
+      <Hero locale={locale} backdropUrl={settings.hero.imageUrl} />
+      {/*
+        The sponsor strip used to be layer 4 INSIDE the hero. The redesign
+        gives the bottom edge to the wordmark (ADR 0044), and two things
+        cannot both hug it — so the strip sits directly below the hero
+        instead. Same strip, same position on screen, one section later.
+      */}
+      <SponsorStrip sponsors={sponsors} call={settings.sponsorCall} />
       <About />
       <StatsInterstitial />
       {/*

@@ -5,7 +5,7 @@ import type { AdminSettings, CfsOverride } from "@/lib/admin/shape";
 import { isoToWatLocal, watLocalToIso } from "@/lib/admin/form-helpers";
 import { cfsView } from "@/lib/content/cfs";
 import { sponsorCallOpen, SPONSOR_SEATS } from "@/lib/content/sponsors";
-import { Segmented } from "../forms/fields";
+import { ImageField, Segmented } from "../forms/fields";
 import { Panel } from "./shared";
 
 const ANNOUNCE_MAX = 180;
@@ -29,6 +29,8 @@ export function AdminConfig({
   );
   const [bevyUrl, setBevyUrl] = useState(settings.bevyUrl);
   const [legal, setLegal] = useState(settings.legal);
+  const [heroUrl, setHeroUrl] = useState(settings.hero.imageUrl);
+  const [heroBusy, setHeroBusy] = useState(false);
   const [sponsorCall, setSponsorCall] = useState(settings.sponsorCall);
   const [cfsUrl, setCfsUrl] = useState(settings.cfs.url);
   const [cfsOpens, setCfsOpens] = useState(isoToWatLocal(settings.cfs.opensAt));
@@ -70,6 +72,32 @@ export function AdminConfig({
       setError("Could not save. Check the URLs are https or empty.");
       return;
     }
+    setStatus("saved");
+  }
+
+  /**
+   * The backdrop uploads on PICK, not on save.
+   *
+   * Everything else on this screen is a text field that the Save button
+   * writes together. An image is not: the bytes have to reach the server
+   * before there is a URL to store, so the upload IS the save for this one.
+   * Saying so on the control matters more than making it consistent with the
+   * boxes above it — a picture that looked queued and was not would be the
+   * worse surprise.
+   */
+  async function uploadHero(file: File) {
+    setHeroBusy(true);
+    const body = new FormData();
+    body.set("image", file);
+    const res = await fetch("/api/admin/hero-image", { method: "POST", body });
+    setHeroBusy(false);
+    if (!res.ok) {
+      setError("That image did not upload. JPEG, PNG or WebP, under 2.5 MB.");
+      setStatus("error");
+      return;
+    }
+    const body2 = (await res.json()) as { url?: string };
+    if (body2.url) setHeroUrl(body2.url);
     setStatus("saved");
   }
 
@@ -165,6 +193,37 @@ export function AdminConfig({
             Where “Join the community” goes. Opens in a new tab.
           </span>
         </label>
+
+        {/*
+          The landing hero's backdrop. One image, sitting under the whole
+          front page.
+        */}
+        <div className="flex flex-col gap-4 rounded-lg border border-black02/15 bg-pastel/40 p-4">
+          <div>
+            <h3 className="font-sans text-body-l font-bold text-black02">
+              Home page background
+            </h3>
+            <p className="mt-1 text-caption text-black02/70">
+              {heroUrl
+                ? "Live on the front page, behind the wordmark."
+                : "Nothing uploaded, so the hero shows the theme colour on its own — which is a finished look, not a gap."}
+            </p>
+          </div>
+
+          <ImageField
+            url={heroUrl}
+            name="Hero"
+            busy={heroBusy}
+            onPick={(file) => void uploadHero(file)}
+          />
+
+          <p className="text-caption text-black02/60">
+            One image — it is resized for phones and desktops automatically, so
+            there is no second file to upload. Stored as WebP, so a picture with
+            a transparent background keeps it and the theme colour shows
+            through. It sits under a tint, so anything busy still reads.
+          </p>
+        </div>
 
         {/*
           The sponsor call. Separate from the sponsor LIST (Content →

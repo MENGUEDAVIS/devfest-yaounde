@@ -174,6 +174,23 @@ A typed announcement always wins over the call. If you write something in the
 announcement boxes, that is what the banner says and the submit button goes
 away with it.
 
+### The home page background
+
+**Configuration → Home page background** holds the one image behind the whole
+landing hero. Pick a file and it uploads straight away — unlike the text boxes
+on that screen, there is no Save step, because the bytes have to reach the
+server before there is anything to save.
+
+- **One file.** It is resized for phones and desktops automatically; there is
+  no second mobile version to upload.
+- **Transparency survives.** It is stored as WebP, so a picture with a cut-out
+  subject keeps its transparent background and the theme colour shows through
+  it — including when somebody switches the site's theme.
+- **Nothing uploaded is a finished look**, not a gap. The hero shows the theme
+  colour on its own, which is how it ships.
+- It sits under a tint, so a busy or bright photograph still leaves the
+  headline readable.
+
 ### Sponsors, and the ask for more
 
 The sponsor **strip on the home page always shows six seats**, filled from the

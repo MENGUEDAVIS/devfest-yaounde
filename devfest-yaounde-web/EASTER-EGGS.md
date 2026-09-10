@@ -20,6 +20,34 @@ Format: one entry per egg — what it is, where it lives, how to trigger it, and
 - **Added**: `feat/home-polish`, per PHASE5 §1.
 - **Note**: the navbar's smaller copy of the mark is intentionally _not_ click-spinnable — that button already owns the confetti easter egg above, and stacking two behaviours on one control would make both feel accidental.
 
+## Hero wordmark decode (the giant one)
+
+- **What**: the huge bottom-left "DevFest" / "Yaoundé" in the landing hero decodes on click, the same churn-and-resolve as every page title.
+- **Where**: `src/components/home/HeroWordmark.tsx`, on the shared `useScramble` hook.
+- **How to trigger**: **click either line.** Each decodes separately — clicking "Yaoundé" leaves "DevFest" alone, like the footer wordmark.
+- **Note**: the scramble rewrites the line's text, which replaces the per-character spans the bar-chart reveal animates. That is intended: by the time anything is clickable the reveal has finished and those spans have nothing left to do. Clicking mid-reveal jumps that line to fully shown.
+- **Added**: `feat/hero-redesign-v2` (ADR 0044), rebuilt for the v3 hero (ADR 0046).
+
+## Hero logo bracket split-and-spin
+
+- **What**: the DevFest "><" mark in the hero is built from its two bracket halves as separately animatable pieces. Hovering parts them slightly; **clicking** flings them apart, spins each a full turn in opposite directions, and snaps them back together.
+- **Where**: `src/components/brand/DevFestLogo.tsx` (the inlined SVG + click state) with the `df-bracket-spin-left/right` keyframes in `src/app/motion.css`.
+- **How to trigger**: click the large logo at the top of the hero (centred above the headline, since the Phase 6 hero redesign). Hover alone gives the smaller parting tease.
+- **Added**: `feat/home-polish`, per PHASE5 §1.
+- **Note**: the navbar's smaller copy of the mark is intentionally _not_ click-spinnable — that button already owns the confetti easter egg above, and stacking two behaviours on one control would make both feel accidental.
+
+## Hero wordmark decode (the giant one)
+
+- **What**: the huge bottom-anchored "DevFest Yaoundé" in the landing hero decodes on click, the same churn-and-resolve as every page title.
+- **Where**: `src/components/home/HeroWordmark.tsx`, on the shared `useScramble` hook.
+- **How to trigger**: **click the letters** of the giant wordmark. Only the glyphs are clickable — the SVG spans the full width and is mostly empty, so `pointer-events` sits on the `<text>` and not on the box. A click in the whitespace beside a letter does nothing, on purpose: a silent handler across the bottom of the page would be a trap, not a secret.
+- **Note**: below `sm` the wordmark is two stacked lines and **each decodes separately** — clicking "Yaoundé" leaves "DevFest" alone, like the footer wordmark. Above `sm` it is one line and decodes whole.
+- **Added**: `feat/hero-redesign-v2` (ADR 0044).
+
+## Hero logo bracket split-and-spin — still there, relocated
+
+The bracket egg below survives the hero redesign. The mark moved from centred-above-the-headline to a floating satellite in the hero's upper-left, and it is still `interactive` — hover parts the halves, click flings and spins them. It now also drifts with the cursor, which makes it a slightly harder target and a slightly better find.
+
 ## Page-title text-scramble (decode)
 
 - **What**: clicking a page's top title makes each character churn through random ASCII-ish glyphs and then resolve, left to right, back to the real text.
