@@ -99,9 +99,7 @@ async function readSettings(): Promise<SiteSettings> {
     const db = createAdminSupabase();
     const { data, error } = await db
       .from("site_settings")
-      .select(
-        "announcement, bevy_url, hero, cfs, sponsor_call, legal",
-      )
+      .select("announcement, bevy_url, hero, cfs, sponsor_call, legal")
       .eq("id", "site")
       .maybeSingle();
     if (error || !data) return REPO_DEFAULTS;
@@ -142,18 +140,37 @@ export async function saveSettings(
     return { ok: false, error: "invalid_body" };
   }
 
+  /*
+    FOUND WHILE CHASING "the hero image uploaded but doesn't show": this write
+    had `announcement` and `bevy_url` unconditional while every other field
+    used the "only written when the caller sent it" spread below — the
+    comment on that block even states the rule these two were breaking. The
+    hero-image route calls this with `{ hero: {...} }` alone, so `undefined
+    ? toJson(...) : null` for `announcement` silently wrote `null` over
+    whatever announcement text was live, and `bevyUrl || null` did the same
+    to the Bevy URL — every single hero upload, however unrelated. It did not
+    cause the reported symptom (see `revalidateSettings`), but it is a real,
+    separate loss of data and is fixed the same way as the rest of the row.
+  */
   const db = createAdminSupabase();
   const { error } = await db.from("site_settings").upsert({
     id: "site",
-    announcement: parsed.data.announcement
-      ? toJson(parsed.data.announcement)
-      : null,
-    bevy_url: parsed.data.bevyUrl || null,
+    // Only written when the caller sent them. A dashboard form that edits the
+    // announcement must not blank the call for speakers by omission — nor
+    // may a photo upload blank the announcement.
+    ...(parsed.data.announcement !== undefined
+      ? {
+          announcement: parsed.data.announcement
+            ? toJson(parsed.data.announcement)
+            : null,
+        }
+      : {}),
+    ...(parsed.data.bevyUrl !== undefined
+      ? { bevy_url: parsed.data.bevyUrl || null }
+      : {}),
     ...(parsed.data.hero !== undefined
       ? { hero: parsed.data.hero ? toJson(parsed.data.hero) : null }
       : {}),
-    // Only written when the caller sent them. A dashboard form that edits the
-    // announcement must not blank the call for speakers by omission.
     ...(parsed.data.cfs !== undefined
       ? { cfs: parsed.data.cfs ? toJson(parsed.data.cfs) : null }
       : {}),

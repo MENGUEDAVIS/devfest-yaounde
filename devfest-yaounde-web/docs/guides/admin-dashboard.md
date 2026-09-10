@@ -190,6 +190,11 @@ server before there is anything to save.
   colour on its own, which is how it ships.
 - It sits under a tint, so a busy or bright photograph still leaves the
   headline readable.
+- **Reload the home page and it is there.** An earlier version of this
+  screen uploaded and saved correctly but never told the live site to rebuild
+  its prerendered page, so a genuinely successful upload could still look
+  like nothing happened. Fixed (ADR 0048) — if a reload still shows nothing,
+  that is a real failure worth reporting, not a cache to wait out.
 
 ### Sponsors, and the ask for more
 
