@@ -67,11 +67,25 @@ export function revalidateCollection(id: CollectionId): void {
  * Settings reach the announcement banner, which is in the ROOT LAYOUT — so
  * it is on every page, and every page has to be rebuilt.
  *
- * `revalidatePath(_, "layout")` does exactly that for a subtree, which is why
- * this is not the same shape as the per-collection version above.
+ * ## Why `revalidatePath('/', 'layout')` and not a loop over `/fr` and `/en`
+ *
+ * This used to call `revalidatePath(\`/\${locale}\`, "layout")` for each
+ * locale — a LITERAL, already-resolved path together with the `'layout'`
+ * type. The Next.js reference for this version says plainly not to do that:
+ * "If `path` is a literal path like `/product/1`, omit `type`" — `type` is
+ * for a ROUTE PATTERN with a dynamic segment placeholder (`/product/[slug]`),
+ * telling Next which FILE to match against. `/fr` is not that pattern; the
+ * file is `[locale]/layout.tsx`. So the call was a documented misuse of the
+ * API — silently not the "every page rebuilds" it claimed to be, which is
+ * exactly why a hero image could upload successfully, write to the database
+ * correctly, and still not appear: the stale prerendered HTML was never
+ * actually invalidated.
+ *
+ * The docs give the exact fix as their own worked example, titled
+ * "Revalidating all data": `revalidatePath('/', 'layout')`. One call on the
+ * app root, which cascades down through every nested layout — including
+ * `[locale]/layout.tsx` for both locales — and every page beneath them.
  */
 export function revalidateSettings(): void {
-  for (const locale of routing.locales) {
-    revalidatePath(`/${locale}`, "layout");
-  }
+  revalidatePath("/", "layout");
 }
