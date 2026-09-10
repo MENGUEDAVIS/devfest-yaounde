@@ -129,8 +129,25 @@ function StickerMark({
   }, [sticker.id, sticker.size, locale]);
 
   return (
+    /*
+      THREE NESTED LAYERS, each owning ONE transform source, for the same
+      reason `.hero-word-exit` and `.hero-satellite`/`.hero-satellite-inner`
+      are split elsewhere in this file: a CSS animation with `fill: both`
+      (which `.hero-settle` is) permanently overrides the STATIC `transform`
+      on whatever element it runs on, even after it finishes. Putting
+      `hero-settle` directly on `.hero-sticker` — which is what happened here
+      — meant the entrance's `translate3d(0,0,0)` end-state silently replaced
+      the parallax AND the rotation forever, on every sticker, the moment it
+      finished settling in. Confirmed by reading the computed transform back:
+      every sticker sat at `matrix(1,0,0,1,0,0)` regardless of `--px`/`--py`
+      or `--tilt`.
+
+      Outer: parallax + tilt (`.hero-sticker`, no animation of its own).
+      Middle: the one-shot entrance (`.hero-settle`, new here).
+      Inner: the infinite ambient bob (`.hero-sticker-inner`, unchanged).
+    */
     <div
-      className="hero-sticker hero-settle"
+      className="hero-sticker"
       style={
         {
           left: `${sticker.left}%`,
@@ -138,31 +155,35 @@ function StickerMark({
           "--tilt": `${sticker.tilt}deg`,
           "--depth": `${sticker.depth}px`,
           "--blur": `${sticker.blur}px`,
-          "--settle-delay": `${sticker.settle}ms`,
         } as React.CSSProperties
       }
     >
       <span
-        className="hero-sticker-inner"
-        style={
-          {
-            "--bob": `${sticker.bob}px`,
-            "--bob-dur": `${sticker.bobDur}s`,
-            "--bob-delay": `${sticker.bobDelay}ms`,
-          } as React.CSSProperties
-        }
+        className="hero-settle block"
+        style={{ ["--settle-delay" as string]: `${sticker.settle}ms` }}
       >
-        {/*
-          The hover target is the canvas, not the positioned wrapper: the
-          wrapper carries the pointer-lean transform, and a `:hover` rule on
-          the same element would replace it rather than compose with it.
-        */}
-        <canvas
-          ref={ref}
-          aria-hidden
-          className="hero-sticker-hit block"
-          style={{ width: sticker.size, height: sticker.size }}
-        />
+        <span
+          className="hero-sticker-inner"
+          style={
+            {
+              "--bob": `${sticker.bob}px`,
+              "--bob-dur": `${sticker.bobDur}s`,
+              "--bob-delay": `${sticker.bobDelay}ms`,
+            } as React.CSSProperties
+          }
+        >
+          {/*
+            The hover target is the canvas, not the positioned wrapper: the
+            wrapper carries the pointer-lean transform, and a `:hover` rule on
+            the same element would replace it rather than compose with it.
+          */}
+          <canvas
+            ref={ref}
+            aria-hidden
+            className="hero-sticker-hit block"
+            style={{ width: sticker.size, height: sticker.size }}
+          />
+        </span>
       </span>
     </div>
   );
