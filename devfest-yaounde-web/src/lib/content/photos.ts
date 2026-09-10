@@ -32,9 +32,7 @@ export const PHOTO_FIELDS: Partial<Record<CollectionId, PhotoField>> = {
   "past-editions": { kind: "url", field: "imageUrl" },
 };
 
-export function isPhotoCollection(
-  id: string,
-): id is keyof typeof PHOTO_FIELDS {
+export function isPhotoCollection(id: string): id is keyof typeof PHOTO_FIELDS {
   return id in PHOTO_FIELDS;
 }
 
@@ -114,12 +112,14 @@ export async function normalisePhoto(file: Blob): Promise<Buffer> {
 export async function storePhoto(
   path: string,
   bytes: Buffer,
+  /* The backdrop is WebP so its transparency survives; portraits are JPEG. */
+  contentType: "image/jpeg" | "image/webp" = "image/jpeg",
 ): Promise<void> {
   const supabase = createAdminSupabase();
   const { error } = await supabase.storage
     .from(EDITORIAL_BUCKET)
     .upload(path, bytes, {
-      contentType: "image/jpeg",
+      contentType,
       upsert: true,
       cacheControl: "3600",
     });
@@ -140,4 +140,69 @@ export function applyPhotoUrl(
     return { ...entry, [spec.field]: images };
   }
   return { ...entry, [spec.field]: url };
+}
+
+/** A backdrop is seen at full width, so it gets more pixels than a portrait. */
+export const BACKDROP_MAX_EDGE = 2400;
+
+/**
+ * The hero backdrop, normalised — and the one place JPEG would be wrong.
+ *
+ * `normalisePhoto` above encodes JPEG, which has no alpha channel: every
+ * transparent pixel comes out as a flat colour chosen by the encoder. For a
+ * speaker's portrait that is fine and smaller. For the hero it destroys the
+ * thing the backdrop is for — a PNG with a cut-out subject is supposed to let
+ * the themed ground show through it, and JPEG would replace that ground with
+ * a hard rectangle of black or white (the same class of bug ADR 0037 fixed on
+ * the community wall).
+ *
+ * So: **WebP, with `alphaQuality` high enough to keep a clean edge.** It also
+ * happens to be smaller than JPEG at the same quality, which matters more
+ * here than anywhere else on the site — this image is full-bleed.
+ *
+ * Larger, too. 1600px is generous for a card and thin for a backdrop stretched
+ * across a 2560px monitor.
+ */
+export async function normaliseBackdrop(file: Blob): Promise<Buffer> {
+  if (file.size > PHOTO_MAX_BYTES) throw new PhotoRejected("too_large");
+
+  const input = Buffer.from(await file.arrayBuffer());
+  const sharp = (await import("sharp")).default;
+
+  let image;
+  let meta;
+  try {
+    image = sharp(input, { failOn: "error" });
+    meta = await image.metadata();
+  } catch {
+    throw new PhotoRejected("not_an_image");
+  }
+
+  if (!meta.width || !meta.height) throw new PhotoRejected("not_an_image");
+  if (meta.width > 8000 || meta.height > 8000) {
+    throw new PhotoRejected("too_big_dimensions");
+  }
+
+  return image
+    .rotate()
+    .resize({
+      width: BACKDROP_MAX_EDGE,
+      height: BACKDROP_MAX_EDGE,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .webp({ quality: 82, alphaQuality: 100, effort: 4 })
+    .toBuffer();
+}
+
+/**
+ * Where the backdrop lives. One path, overwritten on every upload, with a
+ * cache-buster on the URL — there is only ever one hero image, and keeping
+ * previous ones would be a gallery nobody asked for.
+ */
+export const BACKDROP_PATH = "hero/backdrop.webp";
+
+export function publicBackdropUrl(): string {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
+  return `${base}/storage/v1/object/public/${EDITORIAL_BUCKET}/${BACKDROP_PATH}?v=${Date.now()}`;
 }

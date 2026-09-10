@@ -1,81 +1,105 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { drawStickerPreview } from "@/lib/dp/compose";
+import { pickStickers, type PlacedSticker } from "@/lib/hero-stickers";
+import { useMediaQuery } from "@/lib/use-media-query";
 
 /**
- * The sticker cluster spread across the hero.
+ * The sticker cluster: a different scatter on every page load.
  *
  * ## What is reused, and what is not
  *
- * The ARTWORK is the DP generator's, exactly: `drawStickerPreview` is the
- * same routine the picker chips call, reading the same `stickers.ts` sheet.
- * A sticker added there appears in both places, drawn identically, with no
- * second copy of the paths to keep in sync. That is the reuse that matters.
+ * The ARTWORK is the DP generator's, exactly: `drawStickerPreview` is the same
+ * routine the picker chips call, reading the same `stickers.ts` sheet. Add a
+ * sticker there and it can appear here, drawn identically, with no second copy
+ * of the paths to keep in sync.
  *
- * The DP generator's sticker INTERACTION is not reused, and that is
- * deliberate rather than a shortcut. What lives there is a stateful editor —
- * pointer capture, drag deltas, per-sticker position/scale/rotation held in
- * React state and composited into one canvas the visitor is building. It
- * exists so somebody can place a sticker on their own card and keep it.
+ * The DP generator's sticker INTERACTION is not reused, and that is deliberate
+ * rather than a shortcut. What lives there is a stateful editor — pointer
+ * capture, drag deltas, per-sticker transforms in React state, composited into
+ * a card somebody is building and will download. It exists so a sticker can be
+ * placed and KEPT.
  *
- * A hero decoration has nothing to keep. Dragging one would be a control that
- * looks like it does something and then forgets it on the next page load,
- * which is worse than not being draggable. So these respond to the pointer
- * the way the rest of the hero's scenery does — leaning by depth, lifting
- * under the cursor — and the editor stays where the editing is. Noted in
- * ADR 0046.
+ * Hero decoration has nothing to keep. Dragging one would be a control that
+ * appears to do something and forgets it on the next load, which is worse than
+ * not being draggable. So these respond the way the rest of the hero's scenery
+ * does — leaning by depth, lifting under the pointer (ADR 0046).
  *
- * ## Depth
+ * ## Why the scatter is generated on the CLIENT
  *
- * `depth` and `blur` are one idea expressed twice: a sticker that is "near"
- * leans further with the pointer and is sharp; a "far" one barely moves and
- * is soft. Getting those two out of step is what makes fake depth of field
- * look like an effect rather than distance.
+ * `Math.random()` during render is a hydration mismatch waiting to happen: the
+ * server picks one scatter, the browser picks another, React finds two
+ * different trees and complains. Generating in an effect after mount means the
+ * server renders nothing here and the browser fills it in — which is exactly
+ * right for a decorative layer, and is why these are `aria-hidden` and carry
+ * no content.
  *
- * `layer` decides whether a sticker sits in front of the wordmark or behind
- * it — some of each, so the type is genuinely inside the cluster rather than
- * under a sheet of it.
+ * It also means the page's HTML is identical for every visitor, so the static
+ * prerender is still valid; the variety happens in the browser. Generating on
+ * the server would have baked ONE scatter at build time and served it to
+ * everybody forever, which is the opposite of the intent.
  */
-export interface HeroSticker {
-  id: string;
-  /** Percentage box, so the cluster scales with the section, not with px. */
-  left: string;
-  top: string;
-  /** Rendered size in px at the base breakpoint. */
-  size: number;
-  tilt: number;
-  depth: number;
-  blur: number;
-  layer: "behind" | "front";
-  bob: number;
-  bobDur: number;
-  bobDelay: number;
-  /**
-   * The two layouts are different enough that most stickers belong to one of
-   * them. A percentage that sits in open space on a desktop lands on the CTA
-   * buttons on a phone, because the phone stacks what the desktop puts side
-   * by side — so the cluster is authored twice rather than scaled once.
-   */
-  only?: "desktop" | "mobile";
-}
+export function HeroStickers({ locale }: { locale: "fr" | "en" }) {
+  /*
+    The breakpoint is read here rather than passed down, because the two zone
+    maps are not two sizes of one layout — they are different maps, and which
+    one applies is a browser fact the server cannot know. It is also already a
+    client decision: the scatter is generated after mount either way.
+  */
+  const mobile = useMediaQuery("(max-width: 639px)");
+  const [placed, setPlaced] = useState<PlacedSticker[] | null>(null);
 
-export function HeroStickers({
-  stickers,
-  locale,
-  layer,
-}: {
-  stickers: HeroSticker[];
-  locale: "fr" | "en";
-  layer: "behind" | "front";
-}) {
+  useEffect(() => {
+    /*
+      On the next tick, not in the effect body: a `setState` there is what
+      `react-hooks/set-state-in-effect` refuses, and rightly — it is a second
+      render pass hidden inside the first. The scatter is decoration that
+      arrives with its own staggered entrance anyway, so one tick later is
+      invisible. Same pattern `AdminChart` uses for the same rule.
+    */
+    const id = window.setTimeout(() => setPlaced(pickStickers(mobile)), 0);
+    return () => window.clearTimeout(id);
+  }, [mobile]);
+
+  if (!placed) return null;
+
+  /*
+    BOTH LAYERS FROM ONE COMPONENT, and one scatter between them.
+
+    This was two mounts — `layer="behind"` and `layer="front"` — each running
+    its own effect and so generating its OWN independent scatter, then
+    throwing away the half that did not match its layer. Two scatters means
+    two draws from the sheet, and the same sticker could be picked by both:
+    the front layer and the back layer each rendered a bracket mark, side by
+    side, which is exactly what sampling without replacement was supposed to
+    prevent.
+
+    One mount, one draw, two positioned wrappers. Their DOM order does not
+    matter — `z-index` decides what paints over the wordmark and what hides
+    behind it.
+  */
+  const render = (layer: "behind" | "front") =>
+    placed
+      .filter((s) => s.layer === layer)
+      .map((sticker) => (
+        /*
+          The key is the placement's own id, not the sticker's. The sheet is
+          sampled without replacement so an id cannot repeat within one
+          scatter — but keying on something that CAN collide is how the
+          hand-authored list ended up rendering two `burst`es and losing one.
+        */
+        <StickerMark key={sticker.key} sticker={sticker} locale={locale} />
+      ));
+
   return (
     <>
-      {stickers
-        .filter((s) => s.layer === layer)
-        .map((sticker) => (
-          <StickerMark key={sticker.id} sticker={sticker} locale={locale} />
-        ))}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        {render("behind")}
+      </div>
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-30">
+        {render("front")}
+      </div>
     </>
   );
 }
@@ -84,7 +108,7 @@ function StickerMark({
   sticker,
   locale,
 }: {
-  sticker: HeroSticker;
+  sticker: PlacedSticker;
   locale: "fr" | "en";
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -106,20 +130,15 @@ function StickerMark({
 
   return (
     <div
-      className={`hero-sticker ${
-        sticker.only === "desktop"
-          ? "hidden sm:block"
-          : sticker.only === "mobile"
-            ? "block sm:hidden"
-            : ""
-      }`}
+      className="hero-sticker hero-settle"
       style={
         {
-          left: sticker.left,
-          top: sticker.top,
+          left: `${sticker.left}%`,
+          top: `${sticker.top}%`,
           "--tilt": `${sticker.tilt}deg`,
           "--depth": `${sticker.depth}px`,
           "--blur": `${sticker.blur}px`,
+          "--settle-delay": `${sticker.settle}ms`,
         } as React.CSSProperties
       }
     >

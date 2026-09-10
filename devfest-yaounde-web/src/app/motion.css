@@ -1745,6 +1745,42 @@ html:has([data-preloader="held"]) .mask-line > * {
   }
 }
 
+/* --- Leaving the scene -------------------------------------------------- */
+
+/*
+  `--exit` runs 0 → 1 as the hero scrolls out from under the navbar, written
+  by `useHeroField`. Everything in the hero recedes together: lifted a little,
+  scaled back a little, faded — so the section reads as a scene being left
+  rather than as content sliding off a fixed picture.
+
+  This DOES apply to the wordmark, which an earlier pass deliberately excluded
+  on the reading that "only the reveal animation applies" to it. It is the
+  hero's mass; a scene where everything recedes except the biggest thing in it
+  reads as the biggest thing being stuck.
+
+  On its own wrapper, not on `.hero-wordmark`: the characters own `clip-path`
+  and the line owns nothing, but putting a transform on an ancestor keeps the
+  reveal and the recede from ever contending for one property.
+*/
+.hero-leave {
+  transform: translate3d(0, calc(var(--exit, 0) * -48px), 0)
+    scale(calc(1 - var(--exit, 0) * 0.05));
+  opacity: calc(1 - var(--exit, 0) * 0.9);
+  transform-origin: left bottom;
+  will-change: transform, opacity;
+}
+
+/*
+  The right-hand column leaves the other way — down and out — so the two
+  halves of the composition part rather than sliding in convoy. Small enough
+  to read as depth, not as two things disagreeing.
+*/
+.hero-leave-trail {
+  transform: translate3d(0, calc(var(--exit, 0) * 26px), 0);
+  opacity: calc(1 - var(--exit, 0) * 0.95);
+  will-change: transform, opacity;
+}
+
 /* --- The backdrop ------------------------------------------------------- */
 
 /*
@@ -1816,5 +1852,13 @@ html:has([data-preloader="held"]) .hero-settle {
 
   .hero-backdrop {
     transform: scale(1.06) !important;
+  }
+
+  /* Nothing recedes for someone who asked for less motion — the hero simply
+     scrolls away the way any other section does. */
+  .hero-leave,
+  .hero-leave-trail {
+    transform: none !important;
+    opacity: 1 !important;
   }
 }

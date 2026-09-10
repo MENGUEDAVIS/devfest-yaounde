@@ -33,6 +33,7 @@ import {
 } from "@/lib/content/sponsors";
 import type { Sponsor } from "@/data/types";
 import { canOptimise } from "@/lib/images";
+import { DESKTOP_ZONES, MOBILE_ZONES, pickStickers } from "@/lib/hero-stickers";
 import {
   applyPhotoUrl,
   entryNeedsPhoto,
@@ -418,6 +419,82 @@ describe("crm form helpers", () => {
     assert.equal(isoToWatLocal("nonsense"), "");
     assert.equal(watLocalToIso(""), null);
     assert.equal(watLocalToIso("nonsense"), null);
+  });
+});
+
+describe("the hero's sticker scatter", () => {
+  /* Random output, so every assertion runs over many rolls — a property that
+     holds once may just have been a lucky seed. */
+  const ROLLS = 200;
+
+  it("never picks the same sticker twice in one scatter", () => {
+    // Two of the same sticker is what React reported as a duplicate key, and
+    // it silently dropped one of them. Sampling without replacement is the
+    // fix; this is the guard on it.
+    for (let i = 0; i < ROLLS; i += 1) {
+      for (const mobile of [true, false]) {
+        const ids = pickStickers(mobile).map((s) => s.id);
+        assert.equal(new Set(ids).size, ids.length);
+      }
+    }
+  });
+
+  it("gives every placement a unique key", () => {
+    for (let i = 0; i < ROLLS; i += 1) {
+      const keys = pickStickers(false).map((s) => s.key);
+      assert.equal(new Set(keys).size, keys.length);
+    }
+  });
+
+  it("never places a sticker outside a declared zone", () => {
+    /* The whole point of zones: unbounded randomness eventually drops a
+       coffee cup on "Grab your ticket", and on a page that re-rolls every
+       load "eventually" is somebody's first impression. */
+    const inSomeZone = (
+      s: { left: number; top: number },
+      zones: { x: number; y: number; w: number; h: number }[],
+    ) =>
+      zones.some(
+        (z) =>
+          s.left >= z.x &&
+          s.left <= z.x + z.w &&
+          s.top >= z.y &&
+          s.top <= z.y + z.h,
+      );
+
+    for (let i = 0; i < ROLLS; i += 1) {
+      for (const [mobile, zones] of [
+        [false, DESKTOP_ZONES],
+        [true, MOBILE_ZONES],
+      ] as const) {
+        for (const placed of pickStickers(mobile)) {
+          assert.ok(
+            inSomeZone(placed, [...zones]),
+            `${placed.id} at ${placed.left},${placed.top} escaped its zones`,
+          );
+        }
+      }
+    }
+  });
+
+  it("keeps depth and blur in step, so far things are soft and near ones sharp", () => {
+    // Picked independently, fake depth of field reads as an effect rather
+    // than as distance. A tier decides both, so the two can never disagree.
+    for (let i = 0; i < ROLLS; i += 1) {
+      for (const s of pickStickers(false)) {
+        if (s.blur > 2)
+          assert.ok(s.depth <= 12, "a blurred sticker leaned far");
+        if (s.depth >= 22)
+          assert.equal(s.blur, 0, "a near sticker was blurred");
+      }
+    }
+  });
+
+  it("thins the cluster right down on a phone", () => {
+    for (let i = 0; i < ROLLS; i += 1) {
+      assert.ok(pickStickers(true).length <= 3);
+      assert.ok(pickStickers(false).length >= 6);
+    }
   });
 });
 

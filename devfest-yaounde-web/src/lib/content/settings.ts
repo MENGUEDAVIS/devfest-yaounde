@@ -28,6 +28,9 @@ export type SiteSettings = AdminSettings;
 const REPO_DEFAULTS: SiteSettings = {
   announcement: null,
   bevyUrl: BEVY_URL,
+  /* No backdrop until somebody uploads one — the hero's themed ground is a
+     finished state, not a fallback waiting to be replaced. */
+  hero: { imageUrl: "" },
   cfs: {
     url: CFS_URL,
     opensAt: CFS_OPENS_AT,
@@ -97,7 +100,7 @@ async function readSettings(): Promise<SiteSettings> {
     const { data, error } = await db
       .from("site_settings")
       .select(
-        "announcement, bevy_url, cfs, sponsor_call, legal",
+        "announcement, bevy_url, hero, cfs, sponsor_call, legal",
       )
       .eq("id", "site")
       .maybeSingle();
@@ -118,6 +121,7 @@ async function readSettings(): Promise<SiteSettings> {
     return {
       announcement,
       bevyUrl: data.bevy_url || BEVY_URL,
+      hero: merge(REPO_DEFAULTS.hero, data.hero),
       cfs: merge(REPO_DEFAULTS.cfs, data.cfs),
       sponsorCall: merge(REPO_DEFAULTS.sponsorCall, data.sponsor_call),
       legal: merge(REPO_DEFAULTS.legal, data.legal),
@@ -145,6 +149,9 @@ export async function saveSettings(
       ? toJson(parsed.data.announcement)
       : null,
     bevy_url: parsed.data.bevyUrl || null,
+    ...(parsed.data.hero !== undefined
+      ? { hero: parsed.data.hero ? toJson(parsed.data.hero) : null }
+      : {}),
     // Only written when the caller sent them. A dashboard form that edits the
     // announcement must not blank the call for speakers by omission.
     ...(parsed.data.cfs !== undefined

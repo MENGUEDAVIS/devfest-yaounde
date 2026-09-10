@@ -125,9 +125,19 @@ export interface LegalSettings {
   termsUrl: string;
 }
 
+export interface HeroSettings {
+  /**
+   * The landing hero's backdrop. Empty is a real, supported state — the hero
+   * falls back to the themed ground, which is also what shows through a
+   * transparent image.
+   */
+  imageUrl: string;
+}
+
 export interface AdminSettings {
   announcement: { fr: string; en: string } | null;
   bevyUrl: string;
+  hero: HeroSettings;
   cfs: CfsSettings;
   sponsorCall: SponsorCallSettings;
   legal: LegalSettings;

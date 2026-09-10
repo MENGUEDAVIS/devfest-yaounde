@@ -282,6 +282,10 @@ export const sponsorCallSchema = z.object({
   closesAt: instantOrEmpty.optional().nullable(),
 });
 
+export const heroSchema = z.object({
+  imageUrl: urlOrEmpty.optional().nullable(),
+});
+
 export const legalSchema = z.object({
   participationTermsUrl: urlOrEmpty.optional().nullable(),
   privacyUrl: urlOrEmpty.optional().nullable(),
@@ -291,6 +295,7 @@ export const legalSchema = z.object({
 export const settingsSchema = z.object({
   announcement: localized.optional().nullable(),
   bevyUrl: urlOrEmpty.optional().nullable(),
+  hero: heroSchema.optional().nullable(),
   cfs: cfsSchema.optional().nullable(),
   sponsorCall: sponsorCallSchema.optional().nullable(),
   legal: legalSchema.optional().nullable(),

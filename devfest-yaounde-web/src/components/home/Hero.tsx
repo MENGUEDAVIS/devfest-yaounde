@@ -3,10 +3,9 @@ import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { Button } from "@/components/ui/Button";
 import { HeroBackdrop } from "@/components/home/HeroBackdrop";
 import { HeroField } from "@/components/home/HeroField";
-import { HeroStickers, type HeroSticker } from "@/components/home/HeroStickers";
+import { HeroStickers } from "@/components/home/HeroStickers";
 import { HeroWordmark } from "@/components/home/HeroWordmark";
 import { EVENT, eventDateParts } from "@/lib/event";
-import type { PastEditionPhoto } from "@/data/types";
 
 /**
  * The landing hero (ADR 0046).
@@ -41,191 +40,19 @@ import type { PastEditionPhoto } from "@/data/types";
  * behind the chrome.
  */
 
-/**
- * The cluster, placed by hand.
- *
- * Percentages rather than pixels, so it scales with the section instead of
- * bunching at one width. Positions overlap the wordmark and run off the right
- * edge on purpose — a cluster that politely stays inside the safe area reads
- * as a row of icons, not as something scattered.
- *
- * `depth` and `blur` move together: near stickers lean further and stay
- * sharp, far ones barely move and go soft.
- */
-const STICKERS: HeroSticker[] = [
-  // --- desktop: behind the wordmark, softer and further away ------------
-  {
-    id: "burst",
-    left: "50%",
-    top: "22%",
-    size: 96,
-    tilt: -14,
-    depth: 8,
-    blur: 2.4,
-    layer: "behind",
-    bob: -10,
-    bobDur: 13,
-    bobDelay: 0,
-    only: "desktop",
-  },
-  {
-    id: "cloud",
-    left: "77%",
-    top: "21%",
-    size: 74,
-    tilt: 9,
-    depth: 6,
-    blur: 3,
-    layer: "behind",
-    bob: -7,
-    bobDur: 15,
-    bobDelay: 1400,
-    only: "desktop",
-  },
-  {
-    id: "code",
-    left: "38%",
-    top: "58%",
-    size: 84,
-    tilt: 11,
-    depth: 10,
-    blur: 1.6,
-    layer: "behind",
-    bob: -9,
-    bobDur: 12,
-    bobDelay: 700,
-    only: "desktop",
-  },
-  // --- desktop: in front, sharp, leaning most ---------------------------
-  {
-    id: "cup",
-    left: "43%",
-    top: "36%",
-    size: 104,
-    tilt: -8,
-    depth: 26,
-    blur: 0,
-    layer: "front",
-    bob: -14,
-    bobDur: 9,
-    bobDelay: 300,
-    only: "desktop",
-  },
-  {
-    id: "spark",
-    left: "62%",
-    top: "44%",
-    size: 74,
-    tilt: 16,
-    depth: 20,
-    blur: 0,
-    layer: "front",
-    bob: -11,
-    bobDur: 11,
-    bobDelay: 900,
-    only: "desktop",
-  },
-  {
-    id: "pin",
-    left: "56%",
-    top: "70%",
-    size: 88,
-    tilt: -6,
-    depth: 24,
-    blur: 0,
-    layer: "front",
-    bob: -12,
-    bobDur: 10,
-    bobDelay: 1800,
-    only: "desktop",
-  },
-  {
-    id: "terminal",
-    left: "13%",
-    top: "26%",
-    size: 92,
-    tilt: 7,
-    depth: 22,
-    blur: 0,
-    layer: "front",
-    bob: -8,
-    bobDur: 14,
-    bobDelay: 1100,
-    only: "desktop",
-  },
-  // --- desktop: bleeding off the right edge -----------------------------
-  {
-    id: "bolt",
-    left: "95%",
-    top: "60%",
-    size: 104,
-    tilt: 22,
-    depth: 18,
-    blur: 0,
-    layer: "front",
-    bob: -10,
-    bobDur: 12,
-    bobDelay: 2300,
-    only: "desktop",
-  },
-
-  /*
-    Mobile: three, in the bands the stacked layout leaves empty — beside the
-    tagline, under the figures, and off the right edge. The desktop set put
-    one squarely on top of "Check the swag", which is what authoring the
-    cluster once and hoping taught us.
-  */
-  {
-    id: "spark",
-    left: "72%",
-    top: "17%",
-    size: 64,
-    tilt: 14,
-    depth: 16,
-    blur: 0,
-    layer: "front",
-    bob: -9,
-    bobDur: 11,
-    bobDelay: 400,
-    only: "mobile",
-  },
-  {
-    id: "pin",
-    left: "63%",
-    top: "68%",
-    size: 72,
-    tilt: -7,
-    depth: 20,
-    blur: 0,
-    layer: "front",
-    bob: -11,
-    bobDur: 10,
-    bobDelay: 1500,
-    only: "mobile",
-  },
-  {
-    id: "burst",
-    left: "88%",
-    top: "45%",
-    size: 70,
-    tilt: -12,
-    depth: 9,
-    blur: 2,
-    layer: "behind",
-    bob: -8,
-    bobDur: 14,
-    bobDelay: 900,
-    only: "mobile",
-  },
-];
-
 export async function Hero({
   locale,
-  photo,
+  backdropUrl,
 }: {
   locale: string;
-  /** The hero's one photograph, from the content store. */
-  photo: PastEditionPhoto | undefined;
+  /**
+   * The hero's backdrop, from `site_settings.hero` — chosen in the dashboard.
+   *
+   * It used to be `pastEditions[0]`, which meant reordering the Memory Lane
+   * gallery silently changed the front page's background. Two unrelated
+   * screens should not be coupled by an array index (ADR 0047).
+   */
+  backdropUrl: string;
 }) {
   const t = await getTranslations("home.hero");
   const lang = locale === "en" ? "en" : "fr";
@@ -233,16 +60,15 @@ export async function Hero({
 
   return (
     <section className="relative isolate flex min-h-svh flex-col overflow-hidden bg-pastel">
-      <HeroBackdrop
-        src={photo?.imageUrl}
-        alt={photo?.alt?.[lang] ?? t("photoAlt")}
-      />
+      <HeroBackdrop src={backdropUrl} alt={t("photoAlt")} />
 
       <HeroField className="relative flex flex-1 flex-col px-5 sm:px-8">
-        {/* Behind the wordmark, in front of the backdrop. */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-          <HeroStickers stickers={STICKERS} locale={lang} layer="behind" />
-        </div>
+        {/*
+          The sticker cluster — both layers, one scatter. It positions its
+          own wrappers, because the two layers have to be drawn from the
+          same draw and a component cannot share state with a sibling.
+        */}
+        <HeroStickers locale={lang} />
 
         {/* ---------- The right column: the argument ---------- */}
 
@@ -259,7 +85,7 @@ export async function Hero({
           underneath them. Whichever is larger wins, so dismissing the banner
           only ever gives the hero more room.
         */}
-        <div className="relative z-20 mt-[max(var(--chrome-h),24vh)] sm:absolute sm:right-8 sm:top-[max(var(--chrome-h),24vh)] sm:mt-0 sm:w-[21rem] lg:w-[23rem]">
+        <div className="hero-leave-trail relative z-20 mt-[max(var(--chrome-h),24vh)] sm:absolute sm:right-8 sm:top-[max(var(--chrome-h),24vh)] sm:mt-0 sm:w-[21rem] lg:w-[23rem]">
           <div>
             <p
               className="hero-settle text-body-l text-black02/85"
@@ -279,49 +105,12 @@ export async function Hero({
                 {t("ctaSecondary")}
               </Button>
             </div>
-
-            {/*
-              The figures. Where the reference puts "98% / 120+", we put the
-              two facts a visitor actually needs, set the same way: a loud
-              value over a quiet caption. Static — see the note at the top of
-              the file about which things in this hero move.
-            */}
-            <dl
-              className="hero-settle mt-10 flex flex-wrap gap-x-12 gap-y-6"
-              style={{ ["--settle-delay" as string]: "440ms" }}
-            >
-              {when && (
-                <div>
-                  <dt className="sr-only">{t("dateLabel")}</dt>
-                  <dd>
-                    <span className="block font-sans text-display-l font-bold leading-none text-black02">
-                      {when.value}
-                    </span>
-                    <span className="mt-2 block max-w-36 font-mono text-mono-tag uppercase tracking-wide text-black02/55">
-                      {when.caption}
-                    </span>
-                  </dd>
-                </div>
-              )}
-
-              <div>
-                <dt className="sr-only">{t("venueLabel")}</dt>
-                <dd>
-                  <span className="block font-sans text-display-l font-bold leading-none text-black02">
-                    {EVENT.city}
-                  </span>
-                  <span className="mt-2 block max-w-36 font-mono text-mono-tag uppercase tracking-wide text-black02/55">
-                    {EVENT.venue ?? t("venueCaption")}
-                  </span>
-                </dd>
-              </div>
-            </dl>
           </div>
         </div>
 
         {/* ---------- The left column: the mass ---------- */}
 
-        <div className="relative z-20 mt-auto pb-[2vh]">
+        <div className="hero-leave relative z-20 mt-auto pb-[2vh]">
           {/*
             The label: our mark plus who is putting this on, in the slot the
             reference gives its own small-caps line. Quiet on purpose — it is
@@ -335,9 +124,9 @@ export async function Hero({
               animateIn
               interactive
               title="DevFest"
-              className="h-7 w-auto shrink-0 cursor-pointer sm:h-8"
+              className="h-8 w-auto shrink-0 cursor-pointer sm:h-10"
             />
-            <span className="font-mono text-mono-tag font-bold uppercase tracking-[0.16em] text-black02/60">
+            <span className="font-mono text-body-m font-bold uppercase tracking-[0.16em] text-black02/70 sm:text-body-l">
               {EVENT.organizer}
             </span>
           </div>
@@ -352,15 +141,90 @@ export async function Hero({
             a wordmark half the viewport tall, which is past confident and
             into unreadable.
           */}
-          <div className="text-[17vw] sm:text-[13.5vw] 2xl:text-[10.5vw]">
+          {/*
+            The wordmark, and the year stamped on it.
+
+            `relative` so the year can be positioned against the type rather
+            than against the section — the pill has to stay on "Yaoundé" at
+            every width, and the wordmark's box is the only thing that scales
+            with the letters.
+          */}
+          <div className="relative text-[17vw] sm:text-[13.5vw] 2xl:text-[10.5vw]">
             <HeroWordmark srLabel={t("headline", { year: EVENT.year })} />
+
+            {/*
+              THE YEAR, as a sticker rather than as part of the wordmark.
+
+              A pill, bordered and angled, sitting on the second line — which
+              is the one place in the composition where a small hard-edged
+              object reads as deliberately placed rather than as another
+              floating element. It is NOT in the random scatter: this one
+              carries information, and information does not move every load.
+
+              `EVENT.year` rather than a literal, so next year's edition is
+              already correct. Offsets are in `em` so the pill tracks the type
+              it sits on instead of drifting off it at another breakpoint.
+            */}
+            <span
+              aria-hidden
+              className="hero-settle absolute bottom-[3%] left-[13%] inline-flex -rotate-[7deg] items-center rounded-pill border-[0.035em] border-black02 bg-primary px-[0.34em] py-[0.1em] font-mono text-[0.17em] font-bold tracking-[0.06em] text-black02 shadow-[0_0.06em_0_0_var(--color-black02)]"
+              style={{ ["--settle-delay" as string]: "1100ms" }}
+            >
+              {EVENT.year}
+            </span>
           </div>
         </div>
 
-        {/* In front of the wordmark. */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 z-30">
-          <HeroStickers stickers={STICKERS} locale={lang} layer="front" />
-        </div>
+        {/*
+          THE FIGURES, bottom-right and on one line.
+
+          They were a vertical pair under the CTAs, which read as a list of
+          two more things in a column that already had three. Set side by side
+          along the bottom edge they read as a caption to the whole hero —
+          which is what a date and a place are — and they balance the
+          wordmark's mass on the opposite corner.
+
+          Absolute from `sm` up for the same reason the right column is: the
+          bottom-right corner is a position, not a place in a stack. On a
+          phone they stay in the flow, where there is no corner to sit in.
+        */}
+        <dl
+          className="hero-settle hero-leave-trail relative z-20 mt-10 flex flex-wrap items-end gap-x-10 gap-y-4 sm:absolute sm:bottom-[3vh] sm:right-8 sm:mt-0 sm:justify-end"
+          style={{ ["--settle-delay" as string]: "440ms" }}
+        >
+          {when && (
+            <div>
+              <dt className="sr-only">{t("dateLabel")}</dt>
+              <dd>
+                <span className="block font-sans text-display-l font-bold leading-none text-black02">
+                  {when.value}
+                </span>
+                <span className="mt-2 block font-mono text-mono-tag uppercase tracking-wide text-black02/55">
+                  {when.caption}
+                </span>
+              </dd>
+            </div>
+          )}
+
+          {/* A hairline between the two, so they read as one caption rather
+              than two unrelated blocks that happen to be adjacent. */}
+          <span
+            aria-hidden
+            className="hidden h-12 w-px self-center bg-black02/20 sm:block"
+          />
+
+          <div>
+            <dt className="sr-only">{t("venueLabel")}</dt>
+            <dd>
+              <span className="block font-sans text-display-l font-bold leading-none text-black02">
+                {EVENT.city}
+              </span>
+              <span className="mt-2 block font-mono text-mono-tag uppercase tracking-wide text-black02/55">
+                {EVENT.venue ?? t("venueCaption")}
+              </span>
+            </dd>
+          </div>
+        </dl>
       </HeroField>
     </section>
   );
