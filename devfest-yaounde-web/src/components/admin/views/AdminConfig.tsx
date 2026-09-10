@@ -85,6 +85,23 @@ export function AdminConfig({
    * boxes above it — a picture that looked queued and was not would be the
    * worse surprise.
    */
+  /**
+   * Why the generic message became a specific one.
+   *
+   * This used to show "That image did not upload. JPEG, PNG or WebP, under
+   * 2.5 MB." for EVERY failure, including a genuine server error — so when the
+   * bucket briefly rejected WebP outright (it was created JPEG-only before
+   * ADR 0047 widened it), the organiser saw the same sentence a file that was
+   * simply too big would have produced, and diagnosing it needed the browser
+   * console. The route already returns a specific reason in its body; reading
+   * it is the fix.
+   */
+  const HERO_UPLOAD_ERRORS: Record<string, string> = {
+    too_large: "That file is over 2.5 MB.",
+    not_an_image: "That did not read as an image. Try JPEG, PNG or WebP.",
+    too_big_dimensions: "That image's dimensions are too large.",
+  };
+
   async function uploadHero(file: File) {
     setHeroBusy(true);
     const body = new FormData();
@@ -92,7 +109,13 @@ export function AdminConfig({
     const res = await fetch("/api/admin/hero-image", { method: "POST", body });
     setHeroBusy(false);
     if (!res.ok) {
-      setError("That image did not upload. JPEG, PNG or WebP, under 2.5 MB.");
+      const reason = (await res.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      setError(
+        (reason?.error && HERO_UPLOAD_ERRORS[reason.error]) ??
+          "That image did not upload. Try again, or a different file.",
+      );
       setStatus("error");
       return;
     }
