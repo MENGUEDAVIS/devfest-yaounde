@@ -36,6 +36,8 @@ export interface AdminOrder {
   createdAt: string;
   fulfilment: unknown;
   items: {
+    /** Also `tickets.tier_id` for a ticket line — same column, both catalogs. */
+    productId: string;
     name: string;
     quantity: number;
     unitAmount: number;

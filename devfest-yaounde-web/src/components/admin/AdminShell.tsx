@@ -13,6 +13,7 @@ import {
   Package,
   Percent,
   Receipt,
+  Storefront,
   Table,
   Tag,
   Ticket,
@@ -30,6 +31,7 @@ import type { AdminData, AdminSettings, MissingPhoto } from "@/lib/admin/shape";
 import { AdminOverview } from "./views/AdminOverview";
 import { AdminTickets } from "./views/AdminTickets";
 import { AdminTicketTiers } from "./views/AdminTicketTiers";
+import { AdminShop } from "./views/AdminShop";
 import { AdminTransactions } from "./views/AdminTransactions";
 import { AdminOrders } from "./views/AdminOrders";
 import { AdminDiscounts } from "./views/AdminDiscounts";
@@ -66,6 +68,7 @@ export type ViewId =
   | "overview"
   | "tickets"
   | "ticket-tiers"
+  | "shop"
   | "transactions"
   | "orders"
   | "discounts"
@@ -95,6 +98,7 @@ const GROUPS: {
     items: [
       { id: "tickets", label: "Tickets", Icon: Ticket },
       { id: "ticket-tiers", label: "Ticket tiers", Icon: Tag },
+      { id: "shop", label: "Shop", Icon: Storefront },
       { id: "transactions", label: "Transactions", Icon: Receipt },
       { id: "orders", label: "Shop orders", Icon: Package },
       { id: "discounts", label: "Discounts", Icon: Percent },
@@ -130,10 +134,13 @@ function NavItem({
   item,
   active,
   onGo,
+  badge,
 }: {
   item: NavEntry;
   active: boolean;
   onGo: (id: ViewId) => void;
+  /** A count pill after the label — e.g. drafts still needing completion. */
+  badge?: number;
 }) {
   return (
     <button
@@ -148,6 +155,14 @@ function NavItem({
     >
       <item.Icon size={16} weight="bold" aria-hidden />
       {item.label}
+      {Boolean(badge) && (
+        <span
+          className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-pill bg-danger px-1.5 font-mono text-caption font-bold text-offwhite"
+          title={`${badge} needing completion`}
+        >
+          {badge}
+        </span>
+      )}
     </button>
   );
 }
@@ -185,6 +200,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
     title: "Ticket tiers",
     blurb:
       "Prices, entitlements and swag for every tier. Changes reach the public tickets page as soon as they're saved.",
+  },
+  shop: {
+    title: "Shop",
+    blurb:
+      "Every product on the merch store, including drafts auto-created from ticket swag — those stay hidden until you finish them.",
   },
   transactions: {
     title: "Transactions",
@@ -276,6 +296,14 @@ export function AdminShell({
   // Seeded from the URL once, then owned here. Reading `params` on every
   // render would tie the view back to the router and undo the point below.
   const [view, setView] = useState<ViewId>(() => parseView(params.get("view")));
+
+  /** "Finish this draft" deep link from another view — read once, like `view`. */
+  const editId = params.get("edit") ?? undefined;
+
+  /** Drafts still missing a price/images — the badge on the Shop nav item. */
+  const draftProductCount = collections.products.filter(
+    (p) => p.published === false,
+  ).length;
 
   /**
    * The sidebar as a real drawer on a phone.
@@ -494,6 +522,7 @@ export function AdminShell({
                         item={item}
                         active={view === item.id}
                         onGo={go}
+                        badge={item.id === "shop" ? draftProductCount : undefined}
                       />
                     );
                   }
@@ -537,6 +566,11 @@ export function AdminShell({
                                 item={item}
                                 active={view === item.id}
                                 onGo={go}
+                                badge={
+                                  item.id === "shop"
+                                    ? draftProductCount
+                                    : undefined
+                                }
                               />
                             ))}
                           </div>
@@ -600,6 +634,14 @@ export function AdminShell({
                 data={data}
                 settings={settings}
                 products={collections.products}
+              />
+            )}
+            {view === "shop" && (
+              <AdminShop
+                rows={collections.products}
+                data={data}
+                tiers={collections.tiers}
+                initialEditId={editId}
               />
             )}
             {view === "transactions" && <AdminTransactions data={data} />}
