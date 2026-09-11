@@ -8,7 +8,6 @@ import { FloatingScrollbar } from "@/components/global/FloatingScrollbar";
 import { Footer } from "@/components/global/Footer";
 import { GlobalChrome } from "@/components/global/GlobalChrome";
 import { Preloader } from "@/components/global/Preloader";
-import { SmoothScrollProvider } from "@/components/global/SmoothScrollProvider";
 import { routing } from "@/i18n/routing";
 import { organizationJsonLd } from "@/lib/event";
 import { JsonLd } from "@/lib/seo";
@@ -157,7 +156,6 @@ export default async function LocaleLayout({
               remount on client navigation, so moving between pages never
               shows it again. */}
           <Preloader />
-          <SmoothScrollProvider />
           <GlobalChrome
             announcementMessage={announcementMessage}
             announcementCta={announcementCta}

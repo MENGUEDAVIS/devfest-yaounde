@@ -484,11 +484,8 @@ export function DpGenerator() {
         >
           <div className="max-md:min-h-0 max-md:overflow-hidden">
             <div
-              /* Lenis would otherwise swallow wheel/touch scrolling here for
-                 the same reason it did inside the shop drawer. The cap is
-                 derived from the tokens the card is sized by, not tuned by
-                 eye, so the card cannot end up behind the sheet. */
-              data-lenis-prevent
+              /* The cap is derived from the tokens the card is sized by, not
+                 tuned by eye, so the card cannot end up behind the sheet. */
               className="max-md:max-h-[calc(100svh-var(--chrome-h)-13rem-4rem)] max-md:overflow-y-auto max-md:pb-2"
             >
               {/* ---- Tab bar: phones only ---- */}

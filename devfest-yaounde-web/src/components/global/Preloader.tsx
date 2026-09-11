@@ -53,18 +53,18 @@ export function Preloader() {
   });
 
   /*
-   * Lenis has to be stopped, and released again the moment the loader goes.
+   * The lock has to be taken while the splash is up, and released the moment
+   * it goes.
    *
    * KEYED ON `gone`, not on unmount, and that distinction was a real bug: a
-   * component that returns null is still MOUNTED, so an effect cleanup never
-   * ran and `lockScroll()`'s inline `overflow: hidden` stayed on <html> and
-   * <body> forever. Scrolling appeared to work only because Lenis intercepts
-   * the wheel and scrolls the document itself, bypassing `overflow` — so on a
-   * touch device, or under reduced motion, or anywhere Lenis is off, the page
-   * would have been permanently unscrollable after the splash.
+   * component that returns null is still MOUNTED, so an effect keyed on
+   * unmount never re-runs its cleanup — `lockScroll()`'s inline
+   * `overflow: hidden` would have stayed on <html> and <body> forever, and
+   * the page would have been permanently unscrollable after the splash.
    *
    * The CSS `:has([data-preloader])` rule covers the paint-to-hydration
-   * window; this covers Lenis, which owns its own loop and ignores overflow.
+   * window, before this effect has even run; this effect covers everything
+   * after hydration, for as long as the component is mounted.
    */
   useEffect(() => {
     if (gone) return;

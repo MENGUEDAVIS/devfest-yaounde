@@ -44,7 +44,7 @@ Visit `http://localhost:3000` — it redirects to `/fr` (default locale). Full d
 ### Systems behind it yes
 
 - **Runtime theming** — four dominant colours switchable from the footer, applied before first paint and persisted. Status green/red are fixed tokens so meaning survives a theme swap. See ADR 0011 and `docs/guides/theming.md`.
-- **Momentum scroll** (Lenis) behind a single seam, with a floating pill scrollbar reproduced in every nested scroll context. See ADR 0007.
+- **A floating pill scrollbar**, reproduced in every nested scroll context, reading real scroll position through a single seam. Momentum scrolling was tried and removed — see ADR 0007 (superseded by ADR 0053).
 - **One shared filtered-page layout** across all four content pages: a filter rail that floats in the margin without taking width from the content, travels with the scroll, and is clamped to its own section — collapsing to a bottom sheet on narrow screens.
 - **One shared overlay shell** (`Modal`) powering both the classic dialog and the slider's full-page takeover, and **one shared bottom sheet** (`BottomSheet`) powering both the mobile filter drawer and mobile card details.
 - **No link that goes nowhere** — placeholder URLs are never rendered as anchors: icon-only links are filtered at source, expected labels degrade to plain text. That removed 164 dead anchors, the site's biggest SEO defect.

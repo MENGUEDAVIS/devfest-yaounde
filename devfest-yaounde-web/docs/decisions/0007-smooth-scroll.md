@@ -1,7 +1,9 @@
 # 0007 — Momentum Scroll: adopt Lenis, or keep native?
 
 Date: 2026-08-29
-Status: **Accepted** (2026-08-29). `lenis@1.3.26` installed and implemented; verification recorded below.
+Status: **Superseded / Reverted** (2026-09-11) by ADR 0053. `lenis@1.3.26` was installed, implemented, verified against every item in this record's own contract below — and still broke scroll in production use in ways none of that verification caught. It has been removed outright, not disabled. See ADR 0053 for the specifics and why "keep it, but fix the bug" was rejected in favour of removing the dependency entirely.
+
+**Read this record for the historical reasoning** (why native alone couldn't deliver the requested effect, why hand-rolling it was rejected, what the verified contract was). Do not use it to justify re-adopting Lenis or any similar library without reading ADR 0053 first — the verification below was real and still missed a real-world failure mode; a future proposal needs to explain what would catch that this one didn't.
 
 ## Context
 

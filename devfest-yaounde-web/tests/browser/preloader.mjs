@@ -144,14 +144,14 @@ try {
   const calmStart = Date.now();
   await calm.waitForFunction(() => !document.querySelector("[data-preloader]"), { timeout: 6000 });
   ok("19 it is still brief with reduced motion", Date.now() - calmStart < 2000);
-  /* THE CASE THE LOCK BUG WOULD HAVE BROKEN. With reduced motion Lenis never
-     starts, so nothing papers over a lock left behind — if the page does not
-     scroll here, it does not scroll at all. */
+  /* THE CASE THE LOCK BUG WOULD HAVE BROKEN. With nothing to paper over a
+     lock left behind, this is a direct check: if the page does not scroll
+     here, it does not scroll at all. */
   await wait(150);
   await calm.mouse.move(700, 450);
   await calm.mouse.wheel({ deltaY: 600 });
   await wait(300);
-  ok("19b and the page scrolls afterwards with Lenis never running",
+  ok("19b and the page scrolls afterwards",
     (await calm.evaluate(() => window.scrollY)) > 0,
     String(await calm.evaluate(() => window.scrollY)));
   await calm.close();

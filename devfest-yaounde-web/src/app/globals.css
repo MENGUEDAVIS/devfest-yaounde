@@ -845,9 +845,9 @@ html:has([data-admin]) body {
  *
  * `:has()` closes the gap with no JS at all, and unlocks itself the instant
  * React removes the node — there is no timer to get wrong and no state to
- * leave stuck. The effect's `lockScroll()` stays, because it does the other
- * half of the job: stopping Lenis, which owns its own scroll loop and ignores
- * `overflow` entirely.
+ * leave stuck. The effect's `lockScroll()` stays too: this rule only covers
+ * the paint-to-hydration window, and the effect is what holds the lock for
+ * as long as the preloader is actually mounted after that.
  */
 html:has([data-preloader]),
 html:has([data-preloader]) body {

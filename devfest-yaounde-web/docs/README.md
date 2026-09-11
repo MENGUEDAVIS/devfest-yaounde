@@ -75,6 +75,7 @@ or amend an earlier one.
 | [0046](decisions/0046-hero-bar-chart-wordmark-and-stickers.md)          | Bar-chart wordmark, sticker cluster, photo backdrop                 | Accepted — **replaces the hero in 0044/0045**         |
 | [0047](decisions/0047-hero-random-stickers-and-admin-backdrop.md)       | Re-rolling sticker scatter, year pill, backdrop from the dashboard  | Accepted — extends 0046                               |
 | [0048](decisions/0048-settings-revalidation-was-a-documented-misuse.md) | Settings revalidation was a documented `revalidatePath` misuse      | Accepted — **corrects 0042**                          |
+| [0053](decisions/0053-remove-lenis-momentum-scroll.md)                  | Removing Lenis outright, not disabling it                           | Accepted — **supersedes 0007**                        |
 
 **Site and design**
 
@@ -83,7 +84,7 @@ or amend an earlier one.
 [0004](decisions/0004-font-loading.md) fonts ·
 [0005](decisions/0005-base-color-theme.md) base theme ·
 [0006](decisions/0006-logo-assets.md) logo ·
-[0007](decisions/0007-smooth-scroll.md) smooth scroll ·
+[0007](decisions/0007-smooth-scroll.md) smooth scroll (superseded by 0053) ·
 [0008](decisions/0008-retire-bevy-rsvp.md) Bevy RSVP retired ·
 [0009](decisions/0009-speaker-interaction.md) speaker interaction ·
 [0010](decisions/0010-team-grouping.md) team grouping ·

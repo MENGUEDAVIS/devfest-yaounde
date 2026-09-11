@@ -35,10 +35,10 @@ Result: one focus trap implementation, one scroll lock, two overlay shells with 
 
 ## Why scroll locking had to live in the scroll seam
 
-`overflow: hidden` on `<body>` is not enough here, for two independent reasons, both found by measurement rather than reasoning:
+`overflow: hidden` on `<body>` is not enough here, for reasons found by measurement rather than reasoning:
 
-- **Lenis keeps running.** It drives its own rAF loop against the real document, so the background still glided under a "locked" overlay. Only `scroll-source.ts` holds the Lenis instance, so only it can stop it.
-- **`<html>` is the scrolling element.** Hiding overflow on the body alone left the page scrollable — verified: the background moved 400px under the overlay.
+- **A momentum-scroll library, while one was in use, kept running regardless.** It drove its own rAF loop against the real document, so the background still glided under a "locked" overlay. Only `scroll-source.ts` held that instance, so only it could stop it. Moot now — that library was removed outright (ADR 0053) — but it is why the lock had to live behind a shared seam rather than be reimplemented per overlay, and it still would be if a second scroll driver were ever added again.
+- **`<html>` is the scrolling element.** Hiding overflow on the body alone left the page scrollable — verified: the background moved 400px under the overlay. This one is permanent, driver or no driver.
 
 Putting the lock anywhere else would have meant every overlay author rediscovering both.
 

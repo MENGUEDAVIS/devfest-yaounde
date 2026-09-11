@@ -1,16 +1,18 @@
 "use client";
 
-import type Lenis from "lenis";
-
 /**
- * The single seam between "what is driving the page scroll" and everything
- * that needs to read it (the floating overlay scrollbar).
+ * The single seam between "the page's scroll position" and everything that
+ * needs to read it (the floating overlay scrollbar) or hold it still (every
+ * modal, sheet and the preloader).
  *
- * `docs/decisions/0007-smooth-scroll.md` was APPROVED, so Lenis now drives
- * scrolling on pointer-capable desktop browsers when the visitor has not
- * asked for reduced motion. Everywhere else — touch devices, reduced-motion
- * users, and before/if Lenis ever fails to initialise — this falls straight
- * through to native scroll. Consumers don't know or care which is active.
+ * Native scroll only. This module used to switch between native scroll and a
+ * momentum-scroll library (`docs/decisions/0007-smooth-scroll.md`), which was
+ * removed outright (ADR 0053): it broke wheel/keyboard/find-on-page scrolling
+ * in ways that only showed up in real use, and the fix was to stop driving
+ * scroll with a library at all rather than patch around it further. The seam
+ * stays, because the floating scrollbar, the lock-count nesting and the API
+ * below are all still worth having on their own — nothing here depends on
+ * there being more than one possible driver.
  *
  * Shaped as a `useSyncExternalStore` source rather than an effect that
  * setStates per scroll event: that's React's documented way to read
@@ -33,37 +35,18 @@ const SERVER_SNAPSHOT: ScrollSnapshot = {
 
 let cached: ScrollSnapshot = SERVER_SNAPSHOT;
 
-/** Set by the LenisProvider while smooth scrolling is active; null otherwise. */
-let activeLenis: Lenis | null = null;
 const listeners = new Set<() => void>();
 
 /**
  * How many overlays currently hold the scroll locked.
  *
- * A COUNT, not a boolean, for two reasons. Overlays nest — a modal can open
- * over the preloader — and releasing the inner one must not hand scrolling
- * back while the outer one is still up. And Lenis can be created AFTER a lock
- * is taken, which is exactly what happened: the preloader's effect runs before
- * `SmoothScrollProvider`'s, so `lockScroll()` called `activeLenis?.stop()` on
- * a null, and the Lenis created a moment later was never stopped at all. A
- * wheel then scrolled the page 586px behind a screen that was covering it —
- * intermittently, because it depended on which effect won the race.
+ * A COUNT, not a boolean: overlays nest — a modal can open over the
+ * preloader — and releasing the inner one must not hand scrolling back while
+ * the outer one is still up.
  */
 let lockCount = 0;
 
-export function setActiveLenis(instance: Lenis | null) {
-  activeLenis = instance;
-  // A Lenis that arrives while a lock is held starts stopped.
-  if (instance && lockCount > 0) instance.stop();
-  // Thumb geometry may differ the instant the driver changes
-  listeners.forEach((fn) => fn());
-}
-
 export function getScrollSnapshot(): ScrollSnapshot {
-  // Lenis keeps the real document scrolled (it doesn't transform a wrapper),
-  // so window.scrollY stays authoritative under both drivers. Reading it
-  // rather than Lenis's internal value keeps this correct if Lenis is
-  // disabled mid-session.
   const scrollY = window.scrollY;
   const scrollHeight = document.documentElement.scrollHeight;
   const clientHeight = window.innerHeight;
@@ -85,11 +68,10 @@ export function getServerScrollSnapshot(): ScrollSnapshot {
 /**
  * Subscribe to anything that can change the snapshot.
  *
- * Native `scroll` still fires under Lenis (it scrolls the real document), so
- * one listener covers both drivers. Resize matters because the thumb size
- * depends on the viewport/content ratio; the ResizeObserver catches
- * content-height changes (images loading, accordions opening, a speaker
- * detail panel) that fire neither scroll nor resize.
+ * Resize matters because the thumb size depends on the viewport/content
+ * ratio; the ResizeObserver catches content-height changes (images loading,
+ * accordions opening, a speaker detail panel) that fire neither scroll nor
+ * resize.
  */
 export function subscribeScroll(onChange: () => void): () => void {
   listeners.add(onChange);
@@ -111,34 +93,31 @@ export function subscribeScroll(onChange: () => void): () => void {
 /**
  * Jump/scroll the page to an absolute Y offset.
  *
- * Routed through Lenis when it's driving, so a scrollbar drag or track click
- * doesn't fight the smooth-scroll loop. `immediate` bypasses easing for
- * drags, where the thumb must track the pointer 1:1.
+ * `smooth` picks native's own `behavior`. `immediate` (i.e. `!smooth`)
+ * matters for a scrollbar DRAG specifically: the thumb has to track the
+ * pointer 1:1, and an eased scroll fighting a drag that keeps moving the
+ * target reads as laggy rather than smooth.
  */
 export function scrollToY(y: number, smooth: boolean) {
-  if (activeLenis) {
-    activeLenis.scrollTo(y, { immediate: !smooth });
-    return;
-  }
   window.scrollTo({ top: y, behavior: smooth ? "smooth" : "auto" });
 }
 
 /**
  * Freeze the page behind an overlay, and restore it exactly on release.
  *
- * Lives here rather than in the overlay component because this is the single
- * seam that knows which driver is active. `overflow: hidden` alone does NOT
- * stop Lenis — it runs its own rAF loop against the real document, so the
- * background would still glide under a "locked" overlay. Lenis has to be
- * told to stop, and only this module holds the instance.
+ * Lives here rather than in the overlay component so every overlay — the
+ * preloader, `Modal`, `BottomSheet`, the admin drawer — shares one lock
+ * rather than four slightly different ones. Nesting is the reason it needs
+ * to be shared at all: `lockCount` above is what lets an inner overlay close
+ * without handing scroll back while an outer one is still open.
  *
  * Returns the release function. Calling it twice is safe.
  *
  * Scroll position: `overflow: hidden` on <body> preserves it (unlike the
  * `position: fixed` technique, which collapses the page to the top and needs
  * the offset re-applied). The Y is still captured and re-applied on release
- * as a belt-and-braces: Lenis restarting can otherwise resume from its own
- * internal target rather than where the user actually was.
+ * as a belt-and-braces — cheap insurance against `overflow` ever failing to
+ * hold the position exactly.
  */
 export function lockScroll(): () => void {
   if (typeof document === "undefined") return () => {};
@@ -165,7 +144,6 @@ export function lockScroll(): () => void {
    */
   document.documentElement.style.overflow = "hidden";
   lockCount++;
-  activeLenis?.stop();
 
   let released = false;
   return () => {
@@ -178,9 +156,7 @@ export function lockScroll(): () => void {
     // Only the LAST release hands scrolling back; an inner overlay closing
     // must not unlock the page under an outer one.
     if (lockCount > 0) return;
-    activeLenis?.start();
-    // `instant` so releasing never animates the page back into place.
-    if (activeLenis) activeLenis.scrollTo(y, { immediate: true });
-    else window.scrollTo({ top: y, behavior: "auto" });
+    // `"auto"` so releasing never animates the page back into place.
+    window.scrollTo({ top: y, behavior: "auto" });
   };
 }
