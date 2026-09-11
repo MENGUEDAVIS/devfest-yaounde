@@ -161,6 +161,41 @@ export const productSchema = z.object({
     .max(80)
     .optional(),
   status: z.enum(["pre-order", "in-stock", "venue-only", "sold-out"]),
+  /**
+   * Absent or true = live on the public shop. False = draft — either an
+   * admin working on a new listing, or a product auto-created from a ticket
+   * tier's swag (see `sourceSwag`) that is missing shop-only fields. Same
+   * absent-means-visible convention as `hidden` on speakers/team.
+   */
+  published: z.boolean().optional(),
+  /**
+   * Set only on a product auto-created from a ticket tier's swag item.
+   * Traceable link back to the tier — cleared (not deleted) if the swag
+   * item is later removed from the tier. See ADR on swag→shop linkage.
+   */
+  sourceSwag: z
+    .object({
+      tierId: slug,
+      swagId: slug,
+    })
+    .optional(),
+});
+
+/** One thing a ticket grants — "what your ticket includes" (admin-editable). */
+export const entitlementSchema = z.object({
+  label: localizedRequired,
+  /** Phosphor icon name from the admin's fixed whitelist. Optional. */
+  icon: z.string().max(40).optional(),
+  note: localized.optional(),
+});
+
+/** A swag item bundled with a tier, optionally linked to its own shop listing. */
+export const swagItemSchema = z.object({
+  id: slug,
+  name: localizedRequired,
+  images: z.array(z.string().max(400)).max(6).optional(),
+  /** Set once the auto-created (or manually linked) shop product exists. */
+  shopProductId: slug.optional(),
 });
 
 export const ticketTierSchema = z.object({
@@ -169,12 +204,18 @@ export const ticketTierSchema = z.object({
   label: localized.optional(),
   priceXAF: z.number().int().min(0).max(10_000_000),
   rsvpExternal: z.boolean().optional(),
-  swag: z.array(localized).max(20).optional(),
+  swag: z.array(swagItemSchema).max(20).optional(),
   description: localizedRequired,
-  perks: z.array(localizedRequired).max(30),
+  perks: z.array(entitlementSchema).max(30),
   includesApparel: z.boolean(),
   quantityAvailable: z.number().int().min(0).max(100_000).optional(),
   onSale: z.boolean(),
+  /**
+   * Explicit sold-out flag, independent of `quantityAvailable`. An admin can
+   * pull a tier off sale for reasons the counter doesn't know about (e.g.
+   * holding back seats). Checked server-side at checkout alongside capacity.
+   */
+  soldOut: z.boolean().optional(),
 });
 
 export const quoteSchema = z.object({
@@ -292,6 +333,16 @@ export const legalSchema = z.object({
   termsUrl: urlOrEmpty.optional().nullable(),
 });
 
+/**
+ * Overall event capacity — a display/admin figure, independent of the
+ * per-tier `quantityAvailable` caps that actually gate checkout. The two
+ * can disagree (an admin is warned in the dashboard when the tier sum
+ * exceeds this), but neither enforces the other server-side.
+ */
+export const capacitySchema = z.object({
+  total: z.number().int().min(0).max(1_000_000).optional().nullable(),
+});
+
 export const settingsSchema = z.object({
   announcement: localized.optional().nullable(),
   bevyUrl: urlOrEmpty.optional().nullable(),
@@ -299,6 +350,7 @@ export const settingsSchema = z.object({
   cfs: cfsSchema.optional().nullable(),
   sponsorCall: sponsorCallSchema.optional().nullable(),
   legal: legalSchema.optional().nullable(),
+  capacity: capacitySchema.optional().nullable(),
 });
 
 function blankToNull(value: unknown): unknown {

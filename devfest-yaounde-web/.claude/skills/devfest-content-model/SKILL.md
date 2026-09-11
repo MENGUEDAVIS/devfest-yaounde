@@ -91,14 +91,21 @@ interface Session {
 // one and a DIFFERENT room. Do NOT add a slotId — it would duplicate the
 // times it derives from, and the two could drift apart.
 
+// Admin-editable since Phase 20 (dashboard → Ticket tiers), not a file edit.
 interface TicketTier {
   id: string; // e.g. "haikyu", "sonnet" — rendered in mono-tag style
   name: string; // e.g. "HAIKYU" — language-neutral (proper noun tier name)
+  label?: LocalizedString; // optional sub-title beside the name; "" for most tiers
   priceXAF: number; // 0 for free tier
   description: LocalizedString;
-  perks: LocalizedString[]; // rendered with Phosphor check icons
+  // "What your ticket grants you" — reorderable, icon optional (fixed set,
+  // src/lib/entitlement-icons.ts), falls back to a plain check.
+  perks: { label: LocalizedString; icon?: string; note?: LocalizedString }[];
   includesApparel: boolean; // if true, collect T-shirt size in attendee details step
   quantityAvailable?: number;
+  soldOut?: boolean; // independent admin flag, checked at checkout alongside quantity
+  // Each item auto-creates a linked (draft) shop product — see ADR 0050.
+  swag?: { id: string; name: LocalizedString; images?: string[]; shopProductId?: string }[];
 }
 
 interface Product {
@@ -109,6 +116,8 @@ interface Product {
   images: string[];
   variants?: { size?: string[]; color?: string[] };
   status: "pre-order" | "in-stock" | "venue-only" | "sold-out"; // always paired with a visible text label, never color alone
+  published?: boolean; // absent/true = live; false = draft, never shown publicly
+  sourceSwag?: { tierId: string; swagId: string }; // set only if auto-created from a tier's swag
 }
 
 interface TeamMember {

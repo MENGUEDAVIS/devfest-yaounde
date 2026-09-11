@@ -6,7 +6,7 @@ import { isoToWatLocal, watLocalToIso } from "@/lib/admin/form-helpers";
 import { cfsView } from "@/lib/content/cfs";
 import { sponsorCallOpen, SPONSOR_SEATS } from "@/lib/content/sponsors";
 import { ImageField, Segmented } from "../forms/fields";
-import { Panel } from "./shared";
+import { InfoBanner, Panel } from "./shared";
 
 const ANNOUNCE_MAX = 180;
 
@@ -14,12 +14,15 @@ export function AdminConfig({
   settings,
   speakerCount,
   sponsorCount,
+  tierCapSum,
 }: {
   settings: AdminSettings;
   /** How many speakers the store holds — what the automatic rule reads. */
   speakerCount: number;
   /** How many sponsors have signed — how many seats are still open. */
   sponsorCount: number;
+  /** Sum of every tier's `quantityAvailable`, for the capacity warning. */
+  tierCapSum: number;
 }) {
   const [announcementFr, setAnnouncementFr] = useState(
     settings.announcement?.fr ?? "",
@@ -39,6 +42,9 @@ export function AdminConfig({
   );
   const [cfsOverride, setCfsOverride] = useState<CfsOverride>(
     settings.cfs.override,
+  );
+  const [capacityTotal, setCapacityTotal] = useState(
+    settings.capacity.total?.toString() ?? "",
   );
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
     "idle",
@@ -64,6 +70,9 @@ export function AdminConfig({
           opensAt: watLocalToIso(cfsOpens),
           closesAt: watLocalToIso(cfsCloses),
           override: cfsOverride,
+        },
+        capacity: {
+          total: capacityTotal.trim() === "" ? null : Number(capacityTotal),
         },
       }),
     });
@@ -216,6 +225,51 @@ export function AdminConfig({
             Where “Join the community” goes. Opens in a new tab.
           </span>
         </label>
+
+        {/*
+          Overall event capacity — a display/admin figure, independent of the
+          per-tier `quantityAvailable` caps that actually gate checkout (see
+          the capacity-vs-tier-caps ADR). The two can disagree; this only
+          warns, never blocks a save.
+        */}
+        <div className="flex flex-col gap-4 rounded-lg border border-black02/15 bg-pastel/40 p-4">
+          <div>
+            <h3 className="font-sans text-body-l font-bold text-black02">
+              Ticket capacity
+            </h3>
+            <p className="mt-1 text-caption text-black02/70">
+              The overall figure shown publicly as a live remaining count.
+              Separate from each tier&rsquo;s own cap, which checkout enforces
+              on its own regardless of what is set here.
+            </p>
+          </div>
+
+          <label className="block text-body-m font-bold text-black02">
+            Total tickets available
+            <input
+              type="number"
+              min={0}
+              className={field}
+              value={capacityTotal}
+              placeholder="Leave blank to hide the public counter"
+              onChange={(e) => setCapacityTotal(e.target.value)}
+            />
+            <span className="mt-1 block text-caption font-normal text-black02/60">
+              Tier caps currently add up to {tierCapSum}.
+            </span>
+          </label>
+
+          {capacityTotal.trim() !== "" &&
+            tierCapSum > Number(capacityTotal) && (
+              <InfoBanner tone="warn">
+                Tier caps ({tierCapSum}) exceed this total ({capacityTotal}).
+                Sales are not blocked by this — each tier still enforces its
+                own cap — but the public counter can undercount how many
+                tickets could actually still sell. Raise the total or lower a
+                tier cap in Ticket tiers.
+              </InfoBanner>
+            )}
+        </div>
 
         {/*
           The landing hero's backdrop. One image, sitting under the whole

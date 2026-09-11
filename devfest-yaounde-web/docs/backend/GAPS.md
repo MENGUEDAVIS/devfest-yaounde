@@ -438,14 +438,18 @@ should be a decision rather than a quiet extension.
 
 ## Content, not code
 
-Every ticket tier and product is **invented placeholder data** — `HAIKYU`,
-`SONNET`, `OPUS`, their prices and their perks. Shape comes from `PAGES.md`
-§7; the values do not come from anyone.
+Every ticket tier and product's **values** are still invented placeholders —
+the prices, perks, entitlements and swag. Shape comes from `PAGES.md` §7; the
+values do not come from anyone. `HAIKYU`, `SONNET`, `OPUS`, `FABLE`, `MYTHOS`
+themselves are settled as the tier identity (the Claude-model naming), not a
+placeholder.
 
-**Phase 14 does:** builds against the real files and their real shape, and does
-not dress the numbers up as confirmed. Replacing them is
-`docs/guides/updating-tickets-and-shop.md`, and it must happen before a real
-sale (`remaining-work.md` §1, item 8).
+**Phase 14 built** against the real files and their real shape, without
+dressing the numbers up as confirmed. **Phase 20 made tiers admin-editable**
+(dashboard → Ticket tiers) — replacing the placeholder values is now a
+dashboard edit, guided by `docs/guides/updating-tickets-and-shop.md`, and it
+must still happen before a real sale (`remaining-work.md` §1, item 8). Shop
+products remain a JSON file edit until Part B's Shop screen ships.
 
 ---
 

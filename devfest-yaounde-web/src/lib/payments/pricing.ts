@@ -189,6 +189,13 @@ export async function quoteTierCounts(
     if (tier.rsvpExternal) {
       throw new CheckoutError(CHECKOUT_ERRORS.TIER_RSVP_EXTERNAL);
     }
+    // Explicit admin flag, independent of `quantityAvailable` — an admin can
+    // pull a tier off sale for reasons the capacity counter doesn't know
+    // about. Checked first and unconditionally: even a request for zero
+    // remaining capacity math should not slip through when this is set.
+    if (tier.soldOut) {
+      throw new CheckoutError(CHECKOUT_ERRORS.TIER_SOLD_OUT);
+    }
     // Optimistic fast-fail only: one order asking for more than the tier ever
     // had. It says nothing about what is still free, because a count taken
     // here would be stale by the time we insert. The binding check is the

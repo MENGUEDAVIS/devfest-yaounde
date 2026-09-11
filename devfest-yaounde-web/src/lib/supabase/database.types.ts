@@ -422,6 +422,7 @@ export type Database = {
           bevy_url: string | null
           hero: Json | null
           cfs: Json | null
+          capacity: Json | null
           id: string
           legal: Json | null
           sponsor_call: Json | null
@@ -433,6 +434,7 @@ export type Database = {
           bevy_url?: string | null
           hero?: Json | null
           cfs?: Json | null
+          capacity?: Json | null
           id?: string
           legal?: Json | null
           sponsor_call?: Json | null
@@ -444,6 +446,7 @@ export type Database = {
           bevy_url?: string | null
           hero?: Json | null
           cfs?: Json | null
+          capacity?: Json | null
           id?: string
           legal?: Json | null
           sponsor_call?: Json | null

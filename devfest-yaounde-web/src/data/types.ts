@@ -174,13 +174,30 @@ export interface FaqItem {
 /** Apparel sizes offered on tiers/products that include clothing. */
 export type ApparelSize = "XS" | "S" | "M" | "L" | "XL" | "XXL";
 
+/** One thing a ticket grants — rendered as a checked entitlement row. */
+export interface TierEntitlement {
+  label: LocalizedString;
+  /** Phosphor icon name from the admin's fixed whitelist. Optional. */
+  icon?: string;
+  note?: LocalizedString;
+}
+
+/** A swag item bundled with a tier, optionally linked to its own shop listing. */
+export interface TierSwagItem {
+  id: string;
+  name: LocalizedString;
+  images?: string[];
+  /** Set once the auto-created (or manually linked) shop product exists. */
+  shopProductId?: string;
+}
+
 export interface TicketTier {
   id: string;
   /** Proper-noun tier name, rendered mono-tag style. Language-neutral. */
   name: string;
   /**
-   * Optional sub-title beside the name ("Free pass", "Student pass"). Empty
-   * strings for tiers whose name says enough on its own.
+   * Optional sub-title beside the name ("Free pass"). Empty strings for
+   * tiers whose name says enough on its own.
    */
   label?: LocalizedString;
   /** Whole XAF. 0 = free tier, which skips the payment provider entirely. */
@@ -193,18 +210,26 @@ export interface TicketTier {
    */
   rsvpExternal?: boolean;
   /**
-   * What comes in the box, for the swag preview. Ordered biggest-first;
-   * higher tiers list more. Display only — the server does not read it.
+   * Swag bundled with this tier, for the swag preview. Ordered biggest-first;
+   * higher tiers list more. Each item may carry images and a link to its
+   * auto-created (or manually linked) shop product.
    */
-  swag?: LocalizedString[];
+  swag?: TierSwagItem[];
   description: LocalizedString;
-  perks: LocalizedString[];
+  /** "What your ticket grants you" — admin-editable, reorderable. */
+  perks: TierEntitlement[];
   /** When true, attendee details must collect an apparel size. */
   includesApparel: boolean;
   /** Omit for unlimited. Checked server-side at checkout. */
   quantityAvailable?: number;
   /** Hidden from the tier list when false — kept so past tiers stay resolvable. */
   onSale: boolean;
+  /**
+   * Explicit sold-out flag, independent of `quantityAvailable` — an admin
+   * can pull a tier off sale for reasons the counter doesn't know about.
+   * Checked server-side at checkout alongside capacity.
+   */
+  soldOut?: boolean;
 }
 
 export type ProductStatus =
@@ -228,6 +253,14 @@ export interface Product {
   stock?: Array<{ size?: string; color?: string; quantity: number }>;
   /** Always paired with a visible text label in the UI, never colour alone. */
   status: ProductStatus;
+  /**
+   * Absent or true = live on the public shop. False = draft — either an
+   * admin working on a new listing, or a product auto-created from a ticket
+   * tier's swag item (see `sourceSwag`) that is missing shop-only fields.
+   */
+  published?: boolean;
+  /** Set only on a product auto-created from a ticket tier's swag item. */
+  sourceSwag?: { tierId: string; swagId: string };
 }
 
 /** One chosen product + variant + quantity, as sent by the shop checkout. */

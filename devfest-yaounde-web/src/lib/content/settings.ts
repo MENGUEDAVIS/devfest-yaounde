@@ -47,6 +47,9 @@ const REPO_DEFAULTS: SiteSettings = {
     privacyUrl: PRIVACY_POLICY_URL,
     termsUrl: TERMS_URL,
   },
+  /* No overall capacity until an admin sets one — `null` total means "don't
+     show a public counter", not "zero tickets left". */
+  capacity: { total: null },
   source: "repo",
 };
 
@@ -99,7 +102,9 @@ async function readSettings(): Promise<SiteSettings> {
     const db = createAdminSupabase();
     const { data, error } = await db
       .from("site_settings")
-      .select("announcement, bevy_url, hero, cfs, sponsor_call, legal")
+      .select(
+        "announcement, bevy_url, hero, cfs, sponsor_call, legal, capacity",
+      )
       .eq("id", "site")
       .maybeSingle();
     if (error || !data) return REPO_DEFAULTS;
@@ -116,6 +121,18 @@ async function readSettings(): Promise<SiteSettings> {
           }
         : null;
 
+    // Hand-rolled rather than `merge()`: the fallback's `total` is `null`,
+    // and `merge()`'s type-match rule (`typeof value === typeof fallback`)
+    // never lets a real number through a `null` default — the same reason
+    // `announcement` above isn't merged generically either.
+    const capacityTotal =
+      data.capacity &&
+      typeof data.capacity === "object" &&
+      "total" in data.capacity &&
+      typeof (data.capacity as { total?: unknown }).total === "number"
+        ? (data.capacity as { total: number }).total
+        : null;
+
     return {
       announcement,
       bevyUrl: data.bevy_url || BEVY_URL,
@@ -123,6 +140,7 @@ async function readSettings(): Promise<SiteSettings> {
       cfs: merge(REPO_DEFAULTS.cfs, data.cfs),
       sponsorCall: merge(REPO_DEFAULTS.sponsorCall, data.sponsor_call),
       legal: merge(REPO_DEFAULTS.legal, data.legal),
+      capacity: { total: capacityTotal },
       source: "database",
     };
   } catch (err) {
@@ -183,6 +201,9 @@ export async function saveSettings(
       : {}),
     ...(parsed.data.legal !== undefined
       ? { legal: parsed.data.legal ? toJson(parsed.data.legal) : null }
+      : {}),
+    ...(parsed.data.capacity !== undefined
+      ? { capacity: parsed.data.capacity ? toJson(parsed.data.capacity) : null }
       : {}),
     updated_at: new Date().toISOString(),
     updated_by: actor,

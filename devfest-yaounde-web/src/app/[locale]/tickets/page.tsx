@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { TicketCheckout } from "@/components/tickets/TicketCheckout";
+import { CapacityCounter } from "@/components/tickets/CapacityCounter";
 import { AccountLink } from "@/components/account/AccountLink";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { loadSettings } from "@/lib/content/settings";
 import { getTiers } from "@/lib/content/store";
+import { getTicketCapacity } from "@/lib/payments/capacity";
 
 export async function generateMetadata({
   params,
@@ -26,14 +28,12 @@ export async function generateMetadata({
 /**
  * `/{locale}/tickets` — tier selection and checkout (PAGES.md §7).
  *
- * Tiers are read from `src/data/ticket-tiers.json` here and rendered by the
- * client, but note what is NOT sent when the order is placed: no price. The
- * server recomputes every total from this same file by id, so what is shown
- * and what is charged cannot drift, and a tampered request body changes
- * nothing.
- *
- * The tier data is still PLACEHOLDER — the names, prices and perks are
- * invented (`docs/setup/remaining-work.md` §1 item 8). The shape is real.
+ * Tiers are read via `getTiers()` — the editorial content store, admin-
+ * editable (Phase 20), falling back to `src/data/ticket-tiers.json` on a
+ * fresh clone with no database. What is NOT sent when the order is placed:
+ * no price. The server recomputes every total from this same source by id,
+ * so what is shown and what is charged cannot drift, and a tampered request
+ * body changes nothing.
  */
 export default async function TicketsPage({
   params,
@@ -43,7 +43,11 @@ export default async function TicketsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.tickets");
-  const [tiers, settings] = await Promise.all([getTiers(), loadSettings()]);
+  const [tiers, settings, capacity] = await Promise.all([
+    getTiers(),
+    loadSettings(),
+    getTicketCapacity(),
+  ]);
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
@@ -55,6 +59,12 @@ export default async function TicketsPage({
           {t("lead")}
         </p>
         <AccountLink label={t("myTicketsLink")} />
+
+        {capacity.total != null && (
+          <div className="mt-6">
+            <CapacityCounter initial={capacity} />
+          </div>
+        )}
 
         <div className="mt-16">
           <TicketCheckout tiers={tiers} bevyUrl={settings.bevyUrl} />

@@ -134,6 +134,11 @@ export interface HeroSettings {
   imageUrl: string;
 }
 
+export interface CapacitySettings {
+  /** Overall event capacity, for the public counter. Null = no public counter. */
+  total: number | null;
+}
+
 export interface AdminSettings {
   announcement: { fr: string; en: string } | null;
   bevyUrl: string;
@@ -141,6 +146,7 @@ export interface AdminSettings {
   cfs: CfsSettings;
   sponsorCall: SponsorCallSettings;
   legal: LegalSettings;
+  capacity: CapacitySettings;
   source: "database" | "repo";
 }
 

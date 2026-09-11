@@ -4,6 +4,7 @@ import { ArrowsDownUp, PencilSimple, Plus, Trash } from "@phosphor-icons/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { useToast } from "./Toast";
+import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 
 /**
  * The plumbing behind every content list, once.
@@ -93,6 +94,29 @@ export interface EntityCrudProps<T extends EntityRow> {
     /** Toast on success, given the NEW state. */
     saved: (on: boolean) => string;
   };
+  /**
+   * Runs before a delete is allowed through. Returning `{ blocked: true, ... }`
+   * disables the confirm control entirely — for records an integrity rule
+   * says should never be hard-deleted (a tier with sold tickets, a product
+   * linked to real orders). Returning `null` skips the impact message but
+   * still requires the double-confirmation (typing the id).
+   */
+  describeImpact?: (row: T) => { blocked: boolean; message: string } | null;
+  /**
+   * Opens a row's editor on mount — the deep-link target for "finish this
+   * draft" notifications from another view (e.g. a swag-created product).
+   */
+  initialEditId?: string;
+  /**
+   * Runs after a successful PUT with the raw response body — for endpoints
+   * that patch the payload server-side before persisting it (the swag→shop
+   * sync fills in `shopProductId` on the tiers array, so the collection's
+   * OWN endpoint returns extras like `createdDrafts`) and/or hand back a
+   * shape the caller wants to react to. Also triggers the same re-fetch
+   * `afterSave` does, so those server-side patches show up in `rows`
+   * immediately rather than after a reload.
+   */
+  onSaveResponse?: (body: unknown) => void;
 }
 
 export function EntityCrud<T extends EntityRow>({
@@ -109,6 +133,9 @@ export function EntityCrud<T extends EntityRow>({
   filter,
   toolbar,
   rowToggle,
+  describeImpact,
+  initialEditId,
+  onSaveResponse,
 }: EntityCrudProps<T>) {
   const toast = useToast();
   const [rows, setRows] = useState<T[]>(initialRows);
@@ -120,7 +147,17 @@ export function EntityCrud<T extends EntityRow>({
    * so without this the loser of a race never finds out.
    */
   const [baseline, setBaseline] = useState<T[]>(initialRows);
-  const [draft, setDraft] = useState<T | null>(null);
+  /**
+   * Deep-linked from another view ("finish this draft") — a lazy initializer
+   * rather than an effect, so the editor is open on the very first render
+   * instead of flashing the list first. Only ever consulted once: reopening
+   * this same row later goes through `open()` like any other edit.
+   */
+  const [draft, setDraft] = useState<T | null>(() => {
+    if (!initialEditId) return null;
+    const target = initialRows.find((r) => r.id === initialEditId);
+    return target ? { ...target } : null;
+  });
   const [isNew, setIsNew] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -169,10 +206,24 @@ export function EntityCrud<T extends EntityRow>({
         return;
       }
 
+      const responseBody = await res.json().catch(() => null);
+      onSaveResponse?.(responseBody);
+
       setRows(next);
       setBaseline(next);
       setDraft(null);
       onClose?.();
+
+      if (onSaveResponse) {
+        // The endpoint may have patched the payload server-side (swag→shop
+        // linkage fills in `shopProductId`) — read it back so the form
+        // reflects that without a reload.
+        const fresh = await fetchCurrent();
+        if (fresh) {
+          setRows(fresh);
+          setBaseline(fresh);
+        }
+      }
 
       if (saved && afterSave) {
         await afterSave(saved);
@@ -360,38 +411,35 @@ export function EntityCrud<T extends EntityRow>({
                 <PencilSimple size={14} weight="bold" />
               </button>
 
-              {confirming === row.id ? (
-                <span className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void remove(row.id)}
-                    className="rounded-pill bg-danger px-3 py-1.5 text-caption font-bold text-offwhite disabled:opacity-50"
-                  >
-                    Delete
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirming(null)}
-                    className="rounded-pill border border-black02/25 px-3 py-1.5 text-caption font-bold text-black02"
-                  >
-                    Cancel
-                  </button>
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setConfirming(row.id)}
-                  aria-label={`Delete ${row.id}`}
-                  className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-danger-pastel hover:text-danger"
-                >
-                  <Trash size={14} weight="bold" />
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setConfirming(row.id)}
+                aria-label={`Delete ${row.id}`}
+                className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-danger-pastel hover:text-danger"
+              >
+                <Trash size={14} weight="bold" />
+              </button>
             </li>
           ))}
         </ul>
       )}
+
+      {confirming &&
+        (() => {
+          const row = rows.find((r) => r.id === confirming);
+          if (!row) return null;
+          const impact = describeImpact?.(row) ?? null;
+          return (
+            <ConfirmDeleteModal
+              id={row.id}
+              label={`"${row.id}"`}
+              impact={impact}
+              busy={busy}
+              onConfirm={() => void remove(row.id)}
+              onCancel={() => setConfirming(null)}
+            />
+          );
+        })()}
 
       {draft && (
         <EditorDrawer

@@ -60,6 +60,12 @@ export const RATE_LIMITS = {
     limit: 8,
     windowSeconds: 300,
   },
+  /**
+   * The public remaining-tickets counter. Cheap, but a real count query —
+   * generous enough for many browsers behind one IP each polling on their
+   * own 60s interval, tight enough that a script hammering it gets refused.
+   */
+  capacityRead: { bucket: "capacity-read", limit: 30, windowSeconds: 60 },
   /** Dashboard writes. Generous for a person, useless for a script. */
   adminWrite: { bucket: "admin-write", limit: 60, windowSeconds: 300 },
   /** One picture per remaining profile, so this is higher than adminWrite. */

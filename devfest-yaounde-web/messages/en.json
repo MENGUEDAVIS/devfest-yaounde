@@ -233,6 +233,8 @@
       },
       "free": "Free",
       "includesApparel": "Includes a tee",
+      "soldOut": "Sold out",
+      "capacityRemaining": "left of {total} total capacity",
       "addOne": "Add one {tier} ticket",
       "removeOne": "Remove one {tier} ticket",
       "maxReached": "That's {max} tickets — the most we can take in one order.",

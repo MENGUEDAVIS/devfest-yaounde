@@ -213,15 +213,22 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 ### 7.1 The tiers
 
-Currency is **XAF (FCFA)**. Data lives in `src/data/ticket-tiers.json`.
+Currency is **XAF (FCFA)**. Admin-editable (Phase 20) through the "Ticket
+tiers" dashboard screen; `src/data/ticket-tiers.json` is the seed/fallback
+for a fresh clone with no database, not the live source once a save has
+happened.
 
 | Tier       | Label          | Price  | Sold here?            |
 | ---------- | -------------- | ------ | --------------------- |
 | **HAIKYU** | Free pass      | 0      | **No — RSVP on Bevy** |
-| **SONNET** | Student pass   | 2,000  | yes                   |
+| **SONNET** | —              | 2,000  | yes                   |
 | **OPUS**   | —              | 5,000  | yes                   |
 | **FABLE**  | —              | 10,000 | yes                   |
 | **MYTHOS** | Legendary pass | 25,000 | yes                   |
+
+SONNET has no sub-label — it dropped the "Student pass" framing (Phase 20):
+the tier is not restricted to students, and nothing on the site checked for
+one.
 
 **The free tier is not sold on this site.** Selecting it links out to the
 community platform, which already enforces one free RSVP per person — so it

@@ -108,7 +108,7 @@ export async function GET() {
           name: tier?.name ?? ticket.tier_id.toUpperCase(),
           label: tier?.label ?? null,
           description: tier?.description ?? null,
-          perks: tier?.perks ?? [],
+          perks: tier?.perks?.map((perk) => perk.label) ?? [],
           includesApparel: tier?.includesApparel ?? false,
         },
         /** What this one ticket cost, as charged. Null if unresolvable. */

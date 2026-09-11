@@ -1,8 +1,13 @@
 "use client";
 
-import { Plus, X } from "@phosphor-icons/react";
+import { ArrowsDownUp, Plus, X } from "@phosphor-icons/react";
 import { useCallback, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import {
+  ENTITLEMENT_ICON_OPTIONS,
+  entitlementIcon,
+  type EntitlementIconKey,
+} from "@/lib/entitlement-icons";
 
 /**
  * The admin's input vocabulary.
@@ -491,6 +496,146 @@ export function usePendingPhoto() {
   }, []);
 
   return { pending, pick, clear };
+}
+
+interface Entitlement {
+  label: { fr: string; en: string };
+  icon?: string;
+  note?: { fr: string; en: string };
+}
+
+/**
+ * "What your ticket grants you" — a reorderable list of entitlement rows.
+ *
+ * Buttons, not a drag handle, for the same reason `EntityCrud`'s reordering
+ * is buttons: unusable from a keyboard, awkward on a phone. Each row is a
+ * label (required), an icon from the fixed whitelist (optional — falls back
+ * to a plain check on the public card) and a note (optional, shown as a
+ * smaller line under the label).
+ */
+export function EntitlementListField({
+  values,
+  onChange,
+}: {
+  values: Entitlement[];
+  onChange: (v: Entitlement[]) => void;
+}) {
+  function update(i: number, changes: Partial<Entitlement>) {
+    onChange(values.map((v, idx) => (idx === i ? { ...v, ...changes } : v)));
+  }
+  function remove(i: number) {
+    onChange(values.filter((_, idx) => idx !== i));
+  }
+  function move(i: number, dir: -1 | 1) {
+    const target = i + dir;
+    if (target < 0 || target >= values.length) return;
+    const next = [...values];
+    [next[i], next[target]] = [next[target], next[i]];
+    onChange(next);
+  }
+  function add() {
+    onChange([...values, { label: { fr: "", en: "" } }]);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {values.map((entry, i) => {
+        const RowIcon = entitlementIcon(entry.icon);
+        return (
+          <div
+            key={i}
+            className="flex flex-col gap-2 rounded-lg border border-black02/15 bg-pastel/40 p-3"
+          >
+            <div className="flex items-start gap-2">
+              <RowIcon
+                size={18}
+                weight="bold"
+                className="mt-2.5 shrink-0 text-black02/60"
+              />
+              <div className="min-w-0 flex-1">
+                <LocalizedInput
+                  value={entry.label}
+                  onChange={(label) => update(i, { label })}
+                />
+              </div>
+              <span className="flex shrink-0 flex-col gap-0.5 pt-1">
+                <button
+                  type="button"
+                  disabled={i === 0}
+                  onClick={() => move(i, -1)}
+                  aria-label="Move up"
+                  className="rounded-pill p-1 text-black02/50 hover:bg-black02/10 disabled:opacity-25"
+                >
+                  <ArrowsDownUp size={12} weight="bold" className="rotate-180" />
+                </button>
+                <button
+                  type="button"
+                  disabled={i === values.length - 1}
+                  onClick={() => move(i, 1)}
+                  aria-label="Move down"
+                  className="rounded-pill p-1 text-black02/50 hover:bg-black02/10 disabled:opacity-25"
+                >
+                  <ArrowsDownUp size={12} weight="bold" />
+                </button>
+              </span>
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                aria-label="Remove entitlement"
+                className="mt-1 shrink-0 rounded-pill p-1.5 text-black02/50 hover:bg-danger-pastel hover:text-danger"
+              >
+                <X size={14} weight="bold" />
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 pl-6">
+              <select
+                value={entry.icon ?? "check"}
+                onChange={(e) =>
+                  update(i, { icon: e.target.value as EntitlementIconKey })
+                }
+                className="rounded-lg border border-black02/25 bg-offwhite px-2 py-1 font-sans text-caption text-black02"
+              >
+                {ENTITLEMENT_ICON_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={entry.note?.en ?? ""}
+                placeholder="Optional note (EN)"
+                onChange={(e) =>
+                  update(i, {
+                    note: { fr: entry.note?.fr ?? "", en: e.target.value },
+                  })
+                }
+                className="min-w-40 flex-1 rounded-lg border border-black02/25 bg-offwhite px-2.5 py-1 font-sans text-caption text-black02"
+              />
+              <input
+                value={entry.note?.fr ?? ""}
+                placeholder="Note optionnelle (FR)"
+                onChange={(e) =>
+                  update(i, {
+                    note: { fr: e.target.value, en: entry.note?.en ?? "" },
+                  })
+                }
+                className="min-w-40 flex-1 rounded-lg border border-black02/25 bg-offwhite px-2.5 py-1 font-sans text-caption text-black02"
+              />
+            </div>
+          </div>
+        );
+      })}
+      <button
+        type="button"
+        onClick={add}
+        className="inline-flex w-fit items-center gap-2 rounded-pill border border-black02/25 px-3.5 py-1.5 font-sans text-caption font-bold text-black02 hover:bg-pastel"
+      >
+        <Plus size={14} weight="bold" aria-hidden />
+        Add entitlement
+      </button>
+    </div>
+  );
 }
 
 /**
