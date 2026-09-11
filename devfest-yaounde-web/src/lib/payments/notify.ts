@@ -60,7 +60,7 @@ export async function sendReceipt(intent: PaymentIntentRow): Promise<void> {
             apparelSize: t.apparel_size,
             tierName: tier?.name,
             tierLabel: tier?.label?.[l],
-            perks: tier?.perks?.map((perk) => perk[l] ?? perk.fr),
+            perks: tier?.perks?.map((perk) => perk.label[l] ?? perk.label.fr),
           };
         }),
       );

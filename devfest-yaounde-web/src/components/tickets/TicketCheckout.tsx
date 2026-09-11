@@ -3,14 +3,15 @@
 import {
   ArrowLeft,
   ArrowRight,
-  Check,
   Minus,
   Plus,
+  Prohibit,
   Warning,
   ArrowSquareOut,
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { entitlementIcon } from "@/lib/entitlement-icons";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { PaymentStep } from "@/components/checkout/PaymentStep";
@@ -343,18 +344,26 @@ export function TicketCheckout({
                   {tier.description[locale as "fr" | "en"]}
                 </p>
                 <ul className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {tier.perks.map((perk, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <Check
-                        size={16}
-                        weight="bold"
-                        className="mt-1 shrink-0 text-black02"
-                      />
-                      <span className="text-body-m text-black02/80">
-                        {perk[locale as "fr" | "en"]}
-                      </span>
-                    </li>
-                  ))}
+                  {tier.perks.map((perk, i) => {
+                    const PerkIcon = entitlementIcon(perk.icon);
+                    return (
+                      <li key={i} className="flex items-start gap-2.5">
+                        <PerkIcon
+                          size={16}
+                          weight="bold"
+                          className="mt-1 shrink-0 text-black02"
+                        />
+                        <span className="text-body-m text-black02/80">
+                          {perk.label[locale as "fr" | "en"]}
+                          {perk.note?.[locale as "fr" | "en"] && (
+                            <span className="block text-caption text-black02/55">
+                              {perk.note[locale as "fr" | "en"]}
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
                 <a
                   href={bevyUrl}
@@ -373,11 +382,18 @@ export function TicketCheckout({
 
             {paidTiers.map((tier) => {
               const count = counts[tier.id] ?? 0;
+              const soldOut = Boolean(tier.soldOut);
               return (
                 <article
                   key={tier.id}
-                  className={`rounded-lg border-2 border-black02 bg-offwhite p-6 transition-shadow sm:p-7 ${
-                    count > 0 ? "shadow-[0_6px_0_0_var(--color-black02)]" : ""
+                  className={`rounded-lg border-2 p-6 transition-shadow sm:p-7 ${
+                    soldOut
+                      ? "border-dashed border-black02/40 bg-offwhite/60"
+                      : "border-black02 bg-offwhite"
+                  } ${
+                    count > 0 && !soldOut
+                      ? "shadow-[0_6px_0_0_var(--color-black02)]"
+                      : ""
                   }`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
@@ -394,6 +410,12 @@ export function TicketCheckout({
                         {tier.includesApparel && (
                           <Badge tone="blue">{t("includesApparel")}</Badge>
                         )}
+                        {soldOut && (
+                          <span className="inline-flex items-center gap-1.5 rounded-pill border-2 border-black02/50 bg-offwhite px-3 py-1 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/70">
+                            <Prohibit size={14} weight="bold" aria-hidden />
+                            {t("soldOut")}
+                          </span>
+                        )}
                       </div>
                       <p className="mt-4 font-sans text-display-l font-bold leading-none text-black02">
                         {tier.priceXAF === 0
@@ -409,7 +431,7 @@ export function TicketCheckout({
                       <button
                         type="button"
                         onClick={() => setCount(tier.id, count - 1)}
-                        disabled={count === 0}
+                        disabled={count === 0 || soldOut}
                         aria-label={t("removeOne", { tier: tier.name })}
                         className="flex h-11 w-11 items-center justify-center rounded-pill border-2 border-black02 text-black02 transition-colors hover:bg-pastel disabled:opacity-30"
                       >
@@ -424,7 +446,7 @@ export function TicketCheckout({
                       <button
                         type="button"
                         onClick={() => setCount(tier.id, count + 1)}
-                        disabled={total >= MAX_TICKETS}
+                        disabled={total >= MAX_TICKETS || soldOut}
                         aria-label={t("addOne", { tier: tier.name })}
                         className="flex h-11 w-11 items-center justify-center rounded-pill border-2 border-black02 text-black02 transition-colors hover:bg-pastel disabled:opacity-30"
                       >
@@ -434,18 +456,26 @@ export function TicketCheckout({
                   </div>
 
                   <ul className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {tier.perks.map((perk, i) => (
-                      <li key={i} className="flex items-start gap-2.5">
-                        <Check
-                          size={16}
-                          weight="bold"
-                          className="mt-1 shrink-0 text-black02"
-                        />
-                        <span className="text-body-m text-black02/80">
-                          {perk[locale as "fr" | "en"]}
-                        </span>
-                      </li>
-                    ))}
+                    {tier.perks.map((perk, i) => {
+                      const PerkIcon = entitlementIcon(perk.icon);
+                      return (
+                        <li key={i} className="flex items-start gap-2.5">
+                          <PerkIcon
+                            size={16}
+                            weight="bold"
+                            className="mt-1 shrink-0 text-black02"
+                          />
+                          <span className="text-body-m text-black02/80">
+                            {perk.label[locale as "fr" | "en"]}
+                            {perk.note?.[locale as "fr" | "en"] && (
+                              <span className="block text-caption text-black02/55">
+                                {perk.note[locale as "fr" | "en"]}
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
 
                   <SwagPreview items={tier.swag ?? []} />

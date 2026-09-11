@@ -233,6 +233,8 @@
       },
       "free": "Gratuit",
       "includesApparel": "T-shirt inclus",
+      "soldOut": "Complet",
+      "capacityRemaining": "restants sur {total} places au total",
       "addOne": "Ajouter un billet {tier}",
       "removeOne": "Retirer un billet {tier}",
       "maxReached": "Ça fait {max} billets — le maximum pour une seule commande.",

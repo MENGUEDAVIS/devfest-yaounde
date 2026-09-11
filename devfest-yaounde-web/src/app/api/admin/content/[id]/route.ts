@@ -10,6 +10,8 @@ import {
   saveCollection,
 } from "@/lib/content/store";
 import { revalidateCollection } from "@/lib/content/revalidate";
+import { collectionSchemas } from "@/lib/content/schemas";
+import { syncSwagToShop } from "@/lib/content/swag-sync";
 import { CHECKOUT_ERRORS, errorResponse } from "@/lib/payments/errors";
 import { currentOrganiser } from "@/lib/security/organisers";
 import { RATE_LIMITS, rateLimit } from "@/lib/security/rate-limit";
@@ -64,7 +66,29 @@ export async function PUT(
       : body;
 
   const before = await loadCollection(id);
-  const saved = await saveCollection(id, payload, organiser.userId);
+
+  // Swag → shop linkage (ADR: swag-to-shop-linkage) runs BEFORE the tiers
+  // payload is persisted: a newly created draft product's id is patched onto
+  // the swag item first, so the array actually written already carries the
+  // link, and the two collections never disagree about it even for a
+  // moment.
+  let toSave = payload;
+  let createdDrafts: { tierId: string; swagId: string; productId: string }[] =
+    [];
+  if (id === "ticket-tiers") {
+    const parsed = collectionSchemas["ticket-tiers"].safeParse(payload);
+    if (!parsed.success) {
+      return Response.json(
+        { error: "invalid_body", detail: parsed.error.issues[0]?.message },
+        { status: 400 },
+      );
+    }
+    const synced = await syncSwagToShop(before, parsed.data, organiser.userId);
+    toSave = synced.tiers;
+    createdDrafts = synced.createdDrafts;
+  }
+
+  const saved = await saveCollection(id, toSave, organiser.userId);
   if (!saved.ok) {
     return Response.json(
       { error: "invalid_body", detail: saved.error },
@@ -77,12 +101,12 @@ export async function PUT(
     action: "content.publish",
     target: id,
     before,
-    after: payload,
+    after: toSave,
   });
 
   // The public pages are prerendered, so without this the save is real and
   // invisible — the database changes and the site does not.
   revalidateCollection(id);
 
-  return Response.json({ id, saved: true });
+  return Response.json({ id, saved: true, createdDrafts });
 }

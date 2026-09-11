@@ -283,7 +283,7 @@ export interface TicketForEmail {
   apparelSize?: string | null;
   /** The tier's proper name, e.g. "SONNET" — not the slug. */
   tierName?: string;
-  /** Sub-title beside the name: "Student pass". Already localised. */
+  /** Sub-title beside the name: "Free pass". Already localised. */
   tierLabel?: string;
   /** What the tier includes, already localised. */
   perks?: string[];

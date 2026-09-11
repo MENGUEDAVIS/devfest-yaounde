@@ -14,6 +14,7 @@ import {
   Percent,
   Receipt,
   Table,
+  Tag,
   Ticket,
   Users,
   UsersThree,
@@ -28,6 +29,7 @@ import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import type { AdminData, AdminSettings, MissingPhoto } from "@/lib/admin/shape";
 import { AdminOverview } from "./views/AdminOverview";
 import { AdminTickets } from "./views/AdminTickets";
+import { AdminTicketTiers } from "./views/AdminTicketTiers";
 import { AdminTransactions } from "./views/AdminTransactions";
 import { AdminOrders } from "./views/AdminOrders";
 import { AdminDiscounts } from "./views/AdminDiscounts";
@@ -40,7 +42,14 @@ import { AdminTeam } from "./views/AdminTeam";
 import { AdminSchedule } from "./views/AdminSchedule";
 import { AdminSponsors } from "./views/AdminSponsors";
 import { ToastProvider } from "./forms/Toast";
-import type { Session, Speaker, Sponsor, TeamMember } from "@/data/types";
+import type {
+  Product,
+  Session,
+  Speaker,
+  Sponsor,
+  TeamMember,
+  TicketTier,
+} from "@/data/types";
 import { PageHeader } from "./views/shared";
 
 export interface ContentCounts {
@@ -56,6 +65,7 @@ export interface ContentCounts {
 export type ViewId =
   | "overview"
   | "tickets"
+  | "ticket-tiers"
   | "transactions"
   | "orders"
   | "discounts"
@@ -84,6 +94,7 @@ const GROUPS: {
     label: "Commerce",
     items: [
       { id: "tickets", label: "Tickets", Icon: Ticket },
+      { id: "ticket-tiers", label: "Ticket tiers", Icon: Tag },
       { id: "transactions", label: "Transactions", Icon: Receipt },
       { id: "orders", label: "Shop orders", Icon: Package },
       { id: "discounts", label: "Discounts", Icon: Percent },
@@ -170,6 +181,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
     title: "Tickets",
     blurb: "Everyone who has a badge code. Check-in still happens at the door.",
   },
+  "ticket-tiers": {
+    title: "Ticket tiers",
+    blurb:
+      "Prices, entitlements and swag for every tier. Changes reach the public tickets page as soon as they're saved.",
+  },
   transactions: {
     title: "Transactions",
     blurb: "Payment intents as PawaPay reported them, including failures.",
@@ -239,6 +255,8 @@ export interface AdminCollections {
   team: TeamMember[];
   sessions: Session[];
   sponsors: Sponsor[];
+  products: Product[];
+  tiers: TicketTier[];
 }
 
 export function AdminShell({
@@ -576,6 +594,14 @@ export function AdminShell({
               <AdminOverview data={data} content={content} onGo={go} />
             )}
             {view === "tickets" && <AdminTickets data={data} />}
+            {view === "ticket-tiers" && (
+              <AdminTicketTiers
+                rows={collections.tiers}
+                data={data}
+                settings={settings}
+                products={collections.products}
+              />
+            )}
             {view === "transactions" && <AdminTransactions data={data} />}
             {view === "orders" && <AdminOrders data={data} />}
             {view === "discounts" && <AdminDiscounts data={data} />}
@@ -599,6 +625,10 @@ export function AdminShell({
                 settings={settings}
                 speakerCount={collections.speakers.length}
                 sponsorCount={collections.sponsors.length}
+                tierCapSum={collections.tiers.reduce(
+                  (sum, tier) => sum + (tier.quantityAvailable ?? 0),
+                  0,
+                )}
               />
             )}
           </main>

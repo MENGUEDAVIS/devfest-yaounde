@@ -16,20 +16,28 @@
     },
     "perks": [
       {
-        "fr": "Accès à toutes les conférences",
-        "en": "Access to every talk"
+        "label": {
+          "fr": "Accès à toutes les conférences",
+          "en": "Access to every talk"
+        }
       },
       {
-        "fr": "Accès aux stands des sponsors",
-        "en": "Access to the sponsor stands"
+        "label": {
+          "fr": "Accès aux stands des sponsors",
+          "en": "Access to the sponsor stands"
+        }
       },
       {
-        "fr": "Déjeuner et pauses café",
-        "en": "Lunch and coffee breaks"
+        "label": {
+          "fr": "Déjeuner et pauses café",
+          "en": "Lunch and coffee breaks"
+        }
       },
       {
-        "fr": "Le badge de l'édition",
-        "en": "This edition's badge"
+        "label": {
+          "fr": "Le badge de l'édition",
+          "en": "This edition's badge"
+        }
       }
     ],
     "swag": []
@@ -38,39 +46,51 @@
     "id": "sonnet",
     "name": "SONNET",
     "label": {
-      "fr": "Pass étudiant",
-      "en": "Student pass"
+      "fr": "",
+      "en": ""
     },
     "priceXAF": 2000,
     "quantityAvailable": 150,
     "onSale": true,
     "includesApparel": true,
     "description": {
-      "fr": "Pour les étudiants : tout le DevFest, plus le t-shirt de l'édition.",
-      "en": "For students: the whole of DevFest, plus this edition's tee."
+      "fr": "Le pass classique : tout le DevFest, plus le t-shirt de l'édition.",
+      "en": "The classic pass: the whole of DevFest, plus this edition's tee."
     },
     "perks": [
       {
-        "fr": "Tout ce que contient le pass gratuit",
-        "en": "Everything in the free pass"
+        "label": {
+          "fr": "Tout ce que contient le pass gratuit",
+          "en": "Everything in the free pass"
+        }
       },
       {
-        "fr": "Le t-shirt de l'édition",
-        "en": "This edition's t-shirt"
+        "label": {
+          "fr": "Le t-shirt de l'édition",
+          "en": "This edition's t-shirt"
+        }
       },
       {
-        "fr": "Autocollants",
-        "en": "Stickers"
+        "label": {
+          "fr": "Autocollants",
+          "en": "Stickers"
+        }
       }
     ],
     "swag": [
       {
-        "fr": "T-shirt",
-        "en": "T-shirt"
+        "id": "sonnet-tshirt",
+        "name": {
+          "fr": "T-shirt",
+          "en": "T-shirt"
+        }
       },
       {
-        "fr": "Autocollants",
-        "en": "Sticker pack"
+        "id": "sonnet-stickers",
+        "name": {
+          "fr": "Autocollants",
+          "en": "Sticker pack"
+        }
       }
     ]
   },
@@ -91,34 +111,52 @@
     },
     "perks": [
       {
-        "fr": "Tout ce que contient le pass étudiant",
-        "en": "Everything in the student pass"
+        "label": {
+          "fr": "Tout ce que contient Sonnet",
+          "en": "Everything in Sonnet"
+        }
       },
       {
-        "fr": "Tote bag de l'édition",
-        "en": "This edition's tote bag"
+        "label": {
+          "fr": "Tote bag de l'édition",
+          "en": "This edition's tote bag"
+        }
       },
       {
-        "fr": "Carnet et stylo",
-        "en": "Notebook and pen"
+        "label": {
+          "fr": "Carnet et stylo",
+          "en": "Notebook and pen"
+        }
       }
     ],
     "swag": [
       {
-        "fr": "T-shirt",
-        "en": "T-shirt"
+        "id": "opus-tshirt",
+        "name": {
+          "fr": "T-shirt",
+          "en": "T-shirt"
+        }
       },
       {
-        "fr": "Tote bag",
-        "en": "Tote bag"
+        "id": "opus-totebag",
+        "name": {
+          "fr": "Tote bag",
+          "en": "Tote bag"
+        }
       },
       {
-        "fr": "Carnet",
-        "en": "Notebook"
+        "id": "opus-notebook",
+        "name": {
+          "fr": "Carnet",
+          "en": "Notebook"
+        }
       },
       {
-        "fr": "Autocollants",
-        "en": "Sticker pack"
+        "id": "opus-stickers",
+        "name": {
+          "fr": "Autocollants",
+          "en": "Sticker pack"
+        }
       }
     ]
   },
@@ -139,42 +177,66 @@
     },
     "perks": [
       {
-        "fr": "Tout ce que contient OPUS",
-        "en": "Everything in OPUS"
+        "label": {
+          "fr": "Tout ce que contient OPUS",
+          "en": "Everything in OPUS"
+        }
       },
       {
-        "fr": "Bouteille isotherme",
-        "en": "Insulated bottle"
+        "label": {
+          "fr": "Bouteille isotherme",
+          "en": "Insulated bottle"
+        }
       },
       {
-        "fr": "Casquette de l'édition",
-        "en": "This edition's cap"
+        "label": {
+          "fr": "Casquette de l'édition",
+          "en": "This edition's cap"
+        }
       }
     ],
     "swag": [
       {
-        "fr": "T-shirt",
-        "en": "T-shirt"
+        "id": "fable-tshirt",
+        "name": {
+          "fr": "T-shirt",
+          "en": "T-shirt"
+        }
       },
       {
-        "fr": "Tote bag",
-        "en": "Tote bag"
+        "id": "fable-totebag",
+        "name": {
+          "fr": "Tote bag",
+          "en": "Tote bag"
+        }
       },
       {
-        "fr": "Carnet",
-        "en": "Notebook"
+        "id": "fable-notebook",
+        "name": {
+          "fr": "Carnet",
+          "en": "Notebook"
+        }
       },
       {
-        "fr": "Bouteille",
-        "en": "Bottle"
+        "id": "fable-bottle",
+        "name": {
+          "fr": "Bouteille",
+          "en": "Bottle"
+        }
       },
       {
-        "fr": "Casquette",
-        "en": "Cap"
+        "id": "fable-cap",
+        "name": {
+          "fr": "Casquette",
+          "en": "Cap"
+        }
       },
       {
-        "fr": "Autocollants",
-        "en": "Sticker pack"
+        "id": "fable-stickers",
+        "name": {
+          "fr": "Autocollants",
+          "en": "Sticker pack"
+        }
       }
     ]
   },
@@ -195,50 +257,80 @@
     },
     "perks": [
       {
-        "fr": "Tout ce que contient FABLE",
-        "en": "Everything in FABLE"
+        "label": {
+          "fr": "Tout ce que contient FABLE",
+          "en": "Everything in FABLE"
+        }
       },
       {
-        "fr": "Hoodie de l'édition",
-        "en": "This edition's hoodie"
+        "label": {
+          "fr": "Hoodie de l'édition",
+          "en": "This edition's hoodie"
+        }
       },
       {
-        "fr": "Lanyard collector",
-        "en": "Collector lanyard"
+        "label": {
+          "fr": "Lanyard collector",
+          "en": "Collector lanyard"
+        }
       }
     ],
     "swag": [
       {
-        "fr": "Hoodie",
-        "en": "Hoodie"
+        "id": "mythos-hoodie",
+        "name": {
+          "fr": "Hoodie",
+          "en": "Hoodie"
+        }
       },
       {
-        "fr": "T-shirt",
-        "en": "T-shirt"
+        "id": "mythos-tshirt",
+        "name": {
+          "fr": "T-shirt",
+          "en": "T-shirt"
+        }
       },
       {
-        "fr": "Tote bag",
-        "en": "Tote bag"
+        "id": "mythos-totebag",
+        "name": {
+          "fr": "Tote bag",
+          "en": "Tote bag"
+        }
       },
       {
-        "fr": "Carnet",
-        "en": "Notebook"
+        "id": "mythos-notebook",
+        "name": {
+          "fr": "Carnet",
+          "en": "Notebook"
+        }
       },
       {
-        "fr": "Bouteille",
-        "en": "Bottle"
+        "id": "mythos-bottle",
+        "name": {
+          "fr": "Bouteille",
+          "en": "Bottle"
+        }
       },
       {
-        "fr": "Casquette",
-        "en": "Cap"
+        "id": "mythos-cap",
+        "name": {
+          "fr": "Casquette",
+          "en": "Cap"
+        }
       },
       {
-        "fr": "Lanyard",
-        "en": "Lanyard"
+        "id": "mythos-lanyard",
+        "name": {
+          "fr": "Lanyard",
+          "en": "Lanyard"
+        }
       },
       {
-        "fr": "Autocollants",
-        "en": "Sticker pack"
+        "id": "mythos-stickers",
+        "name": {
+          "fr": "Autocollants",
+          "en": "Sticker pack"
+        }
       }
     ]
   }

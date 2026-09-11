@@ -77,6 +77,32 @@ export function storagePath(collection: CollectionId, entryId: string): string {
   return `${collection}/${entryId}.jpg`;
 }
 
+/**
+ * Public URL for an arbitrary path in the editorial bucket.
+ *
+ * `publicPhotoUrl` above is this same construction, narrowed to one
+ * `<collection>/<entryId>.jpg` shape. The staged multi-image uploader
+ * (swag items, product galleries) stores several files under a caller-chosen
+ * folder instead, so it needs the general form.
+ */
+export function publicStorageUrl(path: string): string {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
+  return `${base}/storage/v1/object/public/${EDITORIAL_BUCKET}/${path}`;
+}
+
+/**
+ * A caller-chosen folder for staged uploads — letters, digits, `-`/`_`/`/`
+ * only, no leading/trailing/doubled slashes, no `..`. Rejects anything else
+ * rather than sanitising it, since this becomes a Supabase Storage key.
+ */
+export function isSafeUploadPath(path: string): boolean {
+  if (!path || path.length > 200) return false;
+  if (path.includes("..") || path.startsWith("/") || path.endsWith("/")) {
+    return false;
+  }
+  return /^[a-z0-9_-]+(\/[a-z0-9_-]+)*$/i.test(path);
+}
+
 export async function normalisePhoto(file: Blob): Promise<Buffer> {
   if (file.size > PHOTO_MAX_BYTES) throw new PhotoRejected("too_large");
 

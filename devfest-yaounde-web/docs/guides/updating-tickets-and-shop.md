@@ -1,67 +1,63 @@
 # Updating ticket tiers and shop products
 
-Prices, tiers and merch live in two JSON files. Editing them needs no
-developer — same rules as `updating-content.md`:
+**Ticket tiers are edited from the admin dashboard** (Ticket tiers, under
+Commerce) since Phase 20 — no file edit, no developer, no redeploy. Shop
+products are still a JSON file edit until Part B's Shop screen ships; the
+rules below still apply to that file in the meantime, same as
+`updating-content.md`:
 
 1. **Both languages, always.** Any field written as `{ "fr": "…", "en": "…" }`
    needs both filled in.
 2. **`id` must be unique** and shouldn't change once anyone has bought it —
    past tickets and orders reference it.
 
-> ## ⚠ Everything in these two files is mock data
+> ## The tier names are real; the prices and content are still to confirm
 >
-> The tier names (`HAIKYU`, `SONNET`, `OPUS`), the prices, the perks, the
-> products and their images are all **invented placeholders**. They exist so
-> the checkout, the capacity limits and the receipts could be built and tested
-> against something concrete.
->
-> Only the tier _shape_ comes from `PAGES.md` §7 — a free tier, a paid tier, a
-> top tier. The names and the contents are not decided.
->
-> **Nothing here may go live as-is.** Replace it before sales open; the
-> pre-launch checklist in `docs/setup/deployment.md` lists it as a blocker.
-> Changing a name or a price is a file edit and needs no developer — the
-> sections below say how.
+> `HAIKYU`, `SONNET`, `OPUS`, `FABLE`, `MYTHOS` are the tier identity — the
+> Claude-model naming is a settled choice, not a placeholder. Their prices,
+> perks, entitlements and swag are still invented and need a real decision
+> before sales open (`docs/setup/deployment.md`'s pre-launch checklist lists
+> this as a blocker). Changing any of it is now a dashboard edit, not a file
+> edit — see below.
 
 ---
 
-## Ticket tiers — `src/data/ticket-tiers.json`
+## Ticket tiers — the "Ticket tiers" dashboard screen
 
-```json
-{
-  "id": "sonnet",
-  "name": "SONNET",
-  "priceXAF": 10000,
-  "onSale": true,
-  "includesApparel": true,
-  "quantityAvailable": 150,
-  "description": {
-    "fr": "Une ou deux phrases sur ce que contient ce billet.",
-    "en": "A sentence or two about what this ticket gets you."
-  },
-  "perks": [{ "fr": "Ce qui est inclus", "en": "What's included" }]
-}
-```
+`src/data/ticket-tiers.json` is still there as the **seed/fallback** a fresh
+clone with no database renders from (same convention as every other
+editorial collection) — once a save happens from the dashboard, the database
+row is the live source and the file is no longer read.
 
-- **`priceXAF`** — whole francs, no decimals, no spaces. `0` makes the tier
-  free, which skips the payment step entirely and issues the ticket straight
-  away.
-- **`name`** — deliberately not translated: it's a proper noun, and it's
-  rendered in the mono-tag style.
-- **`onSale`** — set to `false` to take a tier off the page. **Don't delete
-  the entry**: past tickets point at it, and removing it would make them
-  unreadable.
-- **`includesApparel`** — `true` makes the checkout ask for a T-shirt size for
-  each attendee. Set it on any tier that comes with clothing, or people will
-  receive the wrong size.
-- **`quantityAvailable`** — leave it out for unlimited. It's checked at
-  checkout, so a tier can't oversell in a single order.
+- **Price, on-sale, apparel, quantity** — plain fields, same meaning as
+  before: `priceXAF` in whole francs (`0` = free, skips payment entirely);
+  `onSale: false` takes a tier off the page without deleting it (past
+  tickets point at the id); `includesApparel` asks for a size per attendee;
+  `quantityAvailable` left blank means unlimited, and is still the number
+  checkout actually enforces.
+- **Sold out** — a separate switch from quantity. Use it to pull a tier off
+  sale for a reason the remaining-quantity count doesn't know about (holding
+  back seats, a print run that fell through). Enforced server-side the same
+  way quantity is.
+- **What this ticket grants you** (entitlements) — a reorderable list of
+  `{ label, icon?, note? }`. `label` is what used to be a plain perk string;
+  `icon` picks from a fixed set (no free text) and `note` is an optional
+  smaller line under the label.
+- **Swag** — named items with real images (drag/select several — each
+  uploads and previews immediately, independent of the others). **Every
+  swag item also becomes a shop listing automatically**, created as a hidden
+  draft until someone fills in its price/stock/status on the Shop screen —
+  see the swag→shop linkage ADR (`docs/decisions/0050-swag-to-shop-linkage.md`).
+  Removing a swag item unlinks its product rather than deleting it.
+- **Deleting a tier** requires typing its id to confirm, and is blocked
+  outright if it already has sold tickets — turn off "On sale" or mark it
+  sold out instead.
 
 ### Changing a price mid-sale
 
-Safe to do: every total is recalculated from this file at the moment someone
-pays, so a stale browser tab can't lock in the old price. Tickets already paid
-for keep the price they were bought at.
+Safe to do: every total is recalculated from the tier data at the moment
+someone pays, so a stale browser tab can't lock in the old price. Tickets
+already paid for keep the price they were bought at.
 
 ---
 
@@ -151,6 +147,10 @@ Two things the UI cannot do, because the data does not carry them:
 - **No per-variant stock.** A product is buyable or it is not; a single
   out-of-stock size cannot be expressed (G12).
 
-Ticket tiers work the same way in `src/data/ticket-tiers.json`. Note
-`quantityAvailable` there is the **capacity the server enforces** — removing it
-makes a tier uncapped, and it is covered by a test for that reason.
+Ticket tiers are edited from the dashboard now (above), not the JSON file —
+but `quantityAvailable` is still the **capacity the server enforces**;
+leaving it blank makes a tier uncapped, and that is covered by a test for
+that reason. The **overall event capacity** shown publicly (Info bar &
+policies → Ticket capacity) is a separate, admin-set figure — it does not
+enforce anything at checkout by itself; see
+`docs/decisions/0051-ticket-capacity-vs-tier-caps.md`.

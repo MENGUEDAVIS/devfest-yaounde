@@ -29,6 +29,10 @@ import {
   quoteTierCounts,
 } from "@/lib/payments/pricing";
 import { refundAcknowledgment } from "@/lib/payments/terms";
+import ticketTiersJson from "@/data/ticket-tiers.json";
+import type { TicketTier } from "@/data/types";
+
+const ticketTiers = ticketTiersJson as TicketTier[];
 import {
   ticketCheckoutSchema,
   shopCheckoutSchema,
@@ -1218,6 +1222,25 @@ describe("quoting a basket before paying for it", () => {
       quoteTierCounts([{ tierId: "sonnet", quantity: 11 }]),
       CHECKOUT_ERRORS.ATTENDEE_COUNT_MISMATCH,
     );
+  });
+
+  it("refuses a tier flagged sold out, even with capacity remaining", async () => {
+    // `soldOut` is a separate admin flag from `quantityAvailable` — an admin
+    // can pull a tier off sale for reasons the counter doesn't know about.
+    // Flip it on a tier that otherwise has plenty of room, and restore it
+    // immediately after: this JSON module is the same object `loadTiers()`
+    // falls back to, shared across the whole suite.
+    const tier = ticketTiers.find((t) => t.id === "opus")!;
+    const original = tier.soldOut;
+    tier.soldOut = true;
+    try {
+      await rejectsWith(
+        quoteTierCounts([{ tierId: "opus", quantity: 1 }]),
+        CHECKOUT_ERRORS.TIER_SOLD_OUT,
+      );
+    } finally {
+      tier.soldOut = original;
+    }
   });
 
   it("keeps the client and server lists of discount failures in step", () => {

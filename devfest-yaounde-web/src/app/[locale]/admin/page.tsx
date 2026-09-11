@@ -10,6 +10,8 @@ import {
   getAllSpeakers,
   getSponsors,
   getAllTeam,
+  getAllProducts,
+  getTiers,
 } from "@/lib/content/store";
 
 /**
@@ -31,16 +33,27 @@ import {
  * DISPLAYS is still bilingual data, shown in both languages where it has two.
  */
 export default async function AdminPage() {
-  const [data, counts, settings, speakers, team, sponsors, sessions] =
-    await Promise.all([
-      loadAdminData(),
-      collectionCounts(),
-      loadSettings(),
-      getAllSpeakers(),
-      getAllTeam(),
-      getSponsors(),
-      getSessions(),
-    ]);
+  const [
+    data,
+    counts,
+    settings,
+    speakers,
+    team,
+    sponsors,
+    sessions,
+    products,
+    tiers,
+  ] = await Promise.all([
+    loadAdminData(),
+    collectionCounts(),
+    loadSettings(),
+    getAllSpeakers(),
+    getAllTeam(),
+    getSponsors(),
+    getSessions(),
+    getAllProducts(),
+    getTiers(),
+  ]);
 
   const missingPhotos: MissingPhoto[] = [
     ...speakers
@@ -75,7 +88,7 @@ export default async function AdminPage() {
         data={data}
         settings={settings}
         missingPhotos={missingPhotos}
-        collections={{ speakers, team, sessions, sponsors }}
+        collections={{ speakers, team, sessions, sponsors, products, tiers }}
         content={{
           speakers: counts.speakers,
           team: counts.team,
