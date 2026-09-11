@@ -25,8 +25,11 @@ const IDLE_FADE_MS = 1400;
  * scrollbar rather than no scrollbar at all.
  *
  * Position comes from `@/lib/scroll-source` via `useSyncExternalStore` —
- * the single seam that would point at Lenis instead if the momentum-scroll
- * ADR (docs/decisions/0007-smooth-scroll.md) is approved.
+ * native scroll only. That module used to switch between native scroll and a
+ * momentum-scroll library (`docs/decisions/0007-smooth-scroll.md`), which was
+ * removed outright (ADR 0053), so this now reads real scroll position
+ * unconditionally rather than through a driver that could change underneath
+ * it.
  *
  * Desktop only (`lg:block`): touch platforms have their own overlay
  * scrollbars and no pointer to grab this with.

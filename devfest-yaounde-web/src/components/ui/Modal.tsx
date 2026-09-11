@@ -149,9 +149,9 @@ export function Modal({
 
     previousActiveElement.current =
       document.activeElement as HTMLElement | null;
-    // Routed through the scroll seam: `overflow: hidden` alone does not stop
-    // Lenis, which runs its own loop against the real document, so the page
-    // would keep gliding behind a "locked" overlay.
+    // Routed through the shared scroll seam (`src/lib/scroll-source.ts`)
+    // rather than toggling `overflow: hidden` here directly — that seam is
+    // what lets locks nest correctly when one overlay opens over another.
     const releaseScroll = lockScroll();
 
     const panel = panelRef.current;
@@ -218,22 +218,6 @@ export function Modal({
 
   return createPortal(
     <div
-      /*
-       * LENIS MUST KEEP ITS HANDS OFF EVERYTHING IN HERE.
-       *
-       * `lockScroll()` calls `lenis.stop()`, and a stopped Lenis does not go
-       * quiet — it keeps its wheel listener and calls `preventDefault()` on
-       * every wheel event it sees, which is how it holds the page still. That
-       * also swallowed wheel events over the overlay, so a scrollable drawer
-       * could only be moved by dragging its scrollbar. Measured: the panel's
-       * scrollTop never left 0 under a 3000px wheel.
-       *
-       * `data-lenis-prevent` is checked BEFORE the stopped branch, so this
-       * hands the whole overlay back to native scrolling. The page behind
-       * cannot escape either way — it is held by `overflow: hidden` on both
-       * <html> and <body>, not by Lenis.
-       */
-      data-lenis-prevent
       className={
         takeover
           ? // Covers EVERYTHING, navbar included. z-100 clears the chrome

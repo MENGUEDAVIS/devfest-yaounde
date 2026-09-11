@@ -48,17 +48,15 @@ progress bar for a load that already finished.
   effect's lock does not run until hydration — measured ~120ms later — and for
   that window the page could otherwise be scrolled behind a screen meant to be
   covering it. The CSS rule unlocks itself when React removes the node.
-- **`lockScroll()` in an effect** stops Lenis, which owns its own scroll loop
-  and ignores `overflow` entirely.
+- **`lockScroll()` in an effect** covers everything after hydration, for as
+  long as the component stays mounted.
 
 **The effect is keyed on `gone`, not on unmount**, and that distinction was a
-real bug. A component that returns `null` is still _mounted_, so the cleanup
-never ran and the inline `overflow: hidden` stayed on `<html>` and `<body>`
-forever. Scrolling appeared to work only because Lenis intercepts the wheel and
-scrolls the document itself, bypassing `overflow` — so on a touch device, under
-reduced motion, or anywhere Lenis is off, the page would have been permanently
-unscrollable after the splash. A test now wheels the page with reduced motion
-on, where nothing papers over it.
+real bug. A component that returns `null` is still _mounted_, so an effect
+keyed on unmount never re-runs its cleanup — the inline `overflow: hidden`
+would have stayed on `<html>` and `<body>` forever, and the page would have
+been permanently unscrollable after the splash. A test now wheels the page
+with reduced motion on, where nothing papers over it.
 
 ## Accessibility
 

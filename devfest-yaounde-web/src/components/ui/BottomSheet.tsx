@@ -46,8 +46,10 @@ export interface BottomSheetProps {
  * Dismissal, four ways, because a sheet that is hard to close is worse than
  * no sheet: the close button, Escape, tapping the scrim, and swiping down.
  *
- * Scroll lock routes through `lockScroll`, which also stops Lenis — plain
- * `overflow: hidden` does not, so the page would keep gliding underneath.
+ * Scroll lock routes through `lockScroll`, the shared seam every overlay in
+ * this codebase uses (see `src/lib/scroll-source.ts`), rather than a plain
+ * `overflow: hidden` written here — that seam is what makes locks nest
+ * correctly when one overlay opens over another.
  *
  * Portalled to <body> so no ancestor's `overflow` or stacking context can
  * clip it. That matters here specifically: the person cards it now serves
@@ -106,10 +108,7 @@ export function BottomSheet({
   if (!open) return null;
 
   return createPortal(
-    /* `data-lenis-prevent` for the same reason as `Modal` — a stopped Lenis
-       still preventDefaults wheel events, which would freeze the sheet's own
-       scrolling body along with the page. */
-    <div data-lenis-prevent className="fixed inset-0 z-100">
+    <div className="fixed inset-0 z-100">
       <div
         aria-hidden
         /*

@@ -240,8 +240,10 @@ should be read aloud.
 
 Both own their focus trap, Escape, scrim and scroll lock. Do not write a third
 overlay; extend one of these. Scroll locking must go through `lockScroll()` in
-`src/lib/scroll-source.ts` — `overflow: hidden` alone neither stops Lenis nor
-locks `<html>`, and both were verified to leak.
+`src/lib/scroll-source.ts`, not a plain `overflow: hidden` written locally —
+that seam is what makes nested locks (an overlay opening over another) behave
+correctly, and `overflow: hidden` on `<body>` alone was verified to leak
+(`<html>` is the actual scrolling element here).
 
 ## Mobile rules
 

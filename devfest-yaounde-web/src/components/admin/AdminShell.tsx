@@ -371,9 +371,8 @@ export function AdminShell({
      *
      * The document element is what scrolls here, so hiding overflow on the
      * body alone leaves the page moving under the drawer — which is exactly
-     * what it did. `lockScroll` covers <html> too, compensates for a native
-     * scrollbar gutter, and stops Lenis, which keeps gliding regardless of
-     * any overflow rule.
+     * what it did. `lockScroll` covers <html> too, and compensates for a
+     * native scrollbar gutter.
      */
     const releaseScroll = lockScroll();
     const onKey = (event: KeyboardEvent) => {
