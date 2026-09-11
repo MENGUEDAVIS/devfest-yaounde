@@ -1,10 +1,11 @@
 # Updating ticket tiers and shop products
 
-**Ticket tiers are edited from the admin dashboard** (Ticket tiers, under
-Commerce) since Phase 20 — no file edit, no developer, no redeploy. Shop
-products are still a JSON file edit until Part B's Shop screen ships; the
-rules below still apply to that file in the meantime, same as
-`updating-content.md`:
+**Both ticket tiers and shop products are edited from the admin dashboard**
+(Ticket tiers and Shop, under Commerce) since Phase 20 — no file edit, no
+developer, no redeploy. `src/data/ticket-tiers.json` and
+`src/data/products.json` remain the seed/fallback for a fresh clone with no
+database, same convention as every other editorial collection, and the same
+rules as `updating-content.md` apply to what you type:
 
 1. **Both languages, always.** Any field written as `{ "fr": "…", "en": "…" }`
    needs both filled in.
@@ -61,21 +62,9 @@ already paid for keep the price they were bought at.
 
 ---
 
-## Shop products — `src/data/products.json`
+## Shop products — the "Shop" dashboard screen
 
-```json
-{
-  "id": "tee-edition",
-  "name": { "fr": "T-shirt DevFest Yaoundé", "en": "DevFest Yaoundé T-shirt" },
-  "description": { "fr": "…", "en": "…" },
-  "priceXAF": 12000,
-  "images": ["/shop/tee-edition.jpg"],
-  "variants": { "size": ["S", "M", "L", "XL"], "color": ["Noir"] },
-  "status": "pre-order"
-}
-```
-
-- **`status`** drives the pill on the card, and also what checkout accepts:
+- **Status** drives the pill on the card, and also what checkout accepts:
 
   | Status       | Shown as     | Can be bought online? |
   | ------------ | ------------ | --------------------- |
@@ -87,11 +76,27 @@ already paid for keep the price they were bought at.
   The last two are enforced server-side, so flipping a product to `sold-out`
   stops sales immediately even for someone mid-checkout.
 
-- **`variants`** — if you list sizes, a size becomes **required**. Someone can't
-  check out without picking one. Leave `variants` out entirely for items with
-  no options (stickers, a mug).
-- **`images`** — put files in `public/shop/` and reference them as
-  `/shop/filename.jpg`.
+- **Sizes/colors** — turning on a size makes it **required**: someone cannot
+  check out without picking one. Leave every size and color off for an item
+  with no options (stickers, a mug).
+- **Images** — drag/select several; each uploads and previews immediately,
+  independent of the others (the same staged uploader as ticket swag). The
+  first one is the card cover.
+- **Stock per combination** — omit a combination to leave it unlimited.
+  Declared here, counted in the database against real orders (ADR 0024) —
+  this number is a cap, not a live count.
+- **Published** — off keeps a listing off the public shop entirely. New
+  products default to published; a product **auto-created from a ticket's
+  swag item** (see `docs/decisions/0050-swag-to-shop-linkage.md`) defaults to
+  **unpublished**, and the toggle is disabled until it has a price above 0
+  and at least one image — the "needs completion" filter on this screen
+  finds every one still in that state. A product linked to a tier's swag
+  shows which tier, with a link back to it.
+- **Deleting a product** requires typing its id to confirm, and is blocked
+  outright if it is linked to an existing order — mark it `sold-out` or
+  unpublish it instead.
+- **No category field.** Filtering is by status and search — see G11 in
+  `docs/backend/GAPS.md` for why one was not added.
 
 ---
 
@@ -125,10 +130,11 @@ fails there rather than at someone's checkout.
 
 ---
 
-## What the UI does with each catalog field (added Phase 14 Part B)
+## What the public site does with each catalog field
 
-Edited in `src/data/products.json`. The server prices from this same file by
-id, so a price here is the price charged — there is no second place to change.
+Edited from the Shop dashboard screen now, not the JSON file (above). The
+server prices from the same source by id, so a price set there is the price
+charged — there is no second place to change.
 
 | Field                      | Where it shows                                                                                   |
 | -------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -136,16 +142,17 @@ id, so a price here is the price charged — there is no second place to change.
 | `priceXAF`                 | Everywhere a price appears; **the server recomputes from this**                                  |
 | `images[]`                 | First image on the card; all of them as thumbnails on the detail                                 |
 | `variants.size` / `.color` | Selectable chips. A sized product will not add to the bag without a size — the server rejects it |
+| `stock[]`                  | Per-combination cap, counted against real orders (ADR 0024) — not a UI field on the public site  |
 | `status`                   | The pill, **and** whether it can be bought at all                                                |
+| `published`                | Whether it appears at all — false stays entirely off the public shop                              |
 
-**Adding a product** is a new entry in the array. **Retiring one** is
-`status: "sold-out"` — do not delete it, because past orders reference the id.
+**Retiring a product** is `status: "sold-out"` or `published: false` — never
+delete it once it has an order, because past orders reference the id (the
+dashboard blocks that delete outright).
 
-Two things the UI cannot do, because the data does not carry them:
-
-- **No categories.** The filter is by availability and search instead (G11).
-- **No per-variant stock.** A product is buyable or it is not; a single
-  out-of-stock size cannot be expressed (G12).
+**No categories.** The filter is by availability and search instead — see
+G11 in `docs/backend/GAPS.md` for why (packages, not plain categories, and
+the shape isn't settled).
 
 Ticket tiers are edited from the dashboard now (above), not the JSON file —
 but `quantityAvailable` is still the **capacity the server enforces**;

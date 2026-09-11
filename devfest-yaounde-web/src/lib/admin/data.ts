@@ -45,7 +45,7 @@ export async function loadAdminData(): Promise<AdminData> {
     db
       .from("orders")
       .select(
-        "id, status, total_amount, currency, created_at, fulfilment, order_items(name_snapshot, quantity, unit_amount, variant)",
+        "id, status, total_amount, currency, created_at, fulfilment, order_items(product_id, name_snapshot, quantity, unit_amount, variant)",
         { count: "exact" },
       )
       .order("created_at", { ascending: false })
@@ -193,6 +193,7 @@ export async function loadAdminData(): Promise<AdminData> {
         createdAt: o.created_at,
         fulfilment: o.fulfilment,
         items: (o.order_items ?? []).map((i) => ({
+          productId: i.product_id,
           // `name_snapshot` is a JSON column (it stores the bilingual name at
           // the time of sale), so it needs coercing before it reaches a table.
           name:

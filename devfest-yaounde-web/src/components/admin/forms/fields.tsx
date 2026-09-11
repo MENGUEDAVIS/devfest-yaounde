@@ -142,11 +142,16 @@ export function Toggle({
   onChange,
   label,
   hint,
+  disabled,
+  disabledHint,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
   hint?: string;
+  disabled?: boolean;
+  /** Shown instead of `hint` while disabled — why flipping it is blocked. */
+  disabledHint?: string;
 }) {
   return (
     /*
@@ -161,10 +166,13 @@ export function Toggle({
 
       Anchoring it to its own label puts the input where it looks like it is.
     */
-    <label className="relative flex cursor-pointer items-start gap-3">
+    <label
+      className={`relative flex items-start gap-3 ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+    >
       <input
         type="checkbox"
         checked={checked}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
         className="peer sr-only"
       />
@@ -184,8 +192,14 @@ export function Toggle({
         <span className="block text-body-m font-bold text-black02">
           {label}
         </span>
-        {hint && (
-          <span className="block text-caption text-black02/60">{hint}</span>
+        {disabled && disabledHint ? (
+          <span className="block text-caption text-black02/60">
+            {disabledHint}
+          </span>
+        ) : (
+          hint && (
+            <span className="block text-caption text-black02/60">{hint}</span>
+          )
         )}
       </span>
     </label>
