@@ -104,8 +104,11 @@ interface TicketTier {
   includesApparel: boolean; // if true, collect T-shirt size in attendee details step
   quantityAvailable?: number;
   soldOut?: boolean; // independent admin flag, checked at checkout alongside quantity
-  // Each item auto-creates a linked (draft) shop product — see ADR 0050.
-  swag?: { id: string; name: LocalizedString; images?: string[]; shopProductId?: string }[];
+  // Swag BY REFERENCE: ids of shop products this tier bundles (ADR 0054).
+  // A tier NEVER creates a product — the admin picks from existing Shop
+  // listings. Order is the admin's and is what the public preview renders.
+  // Ids that no longer resolve are skipped at render, not validated away.
+  swagProductIds?: string[];
 }
 
 interface Product {
@@ -116,8 +119,10 @@ interface Product {
   images: string[];
   variants?: { size?: string[]; color?: string[] };
   status: "pre-order" | "in-stock" | "venue-only" | "sold-out"; // always paired with a visible text label, never color alone
-  published?: boolean; // absent/true = live; false = draft, never shown publicly
-  sourceSwag?: { tierId: string; swagId: string }; // set only if auto-created from a tier's swag
+  published?: boolean; // absent/true = live; false = hidden, never shown publicly
+  // Toggleable straight from the Shop listing row (ADR 0055). Hiding a
+  // product does NOT detach it from tiers that bundle it — the reference
+  // stays and the public preview skips it while hidden.
 }
 
 interface TeamMember {

@@ -162,23 +162,11 @@ export const productSchema = z.object({
     .optional(),
   status: z.enum(["pre-order", "in-stock", "venue-only", "sold-out"]),
   /**
-   * Absent or true = live on the public shop. False = draft — either an
-   * admin working on a new listing, or a product auto-created from a ticket
-   * tier's swag (see `sourceSwag`) that is missing shop-only fields. Same
-   * absent-means-visible convention as `hidden` on speakers/team.
+   * Absent or true = live on the public shop. False = hidden/draft — an
+   * admin still working on a listing, or one deliberately pulled from sale.
+   * Same absent-means-visible convention as `hidden` on speakers/team.
    */
   published: z.boolean().optional(),
-  /**
-   * Set only on a product auto-created from a ticket tier's swag item.
-   * Traceable link back to the tier — cleared (not deleted) if the swag
-   * item is later removed from the tier. See ADR on swag→shop linkage.
-   */
-  sourceSwag: z
-    .object({
-      tierId: slug,
-      swagId: slug,
-    })
-    .optional(),
 });
 
 /** One thing a ticket grants — "what your ticket includes" (admin-editable). */
@@ -189,22 +177,22 @@ export const entitlementSchema = z.object({
   note: localized.optional(),
 });
 
-/** A swag item bundled with a tier, optionally linked to its own shop listing. */
-export const swagItemSchema = z.object({
-  id: slug,
-  name: localizedRequired,
-  images: z.array(z.string().max(400)).max(6).optional(),
-  /** Set once the auto-created (or manually linked) shop product exists. */
-  shopProductId: slug.optional(),
-});
-
 export const ticketTierSchema = z.object({
   id: slug,
   name: z.string().trim().min(1).max(40),
   label: localized.optional(),
   priceXAF: z.number().int().min(0).max(10_000_000),
   rsvpExternal: z.boolean().optional(),
-  swag: z.array(swagItemSchema).max(20).optional(),
+  /**
+   * Shop products bundled with this tier, BY REFERENCE (ADR 0054).
+   *
+   * Ids only. A tier never creates or owns a product — it points at
+   * listings the Shop already holds, so the same t-shirt bundled with three
+   * tiers is one product, not three near-identical copies. Ids that no
+   * longer resolve are ignored at render rather than validated away here:
+   * a deleted product must not make an unrelated tier unsaveable.
+   */
+  swagProductIds: z.array(slug).max(20).optional(),
   description: localizedRequired,
   perks: z.array(entitlementSchema).max(30),
   includesApparel: z.boolean(),

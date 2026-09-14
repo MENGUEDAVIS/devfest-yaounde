@@ -7,7 +7,7 @@ import { AccountLink } from "@/components/account/AccountLink";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { loadSettings } from "@/lib/content/settings";
-import { getTiers } from "@/lib/content/store";
+import { getProducts, getTiers } from "@/lib/content/store";
 import { getTicketCapacity } from "@/lib/payments/capacity";
 
 export async function generateMetadata({
@@ -43,11 +43,23 @@ export default async function TicketsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.tickets");
-  const [tiers, settings, capacity] = await Promise.all([
+  const [tiers, settings, capacity, products] = await Promise.all([
     getTiers(),
     loadSettings(),
     getTicketCapacity(),
+    // PUBLISHED products only: a tier must never advertise swag that the
+    // shop is not showing. An id pointing at a hidden or deleted listing
+    // simply resolves to nothing and is skipped in the preview.
+    getProducts(),
   ]);
+
+  /*
+   * Resolved here, on the server, rather than shipping the whole catalog to
+   * the client for it to look ids up in. Only the products some tier
+   * actually references cross the wire.
+   */
+  const referenced = new Set(tiers.flatMap((tier) => tier.swagProductIds ?? []));
+  const swagProducts = products.filter((product) => referenced.has(product.id));
 
   return (
     <main id="main-content" className="flex-1 pt-32 sm:pt-28">
@@ -67,7 +79,11 @@ export default async function TicketsPage({
         )}
 
         <div className="mt-16">
-          <TicketCheckout tiers={tiers} bevyUrl={settings.bevyUrl} />
+          <TicketCheckout
+            tiers={tiers}
+            swagProducts={swagProducts}
+            bevyUrl={settings.bevyUrl}
+          />
         </div>
       </SectionContainer>
     </main>

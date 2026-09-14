@@ -44,12 +44,20 @@ row is the live source and the file is no longer read.
   `{ label, icon?, note? }`. `label` is what used to be a plain perk string;
   `icon` picks from a fixed set (no free text) and `note` is an optional
   smaller line under the label.
-- **Swag** — named items with real images (drag/select several — each
-  uploads and previews immediately, independent of the others). **Every
-  swag item also becomes a shop listing automatically**, created as a hidden
-  draft until someone fills in its price/stock/status on the Shop screen —
-  see the swag→shop linkage ADR (`docs/decisions/0050-swag-to-shop-linkage.md`).
-  Removing a swag item unlinks its product rather than deleting it.
+- **Swag included** — **pick from what the Shop already sells.** Search the
+  catalogue, attach the items this tier bundles, drag them into the order you
+  want them shown in, detach what does not belong. Attaching an item here
+  never creates a product: the same t-shirt bundled with four tiers is one
+  listing referenced four times, which is what stops the catalogue filling up
+  with near-identical copies (ADR 0054, replacing the old auto-create model).
+  - **Nothing to pick from?** Add the products in **Shop** first — the field
+    says so and links there. A tier with no swag attached is a normal state,
+    not an error; it simply shows no swag on the public page.
+  - **Detaching never touches the product.** It stays in the Shop exactly as
+    it was, and any other tier bundling it is unaffected.
+  - An attached item that has since been deleted from the Shop is flagged in
+    red so you can clear it. The public page already skips it, so nothing is
+    broken meanwhile.
 - **Deleting a tier** requires typing its id to confirm, and is blocked
   outright if it already has sold tickets — turn off "On sale" or mark it
   sold out instead.
@@ -86,12 +94,17 @@ already paid for keep the price they were bought at.
   Declared here, counted in the database against real orders (ADR 0024) —
   this number is a cap, not a live count.
 - **Published** — off keeps a listing off the public shop entirely. New
-  products default to published; a product **auto-created from a ticket's
-  swag item** (see `docs/decisions/0050-swag-to-shop-linkage.md`) defaults to
-  **unpublished**, and the toggle is disabled until it has a price above 0
-  and at least one image — the "needs completion" filter on this screen
-  finds every one still in that state. A product linked to a tier's swag
-  shows which tier, with a link back to it.
+  products default to published, and the toggle is disabled until the listing
+  has a price above 0 and at least one image.
+  - You do **not** need to open the editor to change this: every row in the
+    listing has a **Publish / Hide** button that saves on the spot, and the
+    list puts published items first under a **Published** / **Hidden** label
+    (ADR 0055). The same button is on the Tickets listing for **On sale**.
+  - Hiding a product does **not** detach it from any tier that bundles it.
+    The tier keeps the reference and the public tier card simply skips it
+    while it is hidden — publish it again and it reappears.
+  - A product bundled by one or more tiers shows which ones, on the row and
+    in the editor.
 - **Deleting a product** requires typing its id to confirm, and is blocked
   outright if it is linked to an existing order — mark it `sold-out` or
   unpublish it instead.

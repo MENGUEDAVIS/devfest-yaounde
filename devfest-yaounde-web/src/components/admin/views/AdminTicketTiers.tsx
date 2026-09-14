@@ -1,7 +1,8 @@
 "use client";
 
-import { Link as LinkIcon } from "@phosphor-icons/react";
-import type { Product, TicketTier, TierSwagItem } from "@/data/types";
+import { useState } from "react";
+import { ArrowSquareOut, Check, MagnifyingGlass, X } from "@phosphor-icons/react";
+import type { Product, TicketTier } from "@/data/types";
 import type { AdminData, AdminSettings } from "@/lib/admin/shape";
 import { slugify } from "@/lib/admin/form-helpers";
 import { EntityCrud } from "../forms/EntityCrud";
@@ -12,8 +13,6 @@ import {
   TextInput,
   Toggle,
 } from "../forms/fields";
-import { MultiImageUpload } from "../forms/MultiImageUpload";
-import { useToast } from "../forms/Toast";
 import { InfoBanner } from "./shared";
 
 export function AdminTicketTiers({
@@ -21,13 +20,20 @@ export function AdminTicketTiers({
   data,
   settings,
   products,
+  onGoToShop,
 }: {
   rows: TicketTier[];
   data: AdminData;
   settings: AdminSettings;
   products: Product[];
+  /**
+   * Switch the dashboard to the Shop view. A callback rather than a link:
+   * the admin is one client component that swaps views in state, so an
+   * `<a href="/admin?view=shop">` would reload the whole dashboard to reach
+   * a screen that is already mounted a state change away.
+   */
+  onGoToShop: () => void;
 }) {
-  const toast = useToast();
   const capacityTotal = settings.capacity.total;
   const capSum = rows.reduce(
     (sum, tier) => sum + (tier.quantityAvailable ?? 0),
@@ -57,18 +63,16 @@ export function AdminTicketTiers({
         rows={rows}
         addLabel="Add a tier"
         emptyLabel="No tiers yet."
-        onSaveResponse={(body) => {
-          const drafts =
-            (body as { createdDrafts?: { productId: string }[] } | null)
-              ?.createdDrafts ?? [];
-          if (drafts.length === 0) return;
-          toast.push(
-            "ok",
-            drafts.length === 1
-              ? "New swag item needs a shop listing — price, stock and status. Finish it in Shop."
-              : `${drafts.length} new swag items need shop listings — finish them in Shop.`,
-          );
+        rowToggle={{
+          value: (row) => row.onSale,
+          apply: (row, next) => ({ ...row, onSale: next }),
+          label: (on) => (on ? "Take off sale" : "Put on sale"),
+          saved: (on) =>
+            on
+              ? "On sale."
+              : "Off sale — hidden from the tier list, and still resolvable for tickets already sold on it.",
         }}
+        sections={{ on: "On sale", off: "Off sale" }}
         describeImpact={(tier) => {
           const sold = soldCount(tier.id);
           if (sold === 0) return null;
@@ -200,13 +204,13 @@ export function AdminTicketTiers({
 
             <Field
               label="Swag included"
-              hint="Each item also becomes a shop product — new ones save as a hidden draft until you finish the shop listing (price, stock, status)."
+              hint="Pick from what the Shop already sells. Attaching an item here never creates a product — it points at an existing listing, so the same t-shirt across four tiers stays one listing."
             >
-              <SwagItemsField
-                tierId={draft.id || "tier"}
-                items={draft.swag ?? []}
+              <SwagPickerField
+                selected={draft.swagProductIds ?? []}
                 products={products}
-                onChange={(swag) => patch({ swag })}
+                onChange={(swagProductIds) => patch({ swagProductIds })}
+                onGoToShop={onGoToShop}
               />
             </Field>
           </>
@@ -216,86 +220,256 @@ export function AdminTicketTiers({
   );
 }
 
-function SwagItemsField({
-  tierId,
-  items,
+/**
+ * Attach EXISTING shop products to a tier (ADR 0054).
+ *
+ * This replaced a form that built swag items from scratch inside the ticket
+ * editor, each of which auto-created its own shop listing. That produced
+ * duplicates in practice — the same t-shirt bundled with four tiers became
+ * four near-identical products, and every tier edit could mint more. Picking
+ * cannot: attaching the same listing to four tiers is four references to one
+ * row, and detaching it from a tier leaves the shop untouched.
+ *
+ * The selected list is ORDERED and the order is the admin's — it is what the
+ * public preview renders, biggest-first by convention — so the chips can be
+ * moved rather than only added and removed.
+ */
+function SwagPickerField({
+  selected,
   products,
   onChange,
+  onGoToShop,
 }: {
-  tierId: string;
-  items: TierSwagItem[];
+  selected: string[];
   products: Product[];
-  onChange: (v: TierSwagItem[]) => void;
+  onChange: (ids: string[]) => void;
+  onGoToShop: () => void;
 }) {
-  function update(i: number, changes: Partial<TierSwagItem>) {
-    onChange(items.map((it, idx) => (idx === i ? { ...it, ...changes } : it)));
+  const [query, setQuery] = useState("");
+
+  const byId = new Map(products.map((product) => [product.id, product]));
+  const needle = query.trim().toLowerCase();
+
+  /*
+   * Ids the admin picked that no longer resolve — a listing deleted from the
+   * Shop since. Surfaced rather than silently dropped: quietly rewriting
+   * somebody's selection on render would make the fix invisible, and the
+   * public preview already skips them, so the tier is not broken meanwhile.
+   */
+  const dangling = selected.filter((id) => !byId.has(id));
+
+  const available = products.filter((product) => {
+    if (selected.includes(product.id)) return false;
+    if (!needle) return true;
+    return (
+      product.id.toLowerCase().includes(needle) ||
+      product.name.en.toLowerCase().includes(needle) ||
+      product.name.fr.toLowerCase().includes(needle)
+    );
+  });
+
+  function attach(id: string) {
+    onChange([...selected, id]);
+    setQuery("");
   }
-  function remove(i: number) {
-    // Unlink, never delete the shop product silently — the linkage ADR's
-    // policy. The product (if any) stays; only the tier's reference to it
-    // goes away, which the swag-sync route reads as "this swag item is gone"
-    // and clears `sourceSwag` on save.
-    onChange(items.filter((_, idx) => idx !== i));
+  function detach(id: string) {
+    onChange(selected.filter((value) => value !== id));
   }
-  function add() {
-    onChange([
-      ...items,
-      { id: crypto.randomUUID(), name: { fr: "", en: "" }, images: [] },
-    ]);
+  function move(index: number, dir: -1 | 1) {
+    const target = index + dir;
+    if (target < 0 || target >= selected.length) return;
+    const next = [...selected];
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange(next);
+  }
+
+  // Nothing to pick from at all — the one case where the answer is not on
+  // this screen, so it says where it is instead of showing an empty box.
+  if (products.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-black02/25 px-4 py-6 text-center">
+        <p className="font-sans text-body-m font-bold text-black02">
+          No shop items yet.
+        </p>
+        <p className="mx-auto mt-1 max-w-sm text-caption text-black02/60">
+          Swag is picked from the Shop, not created here. Add the products
+          first and they will show up in this list.
+        </p>
+        <button
+          type="button"
+          onClick={onGoToShop}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-pill border border-black02/25 bg-primary px-3.5 py-1.5 font-sans text-caption font-bold text-black02 hover:brightness-95"
+        >
+          Go to Shop
+          <ArrowSquareOut size={12} weight="bold" aria-hidden />
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col gap-3">
-      {items.map((item, i) => {
-        const linked = item.shopProductId
-          ? products.find((p) => p.id === item.shopProductId)
-          : undefined;
-        return (
-          <div
-            key={item.id}
-            className="flex flex-col gap-2 rounded-lg border border-black02/15 bg-pastel/40 p-3"
-          >
-            <div className="flex items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <LocalizedInput
-                  value={item.name}
-                  onChange={(name) => update(i, { name })}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => remove(i)}
-                className="mt-1 shrink-0 rounded-pill border border-black02/20 px-2.5 py-1 text-caption font-bold text-black02 hover:bg-danger-pastel hover:text-danger"
+      {selected.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-black02/25 px-4 py-4 text-center text-caption text-black02/60">
+          Nothing attached yet — this tier shows no swag on the public page.
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {selected.map((id, index) => {
+            const product = byId.get(id);
+            return (
+              <li
+                key={id}
+                className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 ${
+                  product
+                    ? "border-black02/15 bg-pastel/40"
+                    : "border-danger/40 bg-danger-pastel"
+                }`}
               >
-                Remove
-              </button>
-            </div>
-            <MultiImageUpload
-              images={item.images ?? []}
-              onChange={(images) => update(i, { images })}
-              uploadPath={`tickets/${slugify(tierId)}/swag/${item.id}`}
-              max={6}
-            />
-            {item.shopProductId && (
-              <a
-                href={`/admin?view=shop&edit=${item.shopProductId}`}
-                className="inline-flex w-fit items-center gap-1.5 rounded-pill border border-black02/25 bg-offwhite px-2.5 py-1 font-mono text-caption font-bold text-black02 hover:bg-pastel"
-              >
-                <LinkIcon size={12} weight="bold" aria-hidden />
-                {linked ? `Shop: ${linked.name.en}` : "Shop listing"}
-                {linked?.published === false && " (draft)"}
-              </a>
-            )}
-          </div>
-        );
-      })}
-      <button
-        type="button"
-        onClick={add}
-        className="inline-flex w-fit items-center gap-2 rounded-pill border border-black02/25 px-3.5 py-1.5 font-sans text-caption font-bold text-black02 hover:bg-pastel"
-      >
-        Add swag item
-      </button>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-black02/15 bg-offwhite">
+                  {product?.images[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={product.images[0]}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="font-mono text-caption text-black02/40">
+                      —
+                    </span>
+                  )}
+                </span>
+
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-sans text-body-m font-bold text-black02">
+                    {product ? product.name.en || product.name.fr : id}
+                  </span>
+                  <span className="block truncate text-caption text-black02/60">
+                    {product ? (
+                      <>
+                        {product.priceXAF.toLocaleString("en-CM")} XAF
+                        {product.published === false && " · Hidden in shop"}
+                      </>
+                    ) : (
+                      "No longer in the shop — remove it, or re-add the product."
+                    )}
+                  </span>
+                </span>
+
+                {/* Order is what the public preview renders in. */}
+                <span className="flex shrink-0 items-center gap-0.5">
+                  <button
+                    type="button"
+                    disabled={index === 0}
+                    onClick={() => move(index, -1)}
+                    aria-label={`Move ${id} earlier`}
+                    className="rounded-pill px-1.5 py-1 font-mono text-caption font-bold text-black02/55 hover:bg-offwhite hover:text-black02 disabled:opacity-25"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    disabled={index === selected.length - 1}
+                    onClick={() => move(index, 1)}
+                    aria-label={`Move ${id} later`}
+                    className="rounded-pill px-1.5 py-1 font-mono text-caption font-bold text-black02/55 hover:bg-offwhite hover:text-black02 disabled:opacity-25"
+                  >
+                    ↓
+                  </button>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => detach(id)}
+                  aria-label={`Detach ${id}`}
+                  className="shrink-0 rounded-pill border border-black02/20 p-1.5 text-black02 hover:bg-danger-pastel hover:text-danger"
+                >
+                  <X size={12} weight="bold" />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {dangling.length > 0 && (
+        <p className="text-caption font-bold text-danger">
+          {dangling.length} attached item
+          {dangling.length === 1 ? " is" : "s are"} no longer in the shop.
+          Detaching {dangling.length === 1 ? "it" : "them"} here is safe — the
+          public page already skips {dangling.length === 1 ? "it" : "them"}.
+        </p>
+      )}
+
+      <div className="rounded-lg border border-black02/15 bg-offwhite p-2.5">
+        <label className="flex items-center gap-2 rounded-pill border border-black02/20 bg-pastel/40 px-3 py-1.5">
+          <MagnifyingGlass
+            size={14}
+            weight="bold"
+            aria-hidden
+            className="shrink-0 text-black02/50"
+          />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search shop products to attach"
+            className="min-w-0 flex-1 bg-transparent font-sans text-body-m text-black02 outline-none placeholder:text-black02/40"
+          />
+        </label>
+
+        {available.length === 0 ? (
+          <p className="px-1 py-3 text-center text-caption text-black02/55">
+            {needle
+              ? "Nothing in the shop matches that."
+              : "Every shop product is already attached to this tier."}
+          </p>
+        ) : (
+          /* Capped, not scrolled-forever: this sits inside a drawer that
+             already scrolls, and a nested scroller here would trap the
+             wheel. Narrowing the search is the way to reach the rest. */
+          <ul className="mt-2 flex max-h-64 flex-col gap-1 overflow-y-auto">
+            {available.slice(0, 40).map((product) => (
+              <li key={product.id}>
+                <button
+                  type="button"
+                  onClick={() => attach(product.id)}
+                  className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-pastel"
+                >
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded border border-black02/15 bg-pastel">
+                    {product.images[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={product.images[0]}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="font-mono text-caption text-black02/40">
+                        —
+                      </span>
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate font-sans text-body-m text-black02">
+                    {product.name.en || product.name.fr || product.id}
+                    {product.published === false && (
+                      <span className="ml-1.5 font-mono text-caption text-black02/50">
+                        (hidden in shop)
+                      </span>
+                    )}
+                  </span>
+                  <Check
+                    size={13}
+                    weight="bold"
+                    aria-hidden
+                    className="shrink-0 text-black02/35"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

@@ -47,12 +47,13 @@ export function AdminShop({
 }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
-  const [completion, setCompletion] = useState("all");
+  const [visibility, setVisibility] = useState("all");
 
   const needle = query.trim().toLowerCase();
   function matches(row: Product): boolean {
     if (status !== "all" && row.status !== status) return false;
-    if (completion === "draft" && row.published !== false) return false;
+    if (visibility === "hidden" && row.published !== false) return false;
+    if (visibility === "live" && row.published === false) return false;
     if (!needle) return true;
     return (
       row.id.toLowerCase().includes(needle) ||
@@ -63,10 +64,19 @@ export function AdminShop({
     );
   }
 
-  const draftCount = rows.filter((r) => r.published === false).length;
+  const hiddenCount = rows.filter((r) => r.published === false).length;
 
-  function tierNameFor(tierId: string): string {
-    return tiers.find((t) => t.id === tierId)?.name ?? tierId;
+  /**
+   * Which tiers bundle this product (ADR 0054).
+   *
+   * The reverse of the reference the tier holds. A product knows nothing
+   * about tiers — that would be the ownership the reference model exists to
+   * avoid — so this is derived on read, from the tiers themselves.
+   */
+  function tiersBundling(productId: string): string[] {
+    return tiers
+      .filter((tier) => (tier.swagProductIds ?? []).includes(productId))
+      .map((tier) => tier.name);
   }
 
   function ordersFor(productId: string): number {
@@ -106,14 +116,15 @@ export function AdminShop({
                 ],
               },
               {
-                label: "Completion",
-                value: completion,
-                onChange: setCompletion,
+                label: "Visibility",
+                value: visibility,
+                onChange: setVisibility,
                 options: [
                   { value: "all", label: "All" },
+                  { value: "live", label: "Published" },
                   {
-                    value: "draft",
-                    label: `Needs completion${draftCount ? ` (${draftCount})` : ""}`,
+                    value: "hidden",
+                    label: `Hidden${hiddenCount ? ` (${hiddenCount})` : ""}`,
                   },
                 ],
               },
@@ -121,6 +132,16 @@ export function AdminShop({
           />
         }
         filter={matches}
+        rowToggle={{
+          value: (row) => row.published !== false,
+          apply: (row, next) => ({ ...row, published: next }),
+          label: (on) => (on ? "Hide" : "Publish"),
+          saved: (on) =>
+            on
+              ? "Live in the shop."
+              : "Hidden from the shop — still here, and still in any tier that bundles it.",
+        }}
+        sections={{ on: "Published", off: "Hidden" }}
         describeImpact={(product) => {
           const orderCount = ordersFor(product.id);
           if (orderCount > 0) {
@@ -129,10 +150,11 @@ export function AdminShop({
               message: `Linked to ${orderCount} existing order${orderCount === 1 ? "" : "s"}. Mark it sold-out or unpublish it instead of deleting — deleting would orphan those orders' line items.`,
             };
           }
-          if (product.sourceSwag) {
+          const bundled = tiersBundling(product.id);
+          if (bundled.length > 0) {
             return {
               blocked: false,
-              message: `Still linked to the ${tierNameFor(product.sourceSwag.tierId)} tier's swag. Deleting this only removes the shop listing — the tier will show a swag item with no linked product until you edit it there.`,
+              message: `Bundled with the ${bundled.join(", ")} tier${bundled.length === 1 ? "" : "s"}. Deleting it removes the listing AND drops it from ${bundled.length === 1 ? "that tier's" : "those tiers'"} swag preview — the tier itself is unaffected otherwise.`,
             };
           }
           return null;
@@ -169,9 +191,9 @@ export function AdminShop({
               <p className="truncate text-caption text-black02/60">
                 {row.priceXAF.toLocaleString("en-CM")} XAF ·{" "}
                 {STATUSES.find((s) => s.value === row.status)?.label}
-                {row.published === false && " · Draft"}
-                {row.sourceSwag &&
-                  ` · From ${tierNameFor(row.sourceSwag.tierId)}`}
+                {row.published === false && " · Hidden"}
+                {tiersBundling(row.id).length > 0 &&
+                  ` · In ${tiersBundling(row.id).join(", ")}`}
               </p>
             </div>
           </div>
@@ -197,14 +219,11 @@ export function AdminShop({
                 <TextInput value={draft.id} onChange={(id) => patch({ id })} />
               </Field>
 
-              {draft.sourceSwag && (
-                <a
-                  href={`/admin?view=ticket-tiers&edit=${draft.sourceSwag.tierId}`}
-                  className="inline-flex w-fit items-center gap-1.5 rounded-pill border border-black02/25 bg-pastel px-3 py-1.5 font-mono text-caption font-bold text-black02 hover:bg-pastel/70"
-                >
+              {tiersBundling(draft.id).length > 0 && (
+                <p className="inline-flex w-fit items-center gap-1.5 rounded-pill border border-black02/25 bg-pastel px-3 py-1.5 font-mono text-caption font-bold text-black02">
                   <LinkIcon size={12} weight="bold" aria-hidden />
-                  From {tierNameFor(draft.sourceSwag.tierId)}&rsquo;s swag
-                </a>
+                  Bundled with {tiersBundling(draft.id).join(", ")}
+                </p>
               )}
 
               <Field label="Description">

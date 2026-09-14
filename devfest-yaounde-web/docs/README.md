@@ -76,6 +76,8 @@ or amend an earlier one.
 | [0047](decisions/0047-hero-random-stickers-and-admin-backdrop.md)       | Re-rolling sticker scatter, year pill, backdrop from the dashboard  | Accepted — extends 0046                               |
 | [0048](decisions/0048-settings-revalidation-was-a-documented-misuse.md) | Settings revalidation was a documented `revalidatePath` misuse      | Accepted — **corrects 0042**                          |
 | [0053](decisions/0053-remove-lenis-momentum-scroll.md)                  | Removing Lenis outright, not disabling it                           | Accepted — **supersedes 0007**                        |
+| [0054](decisions/0054-swag-references-shop-products.md)                 | Swag references shop products; it does not create them              | Accepted — **supersedes 0050**                        |
+| [0055](decisions/0055-row-level-publish-and-published-first.md)         | Publish/hide from the row, and published work first                 | Accepted                                              |
 
 **Site and design**
 

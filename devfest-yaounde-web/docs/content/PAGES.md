@@ -238,8 +238,14 @@ or payment. This is not a contradiction of the retired Bevy RSVP CTA
 ticketing is on-site; free RSVP is delegated.
 
 Every tier lists its **swag** as a row of small cutout-style prints —
-alternating tilt, hover lifts one and names it. Higher tiers show more. Images
-are placeholders; the names are real.
+alternating tilt, hover lifts one and names it. Higher tiers show more.
+
+The name and image come from the **shop product** the tier references, not
+from copy stored on the tier (ADR 0054): an organiser attaches existing Shop
+listings in the dashboard, so a tier can never advertise a t-shirt that
+disagrees with the one the shop sells. A tier with nothing attached shows no
+swag row at all, which is a normal state — and is where every tier starts
+after the 0054 migration, until an organiser picks its items.
 
 ### 7.2 Checkout — three steps
 

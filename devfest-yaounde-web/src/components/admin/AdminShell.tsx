@@ -633,6 +633,7 @@ export function AdminShell({
                 data={data}
                 settings={settings}
                 products={collections.products}
+                onGoToShop={() => go("shop")}
               />
             )}
             {view === "shop" && (

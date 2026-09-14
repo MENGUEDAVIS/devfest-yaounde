@@ -39,8 +39,7 @@
           "en": "This edition's badge"
         }
       }
-    ],
-    "swag": []
+    ]
   },
   {
     "id": "sonnet",
@@ -74,22 +73,6 @@
         "label": {
           "fr": "Autocollants",
           "en": "Stickers"
-        }
-      }
-    ],
-    "swag": [
-      {
-        "id": "sonnet-tshirt",
-        "name": {
-          "fr": "T-shirt",
-          "en": "T-shirt"
-        }
-      },
-      {
-        "id": "sonnet-stickers",
-        "name": {
-          "fr": "Autocollants",
-          "en": "Sticker pack"
         }
       }
     ]
@@ -128,36 +111,6 @@
           "en": "Notebook and pen"
         }
       }
-    ],
-    "swag": [
-      {
-        "id": "opus-tshirt",
-        "name": {
-          "fr": "T-shirt",
-          "en": "T-shirt"
-        }
-      },
-      {
-        "id": "opus-totebag",
-        "name": {
-          "fr": "Tote bag",
-          "en": "Tote bag"
-        }
-      },
-      {
-        "id": "opus-notebook",
-        "name": {
-          "fr": "Carnet",
-          "en": "Notebook"
-        }
-      },
-      {
-        "id": "opus-stickers",
-        "name": {
-          "fr": "Autocollants",
-          "en": "Sticker pack"
-        }
-      }
     ]
   },
   {
@@ -194,50 +147,6 @@
           "en": "This edition's cap"
         }
       }
-    ],
-    "swag": [
-      {
-        "id": "fable-tshirt",
-        "name": {
-          "fr": "T-shirt",
-          "en": "T-shirt"
-        }
-      },
-      {
-        "id": "fable-totebag",
-        "name": {
-          "fr": "Tote bag",
-          "en": "Tote bag"
-        }
-      },
-      {
-        "id": "fable-notebook",
-        "name": {
-          "fr": "Carnet",
-          "en": "Notebook"
-        }
-      },
-      {
-        "id": "fable-bottle",
-        "name": {
-          "fr": "Bouteille",
-          "en": "Bottle"
-        }
-      },
-      {
-        "id": "fable-cap",
-        "name": {
-          "fr": "Casquette",
-          "en": "Cap"
-        }
-      },
-      {
-        "id": "fable-stickers",
-        "name": {
-          "fr": "Autocollants",
-          "en": "Sticker pack"
-        }
-      }
     ]
   },
   {
@@ -272,64 +181,6 @@
         "label": {
           "fr": "Lanyard collector",
           "en": "Collector lanyard"
-        }
-      }
-    ],
-    "swag": [
-      {
-        "id": "mythos-hoodie",
-        "name": {
-          "fr": "Hoodie",
-          "en": "Hoodie"
-        }
-      },
-      {
-        "id": "mythos-tshirt",
-        "name": {
-          "fr": "T-shirt",
-          "en": "T-shirt"
-        }
-      },
-      {
-        "id": "mythos-totebag",
-        "name": {
-          "fr": "Tote bag",
-          "en": "Tote bag"
-        }
-      },
-      {
-        "id": "mythos-notebook",
-        "name": {
-          "fr": "Carnet",
-          "en": "Notebook"
-        }
-      },
-      {
-        "id": "mythos-bottle",
-        "name": {
-          "fr": "Bouteille",
-          "en": "Bottle"
-        }
-      },
-      {
-        "id": "mythos-cap",
-        "name": {
-          "fr": "Casquette",
-          "en": "Cap"
-        }
-      },
-      {
-        "id": "mythos-lanyard",
-        "name": {
-          "fr": "Lanyard",
-          "en": "Lanyard"
-        }
-      },
-      {
-        "id": "mythos-stickers",
-        "name": {
-          "fr": "Autocollants",
-          "en": "Sticker pack"
         }
       }
     ]
