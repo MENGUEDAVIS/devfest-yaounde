@@ -40,7 +40,9 @@ const PAGES: Record<CollectionId, string[]> = {
   sessions: ["/schedule"],
   sponsors: ["/"],
   faqs: ["/", "/faqs"],
-  products: ["/shop"],
+  // `/tickets` too: tier cards render their swag FROM products (ADR 0054),
+  // so hiding or renaming a product has to reach them, not just the shop.
+  products: ["/shop", "/tickets"],
   "ticket-tiers": ["/tickets"],
   quotes: ["/"],
   stats: ["/"],

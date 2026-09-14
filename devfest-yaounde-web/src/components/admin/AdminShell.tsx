@@ -204,7 +204,7 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
   shop: {
     title: "Shop",
     blurb:
-      "Every product on the merch store, including drafts auto-created from ticket swag — those stay hidden until you finish them.",
+      "Every product on the merch store, published first. Publish or hide one straight from its row; ticket tiers pick their swag from this list.",
   },
   transactions: {
     title: "Transactions",
@@ -300,9 +300,17 @@ export function AdminShell({
   /** "Finish this draft" deep link from another view — read once, like `view`. */
   const editId = params.get("edit") ?? undefined;
 
-  /** Drafts still missing a price/images — the badge on the Shop nav item. */
+  /**
+   * Listings that genuinely still NEED WORK — no price or no image — for the
+   * badge on the Shop nav item.
+   *
+   * Not "every hidden product". That was the right count while the only
+   * hidden products were auto-created swag drafts; now hiding is a deliberate
+   * one-click choice from the row (ADR 0055), and a red alert on the nav for
+   * every sold-out item somebody pulled would be an alarm about nothing.
+   */
   const draftProductCount = collections.products.filter(
-    (p) => p.published === false,
+    (p) => p.priceXAF <= 0 || p.images.length === 0,
   ).length;
 
   /**

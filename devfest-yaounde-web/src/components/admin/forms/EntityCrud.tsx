@@ -122,20 +122,10 @@ export interface EntityCrudProps<T extends EntityRow> {
    */
   sections?: { on: string; off: string };
   /**
-   * Opens a row's editor on mount — the deep-link target for "finish this
-   * draft" notifications from another view (e.g. a swag-created product).
+   * Opens a row's editor on mount — the deep-link target for `?edit=<id>`
+   * links from another view.
    */
   initialEditId?: string;
-  /**
-   * Runs after a successful PUT with the raw response body — for endpoints
-   * that patch the payload server-side before persisting it (the swag→shop
-   * sync fills in `shopProductId` on the tiers array, so the collection's
-   * OWN endpoint returns extras like `createdDrafts`) and/or hand back a
-   * shape the caller wants to react to. Also triggers the same re-fetch
-   * `afterSave` does, so those server-side patches show up in `rows`
-   * immediately rather than after a reload.
-   */
-  onSaveResponse?: (body: unknown) => void;
 }
 
 export function EntityCrud<T extends EntityRow>({
@@ -155,7 +145,6 @@ export function EntityCrud<T extends EntityRow>({
   sections,
   describeImpact,
   initialEditId,
-  onSaveResponse,
 }: EntityCrudProps<T>) {
   const toast = useToast();
   const [rows, setRows] = useState<T[]>(initialRows);
@@ -228,24 +217,10 @@ export function EntityCrud<T extends EntityRow>({
         return;
       }
 
-      const responseBody = await res.json().catch(() => null);
-      onSaveResponse?.(responseBody);
-
       setRows(next);
       setBaseline(next);
       setDraft(null);
       onClose?.();
-
-      if (onSaveResponse) {
-        // The endpoint may have patched the payload server-side (swag→shop
-        // linkage fills in `shopProductId`) — read it back so the form
-        // reflects that without a reload.
-        const fresh = await fetchCurrent();
-        if (fresh) {
-          setRows(fresh);
-          setBaseline(fresh);
-        }
-      }
 
       if (saved && afterSave) {
         await afterSave(saved);
