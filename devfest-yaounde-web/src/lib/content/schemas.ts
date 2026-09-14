@@ -206,11 +206,21 @@ export const ticketTierSchema = z.object({
   soldOut: z.boolean().optional(),
 });
 
+/**
+ * A testimonial — "What people are saying" on the home page.
+ *
+ * `author` may be EMPTY on purpose. A quote whose speaker is not known by name
+ * renders a localized generic attribution ("Community member") rather than
+ * a name, and an invented name attributed to a real-looking person is worse
+ * than no name. Same absent-means-visible `hidden` convention as speakers.
+ */
 export const quoteSchema = z.object({
   id: slug,
   text: localizedRequired,
-  author: z.string().trim().min(1).max(120),
+  author: z.string().trim().max(120),
   role: localized.optional(),
+  avatarUrl: z.string().max(400).optional(),
+  hidden: z.boolean().optional(),
 });
 
 export const statSchema = z.object({
@@ -331,6 +341,10 @@ export const capacitySchema = z.object({
   total: z.number().int().min(0).max(1_000_000).optional().nullable(),
 });
 
+export const memoryLaneSchema = z.object({
+  galleryUrl: urlOrEmpty.optional().nullable(),
+});
+
 export const settingsSchema = z.object({
   announcement: localized.optional().nullable(),
   bevyUrl: urlOrEmpty.optional().nullable(),
@@ -339,6 +353,7 @@ export const settingsSchema = z.object({
   sponsorCall: sponsorCallSchema.optional().nullable(),
   legal: legalSchema.optional().nullable(),
   capacity: capacitySchema.optional().nullable(),
+  memoryLane: memoryLaneSchema.optional().nullable(),
 });
 
 function blankToNull(value: unknown): unknown {

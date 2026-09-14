@@ -35,6 +35,9 @@ export function AdminConfig({
   const [heroUrl, setHeroUrl] = useState(settings.hero.imageUrl);
   const [heroBusy, setHeroBusy] = useState(false);
   const [sponsorCall, setSponsorCall] = useState(settings.sponsorCall);
+  const [galleryUrl, setGalleryUrl] = useState(
+    settings.memoryLane.galleryUrl,
+  );
   const [cfsUrl, setCfsUrl] = useState(settings.cfs.url);
   const [cfsOpens, setCfsOpens] = useState(isoToWatLocal(settings.cfs.opensAt));
   const [cfsCloses, setCfsCloses] = useState(
@@ -74,6 +77,16 @@ export function AdminConfig({
         capacity: {
           total: capacityTotal.trim() === "" ? null : Number(capacityTotal),
         },
+        /*
+          Sent only when it actually changed. Every other group here is
+          re-sent on each save, but this one lives in a newer column
+          (migration 0022): sending it unconditionally would make EVERY
+          config save fail on a database that has not had that migration yet,
+          over a field nobody touched.
+        */
+        ...(galleryUrl.trim() !== settings.memoryLane.galleryUrl
+          ? { memoryLane: { galleryUrl: galleryUrl.trim() } }
+          : {}),
       }),
     });
     if (!res.ok) {
@@ -300,6 +313,35 @@ export function AdminConfig({
             a transparent background keeps it and the theme colour shows
             through. It sits under a tint, so anything busy still reads.
           </p>
+        </div>
+
+        {/* Memory Lane's link out to last edition's full album. */}
+        <div className="flex flex-col gap-4 rounded-lg border border-black02/15 bg-pastel/40 p-4">
+          <div>
+            <h3 className="font-sans text-body-l font-bold text-black02">
+              Past gallery link
+            </h3>
+            <p className="mt-1 text-caption text-black02/70">
+              {galleryUrl.trim()
+                ? "Shown in Memory Lane on the home page as \u201cView the full gallery\u201d, opening in a new tab."
+                : "Empty, so Memory Lane shows no gallery link."}
+            </p>
+          </div>
+
+          <label className="block text-body-m font-bold text-black02">
+            Album URL
+            <input
+              className={field}
+              value={galleryUrl}
+              placeholder="https://photos.app.goo.gl/…"
+              onChange={(e) => setGalleryUrl(e.target.value)}
+            />
+            <span className="mt-1 block text-caption font-normal text-black02/60">
+              Swap in next year&rsquo;s album here — no deploy needed. Must be
+              an https link. Empty hides the link rather than pointing it
+              nowhere.
+            </span>
+          </label>
         </div>
 
         {/*

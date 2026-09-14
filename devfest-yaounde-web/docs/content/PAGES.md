@@ -93,9 +93,20 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 7. **Playful interstitial** (breathing room #2)
    - Rotating community quotes/tweets from past editions, in speech-bubble-styled cards.
+   - **Built as:** testimonials from the `quotes` collection, editable under
+     Community → Testimonials (order = rotation order, hide from the row).
+     An unnamed quote is attributed "Community member" — never an invented
+     name. With no visible quotes the section is skipped entirely. Decorated
+     with three flat stickers from the DP set (`bubble`, `spark`, `cup`; two on
+     phones) kept to the section's top/bottom padding bands, measured clear of
+     all copy from 360–1920px in both locales (ADR 0056).
 
 8. **Memory Lane / Past Edition Recap**
    - Recap video link + photo grid from last year(s) — this is what proves the community is real and has history, which matters a lot for a "template built to last across years."
+   - **"View the full gallery"** opens last edition's album in a new tab
+     (`noopener noreferrer`). The URL is a dashboard setting (Settings → Past
+     gallery link), so next year's album is an edit, not a deploy; empty hides
+     the link.
 
 9. **Community CTA**
    - "What is GDG Yaoundé up to?" — short blurb + **Join the Community** button → Bevy chapter page. This is the section that gives Bevy "more value" as you described, rather than just being a silent RSVP redirect.

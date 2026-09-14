@@ -102,8 +102,17 @@ export interface Stat {
 export interface Quote {
   id: string;
   text: LocalizedString;
+  /**
+   * Empty when the speaker is not known by name — the site then shows a
+   * localized "Community member" instead of inventing one.
+   */
   author: string;
+  /** e.g. "Attendee, past edition" or a role + company. */
   role?: LocalizedString;
+  /** Optional face. Uploaded from the dashboard. */
+  avatarUrl?: string;
+  /** Absent means visible. */
+  hidden?: boolean;
 }
 
 export interface PastEditionPhoto {

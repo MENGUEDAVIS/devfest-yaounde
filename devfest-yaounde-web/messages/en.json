@@ -145,12 +145,15 @@
       "parallel": "{count} sessions at the same time — pick one"
     },
     "quotes": {
-      "title": "What people are saying"
+      "title": "What people are saying",
+      "communityMember": "Community member"
     },
     "memoryLane": {
       "title": "Memory lane",
       "body": "A few frames from past editions — proof this community has history, and it's only getting started.",
-      "recapCta": "Watch the recap"
+      "recapCta": "Watch the recap",
+      "galleryCta": "View the full gallery",
+      "galleryNewTab": "(opens in a new tab)"
     },
     "community": {
       "title": "What is GDG Yaoundé up to?",

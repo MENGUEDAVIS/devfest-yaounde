@@ -5,6 +5,7 @@ import {
   CalendarBlank,
   CaretDown,
   ChartBar,
+  ChatCircleText,
   Gear,
   Handshake,
   Image as ImageIcon,
@@ -43,9 +44,11 @@ import { AdminSpeakers } from "./views/AdminSpeakers";
 import { AdminTeam } from "./views/AdminTeam";
 import { AdminSchedule } from "./views/AdminSchedule";
 import { AdminSponsors } from "./views/AdminSponsors";
+import { AdminTestimonials } from "./views/AdminTestimonials";
 import { ToastProvider } from "./forms/Toast";
 import type {
   Product,
+  Quote,
   Session,
   Speaker,
   Sponsor,
@@ -73,6 +76,7 @@ export type ViewId =
   | "orders"
   | "discounts"
   | "wall"
+  | "testimonials"
   | "users"
   | "content"
   | "speakers"
@@ -108,6 +112,7 @@ const GROUPS: {
     label: "Community",
     items: [
       { id: "wall", label: "DP wall", Icon: ImageIcon },
+      { id: "testimonials", label: "Testimonials", Icon: ChatCircleText },
       { id: "users", label: "Users", Icon: Users },
     ],
   },
@@ -222,6 +227,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
     title: "Community wall",
     blurb: "Click a card to hide or show it. Reported ones sit up front.",
   },
+  testimonials: {
+    title: "Testimonials",
+    blurb:
+      "The quotes in \u201cWhat people are saying\u201d on the home page. Order here is the order they rotate in. Only publish words somebody actually said — leave the name empty and the site shows \u201cCommunity member\u201d rather than a made-up one.",
+  },
   users: {
     title: "Users",
     blurb: "People who signed in with Google. Addresses are masked here.",
@@ -277,6 +287,7 @@ export interface AdminCollections {
   sponsors: Sponsor[];
   products: Product[];
   tiers: TicketTier[];
+  quotes: Quote[];
 }
 
 export function AdminShell({
@@ -656,6 +667,9 @@ export function AdminShell({
             {view === "orders" && <AdminOrders data={data} />}
             {view === "discounts" && <AdminDiscounts data={data} />}
             {view === "wall" && <AdminWall data={data} />}
+            {view === "testimonials" && (
+              <AdminTestimonials rows={collections.quotes} />
+            )}
             {view === "users" && <AdminUsers data={data} />}
             {view === "speakers" && (
               <AdminSpeakers rows={collections.speakers} />

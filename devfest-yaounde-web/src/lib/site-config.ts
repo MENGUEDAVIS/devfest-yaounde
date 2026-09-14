@@ -91,6 +91,13 @@ export const CFS_URL = "https://sessionize.com/devfest-yaounde-2026";
 export const CFS_OPENS_AT = "2026-09-05T01:00:00+01:00";
 export const CFS_CLOSES_AT = "2026-10-31T23:59:00+01:00";
 
+/**
+ * Last edition's full photo gallery, linked from Memory Lane. Overridden by
+ * `site_settings.memory_lane` so next year's album is a dashboard edit, not a
+ * deploy.
+ */
+export const PAST_GALLERY_URL = "https://photos.app.goo.gl/S4nVSxBmu73FjChW6";
+
 /** The sponsor prospectus. Overridden by `site_settings.sponsor_call`. */
 export const SPONSOR_PROSPECTUS_URL =
   "https://drive.google.com/file/d/1Bof8zhqp5aOtweXL_qmXXGAvyGb1VAAQ/view?usp=sharing";

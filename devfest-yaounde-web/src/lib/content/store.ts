@@ -175,7 +175,11 @@ export const getProducts = async () =>
 /** Everything, drafts included. For the dashboard, which completes them. */
 export const getAllProducts = () => loadCollection<Product[]>("products");
 export const getTiers = () => loadCollection<TicketTier[]>("ticket-tiers");
-export const getQuotes = () => loadCollection<Quote[]>("quotes");
+/** Testimonials as the public site should see them — hidden ones removed. */
+export const getQuotes = async () =>
+  (await loadCollection<Quote[]>("quotes")).filter((row) => !row.hidden);
+/** Everything, hidden included. For the dashboard. */
+export const getAllQuotes = () => loadCollection<Quote[]>("quotes");
 export const getStats = () => loadCollection<Stat[]>("stats");
 export const getPastEditions = () =>
   loadCollection<PastEditionPhoto[]>("past-editions");

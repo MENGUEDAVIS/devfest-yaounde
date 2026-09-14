@@ -145,12 +145,15 @@
       "parallel": "{count} sessions en parallèle — à toi de choisir"
     },
     "quotes": {
-      "title": "Ce qu'on en dit"
+      "title": "Ce qu'on en dit",
+      "communityMember": "Membre de la communauté"
     },
     "memoryLane": {
       "title": "Souvenirs",
       "body": "Quelques images des éditions précédentes — la preuve que cette communauté a une histoire, et qu'elle ne fait que commencer.",
-      "recapCta": "Voir le récap"
+      "recapCta": "Voir le récap",
+      "galleryCta": "Voir toute la galerie",
+      "galleryNewTab": "(s'ouvre dans un nouvel onglet)"
     },
     "community": {
       "title": "Que prépare GDG Yaoundé ?",
