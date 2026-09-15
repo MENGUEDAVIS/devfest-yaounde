@@ -215,9 +215,19 @@ Both live in the admin now, not in files.
     member" / "Membre de la communauté". Never invent a name for a quote.
   - Hide every testimonial and the whole section disappears from the home
     page rather than showing an empty heading.
-- **Past gallery link** — *Settings → Info bar & policies → Past gallery
-  link*. The album Memory Lane's "View the full gallery" button opens. Swap in
-  next year's album here; empty hides the button.
+- **Gallery links** — *Settings → Info bar & policies → Gallery links*, two
+  fields (ADR 0058):
+  - The **past edition's** album URL — shown as "View the {year} gallery" in
+    Memory Lane, the year filled in automatically (one back from the current
+    edition). Empty hides that button.
+  - The **current edition's** album URL — empty until there is one, normally
+    after the event. Once the event's dates have passed, this becomes the
+    PRIMARY gallery button in Memory Lane, sitting next to the (now
+    secondary) past-edition one — AND it takes over the hero's ticket button,
+    since nobody needs a ticket to something that already happened. Leave it
+    empty and both of those show "Photo album coming soon" instead of a
+    broken link; filling it in later is all it takes to switch them live, no
+    other change needed.
 
 ---
 

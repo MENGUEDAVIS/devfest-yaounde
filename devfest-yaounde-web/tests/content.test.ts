@@ -35,6 +35,12 @@ import type { Sponsor } from "@/data/types";
 import { canOptimise } from "@/lib/images";
 import { DESKTOP_ZONES, MOBILE_ZONES, pickStickers } from "@/lib/hero-stickers";
 import {
+  pickQuoteStickers,
+  QUOTE_SLOTS,
+  QUOTE_STICKER_POOL,
+} from "@/lib/quote-stickers";
+import { findSticker } from "@/lib/dp/stickers";
+import {
   applyPhotoUrl,
   entryNeedsPhoto,
   isPlaceholderPhoto,
@@ -494,6 +500,42 @@ describe("the hero's sticker scatter", () => {
     for (let i = 0; i < ROLLS; i += 1) {
       assert.ok(pickStickers(true).length <= 3);
       assert.ok(pickStickers(false).length >= 6);
+    }
+  });
+});
+
+describe("the testimonial section's sticker scatter", () => {
+  const ROLLS = 200;
+
+  it("draws its whole pool from real stickers in the sheet", () => {
+    // The two drawn for this section (heart, thumbsup) are only real if
+    // they actually resolve through the same lookup `drawStickerPreview`
+    // uses — a typo'd id here would silently draw nothing.
+    for (const id of QUOTE_STICKER_POOL) {
+      assert.ok(findSticker(id), `${id} is not in the sticker sheet`);
+    }
+  });
+
+  it("never repeats a sticker within one assignment", () => {
+    for (let i = 0; i < ROLLS; i += 1) {
+      const ids = pickQuoteStickers().map((s) => s.id);
+      assert.equal(new Set(ids).size, ids.length);
+    }
+  });
+
+  it("fills one sticker per slot, in the declared range for that slot", () => {
+    for (let i = 0; i < ROLLS; i += 1) {
+      const placed = pickQuoteStickers();
+      assert.equal(placed.length, QUOTE_SLOTS.length);
+      const bySlot = new Map(placed.map((p) => [p.slotKey, p]));
+      for (const slot of QUOTE_SLOTS) {
+        const p = bySlot.get(slot.key);
+        assert.ok(p, `${slot.key} was left unfilled`);
+        assert.ok(
+          p!.tilt >= slot.tiltRange[0] && p!.tilt <= slot.tiltRange[1],
+          `${slot.key} tilt ${p!.tilt} escaped [${slot.tiltRange}]`,
+        );
+      }
     }
   });
 });

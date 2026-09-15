@@ -1,7 +1,7 @@
 /**
  * GET /api/cron/cleanup — housekeeping, run on a schedule.
  *
- * Three jobs, and the first is the important one:
+ * Five jobs, and the first is the important one:
  *   1. RECONCILE. Ask PawaPay about every pending deposit and settle the ones
  *      that completed. With no callback available to this app (ADR 0019),
  *      this is what catches the payment whose buyer closed the tab.
@@ -10,6 +10,12 @@
  *      slowly makes a tier look sold out when it is not.
  *   3. Drop rate-limit counters whose window has long passed.
  *   4. Purge wall cards past their retention — 200 days (ADR 0026).
+ *   5. Force the home page to rebuild once the event ends (ADR 0058). Every
+ *      public page is static and only regenerates on an explicit
+ *      `revalidatePath`, so without this the hero would keep selling
+ *      tickets to a event that already happened until some unrelated admin
+ *      edit happened to revalidate `/`. Bounded to the first day after the
+ *      event ends — see `withinPostEventRevalidateWindow`.
  *
  * Protected by a shared secret rather than a session, because the caller is
  * a scheduler, not a person. The five-minute knock comes from Supabase
@@ -17,11 +23,13 @@
  * Without `CRON_SECRET` set the route refuses outright — an unauthenticated
  * endpoint that mutates payment state is not something to leave open.
  */
+import { revalidatePath } from "next/cache";
 import { NextRequest } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { logPaymentEvent } from "@/lib/payments/intents";
 import { reconcilePendingDeposits } from "@/lib/payments/reconcile";
 import { purgeExpiredCards } from "@/lib/dp/gallery-retention";
+import { withinPostEventRevalidateWindow } from "@/lib/event";
 
 /** Comfortably past the reservation window, so nothing live is touched. */
 const STALE_INTENT_SECONDS = 3600;
@@ -70,11 +78,18 @@ export async function GET(request: NextRequest) {
   // stop a payment from being settled.
   const wall = await purgeExpiredCards();
 
+  // Cheapest job here by far — this only marks a cache entry stale, it does
+  // not touch the database — so it runs unconditionally inside the window
+  // rather than trying to detect the exact tick the boundary was crossed.
+  const revalidatedHome = withinPostEventRevalidateWindow();
+  if (revalidatedHome) revalidatePath("/", "layout");
+
   const result = {
     reconciled,
     wall,
     expiredIntents: Number(expired ?? 0),
     prunedRateLimits: Number(pruned ?? 0),
+    revalidatedHome,
   };
 
   // Only worth an audit line when it actually did something.

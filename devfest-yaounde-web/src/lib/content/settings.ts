@@ -51,7 +51,7 @@ const REPO_DEFAULTS: SiteSettings = {
   /* No overall capacity until an admin sets one — `null` total means "don't
      show a public counter", not "zero tickets left". */
   capacity: { total: null },
-  memoryLane: { galleryUrl: PAST_GALLERY_URL },
+  memoryLane: { galleryUrl: PAST_GALLERY_URL, currentGalleryUrl: "" },
   source: "repo",
 };
 

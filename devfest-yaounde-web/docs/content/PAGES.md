@@ -69,6 +69,10 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
    - Dates + venue, clearly stated.
    - Background/foreground: a collage or auto-playing carousel of **last edition's photos**, masked into the morphed-shape frames from DESIGN.md §4.2.
    - Primary CTA: **Get Tickets** → `/tickets`. Secondary: **Shop** → `/shop`. ~~Tertiary: RSVP on GDG Bevy~~ — removed, see `docs/decisions/0008-retire-bevy-rsvp.md`.
+   - **After the event has passed:** the primary CTA swaps IN PLACE to the
+     current edition's photo album (or "Photo album coming soon" while that
+     link is not yet set) — there is nothing left to sell a ticket to. Shop
+     stays as-is; it is evergreen either side of the event. See ADR 0058.
    - Sponsor/partner logo marquee (linear-eased, continuous scroll, like Lagos's) directly under the hero — bold and boastful, sponsors deserve prime real estate.
 
 2. **What is DevFest Yaoundé** (community + this year's direction)
@@ -97,16 +101,21 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
      Community → Testimonials (order = rotation order, hide from the row).
      An unnamed quote is attributed "Community member" — never an invented
      name. With no visible quotes the section is skipped entirely. Decorated
-     with three flat stickers from the DP set (`bubble`, `spark`, `cup`; two on
-     phones) kept to the section's top/bottom padding bands, measured clear of
-     all copy from 360–1920px in both locales (ADR 0056).
+     with four flat stickers, a different four every page load, from the DP
+     set (`bubble`, `spark`, `cup`, `heart`, `thumbsup`; two on phones) kept
+     to the section's top/bottom padding bands, measured clear of all copy
+     from 360–1920px in both locales (ADR 0056, extended by ADR 0058).
 
 8. **Memory Lane / Past Edition Recap**
    - Recap video link + photo grid from last year(s) — this is what proves the community is real and has history, which matters a lot for a "template built to last across years."
-   - **"View the full gallery"** opens last edition's album in a new tab
-     (`noopener noreferrer`). The URL is a dashboard setting (Settings → Past
-     gallery link), so next year's album is an edit, not a deploy; empty hides
-     the link.
+   - **"View the {year} gallery"** — the past edition's album, opening in a
+     new tab (`noopener noreferrer`), the year filled in automatically. The
+     URL is a dashboard setting (Settings → Gallery links); empty hides the
+     button.
+   - **Once the event has passed**, a second, PRIMARY button appears for the
+     CURRENT edition's album — same year-labelled phrasing, its own URL
+     field. Empty shows "Photo album coming soon" instead of a dead link.
+     See ADR 0058.
 
 9. **Community CTA**
    - "What is GDG Yaoundé up to?" — short blurb + **Join the Community** button → Bevy chapter page. This is the section that gives Bevy "more value" as you described, rather than just being a silent RSVP redirect.

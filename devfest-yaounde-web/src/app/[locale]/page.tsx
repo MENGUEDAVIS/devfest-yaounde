@@ -73,7 +73,11 @@ export default async function HomePage({
       <JsonLd
         data={eventJsonLd(locale === "en" ? "en" : "fr", t("metaDesc"))}
       />
-      <Hero locale={locale} backdropUrl={settings.hero.imageUrl} />
+      <Hero
+        locale={locale}
+        backdropUrl={settings.hero.imageUrl}
+        currentGalleryUrl={settings.memoryLane.currentGalleryUrl}
+      />
       {/*
         The sponsor strip used to be layer 4 INSIDE the hero. The redesign
         gives the bottom edge to the wordmark (ADR 0044), and two things

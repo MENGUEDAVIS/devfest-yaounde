@@ -79,6 +79,7 @@ or amend an earlier one.
 | [0054](decisions/0054-swag-references-shop-products.md)                 | Swag references shop products; it does not create them              | Accepted — **supersedes 0050**                        |
 | [0055](decisions/0055-row-level-publish-and-published-first.md)         | Publish/hide from the row, and published work first                 | Accepted                                              |
 | [0056](decisions/0056-gallery-link-and-testimonials.md)                 | An editable gallery link, testimonials in the store, flat stickers  | Accepted — **fixes a settings-read hazard**           |
+| [0058](decisions/0058-post-event-gallery-and-more-quote-stickers.md)    | Post-event gallery CTA, a timezone fix, and a 4th testimonial sticker | Accepted — **extends 0056**                           |
 
 **Site and design**
 
