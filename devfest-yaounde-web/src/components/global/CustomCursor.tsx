@@ -11,9 +11,16 @@ const EASE = 0.18;
  * feel like an object being carried.
  */
 const IMAGE_EASE = 0.11;
-/** Half the image card's box, so it can be kept fully on screen. */
-const IMAGE_HALF_W = 120;
-const IMAGE_HALF_H = 90;
+/**
+ * Half the image card's box (320×200 — see `.cursor-image` in globals.css),
+ * so it can be kept fully on screen. Wider than it once was: the card was
+ * reading as cropped on genuinely landscape photos, and a boxier frame was
+ * the reason — see the note on `StatCounter`'s image sizing.
+ */
+const IMAGE_HALF_W = 160;
+const IMAGE_HALF_H = 100;
+/** The lean a zone gets when it doesn't specify `data-cursor-tilt`. */
+const DEFAULT_IMAGE_TILT_DEG = -4;
 /** Below this distance the loop parks itself rather than burning frames. */
 const REST_EPSILON = 0.05;
 
@@ -71,6 +78,17 @@ const TEXTUAL =
  * never runs on touch, never runs under reduced motion (callers show the
  * image inline there instead), and can never leave the page without a cursor.
  * The card's target is clamped so it stays fully on screen near the edges.
+ *
+ * The zone can also carry `data-cursor-tilt="<deg>"` — a static lean read
+ * once per zone-entry (not animated in from here) and written to
+ * `--image-tilt`, so different zones on the same page can alternate which
+ * way their card leans. Falls back to a fixed -4deg for a zone without one.
+ * Once revealed, the card also gets a small continuous bob — see
+ * `.cursor-image-float` in globals.css, on its own nested element for the
+ * same reason `.hero-sticker`'s bob is: an animated `transform` fully
+ * overrides any other `transform` on the SAME element for as long as it
+ * runs, so the bob can never share an element with the position/tilt or the
+ * reveal scale without one silently erasing the other.
  *
  * Position is written to CSS custom properties inside a rAF loop rather than
  * held in React state: this fires on every pointer move, and re-rendering a
@@ -162,6 +180,10 @@ export function CustomCursor() {
         // is deliberately NOT cleared on leave, so the dismiss transition
         // plays over the picture instead of over an empty box.
         if (image.getAttribute("src") !== src) image.setAttribute("src", src);
+        // Read once per zone-entry, not eased or animated — a static lean
+        // per zone, so different figures on the same page can alternate.
+        const tilt = zone.dataset.cursorTilt ?? String(DEFAULT_IMAGE_TILT_DEG);
+        root!.style.setProperty("--image-tilt", `${tilt}deg`);
         if (root!.dataset.state !== "image") {
           // Start the card where the pointer is, not wherever it was parked
           // last time — otherwise it flies across the page to get here.
@@ -244,8 +266,15 @@ export function CustomCursor() {
         there in the page. No src until a zone is first entered.
       */}
       <div className="cursor-image">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={imageRef} alt="" decoding="async" />
+        {/*
+          The bob lives on its OWN element — see the doc comment above on
+          why it cannot share `.cursor-image` (position + tilt) or the `img`
+          (reveal scale) without one animation erasing the other.
+        */}
+        <div className="cursor-image-float">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img ref={imageRef} alt="" decoding="async" />
+        </div>
       </div>
       <div className="cursor-ring">
         {/*

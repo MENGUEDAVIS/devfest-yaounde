@@ -81,6 +81,7 @@ or amend an earlier one.
 | [0056](decisions/0056-gallery-link-and-testimonials.md)                 | An editable gallery link, testimonials in the store, flat stickers  | Accepted — **fixes a settings-read hazard**           |
 | [0057](decisions/0057-interactive-figures.md)                           | Figures that roll in, and a cursor that becomes a picture           | Accepted                                              |
 | [0058](decisions/0058-post-event-gallery-and-more-quote-stickers.md)    | Post-event gallery CTA, a timezone fix, and a 4th testimonial sticker | Accepted — **extends 0056**                           |
+| [0059](decisions/0059-stat-figure-polish-and-real-testimonials.md)     | Bigger, uncropped stat figures with alternating tilt; testimonials with voice | Accepted — **extends 0057**                    |
 
 **Site and design**
 
