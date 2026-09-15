@@ -79,10 +79,18 @@ export interface EntityCrudProps<T extends EntityRow> {
   /**
    * A switch on each row that saves the moment it is pressed.
    *
-   * Lives here rather than in each view so it goes through `commit` — the
-   * same whole-array write, concurrency check, error toast and rollback as
-   * every other save. A view flipping a boolean and PUTting on its own would
-   * be a second, quieter write path with none of that.
+   * Lives here rather than in each view so it goes through the same
+   * whole-array write, concurrency check, error toast and rollback as every
+   * other save. A view flipping a boolean and PUTting on its own would be a
+   * second, quieter write path with none of that.
+   *
+   * OPTIMISTIC, with a shimmer over the row until the round trip lands —
+   * the DP wall's toggle pattern (Phase 19), and for its reason: a toggle
+   * that does nothing for a second reads as a toggle that missed, and the
+   * reaction to that is to press it again, which queues a second write
+   * undoing the first. On failure the flip is rolled back and a toast says
+   * so, because a row silently disagreeing with the database is worse than
+   * one that never flipped.
    */
   rowToggle?: {
     /** Reads the current state off a row. */
@@ -103,20 +111,21 @@ export interface EntityCrudProps<T extends EntityRow> {
    */
   describeImpact?: (row: T) => { blocked: boolean; message: string } | null;
   /**
-   * Opens a row's editor on mount — the deep-link target for "finish this
-   * draft" notifications from another view (e.g. a swag-created product).
+   * Split the list in two, with the "on" group first under a quiet label.
+   *
+   * Only meaningful alongside `rowToggle`, which supplies the on/off reading
+   * — this just decides whether that split is worth showing. Published work
+   * is what an organiser came to find; hidden rows are the exception and
+   * belong after it, not interleaved by insertion order. Suppressed while
+   * `reorderable` is on, because the arrows move rows by array index and a
+   * regrouped list no longer matches that order.
+   */
+  sections?: { on: string; off: string };
+  /**
+   * Opens a row's editor on mount — the deep-link target for `?edit=<id>`
+   * links from another view.
    */
   initialEditId?: string;
-  /**
-   * Runs after a successful PUT with the raw response body — for endpoints
-   * that patch the payload server-side before persisting it (the swag→shop
-   * sync fills in `shopProductId` on the tiers array, so the collection's
-   * OWN endpoint returns extras like `createdDrafts`) and/or hand back a
-   * shape the caller wants to react to. Also triggers the same re-fetch
-   * `afterSave` does, so those server-side patches show up in `rows`
-   * immediately rather than after a reload.
-   */
-  onSaveResponse?: (body: unknown) => void;
 }
 
 export function EntityCrud<T extends EntityRow>({
@@ -133,9 +142,9 @@ export function EntityCrud<T extends EntityRow>({
   filter,
   toolbar,
   rowToggle,
+  sections,
   describeImpact,
   initialEditId,
-  onSaveResponse,
 }: EntityCrudProps<T>) {
   const toast = useToast();
   const [rows, setRows] = useState<T[]>(initialRows);
@@ -161,6 +170,8 @@ export function EntityCrud<T extends EntityRow>({
   const [isNew, setIsNew] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /** Which row's toggle is mid-flight — drives its shimmer. */
+  const [toggling, setToggling] = useState<string | null>(null);
 
   function open(row: T, fresh: boolean) {
     // Whatever was picked for the last record is not this record's.
@@ -206,24 +217,10 @@ export function EntityCrud<T extends EntityRow>({
         return;
       }
 
-      const responseBody = await res.json().catch(() => null);
-      onSaveResponse?.(responseBody);
-
       setRows(next);
       setBaseline(next);
       setDraft(null);
       onClose?.();
-
-      if (onSaveResponse) {
-        // The endpoint may have patched the payload server-side (swag→shop
-        // linkage fills in `shopProductId`) — read it back so the form
-        // reflects that without a reload.
-        const fresh = await fetchCurrent();
-        if (fresh) {
-          setRows(fresh);
-          setBaseline(fresh);
-        }
-      }
 
       if (saved && afterSave) {
         await afterSave(saved);
@@ -276,12 +273,51 @@ export function EntityCrud<T extends EntityRow>({
   }
 
   async function flip(row: T) {
-    if (!rowToggle) return;
+    if (!rowToggle || toggling) return;
     const next = !rowToggle.value(row);
-    await commit(
-      rows.map((r) => (r.id === row.id ? rowToggle.apply(r, next) : r)),
-      rowToggle.saved(next),
+    const flipped = rows.map((r) =>
+      r.id === row.id ? rowToggle.apply(r, next) : r,
     );
+
+    // On screen immediately; the shimmer says the server has not agreed yet.
+    const previous = rows;
+    setRows(flipped);
+    setToggling(row.id);
+
+    try {
+      const current = await fetchCurrent();
+      if (current && JSON.stringify(current) !== JSON.stringify(baseline)) {
+        setRows(previous);
+        toast.push(
+          "error",
+          "Someone else changed this list while you were editing. Reload before saving so their work is not lost.",
+        );
+        setToggling(null);
+        return;
+      }
+
+      const res = await fetch(`/api/admin/content/${collection}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload: flipped }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          detail?: string;
+        } | null;
+        setRows(previous);
+        toast.push("error", body?.detail ?? "That did not save.");
+        setToggling(null);
+        return;
+      }
+
+      setBaseline(flipped);
+      toast.push("ok", rowToggle.saved(next));
+    } catch {
+      setRows(previous);
+      toast.push("error", "Could not reach the server — put back as it was.");
+    }
+    setToggling(null);
   }
 
   async function move(index: number, dir: -1 | 1) {
@@ -298,6 +334,136 @@ export function EntityCrud<T extends EntityRow>({
   */
   const shown = filter ? rows.filter(filter) : rows;
   const filtered = shown.length !== rows.length;
+
+  /*
+   * Published-first split.
+   *
+   * Only when there is a toggle to read the state from AND the list is not
+   * reorderable — the arrows move rows by array index, and a regrouped list
+   * no longer reads in that order, so offering both would make "move up"
+   * mean something different from where the row appears to sit.
+   */
+  const readState = rowToggle?.value;
+  const grouped = sections && readState && !reorderable ? sections : null;
+  const onRows = grouped && readState ? shown.filter(readState) : [];
+  const offRows =
+    grouped && readState ? shown.filter((row) => !readState(row)) : [];
+
+  /**
+   * One row. Extracted so the flat list and the sectioned one render
+   * byte-identical rows — the split is about ORDER and a label, and must
+   * not become a second row implementation that drifts.
+   *
+   * `index` is the row's position in `rows`, not in what is on screen:
+   * the reorder arrows swap by array index, so passing the screen index
+   * would move the wrong row as soon as anything was filtered out.
+   */
+  function renderItem(row: T, index: number) {
+    const isToggling = toggling === row.id;
+    return (
+          <li
+            key={row.id}
+            className="relative flex flex-wrap items-center gap-3 overflow-hidden rounded-lg border border-black02/15 bg-offwhite px-4 py-3"
+          >
+            {/*
+              The DP wall's busy veil, on the row that is waiting. Purely
+              decorative — the toggle's own `aria-pressed` and the toast
+              carry the state for anyone not looking at it.
+            */}
+            {isToggling && <span aria-hidden className="admin-shimmer" />}
+            {/*
+              Faded, not struck through or greyed to unreadable: the record
+              is intact and one press from being back, and it still has to
+              be legible enough to find.
+            */}
+            <div
+              className={`min-w-0 flex-1 ${
+                rowToggle && !rowToggle.value(row) ? "opacity-45" : ""
+              }`}
+            >
+              {renderRow(row)}
+            </div>
+
+            {/*
+              REORDERING IS HIDDEN WHILE FILTERED, not disabled-looking.
+
+              The arrows swap a row with its neighbour by index, and under a
+              filter the row above on screen is not the row above in the
+              array. "Move up" would jump over however many rows the filter
+              is hiding — a silent, wrong reorder. Clear the filter and they
+              come back.
+            */}
+            {reorderable && !filtered && (
+              <span className="flex items-center gap-0.5">
+                {/*
+                  Buttons, not a drag handle. Dragging is the nicer gesture
+                  and the worse control here: it is unusable from a
+                  keyboard, awkward on a phone, and this list is edited on
+                  both. Each press saves, so the order in the database is
+                  always the order on screen.
+                */}
+                <button
+                  type="button"
+                  disabled={busy || index === 0}
+                  onClick={() => void move(index, -1)}
+                  aria-label={`Move ${row.id} up`}
+                  className="rounded-pill p-1.5 text-black02/55 hover:bg-pastel hover:text-black02 disabled:opacity-25"
+                >
+                  <ArrowsDownUp
+                    size={14}
+                    weight="bold"
+                    className="rotate-180"
+                  />
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || index === rows.length - 1}
+                  onClick={() => void move(index, 1)}
+                  aria-label={`Move ${row.id} down`}
+                  className="rounded-pill p-1.5 text-black02/55 hover:bg-pastel hover:text-black02 disabled:opacity-25"
+                >
+                  <ArrowsDownUp size={14} weight="bold" />
+                </button>
+              </span>
+            )}
+
+            {rowToggle && (
+              <button
+                type="button"
+                disabled={busy || isToggling}
+                onClick={() => void flip(row)}
+                aria-pressed={rowToggle.value(row)}
+                aria-busy={isToggling}
+                className={`rounded-pill border-2 px-3 py-1 text-caption font-bold transition-colors disabled:opacity-50 ${
+                  rowToggle.value(row)
+                    ? "border-black02/25 text-black02/60 hover:bg-pastel hover:text-black02"
+                    : "border-success text-success hover:bg-success-pastel"
+                }`}
+              >
+                {rowToggle.label(rowToggle.value(row))}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => open(row, false)}
+              aria-label={`Edit ${row.id}`}
+              className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-pastel"
+            >
+              <PencilSimple size={14} weight="bold" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setConfirming(row.id)}
+              aria-label={`Delete ${row.id}`}
+              className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-danger-pastel hover:text-danger"
+            >
+              <Trash size={14} weight="bold" />
+            </button>
+          </li>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -323,104 +489,36 @@ export function EntityCrud<T extends EntityRow>({
         <p className="rounded-lg border border-dashed border-black02/25 px-4 py-10 text-center text-body-m text-black02/60">
           {rows.length === 0 ? emptyLabel : "Nothing matches that."}
         </p>
+      ) : grouped ? (
+        /*
+          Published first, hidden after, each under a quiet label.
+
+          Two lists rather than one with separator rows: a heading that is
+          a sibling of the items it introduces is a heading an assistive
+          technology can skip to, and `<li>` pretending to be a divider is
+          an item that is not one.
+        */
+        <div className="flex flex-col gap-5">
+          {([
+            [grouped.on, onRows] as const,
+            [grouped.off, offRows] as const,
+          ])
+            .filter(([, group]) => group.length > 0)
+            .map(([label, group]) => (
+              <section key={label}>
+                <h3 className="mb-2 font-mono text-caption font-bold uppercase tracking-wide text-black02/45">
+                  {label}
+                  <span className="ml-1.5 font-normal">({group.length})</span>
+                </h3>
+                <ul className="flex flex-col gap-2">
+                  {group.map((row) => renderItem(row, rows.indexOf(row)))}
+                </ul>
+              </section>
+            ))}
+        </div>
       ) : (
         <ul className="flex flex-col gap-2">
-          {shown.map((row, i) => (
-            <li
-              key={row.id}
-              className="flex flex-wrap items-center gap-3 rounded-lg border border-black02/15 bg-offwhite px-4 py-3"
-            >
-              {/*
-                Faded, not struck through or greyed to unreadable: the record
-                is intact and one press from being back, and it still has to
-                be legible enough to find.
-              */}
-              <div
-                className={`min-w-0 flex-1 ${
-                  rowToggle && !rowToggle.value(row) ? "opacity-45" : ""
-                }`}
-              >
-                {renderRow(row)}
-              </div>
-
-              {/*
-                REORDERING IS HIDDEN WHILE FILTERED, not disabled-looking.
-
-                The arrows swap a row with its neighbour by index, and under a
-                filter the row above on screen is not the row above in the
-                array. "Move up" would jump over however many rows the filter
-                is hiding — a silent, wrong reorder. Clear the filter and they
-                come back.
-              */}
-              {reorderable && !filtered && (
-                <span className="flex items-center gap-0.5">
-                  {/*
-                    Buttons, not a drag handle. Dragging is the nicer gesture
-                    and the worse control here: it is unusable from a
-                    keyboard, awkward on a phone, and this list is edited on
-                    both. Each press saves, so the order in the database is
-                    always the order on screen.
-                  */}
-                  <button
-                    type="button"
-                    disabled={busy || i === 0}
-                    onClick={() => void move(i, -1)}
-                    aria-label={`Move ${row.id} up`}
-                    className="rounded-pill p-1.5 text-black02/55 hover:bg-pastel hover:text-black02 disabled:opacity-25"
-                  >
-                    <ArrowsDownUp
-                      size={14}
-                      weight="bold"
-                      className="rotate-180"
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy || i === rows.length - 1}
-                    onClick={() => void move(i, 1)}
-                    aria-label={`Move ${row.id} down`}
-                    className="rounded-pill p-1.5 text-black02/55 hover:bg-pastel hover:text-black02 disabled:opacity-25"
-                  >
-                    <ArrowsDownUp size={14} weight="bold" />
-                  </button>
-                </span>
-              )}
-
-              {rowToggle && (
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void flip(row)}
-                  aria-pressed={rowToggle.value(row)}
-                  className={`rounded-pill border-2 px-3 py-1 text-caption font-bold transition-colors disabled:opacity-50 ${
-                    rowToggle.value(row)
-                      ? "border-black02/25 text-black02/60 hover:bg-pastel hover:text-black02"
-                      : "border-success text-success hover:bg-success-pastel"
-                  }`}
-                >
-                  {rowToggle.label(rowToggle.value(row))}
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => open(row, false)}
-                aria-label={`Edit ${row.id}`}
-                className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-pastel"
-              >
-                <PencilSimple size={14} weight="bold" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setConfirming(row.id)}
-                aria-label={`Delete ${row.id}`}
-                className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-danger-pastel hover:text-danger"
-              >
-                <Trash size={14} weight="bold" />
-              </button>
-            </li>
-          ))}
+          {shown.map((row) => renderItem(row, rows.indexOf(row)))}
         </ul>
       )}
 

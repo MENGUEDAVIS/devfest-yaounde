@@ -76,6 +76,11 @@ or amend an earlier one.
 | [0047](decisions/0047-hero-random-stickers-and-admin-backdrop.md)       | Re-rolling sticker scatter, year pill, backdrop from the dashboard  | Accepted — extends 0046                               |
 | [0048](decisions/0048-settings-revalidation-was-a-documented-misuse.md) | Settings revalidation was a documented `revalidatePath` misuse      | Accepted — **corrects 0042**                          |
 | [0053](decisions/0053-remove-lenis-momentum-scroll.md)                  | Removing Lenis outright, not disabling it                           | Accepted — **supersedes 0007**                        |
+| [0054](decisions/0054-swag-references-shop-products.md)                 | Swag references shop products; it does not create them              | Accepted — **supersedes 0050**                        |
+| [0055](decisions/0055-row-level-publish-and-published-first.md)         | Publish/hide from the row, and published work first                 | Accepted                                              |
+| [0056](decisions/0056-gallery-link-and-testimonials.md)                 | An editable gallery link, testimonials in the store, flat stickers  | Accepted — **fixes a settings-read hazard**           |
+| [0057](decisions/0057-interactive-figures.md)                           | Figures that roll in, and a cursor that becomes a picture           | Accepted                                              |
+| [0058](decisions/0058-post-event-gallery-and-more-quote-stickers.md)    | Post-event gallery CTA, a timezone fix, and a 4th testimonial sticker | Accepted — **extends 0056**                           |
 
 **Site and design**
 

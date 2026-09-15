@@ -425,6 +425,7 @@ export type Database = {
           capacity: Json | null
           id: string
           legal: Json | null
+          memory_lane: Json | null
           sponsor_call: Json | null
           updated_at: string
           updated_by: string | null
@@ -437,6 +438,7 @@ export type Database = {
           capacity?: Json | null
           id?: string
           legal?: Json | null
+          memory_lane?: Json | null
           sponsor_call?: Json | null
           updated_at?: string
           updated_by?: string | null
@@ -449,6 +451,7 @@ export type Database = {
           capacity?: Json | null
           id?: string
           legal?: Json | null
+          memory_lane?: Json | null
           sponsor_call?: Json | null
           updated_at?: string
           updated_by?: string | null

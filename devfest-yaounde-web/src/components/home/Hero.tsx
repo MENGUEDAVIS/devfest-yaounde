@@ -5,7 +5,8 @@ import { HeroBackdrop } from "@/components/home/HeroBackdrop";
 import { HeroField } from "@/components/home/HeroField";
 import { HeroStickers } from "@/components/home/HeroStickers";
 import { HeroWordmark } from "@/components/home/HeroWordmark";
-import { EVENT, eventDateParts } from "@/lib/event";
+import { EVENT, eventDateParts, eventHasEnded } from "@/lib/event";
+import { isPlaceholderUrl } from "@/lib/site-config";
 
 /**
  * The landing hero (ADR 0046).
@@ -43,6 +44,7 @@ import { EVENT, eventDateParts } from "@/lib/event";
 export async function Hero({
   locale,
   backdropUrl,
+  currentGalleryUrl,
 }: {
   locale: string;
   /**
@@ -53,10 +55,25 @@ export async function Hero({
    * screens should not be coupled by an array index (ADR 0047).
    */
   backdropUrl: string;
+  /**
+   * THIS edition's photo album, from `site_settings.memory_lane` — empty
+   * until an organiser adds it. See the CTA swap below (ADR 0058).
+   */
+  currentGalleryUrl: string;
 }) {
   const t = await getTranslations("home.hero");
   const lang = locale === "en" ? "en" : "fr";
   const when = eventDateParts(lang);
+  /*
+    Once the event is over, "Grab your ticket" is not a live offer any more
+    — there is nothing left to buy a ticket TO. The one thing a returning
+    visitor actually wants at that point is the album, so the SAME primary
+    slot becomes that instead of adding a competing third button to an
+    already-tight cluster.
+  */
+  const ended = eventHasEnded();
+  const gallery = currentGalleryUrl.trim();
+  const hasGallery = Boolean(gallery) && !isPlaceholderUrl(gallery);
 
   return (
     <section className="relative isolate flex min-h-svh flex-col overflow-hidden bg-pastel">
@@ -98,9 +115,25 @@ export async function Hero({
               className="hero-settle mt-7 flex flex-wrap items-center gap-3"
               style={{ ["--settle-delay" as string]: "340ms" }}
             >
-              <Button tone="primary" href="/tickets" size="lg">
-                {t("ctaPrimary")}
-              </Button>
+              {!ended ? (
+                <Button tone="primary" href="/tickets" size="lg">
+                  {t("ctaPrimary")}
+                </Button>
+              ) : hasGallery ? (
+                <Button
+                  tone="primary"
+                  href={gallery}
+                  external
+                  size="lg"
+                >
+                  {t("ctaGallery", { year: EVENT.year })}
+                  <span className="sr-only">{t("ctaGalleryNewTab")}</span>
+                </Button>
+              ) : (
+                <Button tone="primary" size="lg" disabled>
+                  {t("ctaGalleryComingSoon")}
+                </Button>
+              )}
               <Button tone="black02" variant="secondary" href="/shop" size="lg">
                 {t("ctaSecondary")}
               </Button>

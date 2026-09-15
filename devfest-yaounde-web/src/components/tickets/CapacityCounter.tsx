@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Odometer } from "@/components/ui/Odometer";
 
 /**
  * The public "N tickets remaining" banner (Phase 20 / A6).
@@ -12,10 +13,9 @@ import { useLocale, useTranslations } from "next-intl";
  * show. `remaining` comes from the server, polled on an interval; this
  * component never computes it from tier data itself.
  *
- * The digits roll like a view counter on change (`Odometer` below). Not a
- * new dependency — a fixed-height column of "0123456789" per digit,
- * translated with a CSS transition. `prefers-reduced-motion` skips the
- * transition entirely, per DESIGN.md §6.5.
+ * The digits roll like a view counter on change — the shared `Odometer`,
+ * which the home page stats reuse rather than re-implement.
+ * `prefers-reduced-motion` skips the transition entirely, per DESIGN.md §6.5.
  */
 const POLL_MS = 60_000;
 
@@ -58,72 +58,5 @@ export function CapacityCounter({
         {t("capacityRemaining", { total: state.total.toLocaleString(locale) })}
       </span>
     </div>
-  );
-}
-
-function subscribeReducedMotion(callback: () => void) {
-  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-  mq.addEventListener("change", callback);
-  return () => mq.removeEventListener("change", callback);
-}
-
-/**
- * `useSyncExternalStore` rather than an effect + `setState`: this reads
- * genuinely external state (the OS/browser motion preference), and the hook
- * exists specifically to do that without a mount-time render cascade or a
- * server/client mismatch — the SSR snapshot is `false` (no window), and the
- * real value takes over on the client's first paint.
- */
-function usePrefersReducedMotion(): boolean {
-  return useSyncExternalStore(
-    subscribeReducedMotion,
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    () => false,
-  );
-}
-
-function Odometer({ value, digits }: { value: number; digits: number }) {
-  const reduceMotion = usePrefersReducedMotion();
-  const padded = Math.max(0, value).toString().padStart(digits, "0");
-
-  return (
-    <span
-      className="flex font-mono text-heading-m font-bold tabular-nums text-black02"
-      aria-live="polite"
-      aria-atomic="true"
-    >
-      <span className="sr-only">{value}</span>
-      {/*
-        No mount-vs-later distinction needed: a CSS transition never animates
-        the value an element is FIRST painted with, only a change from one
-        already-rendered value to the next — so the roll only ever shows up
-        on a real update (a poll, or an admin edit), never on page load.
-      */}
-      <span aria-hidden className="flex overflow-hidden">
-        {padded.split("").map((digit, i) => (
-          <span
-            key={i}
-            className="relative h-[1em] w-[0.62em] overflow-hidden"
-          >
-            <span
-              className={`absolute inset-x-0 top-0 flex flex-col ${
-                reduceMotion
-                  ? ""
-                  : "transition-transform duration-500 ease-out"
-              }`}
-              style={{
-                transform: `translateY(-${Number(digit) * 1}em)`,
-              }}
-            >
-              {"0123456789".split("").map((d) => (
-                <span key={d} className="flex h-[1em] items-center justify-center">
-                  {d}
-                </span>
-              ))}
-            </span>
-          </span>
-        ))}
-      </span>
-    </span>
   );
 }

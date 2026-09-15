@@ -28,7 +28,7 @@ import {
 } from "@/lib/checkout-client";
 import { useDiscount } from "@/components/checkout/use-discount";
 import { signInWithGoogle, useSession } from "@/lib/use-session";
-import type { TicketTier } from "@/data/types";
+import type { Product, TicketTier } from "@/data/types";
 
 const APPAREL_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 /** The server caps an order at 10 attendees; stop them at the same number. */
@@ -61,9 +61,15 @@ interface AttendeeDraft {
 
 export function TicketCheckout({
   tiers,
+  swagProducts,
   bevyUrl,
 }: {
   tiers: TicketTier[];
+  /**
+   * Every published product some tier references, resolved server-side
+   * (ADR 0054). Only the referenced ones, not the whole catalog.
+   */
+  swagProducts: Product[];
   bevyUrl: string;
 }) {
   const t = useTranslations("pages.tickets");
@@ -72,6 +78,22 @@ export function TicketCheckout({
   const { profile, loading: sessionLoading } = useSession();
 
   const onSale = useMemo(() => tiers.filter((tier) => tier.onSale), [tiers]);
+
+  /*
+   * Tier id -> the products it bundles, in the order the admin arranged
+   * them. Built once rather than per tier card, and ids that no longer
+   * resolve (product deleted or unpublished since) are simply skipped —
+   * a dangling reference must never blank out a tier's whole preview.
+   */
+  const swagByProductId = useMemo(
+    () => new Map(swagProducts.map((product) => [product.id, product])),
+    [swagProducts],
+  );
+  function swagFor(tier: TicketTier): Product[] {
+    return (tier.swagProductIds ?? [])
+      .map((id) => swagByProductId.get(id))
+      .filter((product): product is Product => product !== undefined);
+  }
   /*
    * The free tier is NOT sold here. Its RSVP is delegated to the community
    * platform, which already enforces one free RSVP per person — so it has no
@@ -478,7 +500,7 @@ export function TicketCheckout({
                     })}
                   </ul>
 
-                  <SwagPreview items={tier.swag ?? []} />
+                  <SwagPreview items={swagFor(tier)} />
                 </article>
               );
             })}

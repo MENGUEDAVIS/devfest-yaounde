@@ -5,6 +5,7 @@ import type { AdminSettings, CfsOverride } from "@/lib/admin/shape";
 import { isoToWatLocal, watLocalToIso } from "@/lib/admin/form-helpers";
 import { cfsView } from "@/lib/content/cfs";
 import { sponsorCallOpen, SPONSOR_SEATS } from "@/lib/content/sponsors";
+import { EVENT, PAST_GALLERY_YEAR } from "@/lib/event";
 import { ImageField, Segmented } from "../forms/fields";
 import { InfoBanner, Panel } from "./shared";
 
@@ -35,6 +36,15 @@ export function AdminConfig({
   const [heroUrl, setHeroUrl] = useState(settings.hero.imageUrl);
   const [heroBusy, setHeroBusy] = useState(false);
   const [sponsorCall, setSponsorCall] = useState(settings.sponsorCall);
+  /*
+    ONE state object for the whole group, not one per field — `memoryLane`
+    is written to the database as a single jsonb column (site_settings.
+    memory_lane), and `saveSettings` REPLACES that whole column rather than
+    merging into it. Two separate `useState`s sent independently would mean
+    saving a changed gallery URL could silently blank out an already-set
+    current-year URL that this form never touched.
+  */
+  const [memoryLane, setMemoryLane] = useState(settings.memoryLane);
   const [cfsUrl, setCfsUrl] = useState(settings.cfs.url);
   const [cfsOpens, setCfsOpens] = useState(isoToWatLocal(settings.cfs.opensAt));
   const [cfsCloses, setCfsCloses] = useState(
@@ -74,6 +84,28 @@ export function AdminConfig({
         capacity: {
           total: capacityTotal.trim() === "" ? null : Number(capacityTotal),
         },
+        /*
+          Sent only when it actually changed. Every other group here is
+          re-sent on each save, but this one lives in a newer column
+          (migration 0022): sending it unconditionally would make EVERY
+          config save fail on a database that has not had that migration yet,
+          over a field nobody touched.
+        */
+        /*
+          Sent only when it actually changed, and always as the WHOLE group
+          (see the note on the state above) — never sending it lets a
+          database without migration 0022's column keep saving every other
+          setting; sending a partial object would erase whichever field this
+          form did not touch.
+        */
+        ...(JSON.stringify(memoryLane) !== JSON.stringify(settings.memoryLane)
+          ? {
+              memoryLane: {
+                galleryUrl: memoryLane.galleryUrl.trim(),
+                currentGalleryUrl: memoryLane.currentGalleryUrl.trim(),
+              },
+            }
+          : {}),
       }),
     });
     if (!res.ok) {
@@ -300,6 +332,59 @@ export function AdminConfig({
             a transparent background keeps it and the theme colour shows
             through. It sits under a tint, so anything busy still reads.
           </p>
+        </div>
+
+        {/* Memory Lane's two album links — last edition's, and this one's. */}
+        <div className="flex flex-col gap-5 rounded-lg border border-black02/15 bg-pastel/40 p-4">
+          <div>
+            <h3 className="font-sans text-body-l font-bold text-black02">
+              Gallery links
+            </h3>
+            <p className="mt-1 text-caption text-black02/70">
+              Shown in Memory Lane on the home page, each opening in a new
+              tab. The current edition&rsquo;s also takes over the
+              hero&rsquo;s ticket button once the event has passed — nobody
+              needs to buy a ticket to something that already happened.
+            </p>
+          </div>
+
+          <label className="block text-body-m font-bold text-black02">
+            {PAST_GALLERY_YEAR} album URL
+            <input
+              className={field}
+              value={memoryLane.galleryUrl}
+              placeholder="https://photos.app.goo.gl/…"
+              onChange={(e) =>
+                setMemoryLane({ ...memoryLane, galleryUrl: e.target.value })
+              }
+            />
+            <span className="mt-1 block text-caption font-normal text-black02/60">
+              Last edition&rsquo;s photos. Empty hides this link rather than
+              pointing it nowhere.
+            </span>
+          </label>
+
+          <label className="block text-body-m font-bold text-black02">
+            {EVENT.year} album URL
+            <input
+              className={field}
+              value={memoryLane.currentGalleryUrl}
+              placeholder="https://photos.app.goo.gl/…"
+              onChange={(e) =>
+                setMemoryLane({
+                  ...memoryLane,
+                  currentGalleryUrl: e.target.value,
+                })
+              }
+            />
+            <span className="mt-1 block text-caption font-normal text-black02/60">
+              This edition&rsquo;s photos — there is normally nothing to put
+              here until after the event. Once the event has passed, leaving
+              this empty shows a &ldquo;photo album coming soon&rdquo; button
+              instead of a broken link; filling it in later is enough to
+              switch that button live, no other change needed.
+            </span>
+          </label>
         </div>
 
         {/*

@@ -160,12 +160,13 @@ export const getSessions = () => loadCollection<Session[]>("sessions");
 export const getSponsors = () => loadCollection<Sponsor[]>("sponsors");
 export const getFaqs = () => loadCollection<FaqItem[]>("faqs");
 /**
- * Products, as the public shop should see them — drafts removed.
+ * Products, as the public shop should see them — hidden ones removed.
  *
  * Same absent-means-visible convention as `hidden` on speakers/team:
- * `published` absent or true is live, `false` is a draft (an admin still
- * working on it, or a product auto-created from a ticket tier's swag — see
- * the swag→shop linkage ADR — that is missing shop-only fields).
+ * `published` absent or true is live, `false` is hidden (still being
+ * written, or deliberately pulled — toggled from the Shop row, ADR 0055).
+ * Also what ticket tiers' swag previews resolve against (ADR 0054), so a
+ * hidden product drops out of every tier card too.
  */
 export const getProducts = async () =>
   (await loadCollection<Product[]>("products")).filter(
@@ -174,7 +175,11 @@ export const getProducts = async () =>
 /** Everything, drafts included. For the dashboard, which completes them. */
 export const getAllProducts = () => loadCollection<Product[]>("products");
 export const getTiers = () => loadCollection<TicketTier[]>("ticket-tiers");
-export const getQuotes = () => loadCollection<Quote[]>("quotes");
+/** Testimonials as the public site should see them — hidden ones removed. */
+export const getQuotes = async () =>
+  (await loadCollection<Quote[]>("quotes")).filter((row) => !row.hidden);
+/** Everything, hidden included. For the dashboard. */
+export const getAllQuotes = () => loadCollection<Quote[]>("quotes");
 export const getStats = () => loadCollection<Stat[]>("stats");
 export const getPastEditions = () =>
   loadCollection<PastEditionPhoto[]>("past-editions");

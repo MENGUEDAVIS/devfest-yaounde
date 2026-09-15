@@ -13,6 +13,7 @@ import {
   CFS_OPENS_AT,
   CFS_URL,
   PARTICIPATION_TERMS_URL,
+  PAST_GALLERY_URL,
   PRIVACY_POLICY_URL,
   SPONSOR_PROSPECTUS_URL,
   TERMS_URL,
@@ -50,6 +51,7 @@ const REPO_DEFAULTS: SiteSettings = {
   /* No overall capacity until an admin sets one — `null` total means "don't
      show a public counter", not "zero tickets left". */
   capacity: { total: null },
+  memoryLane: { galleryUrl: PAST_GALLERY_URL, currentGalleryUrl: "" },
   source: "repo",
 };
 
@@ -100,11 +102,20 @@ async function readSettings(): Promise<SiteSettings> {
 
   try {
     const db = createAdminSupabase();
+    /*
+      `*`, not a named column list — and that is a correctness choice, not
+      laziness. Naming a column that does not exist yet makes PostgREST fail
+      the WHOLE query (verified against the live project: "column
+      site_settings.no_such_column does not exist"), and the error branch
+      below then returns repo defaults for everything. So deploying code
+      that reads a new column before its migration is applied would silently
+      revert the live announcement, hero backdrop, call for speakers and
+      prospectus at once. With `*`, a column that is not there yet is just
+      absent from the row, and only its own group falls back.
+    */
     const { data, error } = await db
       .from("site_settings")
-      .select(
-        "announcement, bevy_url, hero, cfs, sponsor_call, legal, capacity",
-      )
+      .select("*")
       .eq("id", "site")
       .maybeSingle();
     if (error || !data) return REPO_DEFAULTS;
@@ -141,6 +152,7 @@ async function readSettings(): Promise<SiteSettings> {
       sponsorCall: merge(REPO_DEFAULTS.sponsorCall, data.sponsor_call),
       legal: merge(REPO_DEFAULTS.legal, data.legal),
       capacity: { total: capacityTotal },
+      memoryLane: merge(REPO_DEFAULTS.memoryLane, data.memory_lane),
       source: "database",
     };
   } catch (err) {
@@ -204,6 +216,13 @@ export async function saveSettings(
       : {}),
     ...(parsed.data.capacity !== undefined
       ? { capacity: parsed.data.capacity ? toJson(parsed.data.capacity) : null }
+      : {}),
+    ...(parsed.data.memoryLane !== undefined
+      ? {
+          memory_lane: parsed.data.memoryLane
+            ? toJson(parsed.data.memoryLane)
+            : null,
+        }
       : {}),
     updated_at: new Date().toISOString(),
     updated_by: actor,

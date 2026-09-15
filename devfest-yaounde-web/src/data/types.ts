@@ -94,16 +94,31 @@ export interface Sponsor {
 
 export interface Stat {
   id: string;
+  /** Whole and non-negative — drawn by the digit odometer. */
   value: number;
   suffix?: string;
   label: LocalizedString;
+  /**
+   * Optional picture for the figure. Desktop: it becomes the cursor while
+   * hovering the number. Touch or reduced motion: shown inline beside it.
+   */
+  imageUrl?: string;
 }
 
 export interface Quote {
   id: string;
   text: LocalizedString;
+  /**
+   * Empty when the speaker is not known by name — the site then shows a
+   * localized "Community member" instead of inventing one.
+   */
   author: string;
+  /** e.g. "Attendee, past edition" or a role + company. */
   role?: LocalizedString;
+  /** Optional face. Uploaded from the dashboard. */
+  avatarUrl?: string;
+  /** Absent means visible. */
+  hidden?: boolean;
 }
 
 export interface PastEditionPhoto {
@@ -183,14 +198,6 @@ export interface TierEntitlement {
 }
 
 /** A swag item bundled with a tier, optionally linked to its own shop listing. */
-export interface TierSwagItem {
-  id: string;
-  name: LocalizedString;
-  images?: string[];
-  /** Set once the auto-created (or manually linked) shop product exists. */
-  shopProductId?: string;
-}
-
 export interface TicketTier {
   id: string;
   /** Proper-noun tier name, rendered mono-tag style. Language-neutral. */
@@ -210,11 +217,13 @@ export interface TicketTier {
    */
   rsvpExternal?: boolean;
   /**
-   * Swag bundled with this tier, for the swag preview. Ordered biggest-first;
-   * higher tiers list more. Each item may carry images and a link to its
-   * auto-created (or manually linked) shop product.
+   * Swag bundled with this tier, as SHOP PRODUCT IDS (ADR 0054).
+   *
+   * A reference, never ownership: the tier points at listings the Shop
+   * already holds. Ordered as the admin arranged them — the preview renders
+   * in this order. Ids that no longer resolve are skipped at render.
    */
-  swag?: TierSwagItem[];
+  swagProductIds?: string[];
   description: LocalizedString;
   /** "What your ticket grants you" — admin-editable, reorderable. */
   perks: TierEntitlement[];
@@ -254,13 +263,11 @@ export interface Product {
   /** Always paired with a visible text label in the UI, never colour alone. */
   status: ProductStatus;
   /**
-   * Absent or true = live on the public shop. False = draft — either an
-   * admin working on a new listing, or a product auto-created from a ticket
-   * tier's swag item (see `sourceSwag`) that is missing shop-only fields.
+   * Absent or true = live on the public shop. False = hidden — an admin
+   * still working on a listing, or one deliberately pulled from sale.
+   * Toggleable straight from the Shop listing row (ADR 0055).
    */
   published?: boolean;
-  /** Set only on a product auto-created from a ticket tier's swag item. */
-  sourceSwag?: { tierId: string; swagId: string };
 }
 
 /** One chosen product + variant + quantity, as sent by the shop checkout. */

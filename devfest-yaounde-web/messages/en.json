@@ -96,7 +96,10 @@
       "dateLabel": "When",
       "venueLabel": "Where",
       "photoAlt": "A frame from a past DevFest Yaoundé",
-      "venueCaption": "Cameroon"
+      "venueCaption": "Cameroon",
+      "ctaGallery": "View the {year} gallery",
+      "ctaGalleryComingSoon": "Photo album coming soon",
+      "ctaGalleryNewTab": "(opens in a new tab)"
     },
     "sponsors": {
       "label": "Powered by good people",
@@ -145,12 +148,16 @@
       "parallel": "{count} sessions at the same time — pick one"
     },
     "quotes": {
-      "title": "What people are saying"
+      "title": "What people are saying",
+      "communityMember": "Community member"
     },
     "memoryLane": {
       "title": "Memory lane",
       "body": "A few frames from past editions — proof this community has history, and it's only getting started.",
-      "recapCta": "Watch the recap"
+      "recapCta": "Watch the recap",
+      "galleryCta": "View the {year} gallery",
+      "galleryNewTab": "(opens in a new tab)",
+      "galleryComingSoon": "Photo album coming soon"
     },
     "community": {
       "title": "What is GDG Yaoundé up to?",

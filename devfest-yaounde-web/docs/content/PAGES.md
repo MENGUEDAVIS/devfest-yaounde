@@ -69,6 +69,10 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
    - Dates + venue, clearly stated.
    - Background/foreground: a collage or auto-playing carousel of **last edition's photos**, masked into the morphed-shape frames from DESIGN.md §4.2.
    - Primary CTA: **Get Tickets** → `/tickets`. Secondary: **Shop** → `/shop`. ~~Tertiary: RSVP on GDG Bevy~~ — removed, see `docs/decisions/0008-retire-bevy-rsvp.md`.
+   - **After the event has passed:** the primary CTA swaps IN PLACE to the
+     current edition's photo album (or "Photo album coming soon" while that
+     link is not yet set) — there is nothing left to sell a ticket to. Shop
+     stays as-is; it is evergreen either side of the event. See ADR 0058.
    - Sponsor/partner logo marquee (linear-eased, continuous scroll, like Lagos's) directly under the hero — bold and boastful, sponsors deserve prime real estate.
 
 2. **What is DevFest Yaoundé** (community + this year's direction)
@@ -77,6 +81,11 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 3. **Playful interstitial** (breathing room #1)
    - A short animated quote, stat counter (e.g. "500+ developers, 40+ speakers, 1 unforgettable weekend"), or a big typographic moment with a decorative blob shape. No dense information here — pure vibe.
+   - **Built as:** the figures from the `stats` collection (Content → Figures).
+     Each number rolls in digit by digit with the shared odometer when it
+     scrolls into view. A figure with an image turns the desktop cursor into
+     that picture while its number is hovered; on touch or with reduced motion
+     the image sits inline above the number instead (ADR 0057).
 
 4. **Speaker Showcase (preview)**
    - Horizontal scroll/carousel of **featured** speakers only (not the full roster) — photo (morphed frame), name, role, company.
@@ -93,9 +102,25 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 7. **Playful interstitial** (breathing room #2)
    - Rotating community quotes/tweets from past editions, in speech-bubble-styled cards.
+   - **Built as:** testimonials from the `quotes` collection, editable under
+     Community → Testimonials (order = rotation order, hide from the row).
+     An unnamed quote is attributed "Community member" — never an invented
+     name. With no visible quotes the section is skipped entirely. Decorated
+     with four flat stickers, a different four every page load, from the DP
+     set (`bubble`, `spark`, `cup`, `heart`, `thumbsup`; two on phones) kept
+     to the section's top/bottom padding bands, measured clear of all copy
+     from 360–1920px in both locales (ADR 0056, extended by ADR 0058).
 
 8. **Memory Lane / Past Edition Recap**
    - Recap video link + photo grid from last year(s) — this is what proves the community is real and has history, which matters a lot for a "template built to last across years."
+   - **"View the {year} gallery"** — the past edition's album, opening in a
+     new tab (`noopener noreferrer`), the year filled in automatically. The
+     URL is a dashboard setting (Settings → Gallery links); empty hides the
+     button.
+   - **Once the event has passed**, a second, PRIMARY button appears for the
+     CURRENT edition's album — same year-labelled phrasing, its own URL
+     field. Empty shows "Photo album coming soon" instead of a dead link.
+     See ADR 0058.
 
 9. **Community CTA**
    - "What is GDG Yaoundé up to?" — short blurb + **Join the Community** button → Bevy chapter page. This is the section that gives Bevy "more value" as you described, rather than just being a silent RSVP redirect.
@@ -238,8 +263,14 @@ or payment. This is not a contradiction of the retired Bevy RSVP CTA
 ticketing is on-site; free RSVP is delegated.
 
 Every tier lists its **swag** as a row of small cutout-style prints —
-alternating tilt, hover lifts one and names it. Higher tiers show more. Images
-are placeholders; the names are real.
+alternating tilt, hover lifts one and names it. Higher tiers show more.
+
+The name and image come from the **shop product** the tier references, not
+from copy stored on the tier (ADR 0054): an organiser attaches existing Shop
+listings in the dashboard, so a tier can never advertise a t-shirt that
+disagrees with the one the shop sells. A tier with nothing attached shows no
+swag row at all, which is a normal state — and is where every tier starts
+after the 0054 migration, until an organiser picks its items.
 
 ### 7.2 Checkout — three steps
 

@@ -4,7 +4,9 @@ import {
   ArrowLeft,
   CalendarBlank,
   CaretDown,
+  ChartLineUp,
   ChartBar,
+  ChatCircleText,
   Gear,
   Handshake,
   Image as ImageIcon,
@@ -43,12 +45,16 @@ import { AdminSpeakers } from "./views/AdminSpeakers";
 import { AdminTeam } from "./views/AdminTeam";
 import { AdminSchedule } from "./views/AdminSchedule";
 import { AdminSponsors } from "./views/AdminSponsors";
+import { AdminTestimonials } from "./views/AdminTestimonials";
+import { AdminStats } from "./views/AdminStats";
 import { ToastProvider } from "./forms/Toast";
 import type {
   Product,
+  Quote,
   Session,
   Speaker,
   Sponsor,
+  Stat,
   TeamMember,
   TicketTier,
 } from "@/data/types";
@@ -73,12 +79,14 @@ export type ViewId =
   | "orders"
   | "discounts"
   | "wall"
+  | "testimonials"
   | "users"
   | "content"
   | "speakers"
   | "team"
   | "schedule"
   | "sponsors"
+  | "stats"
   | "config";
 
 const GROUPS: {
@@ -108,6 +116,7 @@ const GROUPS: {
     label: "Community",
     items: [
       { id: "wall", label: "DP wall", Icon: ImageIcon },
+      { id: "testimonials", label: "Testimonials", Icon: ChatCircleText },
       { id: "users", label: "Users", Icon: Users },
     ],
   },
@@ -118,6 +127,7 @@ const GROUPS: {
       { id: "schedule", label: "Schedule", Icon: CalendarBlank },
       { id: "team", label: "Team", Icon: UsersThree },
       { id: "sponsors", label: "Sponsors", Icon: Handshake },
+      { id: "stats", label: "Figures", Icon: ChartLineUp },
       { id: "content", label: "Bulk & photos", Icon: Table },
     ],
   },
@@ -204,7 +214,7 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
   shop: {
     title: "Shop",
     blurb:
-      "Every product on the merch store, including drafts auto-created from ticket swag — those stay hidden until you finish them.",
+      "Every product on the merch store, published first. Publish or hide one straight from its row; ticket tiers pick their swag from this list.",
   },
   transactions: {
     title: "Transactions",
@@ -221,6 +231,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
   wall: {
     title: "Community wall",
     blurb: "Click a card to hide or show it. Reported ones sit up front.",
+  },
+  testimonials: {
+    title: "Testimonials",
+    blurb:
+      "The quotes in \u201cWhat people are saying\u201d on the home page. Order here is the order they rotate in. Only publish words somebody actually said — leave the name empty and the site shows \u201cCommunity member\u201d rather than a made-up one.",
   },
   users: {
     title: "Users",
@@ -251,6 +266,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
     blurb:
       "Confirmed supporters. Each one fills a seat on the public strip, and their logo links to their own site.",
   },
+  stats: {
+    title: "Figures",
+    blurb:
+      "The big numbers on the home page. Order here is left to right. Give a figure an image and hovering its number on a computer turns the cursor into that picture.",
+  },
   config: {
     title: "Info bar and policies",
     blurb:
@@ -277,6 +297,8 @@ export interface AdminCollections {
   sponsors: Sponsor[];
   products: Product[];
   tiers: TicketTier[];
+  quotes: Quote[];
+  stats: Stat[];
 }
 
 export function AdminShell({
@@ -300,9 +322,17 @@ export function AdminShell({
   /** "Finish this draft" deep link from another view — read once, like `view`. */
   const editId = params.get("edit") ?? undefined;
 
-  /** Drafts still missing a price/images — the badge on the Shop nav item. */
+  /**
+   * Listings that genuinely still NEED WORK — no price or no image — for the
+   * badge on the Shop nav item.
+   *
+   * Not "every hidden product". That was the right count while the only
+   * hidden products were auto-created swag drafts; now hiding is a deliberate
+   * one-click choice from the row (ADR 0055), and a red alert on the nav for
+   * every sold-out item somebody pulled would be an alarm about nothing.
+   */
   const draftProductCount = collections.products.filter(
-    (p) => p.published === false,
+    (p) => p.priceXAF <= 0 || p.images.length === 0,
   ).length;
 
   /**
@@ -633,6 +663,7 @@ export function AdminShell({
                 data={data}
                 settings={settings}
                 products={collections.products}
+                onGoToShop={() => go("shop")}
               />
             )}
             {view === "shop" && (
@@ -647,6 +678,10 @@ export function AdminShell({
             {view === "orders" && <AdminOrders data={data} />}
             {view === "discounts" && <AdminDiscounts data={data} />}
             {view === "wall" && <AdminWall data={data} />}
+            {view === "stats" && <AdminStats rows={collections.stats} />}
+            {view === "testimonials" && (
+              <AdminTestimonials rows={collections.quotes} />
+            )}
             {view === "users" && <AdminUsers data={data} />}
             {view === "speakers" && (
               <AdminSpeakers rows={collections.speakers} />

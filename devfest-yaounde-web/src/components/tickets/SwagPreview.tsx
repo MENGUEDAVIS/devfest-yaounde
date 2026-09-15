@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import type { TierSwagItem } from "@/data/types";
+import type { Product } from "@/data/types";
 
 /**
  * The swag that comes with a paid tier — PHASE14 edit, images added PHASE20.
@@ -15,12 +15,17 @@ import type { TierSwagItem } from "@/data/types";
  * The tilt alternates by index and is set inline, so it follows the ITEM
  * rather than its position in the DOM.
  *
- * An item with no image yet (freshly added in admin, upload pending) falls
- * back to the plain placeholder thumb — the name is still the real
- * information, which is why it is in the popover and in the accessible name
- * rather than only in a file.
+ * An item with no image yet falls back to the plain placeholder thumb — the
+ * name is still the real information, which is why it is in the popover and
+ * in the accessible name rather than only in a file.
+ *
+ * SOURCED FROM SHOP PRODUCTS (ADR 0054). The tier stores ids; the page
+ * resolves them and passes the products here. A tier bundling the same
+ * t-shirt as three other tiers points at ONE listing, so the name and image
+ * shown are the ones the shop actually sells — they cannot drift apart,
+ * because there is only one copy of them.
  */
-export function SwagPreview({ items }: { items: TierSwagItem[] }) {
+export function SwagPreview({ items }: { items: Product[] }) {
   const t = useTranslations("pages.tickets");
   const locale = useLocale() as "fr" | "en";
   if (items.length === 0) return null;

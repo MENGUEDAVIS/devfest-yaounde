@@ -162,23 +162,11 @@ export const productSchema = z.object({
     .optional(),
   status: z.enum(["pre-order", "in-stock", "venue-only", "sold-out"]),
   /**
-   * Absent or true = live on the public shop. False = draft — either an
-   * admin working on a new listing, or a product auto-created from a ticket
-   * tier's swag (see `sourceSwag`) that is missing shop-only fields. Same
-   * absent-means-visible convention as `hidden` on speakers/team.
+   * Absent or true = live on the public shop. False = hidden/draft — an
+   * admin still working on a listing, or one deliberately pulled from sale.
+   * Same absent-means-visible convention as `hidden` on speakers/team.
    */
   published: z.boolean().optional(),
-  /**
-   * Set only on a product auto-created from a ticket tier's swag item.
-   * Traceable link back to the tier — cleared (not deleted) if the swag
-   * item is later removed from the tier. See ADR on swag→shop linkage.
-   */
-  sourceSwag: z
-    .object({
-      tierId: slug,
-      swagId: slug,
-    })
-    .optional(),
 });
 
 /** One thing a ticket grants — "what your ticket includes" (admin-editable). */
@@ -189,22 +177,22 @@ export const entitlementSchema = z.object({
   note: localized.optional(),
 });
 
-/** A swag item bundled with a tier, optionally linked to its own shop listing. */
-export const swagItemSchema = z.object({
-  id: slug,
-  name: localizedRequired,
-  images: z.array(z.string().max(400)).max(6).optional(),
-  /** Set once the auto-created (or manually linked) shop product exists. */
-  shopProductId: slug.optional(),
-});
-
 export const ticketTierSchema = z.object({
   id: slug,
   name: z.string().trim().min(1).max(40),
   label: localized.optional(),
   priceXAF: z.number().int().min(0).max(10_000_000),
   rsvpExternal: z.boolean().optional(),
-  swag: z.array(swagItemSchema).max(20).optional(),
+  /**
+   * Shop products bundled with this tier, BY REFERENCE (ADR 0054).
+   *
+   * Ids only. A tier never creates or owns a product — it points at
+   * listings the Shop already holds, so the same t-shirt bundled with three
+   * tiers is one product, not three near-identical copies. Ids that no
+   * longer resolve are ignored at render rather than validated away here:
+   * a deleted product must not make an unrelated tier unsaveable.
+   */
+  swagProductIds: z.array(slug).max(20).optional(),
   description: localizedRequired,
   perks: z.array(entitlementSchema).max(30),
   includesApparel: z.boolean(),
@@ -218,18 +206,37 @@ export const ticketTierSchema = z.object({
   soldOut: z.boolean().optional(),
 });
 
+/**
+ * A testimonial — "What people are saying" on the home page.
+ *
+ * `author` may be EMPTY on purpose. A quote whose speaker is not known by name
+ * renders a localized generic attribution ("Community member") rather than
+ * a name, and an invented name attributed to a real-looking person is worse
+ * than no name. Same absent-means-visible `hidden` convention as speakers.
+ */
 export const quoteSchema = z.object({
   id: slug,
   text: localizedRequired,
-  author: z.string().trim().min(1).max(120),
+  author: z.string().trim().max(120),
   role: localized.optional(),
+  avatarUrl: z.string().max(400).optional(),
+  hidden: z.boolean().optional(),
 });
 
+/**
+ * A home page figure — "500+ developers".
+ *
+ * `value` is a whole, non-negative number because it is drawn by the digit
+ * odometer, which has one column per digit and no decimal point or sign.
+ * The cap keeps it to nine columns, which is already wider than the section.
+ */
 export const statSchema = z.object({
   id: slug,
-  value: z.number(),
+  value: z.number().int().min(0).max(999_999_999),
   suffix: z.string().max(8).optional(),
   label: localizedRequired,
+  /** Revealed under the cursor on desktop, shown inline on touch (ADR 0057). */
+  imageUrl: z.string().max(400).optional(),
 });
 
 export const pastEditionSchema = z.object({
@@ -343,6 +350,20 @@ export const capacitySchema = z.object({
   total: z.number().int().min(0).max(1_000_000).optional().nullable(),
 });
 
+export const memoryLaneSchema = z.object({
+  /** Last edition's album — see `PAST_GALLERY_YEAR` for which year that is. */
+  galleryUrl: urlOrEmpty.optional().nullable(),
+  /**
+   * THIS edition's album. Empty until an organiser uploads it — normally
+   * after the event, since there is nothing to link before then. Once
+   * `eventHasEnded()` is true, its presence (or absence) decides between a
+   * primary "view the gallery" CTA and a "coming soon" placeholder, on both
+   * the home page's Memory Lane section and in place of the hero's ticket
+   * CTA (ADR 0058).
+   */
+  currentGalleryUrl: urlOrEmpty.optional().nullable(),
+});
+
 export const settingsSchema = z.object({
   announcement: localized.optional().nullable(),
   bevyUrl: urlOrEmpty.optional().nullable(),
@@ -351,6 +372,7 @@ export const settingsSchema = z.object({
   sponsorCall: sponsorCallSchema.optional().nullable(),
   legal: legalSchema.optional().nullable(),
   capacity: capacitySchema.optional().nullable(),
+  memoryLane: memoryLaneSchema.optional().nullable(),
 });
 
 function blankToNull(value: unknown): unknown {

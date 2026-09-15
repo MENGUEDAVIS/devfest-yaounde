@@ -38,6 +38,7 @@ export interface TextSticker {
 export type Sticker = ShapeSticker | TextSticker;
 
 const YELLOW = "#F9AB00";
+const YELLOW_HALFTONE = "#FFD427";
 const BLUE = "#4285F4";
 const GREEN = "#34A853";
 const RED = "#EA4335";
@@ -164,6 +165,41 @@ export const SHAPE_STICKERS: ShapeSticker[] = [
       { d: "M62 40 A5 5 0 1 0 62 50 A5 5 0 1 0 62 40 Z", fill: "#1E1E1E" },
     ],
     fill: "#FF7DAF",
+  },
+  {
+    id: "heart",
+    kind: "shape",
+    label: { fr: "Cœur", en: "Heart" },
+    // Two arc lobes meeting at a point — the same A-command construction as
+    // `pin`/`bubble` above, built and checked against the same 100×100 box
+    // rather than freehanded, so it sits flush with every other sticker.
+    paths: [
+      {
+        d: "M50 30 A24 24 0 0 1 98 30 Q98 55 50 96 Q2 55 2 30 A24 24 0 0 1 50 30 Z",
+      },
+    ],
+    fill: RED,
+  },
+  {
+    id: "thumbsup",
+    kind: "shape",
+    label: { fr: "Pouce en l'air", en: "Thumbs up" },
+    paths: [
+      // The fist: a rounded block, thumb-side flat where it meets the thumb.
+      {
+        d: "M28 42 H86 A10 10 0 0 1 96 52 L90 84 A12 12 0 0 1 78 94 H36 A8 8 0 0 1 28 86 V42 Z",
+      },
+      // The wrist — a second flat tone so the fist doesn't read as one slab.
+      {
+        d: "M28 44 H14 A8 8 0 0 0 6 52 V86 A8 8 0 0 0 14 94 H28 V44 Z",
+        fill: YELLOW_HALFTONE,
+      },
+      // The thumb, bent back at the knuckle.
+      {
+        d: "M30 42 C 20 42 18 30 24 18 C 30 6 42 1 48 4 C 54 10 44 22 44 30 L44 42 Z",
+      },
+    ],
+    fill: YELLOW,
   },
 ];
 

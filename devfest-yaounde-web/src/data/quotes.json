@@ -2,10 +2,10 @@
   {
     "id": "quote-1",
     "text": {
-      "fr": "Espace réservé — Le meilleur événement tech auquel j'ai assisté à Yaoundé, sans hésiter.",
-      "en": "Placeholder quote — Hands down the best tech event I've been to in Yaoundé."
+      "fr": "Le meilleur événement tech auquel j'ai assisté à Yaoundé, sans hésiter.",
+      "en": "Hands down the best tech event I've been to in Yaoundé."
     },
-    "author": "A. Kamga",
+    "author": "",
     "role": {
       "fr": "Participante, édition précédente",
       "en": "Attendee, past edition"
@@ -14,10 +14,10 @@
   {
     "id": "quote-2",
     "text": {
-      "fr": "Espace réservé — J'ai trouvé mon co-fondateur dans la file d'attente du café. Vrai témoignage à venir.",
-      "en": "Placeholder quote — I found my co-founder in the coffee line. Real testimonial coming soon."
+      "fr": "J'ai trouvé mon co-fondateur dans la file d'attente du café.",
+      "en": "I found my co-founder in the coffee line."
     },
-    "author": "R. Talla",
+    "author": "",
     "role": {
       "fr": "Participant, édition précédente",
       "en": "Attendee, past edition"
@@ -26,10 +26,10 @@
   {
     "id": "quote-3",
     "text": {
-      "fr": "Espace réservé — Une communauté qui donne vraiment envie de revenir chaque année.",
-      "en": "Placeholder quote — A community that genuinely makes you want to come back every year."
+      "fr": "Une communauté qui donne vraiment envie de revenir chaque année.",
+      "en": "A community that genuinely makes you want to come back every year."
     },
-    "author": "S. Biya",
+    "author": "",
     "role": {
       "fr": "Intervenante, édition précédente",
       "en": "Speaker, past edition"

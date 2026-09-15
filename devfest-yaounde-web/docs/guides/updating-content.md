@@ -202,6 +202,35 @@ be regrouped — it's driven by one field, so it's a small change.
 
 ---
 
+## Testimonials and the gallery link — from the dashboard
+
+Both live in the admin now, not in files.
+
+- **Testimonials** — *Community → Testimonials*. Quote in both languages, an
+  optional name, role/company and photo. The order of the list is the order
+  they rotate in on the home page; **Hide** on a row takes one out of the
+  rotation without deleting it. Deleting asks you to type the id.
+  - **Only publish words somebody actually said, with their permission.** No
+    name to put on it? Leave the name empty and the site shows "Community
+    member" / "Membre de la communauté". Never invent a name for a quote.
+  - Hide every testimonial and the whole section disappears from the home
+    page rather than showing an empty heading.
+- **Gallery links** — *Settings → Info bar & policies → Gallery links*, two
+  fields (ADR 0058):
+  - The **past edition's** album URL — shown as "View the {year} gallery" in
+    Memory Lane, the year filled in automatically (one back from the current
+    edition). Empty hides that button.
+  - The **current edition's** album URL — empty until there is one, normally
+    after the event. Once the event's dates have passed, this becomes the
+    PRIMARY gallery button in Memory Lane, sitting next to the (now
+    secondary) past-edition one — AND it takes over the hero's ticket button,
+    since nobody needs a ticket to something that already happened. Leave it
+    empty and both of those show "Photo album coming soon" instead of a
+    broken link; filling it in later is all it takes to switch them live, no
+    other change needed.
+
+---
+
 ## What's still placeholder
 
 Everything in all four files is placeholder and needs replacing:
@@ -213,6 +242,8 @@ Everything in all four files is placeholder and needs replacing:
 | `faqs.json`            | All 12 — plausible answers, but not confirmed policy       |
 | `team.json`            | All 8 — every name literally reads "Placeholder Organizer" |
 | `public/placeholders/` | Every image is a flat colour block, not a photo            |
+| `quotes.json`          | All 3 quotes were written as samples, not said by anyone. The "Placeholder quote —" labels and invented names are gone (ADR 0056), but the words themselves still need replacing with real, permitted testimonials |
+| `past-editions.json`   | Memory Lane's 4 photos are placeholder SVGs — now sitting right above a link to the real album |
 
 The images make the biggest visual difference. Swapping in real community
 photos will change how the site feels more than any styling change.

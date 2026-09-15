@@ -11,6 +11,8 @@ import {
   getSponsors,
   getAllTeam,
   getAllProducts,
+  getAllQuotes,
+  getStats,
   getTiers,
 } from "@/lib/content/store";
 
@@ -43,6 +45,8 @@ export default async function AdminPage() {
     sessions,
     products,
     tiers,
+    quotes,
+    stats,
   ] = await Promise.all([
     loadAdminData(),
     collectionCounts(),
@@ -53,6 +57,8 @@ export default async function AdminPage() {
     getSessions(),
     getAllProducts(),
     getTiers(),
+    getAllQuotes(),
+    getStats(),
   ]);
 
   const missingPhotos: MissingPhoto[] = [
@@ -88,7 +94,16 @@ export default async function AdminPage() {
         data={data}
         settings={settings}
         missingPhotos={missingPhotos}
-        collections={{ speakers, team, sessions, sponsors, products, tiers }}
+        collections={{
+          speakers,
+          team,
+          sessions,
+          sponsors,
+          products,
+          tiers,
+          quotes,
+          stats,
+        }}
         content={{
           speakers: counts.speakers,
           team: counts.team,

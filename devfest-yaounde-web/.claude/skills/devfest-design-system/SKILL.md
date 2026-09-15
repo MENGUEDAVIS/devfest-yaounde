@@ -198,7 +198,7 @@ Easter eggs: log every one added in `/EASTER-EGGS.md` at the project root so fut
 - **Badges/tags**: `radius-pill`, pastel bg + core color text, mono type.
 - **Nav**: connected banner+nav unit, yellow-family themed, Yellow 600 active state.
 
-Reuse the existing primitives rather than rebuilding: `Button`, `Badge`, `SectionContainer`, `IconWrapper`, `StatCounter`, `Modal`, `Reveal`, `MorphedImageFrame` — all documented in `docs/components/`.
+Reuse the existing primitives rather than rebuilding: `Button`, `Badge`, `SectionContainer`, `IconWrapper`, `StatCounter`, `Odometer` (the ONE digit-roll counter — never write a second), `Modal`, `Reveal`, `MorphedImageFrame` — all documented in `docs/components/`.
 
 ## Governance
 
@@ -216,6 +216,11 @@ Never move the `cursor: none` rule out from under `.has-custom-cursor`.
 
 Mark anything draggable that isn't a link or button with `data-cursor="grab"`
 so the ring reacts to it.
+
+`data-cursor-image="<url>"` turns the cursor into a trailing picture card while
+hovering that element (ADR 0057). The cursor never runs on touch or under
+reduced motion, so anything using it MUST also show the image another way for
+those visitors — see `.stat-inline-image`.
 
 ## Scrollbars (PHASE10 §4, matched in PHASE11 §4)
 

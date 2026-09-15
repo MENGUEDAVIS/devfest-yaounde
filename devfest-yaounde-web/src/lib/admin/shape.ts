@@ -141,6 +141,13 @@ export interface CapacitySettings {
   total: number | null;
 }
 
+export interface MemoryLaneSettings {
+  /** Past edition's photo album. Empty hides the link. */
+  galleryUrl: string;
+  /** This edition's album — see the schema doc comment for how it is used. */
+  currentGalleryUrl: string;
+}
+
 export interface AdminSettings {
   announcement: { fr: string; en: string } | null;
   bevyUrl: string;
@@ -149,6 +156,7 @@ export interface AdminSettings {
   sponsorCall: SponsorCallSettings;
   legal: LegalSettings;
   capacity: CapacitySettings;
+  memoryLane: MemoryLaneSettings;
   source: "database" | "repo";
 }
 

@@ -487,6 +487,76 @@ html:not(.has-custom-cursor) .cursor-layer {
   opacity: 0;
 }
 
+/*
+ * IMAGE STATE — PHASE21 §C2, `[data-cursor-image]` zones.
+ *
+ * The picture card chases its own, lazier eased point (`--image-x/-y`, same
+ * rAF loop as the arrow). Positioning is on the WRAPPER and the reveal is on
+ * the IMG, two elements for the same reason as `.hero-sticker`: one
+ * transform source per element, so the entrance scale can never overwrite
+ * the translate that follows the pointer.
+ *
+ * Reveal: a clip that opens from the centre while the card scales up with a
+ * little overshoot. Dismiss: the same transitions run backwards when the
+ * state drops, over the same picture (the src is kept on leave).
+ *
+ * No `prefers-reduced-motion` branch is needed: the cursor, and therefore
+ * this state, never runs under reduced motion. Those visitors get the image
+ * inline next to the figure (`.stat-inline-image`).
+ */
+.cursor-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 180px;
+  margin: -90px 0 0 -120px;
+  transform: translate3d(var(--image-x, -400px), var(--image-y, -400px), 0)
+    rotate(-4deg);
+  will-change: transform;
+}
+.cursor-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 3px solid var(--color-black02);
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  clip-path: inset(50% 50% 50% 50% round var(--radius-lg));
+  transform: scale(0.7);
+  transition:
+    clip-path 380ms var(--ease-in-out-devfest),
+    transform 380ms var(--ease-in-out-devfest),
+    opacity 200ms var(--ease-out-devfest) 120ms;
+}
+.cursor-layer[data-state="image"] .cursor-image img {
+  opacity: 1;
+  clip-path: inset(0 0 0 0 round var(--radius-lg));
+  transform: scale(1);
+  transition:
+    clip-path 460ms var(--ease-out-devfest),
+    transform 560ms var(--ease-bouncy),
+    opacity 160ms var(--ease-out-devfest);
+}
+/* The card takes over from the pointer while it is up. */
+.cursor-layer[data-state="image"] .cursor-dot,
+.cursor-layer[data-state="image"] .cursor-arrow {
+  opacity: 0;
+}
+
+/*
+ * A figure's picture shown INLINE — the fallback for every visitor the cursor
+ * card cannot reach: touch (no hover), and reduced motion (no cursor). The
+ * query below is exactly the one `CustomCursor` runs under, so the two can
+ * never both show, and never both be missing.
+ */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .stat-inline-image {
+    display: none;
+  }
+}
+
 /* Pressed: a quick squeeze, so a click has a physical read. */
 .cursor-layer[data-pressed="true"] {
   --ring-scale: 0.85;

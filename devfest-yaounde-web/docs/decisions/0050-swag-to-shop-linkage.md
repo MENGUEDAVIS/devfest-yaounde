@@ -1,7 +1,17 @@
 # 0050 — Swag items auto-create shop products, as unpublished drafts, unlinked rather than deleted on removal
 
 Date: 2026-09-11
-Status: Accepted
+Status: **Superseded** (2026-09-14) by ADR 0054.
+
+> **This model produced duplicates and has been removed.** Auto-creating a
+> product per swag item meant five tiers each bundling a t-shirt created five
+> separate t-shirt listings, none of them the one the shop already sold — 20
+> auto-created products against 5 genuine ones in the live catalogue. The
+> implementation did what this record specified; the model was wrong. A tier
+> bundling a product is a *reference*, not an act of creation. See ADR 0054
+> for the replacement and the migration. Kept for the reasoning below, which
+> is still the best account of why unlink-not-delete and draft-by-default
+> were the right calls *within* this model.
 
 ## Context
 
