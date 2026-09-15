@@ -21,6 +21,7 @@ export async function StatsInterstitial() {
               suffix={stat.suffix}
               label={stat.label[locale]}
               imageUrl={stat.imageUrl}
+              index={i}
             />
           </Reveal>
         ))}

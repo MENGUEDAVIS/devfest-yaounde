@@ -56,9 +56,10 @@ State is carried on `data-` attributes (`data-state`, `data-pressed`,
 ## The image state — `data-cursor-image`
 
 Any element with `data-cursor-image="<url>"` is a hover zone. Inside it the
-dot and arrow fade out and a 240×180 picture card takes over, revealed with a
+dot and arrow fade out and a 320×200 picture card takes over, revealed with a
 clip-from-centre plus a slightly bouncy scale, and dismissed with the reverse
-when the pointer leaves. The home page figures use it (ADR 0057).
+when the pointer leaves. The home page figures use it (ADR 0057, sizing and
+tilt reworked in ADR 0059).
 
 - **Same cursor, not a second one.** Same layer, same rAF loop, same gates —
   so it can never run on touch or under reduced motion. Anything using it must
@@ -67,13 +68,29 @@ when the pointer leaves. The home page figures use it (ADR 0057).
 - **Its own, lazier chase** (`IMAGE_EASE`, 0.11 vs the arrow's 0.18): a big
   picture tracking as tightly as a small arrow reads as glued on. Measured:
   after a fast move the card closes from 149px behind to 33px over 240ms.
-- **Clamped** so the whole card stays on screen near a viewport edge.
+- **Clamped** so the whole card stays on screen near a viewport edge —
+  `IMAGE_HALF_W`/`IMAGE_HALF_H` must match half the card's real CSS size
+  (`.cursor-image` in globals.css), or the clamp math and the visible box
+  disagree near an edge.
+- **`data-cursor-tilt="<deg>"`** on the same zone sets a static per-zone lean
+  (`--image-tilt`), read once per zone-entry rather than animated in.
+  Defaults to `-4deg` for a zone that doesn't set one. `StatCounter` uses
+  this to alternate which way adjacent figures lean.
+- **A gentle bob** once revealed — `.cursor-image-float`, gated to
+  `[data-state="image"]` so a hidden card never animates. On its OWN nested
+  element, and that placement is load-bearing: an animated `transform`
+  entirely replaces any other `transform` declared on that same element for
+  as long as it plays, so the bob cannot share `.cursor-image` (position +
+  tilt) or the `img` (reveal scale) without silently overwriting one of
+  them — the exact failure mode `.hero-sticker`/`.hero-sticker-inner` were
+  already split to avoid.
 - The zone wins over anything nested inside it. The `src` is kept on leave so
   the dismiss plays over the picture, not an empty box; it is swapped only on
   a real change.
-- Wrapper positions, `img` animates — one transform source per element, so
-  the entrance scale can never overwrite the translate that follows the
-  pointer.
+- **`object-fit: cover`, on a frame shaped closer to a real landscape photo**
+  (8:5, not the original 4:3) — widening the box rather than switching to
+  `object-fit: contain` was the fix for images reading as over-cropped; this
+  design system doesn't letterbox.
 
 ## Changing it
 

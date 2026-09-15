@@ -491,14 +491,27 @@ html:not(.has-custom-cursor) .cursor-layer {
  * IMAGE STATE — PHASE21 §C2, `[data-cursor-image]` zones.
  *
  * The picture card chases its own, lazier eased point (`--image-x/-y`, same
- * rAF loop as the arrow). Positioning is on the WRAPPER and the reveal is on
- * the IMG, two elements for the same reason as `.hero-sticker`: one
- * transform source per element, so the entrance scale can never overwrite
- * the translate that follows the pointer.
+ * rAF loop as the arrow). THREE nested layers, one transform source each —
+ * the same reason `.hero-sticker` / `.hero-sticker-inner` are split:
+ *   - `.cursor-image` — position (`--image-x/-y`) + the per-zone TILT
+ *     (`--image-tilt`, set once per zone-entry by `CustomCursor.tsx`, not
+ *     itself animated) composed in one static `transform`.
+ *   - `.cursor-image-float` — the continuous bob, its OWN element because an
+ *     animated `transform` fully replaces any other `transform` on the same
+ *     element for as long as it runs; sharing this with the position/tilt
+ *     layer would freeze the card wherever the bob's keyframe left it.
+ *   - `img` — the reveal (clip + scale), unchanged in mechanism.
  *
  * Reveal: a clip that opens from the centre while the card scales up with a
  * little overshoot. Dismiss: the same transitions run backwards when the
  * state drops, over the same picture (the src is kept on leave).
+ *
+ * SIZE AND RATIO: widened from the original 240×180 (4:3) toward 320×200
+ * (8:5) — closer to how an actual landscape photo is shaped, so
+ * `object-fit: cover` has far less to trim off the sides. Switching to
+ * `object-fit: contain` was considered and rejected: it would leave visible
+ * dead space inside the card on any photo that doesn't match the box
+ * exactly, and this design system does not do letterboxing.
  *
  * No `prefers-reduced-motion` branch is needed: the cursor, and therefore
  * this state, never runs under reduced motion. Those visitors get the image
@@ -508,12 +521,33 @@ html:not(.has-custom-cursor) .cursor-layer {
   position: absolute;
   top: 0;
   left: 0;
-  width: 240px;
-  height: 180px;
-  margin: -90px 0 0 -120px;
+  width: 320px;
+  height: 200px;
+  margin: -100px 0 0 -160px;
   transform: translate3d(var(--image-x, -400px), var(--image-y, -400px), 0)
-    rotate(-4deg);
+    rotate(var(--image-tilt, -4deg));
   will-change: transform;
+}
+/*
+ * A gentle bob once the card is up — stopped completely while it is not, so
+ * a hidden card never spends a frame animating something nobody can see.
+ * Amplitude and speed intentionally calm: this is a considered reveal, not
+ * the hero sticker cluster's playful scatter.
+ */
+@keyframes df-cursor-image-bob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -7px, 0);
+  }
+}
+.cursor-image-float {
+  display: block;
+}
+.cursor-layer[data-state="image"] .cursor-image-float {
+  animation: df-cursor-image-bob 3600ms ease-in-out infinite;
 }
 .cursor-image img {
   display: block;
