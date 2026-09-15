@@ -8,6 +8,8 @@ import type { Stat } from "@/data/types";
 export async function StatsInterstitial() {
   const locale = (await getLocale()) as "fr" | "en";
   const statList: Stat[] = await getStats();
+  // Every figure removable from the dashboard, so none is a real state.
+  if (statList.length === 0) return null;
 
   return (
     <SectionContainer background="yellow" maxWidth="6xl">
@@ -18,6 +20,7 @@ export async function StatsInterstitial() {
               value={stat.value}
               suffix={stat.suffix}
               label={stat.label[locale]}
+              imageUrl={stat.imageUrl}
             />
           </Reveal>
         ))}

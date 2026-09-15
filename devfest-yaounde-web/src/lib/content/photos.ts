@@ -31,6 +31,7 @@ export const PHOTO_FIELDS: Partial<Record<CollectionId, PhotoField>> = {
   products: { kind: "images", field: "images" },
   "past-editions": { kind: "url", field: "imageUrl" },
   quotes: { kind: "url", field: "avatarUrl" },
+  stats: { kind: "url", field: "imageUrl" },
 };
 
 export function isPhotoCollection(id: string): id is keyof typeof PHOTO_FIELDS {

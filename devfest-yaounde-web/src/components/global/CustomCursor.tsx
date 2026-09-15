@@ -4,8 +4,25 @@ import { useEffect, useRef } from "react";
 
 /** How fast the ring chases the pointer. 1 = instant, lower = more lag. */
 const EASE = 0.18;
+/**
+ * How fast the IMAGE card chases the pointer (see the image state below).
+ * Lazier than the arrow on purpose: a 240px picture that tracked as tightly as
+ * a 30px arrow would read as glued on, and the slight drag is what makes it
+ * feel like an object being carried.
+ */
+const IMAGE_EASE = 0.11;
+/** Half the image card's box, so it can be kept fully on screen. */
+const IMAGE_HALF_W = 120;
+const IMAGE_HALF_H = 90;
 /** Below this distance the loop parks itself rather than burning frames. */
 const REST_EPSILON = 0.05;
+
+/**
+ * An element that turns the cursor into a picture while hovered. The value is
+ * the image URL. Checked BEFORE the interactive/text states, so a zone wins
+ * over anything nested in it.
+ */
+const IMAGE_ZONE = "[data-cursor-image]";
 
 const INTERACTIVE =
   'a[href], button, [role="button"], [role="radio"], input[type="checkbox"], input[type="radio"], select, summary, .scramble, [data-cursor="grab"]';
@@ -45,6 +62,16 @@ const TEXTUAL =
  * Both media queries are watched live, so plugging in a mouse, switching to
  * touch, or toggling the OS motion setting takes effect without a reload.
  *
+ * IMAGE STATE (PHASE21 §C2). Any element carrying `data-cursor-image="<url>"`
+ * is a hover zone: while the pointer is inside it, the arrow and dot fade out
+ * and a picture card takes their place, revealed with a clip + scale and
+ * dismissed with the reverse when the pointer leaves. It is the SAME cursor —
+ * same layer, same rAF loop, same live media gates — with a second eased
+ * point for the card, so it inherits every guarantee above for free: it
+ * never runs on touch, never runs under reduced motion (callers show the
+ * image inline there instead), and can never leave the page without a cursor.
+ * The card's target is clamped so it stays fully on screen near the edges.
+ *
  * Position is written to CSS custom properties inside a rAF loop rather than
  * held in React state: this fires on every pointer move, and re-rendering a
  * component tree at pointer frequency for a decorative dot is not a trade
@@ -53,9 +80,11 @@ const TEXTUAL =
  */
 export function CustomCursor() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     const root = rootRef.current;
+    const image = imageRef.current;
     if (!root) return;
 
     const fineQuery = window.matchMedia("(pointer: fine) and (hover: hover)");
@@ -68,19 +97,38 @@ export function CustomCursor() {
     let ty = window.innerHeight / 2;
     let cx = tx;
     let cy = ty;
+    // The image card's own eased point — lazier than the arrow's.
+    let ix = tx;
+    let iy = ty;
 
     const tick = () => {
       cx += (tx - cx) * EASE;
       cy += (ty - cy) * EASE;
+      // Clamped target, so a zone near the viewport edge never pushes half
+      // the picture off screen.
+      const itx = Math.min(
+        Math.max(tx, IMAGE_HALF_W + 8),
+        window.innerWidth - IMAGE_HALF_W - 8,
+      );
+      const ity = Math.min(
+        Math.max(ty, IMAGE_HALF_H + 8),
+        window.innerHeight - IMAGE_HALF_H - 8,
+      );
+      ix += (itx - ix) * IMAGE_EASE;
+      iy += (ity - iy) * IMAGE_EASE;
       root.style.setProperty("--cursor-x", `${tx}px`);
       root.style.setProperty("--cursor-y", `${ty}px`);
       root.style.setProperty("--ring-x", `${cx}px`);
       root.style.setProperty("--ring-y", `${cy}px`);
+      root.style.setProperty("--image-x", `${ix}px`);
+      root.style.setProperty("--image-y", `${iy}px`);
 
-      // Park the loop once the ring has effectively arrived.
+      // Park the loop once BOTH chasers have effectively arrived.
       if (
         Math.abs(tx - cx) < REST_EPSILON &&
-        Math.abs(ty - cy) < REST_EPSILON
+        Math.abs(ty - cy) < REST_EPSILON &&
+        Math.abs(itx - ix) < REST_EPSILON &&
+        Math.abs(ity - iy) < REST_EPSILON
       ) {
         raf = null;
         return;
@@ -105,6 +153,26 @@ export function CustomCursor() {
     function onOver(e: PointerEvent) {
       const target = e.target as Element | null;
       if (!target?.closest) return;
+
+      const zone = target.closest<HTMLElement>(IMAGE_ZONE);
+      const src = zone?.dataset.cursorImage;
+      if (src && image) {
+        // Swap the picture only on a real change: reassigning the same URL
+        // restarts decoding in some browsers and flickers the card. The src
+        // is deliberately NOT cleared on leave, so the dismiss transition
+        // plays over the picture instead of over an empty box.
+        if (image.getAttribute("src") !== src) image.setAttribute("src", src);
+        if (root!.dataset.state !== "image") {
+          // Start the card where the pointer is, not wherever it was parked
+          // last time — otherwise it flies across the page to get here.
+          ix = tx;
+          iy = ty;
+          kick();
+        }
+        root!.dataset.state = "image";
+        return;
+      }
+
       const overText = !!target.closest(TEXTUAL);
       const overInteractive = !overText && !!target.closest(INTERACTIVE);
       root!.dataset.state = overText
@@ -144,6 +212,7 @@ export function CustomCursor() {
       if (raf !== null) cancelAnimationFrame(raf);
       raf = null;
       delete root!.dataset.visible;
+      delete root!.dataset.state;
       active = false;
     }
 
@@ -169,6 +238,15 @@ export function CustomCursor() {
       <div className="cursor-dot" />
       {/* Framing ring, only visible over interactive targets. */}
       <div className="cursor-halo" />
+      {/*
+        The picture card for `[data-cursor-image]` zones. Decorative (the
+        whole layer is aria-hidden) — the figure it illustrates is right
+        there in the page. No src until a zone is first entered.
+      */}
+      <div className="cursor-image">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img ref={imageRef} alt="" decoding="async" />
+      </div>
       <div className="cursor-ring">
         {/*
           Tail-less rounded arrow — a soft, friendly pointer. Drawn as a

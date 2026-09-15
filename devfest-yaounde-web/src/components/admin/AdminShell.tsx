@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   CalendarBlank,
   CaretDown,
+  ChartLineUp,
   ChartBar,
   ChatCircleText,
   Gear,
@@ -45,6 +46,7 @@ import { AdminTeam } from "./views/AdminTeam";
 import { AdminSchedule } from "./views/AdminSchedule";
 import { AdminSponsors } from "./views/AdminSponsors";
 import { AdminTestimonials } from "./views/AdminTestimonials";
+import { AdminStats } from "./views/AdminStats";
 import { ToastProvider } from "./forms/Toast";
 import type {
   Product,
@@ -52,6 +54,7 @@ import type {
   Session,
   Speaker,
   Sponsor,
+  Stat,
   TeamMember,
   TicketTier,
 } from "@/data/types";
@@ -83,6 +86,7 @@ export type ViewId =
   | "team"
   | "schedule"
   | "sponsors"
+  | "stats"
   | "config";
 
 const GROUPS: {
@@ -123,6 +127,7 @@ const GROUPS: {
       { id: "schedule", label: "Schedule", Icon: CalendarBlank },
       { id: "team", label: "Team", Icon: UsersThree },
       { id: "sponsors", label: "Sponsors", Icon: Handshake },
+      { id: "stats", label: "Figures", Icon: ChartLineUp },
       { id: "content", label: "Bulk & photos", Icon: Table },
     ],
   },
@@ -261,6 +266,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
     blurb:
       "Confirmed supporters. Each one fills a seat on the public strip, and their logo links to their own site.",
   },
+  stats: {
+    title: "Figures",
+    blurb:
+      "The big numbers on the home page. Order here is left to right. Give a figure an image and hovering its number on a computer turns the cursor into that picture.",
+  },
   config: {
     title: "Info bar and policies",
     blurb:
@@ -288,6 +298,7 @@ export interface AdminCollections {
   products: Product[];
   tiers: TicketTier[];
   quotes: Quote[];
+  stats: Stat[];
 }
 
 export function AdminShell({
@@ -667,6 +678,7 @@ export function AdminShell({
             {view === "orders" && <AdminOrders data={data} />}
             {view === "discounts" && <AdminDiscounts data={data} />}
             {view === "wall" && <AdminWall data={data} />}
+            {view === "stats" && <AdminStats rows={collections.stats} />}
             {view === "testimonials" && (
               <AdminTestimonials rows={collections.quotes} />
             )}

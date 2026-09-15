@@ -77,6 +77,11 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 3. **Playful interstitial** (breathing room #1)
    - A short animated quote, stat counter (e.g. "500+ developers, 40+ speakers, 1 unforgettable weekend"), or a big typographic moment with a decorative blob shape. No dense information here — pure vibe.
+   - **Built as:** the figures from the `stats` collection (Content → Figures).
+     Each number rolls in digit by digit with the shared odometer when it
+     scrolls into view. A figure with an image turns the desktop cursor into
+     that picture while its number is hovered; on touch or with reduced motion
+     the image sits inline above the number instead (ADR 0057).
 
 4. **Speaker Showcase (preview)**
    - Horizontal scroll/carousel of **featured** speakers only (not the full roster) — photo (morphed frame), name, role, company.

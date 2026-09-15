@@ -53,9 +53,32 @@ once the ring has caught up, so an idle page schedules no frames at all.
 State is carried on `data-` attributes (`data-state`, `data-pressed`,
 `data-visible`) and all the visual response lives in CSS.
 
+## The image state — `data-cursor-image`
+
+Any element with `data-cursor-image="<url>"` is a hover zone. Inside it the
+dot and arrow fade out and a 240×180 picture card takes over, revealed with a
+clip-from-centre plus a slightly bouncy scale, and dismissed with the reverse
+when the pointer leaves. The home page figures use it (ADR 0057).
+
+- **Same cursor, not a second one.** Same layer, same rAF loop, same gates —
+  so it can never run on touch or under reduced motion. Anything using it must
+  show its image some other way for those visitors (`.stat-inline-image` is
+  the pattern: hidden by CSS under exactly the cursor's media query).
+- **Its own, lazier chase** (`IMAGE_EASE`, 0.11 vs the arrow's 0.18): a big
+  picture tracking as tightly as a small arrow reads as glued on. Measured:
+  after a fast move the card closes from 149px behind to 33px over 240ms.
+- **Clamped** so the whole card stays on screen near a viewport edge.
+- The zone wins over anything nested inside it. The `src` is kept on leave so
+  the dismiss plays over the picture, not an empty box; it is swapped only on
+  a real change.
+- Wrapper positions, `img` animates — one transform source per element, so
+  the entrance scale can never overwrite the translate that follows the
+  pointer.
+
 ## Changing it
 
-- **Chase speed**: `EASE` in the component (0–1; higher is snappier).
+- **Chase speed**: `EASE` in the component (0–1; higher is snappier), and
+  `IMAGE_EASE` for the picture card.
 - **Shape**: the two `<path>`s in the component — keep them unicolor and
   keep them reading as the bracket motif.
 - **Colour**: it uses `var(--color-contrast)` — the COMPLEMENT of the active

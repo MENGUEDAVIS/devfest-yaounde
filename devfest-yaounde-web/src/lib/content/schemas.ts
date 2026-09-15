@@ -223,11 +223,20 @@ export const quoteSchema = z.object({
   hidden: z.boolean().optional(),
 });
 
+/**
+ * A home page figure — "500+ developers".
+ *
+ * `value` is a whole, non-negative number because it is drawn by the digit
+ * odometer, which has one column per digit and no decimal point or sign.
+ * The cap keeps it to nine columns, which is already wider than the section.
+ */
 export const statSchema = z.object({
   id: slug,
-  value: z.number(),
+  value: z.number().int().min(0).max(999_999_999),
   suffix: z.string().max(8).optional(),
   label: localizedRequired,
+  /** Revealed under the cursor on desktop, shown inline on touch (ADR 0057). */
+  imageUrl: z.string().max(400).optional(),
 });
 
 export const pastEditionSchema = z.object({

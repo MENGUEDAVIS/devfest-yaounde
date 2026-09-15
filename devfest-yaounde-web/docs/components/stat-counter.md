@@ -2,30 +2,45 @@
 
 `src/components/ui/StatCounter.tsx`
 
-Animated count-up stat (`DESIGN.md` §6.2 macro tier), triggered when it scrolls into view.
+One home page figure: a big number that rolls in with the shared
+[`Odometer`](odometer.md) when it scrolls into view, and — if it has an image —
+a hover zone that turns the custom cursor into that picture (ADR 0057).
 
 ## Props
 
-| Prop         | Type     | Default                                |
-| ------------ | -------- | -------------------------------------- |
-| `value`      | `number` | required — final number to count up to |
-| `label`      | `string` | required — e.g. `"developers"`         |
-| `suffix`     | `string` | `""` — e.g. `"+"` for "500+"           |
-| `durationMs` | `number` | `1200` (macro tier, `DESIGN.md` §6.2)  |
-| `className`  | `string` | —                                      |
+| Prop        | Type     | Default                                          |
+| ----------- | -------- | ------------------------------------------------ |
+| `value`     | `number` | required — whole, non-negative                   |
+| `label`     | `string` | required — e.g. `"developers"`                   |
+| `suffix`    | `string` | `""` — e.g. `"+"` for "500+"                     |
+| `imageUrl`  | `string` | — optional picture; enables the cursor reveal    |
+| `className` | `string` | —                                                |
 
-## Motion & accessibility
+## Motion
 
-Uses a native `IntersectionObserver` (no library) to start counting once the element is ~40% visible, then a `requestAnimationFrame` loop with ease-out easing. Respects `prefers-reduced-motion` (`DESIGN.md` §6.5) by checking `window.matchMedia` and jumping straight to the final value instead of counting, the first time it becomes visible.
+- **Entrance:** paints `0`, then sets the real value once ~40% of it is on
+  screen (`IntersectionObserver`). Each digit column makes one extra full
+  turn and they land left to right (`revolutions={1}`, `staggerMs={90}`,
+  `durationMs={1100}` — DESIGN.md §6.2 macro tier).
+- **Reduced motion:** the final value from the start, no transition.
+- **Screen readers** always get the real figure (`srText`); the rolling digits
+  are `aria-hidden`, and the odometer is not a live region here.
+
+## The image
+
+| Visitor                                      | What they get                                           |
+| -------------------------------------------- | ------------------------------------------------------- |
+| Mouse/trackpad, motion allowed               | Hover zone → cursor becomes the image card, trailing    |
+| Touch, no hover, or `prefers-reduced-motion` | The image shown inline above the number, always visible |
+| Figure without an image                      | Just the number                                         |
+
+The inline image is hidden by CSS (`.stat-inline-image`) under exactly the
+media query `CustomCursor` runs under, so one of the two is always there and
+never both. The zone is padded past the glyphs (24px sideways, 16px
+vertically) with a matching negative margin, so it does not move the layout.
 
 ## Usage
 
 ```tsx
-import { StatCounter } from "@/components/ui/StatCounter";
-
-<StatCounter value={500} suffix="+" label="developers" />;
+<StatCounter value={500} suffix="+" label="developers" imageUrl={url} />
 ```
-
-## Built on
-
-Native `IntersectionObserver` + `requestAnimationFrame` — no animation library.

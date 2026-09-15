@@ -94,9 +94,15 @@ export interface Sponsor {
 
 export interface Stat {
   id: string;
+  /** Whole and non-negative — drawn by the digit odometer. */
   value: number;
   suffix?: string;
   label: LocalizedString;
+  /**
+   * Optional picture for the figure. Desktop: it becomes the cursor while
+   * hovering the number. Touch or reduced motion: shown inline beside it.
+   */
+  imageUrl?: string;
 }
 
 export interface Quote {

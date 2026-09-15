@@ -189,11 +189,15 @@ interface Sponsor {
   websiteUrl?: string;
 }
 
+// Home page figures. Admin: Content → Figures (order = left to right).
 interface Stat {
   id: string;
-  value: number;
+  value: number; // whole, 0–999,999,999 — drawn by the digit Odometer
   suffix?: string; // e.g. "+"
   label: LocalizedString;
+  // Optional. Desktop: hovering the number turns the cursor into this image.
+  // Touch / reduced motion: shown inline above the number. (ADR 0057)
+  imageUrl?: string;
 }
 
 // Testimonials — "What people are saying". Admin: Community → Testimonials.
