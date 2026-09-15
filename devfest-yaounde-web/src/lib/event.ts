@@ -47,6 +47,19 @@ export const EVENT = {
 } as const;
 
 /**
+ * The edition MemoryLane's "past gallery" link shows.
+ *
+ * One year back from the confirmed edition — the album from the LAST time
+ * this ran, which is what a "view the gallery" link from an in-progress or
+ * upcoming edition's page always means. If an edition is ever skipped, this
+ * stays wrong until someone notices and hardcodes the real year here; that
+ * is a one-line fix, and simpler than a second admin field asking an
+ * organiser to state a number the calendar already implies in every normal
+ * year.
+ */
+export const PAST_GALLERY_YEAR = EVENT.year - 1;
+
+/**
  * ISO start/end for the whole event, or null while the date is unconfirmed.
  *
  * `baseDate` defaults to the real flag and is only ever passed explicitly by
@@ -63,6 +76,83 @@ export function eventDates(
     start: `${first}T${EVENT.startTime}:00`,
     end: `${last}T${EVENT.endTime}:00`,
   };
+}
+
+/**
+ * Cameroon runs West Africa Time year-round — UTC+1, no daylight saving —
+ * so a fixed offset is always correct, unlike almost anywhere else this
+ * trick would be tried.
+ *
+ * WHY THIS IS NEEDED AT ALL. `eventDates()` returns `end` as
+ * `"2026-11-28T18:00:00"` — no timezone suffix, which is exactly right for
+ * embedding in `Event` JSON-LD (schema.org reads an offset-less date-time as
+ * the VENUE's local time, which is the intent there). But `Date.parse()` on
+ * that same offset-less string does something different: per spec, it is
+ * read as local time OF THE RUNNING PROCESS — the server's OS timezone, not
+ * Yaoundé's. On a UTC server that is an hour off from the real 18:00 closing
+ * in Yaoundé. Caught by a test asserting the exact closing second, not
+ * reasoned out — `eventHasEnded` still read `false` a full hour after the
+ * event had actually ended.
+ */
+const YAOUNDE_UTC_OFFSET = "+01:00";
+
+/** The event's real closing instant, as true UTC milliseconds — or null. */
+function eventEndInstant(dates: readonly string[]): number | null {
+  const range = eventDates(dates);
+  if (!range) return null;
+  return Date.parse(`${range.end}${YAOUNDE_UTC_OFFSET}`);
+}
+
+/**
+ * Whether the whole event — every day of it — is over.
+ *
+ * Pure, `now` an argument: the same convention as `sponsorCallOpen` and
+ * `cfsView`, so this is testable without waiting for November and the public
+ * pages, the admin preview and the tests all reach the same answer because
+ * they all call this rather than each checking `Date.now()` themselves.
+ *
+ * `false` while the dates are unconfirmed — nothing can have "ended" that
+ * was never scheduled, and that must never be read as "always show the
+ * post-event state".
+ */
+export function eventHasEnded(
+  now: Date = new Date(),
+  dates: readonly string[] = EVENT_DATES,
+): boolean {
+  const end = eventEndInstant(dates);
+  if (end === null) return false;
+  return now.getTime() >= end;
+}
+
+/**
+ * The window, right after the event ends, during which the cron sweep
+ * should force the home page to rebuild.
+ *
+ * WHY THIS EXISTS. Every public page is statically prerendered and only
+ * regenerated on an explicit `revalidatePath` call (see
+ * `src/lib/content/revalidate.ts`) — never on a timer. `eventHasEnded()`
+ * flipping from false to true is real state changing with nobody around to
+ * save anything and trigger that call, so without this the hero would keep
+ * selling tickets to a event that already happened until the next unrelated
+ * admin edit happened to revalidate `/`.
+ *
+ * ONE DAY is deliberately generous: this is a one-way switch — once it has
+ * flipped there is nothing left to catch — so the cost of checking a few
+ * hundred times more than strictly needed is nothing next to the cost of
+ * missing the one moment that matters. It comfortably covers the Supabase
+ * pg_cron five-minute sweep having a bad day, leaving the once-a-day Vercel
+ * Cron backstop (ADR 0028) at least one attempt inside the window.
+ */
+const POST_EVENT_REVALIDATE_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+export function withinPostEventRevalidateWindow(
+  now: Date = new Date(),
+  dates: readonly string[] = EVENT_DATES,
+): boolean {
+  const end = eventEndInstant(dates);
+  if (end === null) return false;
+  const elapsed = now.getTime() - end;
+  return elapsed >= 0 && elapsed < POST_EVENT_REVALIDATE_WINDOW_MS;
 }
 
 /** Each event day as its own start/end pair, in order. */

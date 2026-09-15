@@ -62,9 +62,12 @@ import {
   EVENT,
   eventDateParts,
   eventDates,
+  eventHasEnded,
   eventJsonLd,
   formatEventDates,
   organizationJsonLd,
+  PAST_GALLERY_YEAR,
+  withinPostEventRevalidateWindow,
 } from "@/lib/event";
 import { dateForDay } from "@/lib/calendar";
 import { layoutCard, PAD, PLATE_INSET } from "@/lib/dp/geometry";
@@ -632,6 +635,65 @@ describe("event structured data", () => {
     assert.equal(org["@type"], "Organization");
     assert.equal(org.name, "GDG Yaoundé");
     assert.ok(org.url.startsWith("https://"));
+  });
+
+
+  it("PAST_GALLERY_YEAR is one edition back from the confirmed one", () => {
+    assert.equal(PAST_GALLERY_YEAR, EVENT.year - 1);
+  });
+});
+
+describe("whether the event has ended (ADR 0058)", () => {
+  const DATES = ["2026-11-21", "2026-11-28"] as const;
+  // 18:00 is Yaoundé local time (WAT, UTC+1, no DST) — the real closing
+  // instant is therefore 17:00 UTC, not 18:00 UTC.
+  const END_MS = new Date("2026-11-28T18:00:00+01:00").getTime();
+
+  it("is false with time to spare", () => {
+    assert.equal(eventHasEnded(new Date("2026-11-21T09:00:00Z"), DATES), false);
+  });
+
+  it("is false right up to the final second", () => {
+    assert.equal(eventHasEnded(new Date(END_MS - 1000), DATES), false);
+  });
+
+  it("flips true at the exact closing instant, and stays true after", () => {
+    assert.equal(eventHasEnded(new Date(END_MS), DATES), true);
+    assert.equal(eventHasEnded(new Date(END_MS + 86_400_000), DATES), true);
+  });
+
+  it("is false with no confirmed dates — never reads as 'always ended'", () => {
+    assert.equal(eventHasEnded(new Date("2099-01-01T00:00:00Z"), []), false);
+  });
+
+  it("bounds the cron's forced revalidation to the day right after closing", () => {
+    assert.equal(
+      withinPostEventRevalidateWindow(new Date(END_MS), DATES),
+      true,
+      "the exact closing instant is inside the window",
+    );
+    assert.equal(
+      withinPostEventRevalidateWindow(new Date(END_MS + 1000), DATES),
+      true,
+      "a moment after closing is inside the window",
+    );
+    assert.equal(
+      withinPostEventRevalidateWindow(new Date(END_MS - 1000), DATES),
+      false,
+      "still running is not inside the window",
+    );
+    assert.equal(
+      withinPostEventRevalidateWindow(
+        new Date(END_MS + 24 * 60 * 60 * 1000 + 1000),
+        DATES,
+      ),
+      false,
+      "more than a day later, the one-way switch has already flipped and needs no more forcing",
+    );
+  });
+
+  it("never opens a revalidation window with no confirmed dates", () => {
+    assert.equal(withinPostEventRevalidateWindow(new Date(), []), false);
   });
 });
 

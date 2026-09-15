@@ -144,6 +144,8 @@ export interface CapacitySettings {
 export interface MemoryLaneSettings {
   /** Past edition's photo album. Empty hides the link. */
   galleryUrl: string;
+  /** This edition's album — see the schema doc comment for how it is used. */
+  currentGalleryUrl: string;
 }
 
 export interface AdminSettings {

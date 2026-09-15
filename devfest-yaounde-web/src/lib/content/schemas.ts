@@ -351,7 +351,17 @@ export const capacitySchema = z.object({
 });
 
 export const memoryLaneSchema = z.object({
+  /** Last edition's album — see `PAST_GALLERY_YEAR` for which year that is. */
   galleryUrl: urlOrEmpty.optional().nullable(),
+  /**
+   * THIS edition's album. Empty until an organiser uploads it — normally
+   * after the event, since there is nothing to link before then. Once
+   * `eventHasEnded()` is true, its presence (or absence) decides between a
+   * primary "view the gallery" CTA and a "coming soon" placeholder, on both
+   * the home page's Memory Lane section and in place of the hero's ticket
+   * CTA (ADR 0058).
+   */
+  currentGalleryUrl: urlOrEmpty.optional().nullable(),
 });
 
 export const settingsSchema = z.object({

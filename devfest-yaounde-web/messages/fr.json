@@ -96,7 +96,10 @@
       "dateLabel": "Quand",
       "venueLabel": "Où",
       "photoAlt": "Une image d'une édition passée de DevFest Yaoundé",
-      "venueCaption": "Cameroun"
+      "venueCaption": "Cameroun",
+      "ctaGallery": "Voir la galerie {year}",
+      "ctaGalleryComingSoon": "Album photo bientôt disponible",
+      "ctaGalleryNewTab": "(s'ouvre dans un nouvel onglet)"
     },
     "sponsors": {
       "label": "Portés par des gens bien",
@@ -152,8 +155,9 @@
       "title": "Souvenirs",
       "body": "Quelques images des éditions précédentes — la preuve que cette communauté a une histoire, et qu'elle ne fait que commencer.",
       "recapCta": "Voir le récap",
-      "galleryCta": "Voir toute la galerie",
-      "galleryNewTab": "(s'ouvre dans un nouvel onglet)"
+      "galleryCta": "Voir la galerie {year}",
+      "galleryNewTab": "(s'ouvre dans un nouvel onglet)",
+      "galleryComingSoon": "Album photo bientôt disponible"
     },
     "community": {
       "title": "Que prépare GDG Yaoundé ?",

@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { getLocale, getTranslations } from "next-intl/server";
 import { isPlaceholderUrl, RECAP_URL } from "@/lib/site-config";
+import { EVENT, PAST_GALLERY_YEAR, eventHasEnded } from "@/lib/event";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 import { ScrollStage } from "@/components/ui/ScrollStage";
 import { SectionContainer } from "@/components/ui/SectionContainer";
@@ -38,6 +39,11 @@ export async function MemoryLane() {
     loadSettings(),
   ]);
   const galleryUrl = settings.memoryLane.galleryUrl.trim();
+  const currentGalleryUrl = settings.memoryLane.currentGalleryUrl.trim();
+  // The whole point of a "current edition" album is that there IS one now —
+  // showing its slot before the event has even happened would either link
+  // nowhere or promise a "coming soon" for something a year away.
+  const ended = eventHasEnded();
 
   return (
     <SectionContainer background="offwhite" maxWidth="6xl">
@@ -65,20 +71,27 @@ export async function MemoryLane() {
                 </a>
               )}
               {/*
-                Last edition's full album, admin-editable (ADR 0056). Leaves
+                Last edition's album, admin-editable (ADR 0056/0058). Leaves
                 the site, so it opens a new tab — and says so to a screen
                 reader, which cannot see the arrow. `noopener noreferrer`:
                 the album is a third-party page and gets neither a handle on
                 this window nor our URL as its referrer.
+
+                OUTLINE, not filled — once the event has passed, this sits
+                next to THIS edition's album below, which takes the filled
+                "primary" treatment as the one somebody actually came for.
+                Before that, it is the only gallery button on the page, and
+                an outline button standing alone reads exactly as
+                intentional as a filled one would.
               */}
               {galleryUrl && !isPlaceholderUrl(galleryUrl) && (
                 <a
                   href={galleryUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-2 whitespace-nowrap rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                  className="group inline-flex items-center gap-2 whitespace-nowrap rounded-pill border-2 border-black02 bg-transparent px-5 py-2.5 font-sans text-body-m font-bold text-black02 transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-primary motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                 >
-                  {t("galleryCta")}
+                  {t("galleryCta", { year: PAST_GALLERY_YEAR })}
                   <ArrowUpRight
                     size={18}
                     weight="bold"
@@ -88,6 +101,37 @@ export async function MemoryLane() {
                   <span className="sr-only">{t("galleryNewTab")}</span>
                 </a>
               )}
+
+              {/*
+                THIS edition's album — only once there is an edition to show
+                one for. Filled/primary: past the event, this is the thing
+                somebody actually wants, ahead of the (now secondary) link to
+                an older year above. With no URL set yet it degrades to a
+                plain, non-interactive "coming soon" notice rather than a
+                dead link — there is nothing to point it at.
+              */}
+              {ended &&
+                (currentGalleryUrl && !isPlaceholderUrl(currentGalleryUrl) ? (
+                  <a
+                    href={currentGalleryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-2 whitespace-nowrap rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                  >
+                    {t("galleryCta", { year: EVENT.year })}
+                    <ArrowUpRight
+                      size={18}
+                      weight="bold"
+                      aria-hidden
+                      className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+                    />
+                    <span className="sr-only">{t("galleryNewTab")}</span>
+                  </a>
+                ) : (
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-pill border-2 border-black02/30 px-5 py-2.5 font-sans text-body-m font-bold text-black02/50">
+                    {t("galleryComingSoon")}
+                  </span>
+                ))}
             </div>
           </div>
         </div>
