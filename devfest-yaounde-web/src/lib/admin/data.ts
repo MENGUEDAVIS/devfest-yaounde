@@ -161,7 +161,10 @@ export async function loadAdminData(): Promise<AdminData> {
        * have read 0 XAF forever and looked plausible doing it.
        *
        * `net_amount` rather than `charged_amount`: what the chapter actually
-       * received, after the discount.
+       * earns — after the discount, and (PHASE22 §D+) BEFORE the 1.5%
+       * transaction fee, which is real money the buyer pays but not real
+       * ticket/product revenue. `charged_amount` is what PawaPay actually
+       * settles; `net_amount` is what this headline should count.
        */
       settledRevenue: intentRows
         .filter((i) => i.status === "activated")

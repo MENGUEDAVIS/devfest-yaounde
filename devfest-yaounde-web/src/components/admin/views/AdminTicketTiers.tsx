@@ -5,6 +5,7 @@ import { ArrowSquareOut, Check, MagnifyingGlass, X } from "@phosphor-icons/react
 import type { Product, TicketTier } from "@/data/types";
 import type { AdminData, AdminSettings } from "@/lib/admin/shape";
 import { slugify } from "@/lib/admin/form-helpers";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { EntityCrud } from "../forms/EntityCrud";
 import {
   EntitlementListField,
@@ -102,6 +103,12 @@ export function AdminTicketTiers({
                   : `${row.priceXAF.toLocaleString("en-CM")} XAF`}
                 {row.quantityAvailable != null && ` · ${row.quantityAvailable} cap`}
               </p>
+              {row.priceXAF > 0 && (
+                <p className="truncate text-caption text-black02/60">
+                  {feeInclusiveAmount(row.priceXAF).toLocaleString("en-CM")}{" "}
+                  XAF with the transaction fee
+                </p>
+              )}
               <p className="truncate text-caption text-black02/60">
                 {row.onSale ? "On sale" : "Off sale"}
                 {row.soldOut && " · Sold out"}
@@ -134,7 +141,14 @@ export function AdminTicketTiers({
               />
             </Field>
 
-            <Field label="Price (XAF)">
+            <Field
+              label="Price (XAF)"
+              hint={
+                draft.priceXAF > 0
+                  ? `Base price — fee-free. Customers pay ${feeInclusiveAmount(draft.priceXAF).toLocaleString("en-CM")} XAF, which includes the 1.5% transaction fee added automatically everywhere this tier is shown.`
+                  : "Base price — fee-free. The 1.5% transaction fee is added automatically wherever this tier is shown to a buyer."
+              }
+            >
               <TextInput
                 type="number"
                 value={String(draft.priceXAF)}

@@ -48,6 +48,8 @@ interface Ticket {
     currency: string;
     discountCode: string | null;
     discountAmount: number;
+    /** The 1.5% transaction fee, already folded into `chargedAmount`. */
+    feeAmount: number;
     chargedAmount: number;
     paidAt: string;
   } | null;
@@ -264,10 +266,11 @@ export function AccountDashboard() {
                     </div>
                   )}
 
-                  {/* What it cost. `unitAmount` is what this ticket was
-                      charged at; the discount and the total belong to the
-                      whole ORDER, so they are labelled as such rather than
-                      implying this one ticket carried them. */}
+                  {/* What it cost. `unitAmount` is this ticket's BASE price
+                      (fee-free, matching every other per-line price on the
+                      site); the discount, the transaction fee and the total
+                      belong to the whole ORDER, so they are labelled as such
+                      rather than implying this one ticket carried them. */}
                   {ticket.order && (
                     <div className="mt-5 border-t-2 border-black02/15 pt-4">
                       {ticket.unitAmount !== null && (
@@ -289,6 +292,16 @@ export function AccountDashboard() {
                           </span>
                           <span className="font-mono text-body-m text-black02/70">
                             -{money(ticket.order.discountAmount)}
+                          </span>
+                        </div>
+                      )}
+                      {ticket.order.feeAmount > 0 && (
+                        <div className="mt-1.5 flex items-baseline justify-between gap-4">
+                          <span className="text-body-m text-black02/70">
+                            {t("orderFee")}
+                          </span>
+                          <span className="font-mono text-body-m text-black02/70">
+                            {money(ticket.order.feeAmount)}
                           </span>
                         </div>
                       )}

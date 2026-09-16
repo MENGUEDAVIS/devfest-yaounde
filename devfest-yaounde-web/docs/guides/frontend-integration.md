@@ -8,7 +8,12 @@ Three rules that shape every flow below:
 
 1. **Never send a price.** Totals are recomputed server-side from
    `src/data/*.json` by id. A `priceXAF` in a request body is ignored. Show
-   prices from the same JSON files, but the charge comes from the server.
+   prices from the same JSON files, but the charge comes from the server. **A
+   displayed price is never the raw `priceXAF`** — every price shown to a
+   visitor runs through `feeInclusiveAmount()` (`lib/payments/fees.ts`)
+   first, which adds the 1.5% transaction fee (PHASE22 §D+, ADR 0063). The
+   base price stored in the catalog is fee-free on purpose; the fee is
+   computed at render/checkout time, everywhere, from that one function.
 2. **Never treat the return from the payment page as proof of payment.** The
    tab can be closed, or reopened by someone else. Poll the status endpoint.
 3. **Errors come back as a `code`, never as a sentence.** Map it through
@@ -84,8 +89,10 @@ until the person confirms. Everything is one call.
   { "kind": "tickets", "tiers": [{ "tierId": "sonnet", "quantity": 2 }],
     "discountCode": "GDG-2026" }
 
-  → { subtotal, discountCode, discountAmount, charged, currency }
+  → { subtotal, discountCode, discountAmount, feeAmount, charged, currency }
   ```
+
+  `subtotal` is the base, fee-free amount. `charged` is `subtotal - discountAmount + feeAmount` — the 1.5% transaction fee, applied ONCE to the post-discount base, never split across lines. `feeAmount` is there so the screen can show it as its own line the way `discountAmount` already is, rather than a bigger total appearing with no explanation.
 
   Shop baskets use `{ "kind": "shop", "cart": [...] }`, the same `cart` shape
   as the checkout call. `discountCode` is optional on both: leave it out to
@@ -140,9 +147,9 @@ you send it, the PawaPay page is pre-filled; if not, it asks.
   "depositId": "…uuid…",
   "redirectUrl": "https://paymentpage.pawapay.io/…",
   "fulfilled": false,
-  "charged": 10000,
+  "charged": 10150,
   "currency": "XAF",
-  "quote": { "lines": [...], "subtotal": 10000, "discountAmount": 0, "charged": 10000 }
+  "quote": { "lines": [...], "subtotal": 10000, "discountAmount": 0, "feeAmount": 150, "charged": 10150 }
 }
 ```
 
@@ -291,6 +298,14 @@ bought nor what it cost. `tier` comes from the catalog (falling back to the
 slug for a retired tier, so old tickets stay readable) and `order` comes from
 the payment intent, which is the record of what actually happened: a tier
 whose price changes later must not rewrite what someone was charged before.
+
+`unitAmount` is the BASE price of that one ticket (from the intent's stored
+line items — fee-free, matching every other per-line price on the site).
+`order.chargedAmount` is the fee-inclusive TOTAL for the whole order, not a
+sum of fee-inclusive unit prices — the same "line items stay base, the fee
+is one row on the total" rule the order summary follows. Do not multiply
+`unitAmount` by a quantity and expect it to equal `chargedAmount` when a
+discount or more than one ticket is involved.
 
 `unitAmount` is what that one ticket was charged. `discountAmount` and
 `chargedAmount` belong to the whole ORDER — label them that way rather than

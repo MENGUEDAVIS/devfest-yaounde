@@ -117,7 +117,7 @@ export function AdminOverview({
         <Stat
           label="Settled"
           value={money(c.settledRevenue, "XAF")}
-          note="Activated, net of discounts"
+          note="Activated, net of discounts and the transaction fee"
         />
         <Stat label="Shop orders" value={String(c.orders)} />
         <Stat label="Users" value={String(c.users)} />

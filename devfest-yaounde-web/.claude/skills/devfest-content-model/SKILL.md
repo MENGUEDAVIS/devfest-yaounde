@@ -96,7 +96,10 @@ interface TicketTier {
   id: string; // e.g. "haikyu", "sonnet" — rendered in mono-tag style
   name: string; // e.g. "HAIKYU" — language-neutral (proper noun tier name)
   label?: LocalizedString; // optional sub-title beside the name; "" for most tiers
-  priceXAF: number; // 0 for free tier
+  // BASE price, fee-free — 0 for the free tier. Every displayed/charged
+  // price is feeInclusiveAmount(priceXAF), a 1.5% fee added at render and
+  // checkout time (ADR 0063). Never rewrite this field to include the fee.
+  priceXAF: number;
   description: LocalizedString;
   // "What your ticket grants you" — reorderable, icon optional (fixed set,
   // src/lib/entitlement-icons.ts), falls back to a plain check.
@@ -115,7 +118,7 @@ interface Product {
   id: string;
   name: LocalizedString;
   description: LocalizedString;
-  priceXAF: number;
+  priceXAF: number; // BASE price, fee-free — same rule as TicketTier's, above.
   images: string[];
   variants?: { size?: string[]; color?: string[] };
   status: "pre-order" | "in-stock" | "venue-only" | "sold-out"; // always paired with a visible text label, never color alone

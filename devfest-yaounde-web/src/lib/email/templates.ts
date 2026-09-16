@@ -111,6 +111,7 @@ const COPY = {
     orderHeading: "Ta commande",
     subtotal: "Sous-total",
     discount: "Réduction",
+    transactionFee: "Frais de transaction (1,5 %)",
     totalPaid: "Total payé",
     free: "Offert",
     myTickets: "Voir mes billets",
@@ -147,6 +148,7 @@ const COPY = {
     orderHeading: "Your order",
     subtotal: "Subtotal",
     discount: "Discount",
+    transactionFee: "Transaction fee (1.5%)",
     totalPaid: "Total paid",
     free: "Free",
     myTickets: "See my tickets",
@@ -236,11 +238,22 @@ function button(label: string, href: string): string {
 </td></tr></table>`;
 }
 
-/** The money block. Subtotal and discount appear only when there was one. */
+/**
+ * The money block. Subtotal and discount appear only when there was one; the
+ * transaction fee appears whenever it is non-zero (it is zero exactly when
+ * the base, post-discount amount is zero — a free tier, or a 100%-off code —
+ * since `transactionFeeAmount(0)` is 0 by construction).
+ *
+ * `subtotal` is derived from `net_amount + discount_amount`, NOT from
+ * `charged_amount + discount_amount` — `charged_amount` includes the fee
+ * now, so adding the discount back to it would overstate the base price by
+ * the fee amount. `net_amount` is always the fee-free, post-discount base.
+ */
 function totalsHtml(intent: PaymentIntentRow, l: Locale): string {
   const c = COPY[l];
   const discounted = intent.discount_amount > 0;
-  const subtotal = intent.charged_amount + intent.discount_amount;
+  const subtotal = intent.net_amount + intent.discount_amount;
+  const feeAmount = intent.charged_amount - intent.net_amount;
 
   // Nothing was charged and nothing was taken off: there is no money story to
   // tell, and "Total paid: Free" on a free pass reads like a bill for zero.
@@ -264,6 +277,7 @@ ${
       )
     : ""
 }
+${feeAmount > 0 ? row(c.transactionFee, money(feeAmount, l)) : ""}
 ${row(c.totalPaid, intent.charged_amount === 0 ? c.free : money(intent.charged_amount, l), true)}
 </table>`;
 }
@@ -271,15 +285,19 @@ ${row(c.totalPaid, intent.charged_amount === 0 ? c.free : money(intent.charged_a
 function totalsText(intent: PaymentIntentRow, l: Locale): string[] {
   const c = COPY[l];
   const out: string[] = [];
+  const feeAmount = intent.charged_amount - intent.net_amount;
   // Same rule as the HTML side, and for the same reason.
   if (intent.charged_amount === 0 && intent.discount_amount === 0) return out;
   if (intent.discount_amount > 0) {
     out.push(
-      `${c.subtotal}: ${money(intent.charged_amount + intent.discount_amount, l)}`,
+      `${c.subtotal}: ${money(intent.net_amount + intent.discount_amount, l)}`,
     );
     out.push(
       `${c.discount}${intent.discount_code ? ` (${intent.discount_code})` : ""}: -${money(intent.discount_amount, l)}`,
     );
+  }
+  if (feeAmount > 0) {
+    out.push(`${c.transactionFee}: ${money(feeAmount, l)}`);
   }
   out.push(
     `${c.totalPaid}: ${intent.charged_amount === 0 ? c.free : money(intent.charged_amount, l)}`,

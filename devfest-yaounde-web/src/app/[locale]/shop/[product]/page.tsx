@@ -4,6 +4,7 @@ import { pageMetadata } from "@/lib/seo";
 import { ShopBrowser } from "@/components/shop/ShopBrowser";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 import productsJson from "@/data/products.json";
 import { getProducts } from "@/lib/content/store";
 import type { Product } from "@/data/types";
@@ -87,7 +88,10 @@ export default async function ProductPage({
     image: found.images,
     offers: {
       "@type": "Offer",
-      price: found.priceXAF,
+      // Fee-inclusive — this must match what a shopper is actually charged
+      // at checkout, or Google's own rich-result guidance treats it as a
+      // mismatched-price violation.
+      price: feeInclusiveAmount(found.priceXAF),
       priceCurrency: "XAF",
       availability:
         found.status === "sold-out"

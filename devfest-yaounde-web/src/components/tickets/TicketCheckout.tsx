@@ -27,6 +27,7 @@ import {
   type AttendeeInput,
 } from "@/lib/checkout-client";
 import { useDiscount } from "@/components/checkout/use-discount";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { signInWithGoogle, useSession } from "@/lib/use-session";
 import type { Product, TicketTier } from "@/data/types";
 
@@ -442,7 +443,7 @@ export function TicketCheckout({
                       <p className="mt-4 font-sans text-display-l font-bold leading-none text-black02">
                         {tier.priceXAF === 0
                           ? t("free")
-                          : `${money(tier.priceXAF)} XAF`}
+                          : `${money(feeInclusiveAmount(tier.priceXAF))} XAF`}
                       </p>
                       <p className="mt-3 max-w-prose text-body-m text-black02/75">
                         {tier.description[locale as "fr" | "en"]}

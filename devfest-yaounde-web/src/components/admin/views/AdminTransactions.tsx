@@ -16,7 +16,7 @@ export function AdminTransactions({ data }: { data: AdminData }) {
   return (
     <Panel
       title="Transactions"
-      subtitle={`Showing ${rows.length} of ${data.transactions.total}. "Settled" is the state that produced a ticket or an order.`}
+      subtitle={`Showing ${rows.length} of ${data.transactions.total}. "Settled" is the state that produced a ticket or an order. "Charged" is what PawaPay actually took — base price, minus any discount, plus the 1.5% transaction fee. "Net" is the base amount after the discount, before that fee: what the chapter actually earns from the sale.`}
       action={
         <ExportButton
           filename="devfest-transactions.csv"
@@ -26,6 +26,7 @@ export function AdminTransactions({ data }: { data: AdminData }) {
             "Status",
             "Charged",
             "Net",
+            "Fee",
             "Discount",
             "Code",
             "Failure",
@@ -37,6 +38,7 @@ export function AdminTransactions({ data }: { data: AdminData }) {
             t.status,
             t.chargedAmount,
             t.netAmount,
+            t.chargedAmount - t.netAmount,
             t.discountAmount ?? 0,
             t.discountCode ?? "",
             t.failureCode ?? "",
@@ -52,6 +54,7 @@ export function AdminTransactions({ data }: { data: AdminData }) {
           "Status",
           "Charged",
           "Net",
+          "Fee",
           "Discount",
           "When",
         ]}
@@ -71,6 +74,7 @@ export function AdminTransactions({ data }: { data: AdminData }) {
           </span>,
           money(t.chargedAmount, t.currency),
           money(t.netAmount, t.currency),
+          money(t.chargedAmount - t.netAmount, t.currency),
           t.discountCode
             ? `${t.discountCode} (−${t.discountAmount ?? 0})`
             : "—",

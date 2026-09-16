@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Link } from "@/i18n/navigation";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { MAX_LINE_QTY, useCart } from "@/lib/use-cart";
 import { ProductImage } from "./ProductImage";
 import { BUYABLE, StatusPill } from "./StatusPill";
@@ -93,7 +94,7 @@ export function ProductDetail({ product }: { product: Product }) {
             {product.name[locale]}
           </h2>
           <p className="mt-4 font-mono text-heading-m font-bold text-black02">
-            {money(product.priceXAF)} XAF
+            {money(feeInclusiveAmount(product.priceXAF))} XAF
           </p>
           <p className="mt-5 max-w-prose text-body-l text-black02/80">
             {product.description[locale]}

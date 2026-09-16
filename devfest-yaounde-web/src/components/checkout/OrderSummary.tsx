@@ -3,6 +3,7 @@
 import { CaretDown, CircleNotch, Tag, X } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState, type ReactNode } from "react";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 
 export interface SummaryLine {
   id: string;
@@ -17,7 +18,9 @@ export interface AppliedDiscount {
   code: string;
   /** Whole XAF taken off. Always the server's number, never computed here. */
   amount: number;
-  /** What is left to pay. Also the server's. */
+  /** The transaction fee on what's left after the discount. The server's. */
+  feeAmount: number;
+  /** What is left to pay, fee included. Also the server's. */
   charged: number;
 }
 
@@ -77,7 +80,14 @@ export function OrderSummary({
   const applied = discount.applied;
   // The server's `charged` wins over anything derivable here. It already
   // accounts for a discount larger than the basket, which clamps to zero.
-  const payable = applied ? applied.charged : total;
+  //
+  // Without a discount there is nothing to fetch from the server for — the
+  // fee is pure arithmetic on a total already known client-side, computed
+  // by the SAME `feeInclusiveAmount` the server's `finalise()` calls on the
+  // identical (undiscounted) base amount. Same function, same input, same
+  // output: this can never disagree with what checkout actually charges.
+  const payable = applied ? applied.charged : feeInclusiveAmount(total);
+  const feeAmount = applied ? applied.feeAmount : payable - total;
 
   /**
    * Collapsed by default on a phone, always open on a wide screen.
@@ -109,7 +119,7 @@ export function OrderSummary({
         <span className="flex shrink-0 items-center gap-2 lg:hidden">
           {lines.length > 0 && (
             <span className="font-mono text-body-l font-bold text-black02">
-              {money(applied ? applied.charged : total)} XAF
+              {money(payable)} XAF
             </span>
           )}
           <CaretDown
@@ -165,17 +175,25 @@ export function OrderSummary({
                 </ul>
 
                 <div className="mt-5 border-t-2 border-black02/15 pt-4">
+                  {/*
+                    ALWAYS shown now, discount or not — the fee row below
+                    only makes sense next to the base number it's a
+                    percentage of, and showing "Subtotal" only when a code
+                    is applied would make the base price look like a
+                    discount-only concept instead of what it actually is:
+                    the stored, fee-free catalog price.
+                  */}
+                  <div className="flex items-baseline justify-between gap-4">
+                    <span className="text-body-m text-black02/75">
+                      {t("subtotal")}
+                    </span>
+                    <span className="shrink-0 font-mono text-body-m text-black02/75">
+                      {money(total)}
+                    </span>
+                  </div>
+
                   {applied && (
                     <>
-                      <div className="flex items-baseline justify-between gap-4">
-                        <span className="text-body-m text-black02/75">
-                          {t("subtotal")}
-                        </span>
-                        <span className="shrink-0 font-mono text-body-m text-black02/75">
-                          {money(total)}
-                        </span>
-                      </div>
-
                       {/* The deduction, stated as a number rather than as a
                     reassurance. "Your code was applied" is not an answer to
                     "how much did it take off". */}
@@ -206,13 +224,23 @@ export function OrderSummary({
                     </>
                   )}
 
-                  <div
-                    className={`flex items-baseline justify-between gap-4 ${
-                      applied ? "mt-4 border-t-2 border-black02/15 pt-4" : ""
-                    }`}
-                  >
+                  {/* The fee, itemised rather than folded silently into the
+                      total — the buyer sees exactly what it is and how much
+                      it costs, not just a bigger number than the sticker
+                      price. Always present: unlike the discount, every
+                      order carries this. */}
+                  <div className="mt-2 flex items-baseline justify-between gap-4">
+                    <span className="text-body-m text-black02/75">
+                      {t("transactionFeeRow")}
+                    </span>
+                    <span className="shrink-0 font-mono text-body-m text-black02/75">
+                      {money(feeAmount)}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex items-baseline justify-between gap-4 border-t-2 border-black02/15 pt-4">
                     <span className="font-sans text-body-l font-bold text-black02">
-                      {applied ? t("totalToPay") : t("total")}
+                      {t("totalToPay")}
                     </span>
                     <span className="font-mono text-heading-m font-bold text-black02">
                       {money(payable)} XAF

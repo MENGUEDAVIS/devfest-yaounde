@@ -24,6 +24,7 @@ import {
   loadTiers,
 } from "./catalog";
 import { CHECKOUT_ERRORS, CheckoutError } from "./errors";
+import { transactionFeeAmount } from "./fees";
 import { createAdminSupabase } from "@/lib/supabase/server";
 
 /** Nobody needs 200 hoodies, and an unbounded quantity is a denial-of-wallet. */
@@ -85,24 +86,42 @@ function applyDiscount(subtotal: number, discount: DiscountRow): number {
   return Math.min(Math.max(raw, 0), subtotal);
 }
 
+/**
+ * The one place the transaction fee (PHASE22 §D+) joins the total.
+ *
+ * ORDER MATTERS: the discount is computed against the BASE subtotal
+ * (unchanged from before the fee existed — a code takes a percentage off
+ * what a ticket or product actually costs, not off a fee that has nothing
+ * to do with the catalog), and the fee is added ONCE, to what is left
+ * after that. Applying it the other way — fee first, discount on the
+ * fee-inclusive total — would make a discount also shrink the fee, which
+ * is not what "1.5% transaction fee" means.
+ *
+ * `net` is the base, post-discount amount — what the event actually earns,
+ * used for admin revenue reporting (`settledRevenue` already sums
+ * `net_amount`, not `charged_amount`, for exactly this reason: a pass-
+ * through fee is not real ticket/product revenue). `charged` is what is
+ * actually charged via PawaPay and shown everywhere as the total — the fee
+ * is real money the buyer pays, so it can never be display-only.
+ */
 function finalise(
   lines: PricedLine[],
   discount: DiscountRow | null,
 ): PricedBasket {
   const subtotal = lines.reduce((sum, line) => sum + line.lineAmount, 0);
   const discountAmount = discount ? applyDiscount(subtotal, discount) : 0;
-  const charged = subtotal - discountAmount;
+  const net = subtotal - discountAmount;
+  const feeAmount = transactionFeeAmount(net);
+  const charged = net + feeAmount;
 
   return {
     lines,
     subtotal,
     discountCode: discount?.code,
     discountAmount,
+    feeAmount,
     charged,
-    // Net is what actually lands with us. Identical to `charged` today; kept
-    // separate so a future gateway fee has somewhere to live without
-    // rewriting every stored intent.
-    net: charged,
+    net,
     currency: CURRENCY,
   };
 }

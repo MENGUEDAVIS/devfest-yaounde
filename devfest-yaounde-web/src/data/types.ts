@@ -320,10 +320,21 @@ export interface AttendeeInput {
  */
 export interface PricedBasket {
   lines: PricedLine[];
+  /** Base subtotal — the sum of stored, fee-free catalog prices. */
   subtotal: number;
   discountCode?: string;
+  /** Computed against the BASE subtotal, before the fee is added. */
   discountAmount: number;
+  /**
+   * The 1.5% transaction fee (`lib/payments/fees.ts`), applied once to the
+   * post-discount base amount — never to `subtotal` directly, and never
+   * split across lines. `charged = net + feeAmount`.
+   */
+  feeAmount: number;
+  /** What is actually charged — fee-inclusive. The number PawaPay is asked
+   *  for, and the number shown as the total everywhere on the site. */
   charged: number;
+  /** Base, post-discount, pre-fee — what the event itself actually earns. */
   net: number;
   currency: "XAF";
 }

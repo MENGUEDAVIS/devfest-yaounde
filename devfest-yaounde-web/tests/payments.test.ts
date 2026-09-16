@@ -27,6 +27,7 @@ import {
   claimToken,
   verifyClaimToken,
 } from "@/lib/security/claim-token";
+import { feeInclusiveAmount, transactionFeeAmount } from "@/lib/payments/fees";
 import { verifyCallback } from "@/lib/pawapay/verify";
 import {
   quoteTickets,
@@ -236,6 +237,39 @@ describe("ticket claim tokens", () => {
 
     process.env.CLAIM_TOKEN_SECRET = saved;
     assert.doesNotThrow(assertClaimSecretConfigured);
+  });
+});
+
+describe("the 1.5% transaction fee", () => {
+  it("adds exactly 1.5%, rounded to the nearest franc", () => {
+    assert.equal(feeInclusiveAmount(1000), 1015);
+    assert.equal(feeInclusiveAmount(2000), 2030);
+    assert.equal(feeInclusiveAmount(3600), 3654);
+  });
+
+  it("rounds half up, not banker's rounding or truncation", () => {
+    // 100 * 1.015 = 101.5 exactly — half up means 102, not 101.
+    assert.equal(feeInclusiveAmount(100), 102);
+  });
+
+  it("is zero on a zero base — a genuinely free ticket stays free", () => {
+    assert.equal(feeInclusiveAmount(0), 0);
+    assert.equal(transactionFeeAmount(0), 0);
+  });
+
+  it("transactionFeeAmount is always exactly the difference the fee adds", () => {
+    for (const base of [0, 1, 100, 1015, 30000, 999999]) {
+      assert.equal(
+        transactionFeeAmount(base),
+        feeInclusiveAmount(base) - base,
+      );
+    }
+  });
+
+  it("never returns a fractional franc — XAF has no subunit", () => {
+    for (const base of [1, 3, 7, 33, 101, 999, 12345]) {
+      assert.equal(Number.isInteger(feeInclusiveAmount(base)), true);
+    }
   });
 });
 
@@ -462,7 +496,15 @@ describe("server-side pricing", () => {
     const sonnet = findTier("sonnet")!.priceXAF;
     assert.equal(basket.lines.length, 1, "same tier collapses to one line");
     assert.equal(basket.lines[0].quantity, 2);
-    assert.equal(basket.charged, sonnet * 2);
+    assert.equal(basket.subtotal, sonnet * 2, "subtotal stays base, fee-free");
+    assert.equal(basket.net, sonnet * 2, "no discount, so net equals subtotal");
+    assert.equal(basket.feeAmount, transactionFeeAmount(sonnet * 2));
+    assert.equal(basket.charged, feeInclusiveAmount(sonnet * 2));
+    assert.equal(
+      basket.charged,
+      basket.net + basket.feeAmount,
+      "charged is always net plus the fee, nothing else",
+    );
     assert.equal(basket.currency, "XAF");
   });
 
@@ -512,7 +554,7 @@ describe("server-side pricing", () => {
         lineAmount: 1,
       } as never,
     ]);
-    assert.equal(basket.charged, findTier("sonnet")!.priceXAF);
+    assert.equal(basket.charged, feeInclusiveAmount(findTier("sonnet")!.priceXAF));
   });
 
   it("demands an apparel size on an apparel tier", async () => {
@@ -550,7 +592,10 @@ describe("server-side pricing", () => {
     const basket = await quoteCart([
       { productId: "sticker-pack", quantity: 3 },
     ]);
-    assert.equal(basket.charged, findProduct("sticker-pack")!.priceXAF * 3);
+    assert.equal(
+      basket.charged,
+      feeInclusiveAmount(findProduct("sticker-pack")!.priceXAF * 3),
+    );
     assert.equal(basket.lines[0].quantity, 3);
   });
 
@@ -1146,7 +1191,10 @@ describe("per-variant stock", () => {
         variant: { size: "M", color: "Noir" },
       },
     ]);
-    assert.equal(basket.charged, findProduct("tee-edition")!.priceXAF * 2);
+    assert.equal(
+      basket.charged,
+      feeInclusiveAmount(findProduct("tee-edition")!.priceXAF * 2),
+    );
   });
 
   it("leaves an unstocked product unlimited", async () => {
@@ -1475,6 +1523,43 @@ describe("receipt emails", () => {
     );
     assert.ok(!email.html.includes("Sous-total"), "subtotal shown needlessly");
     assert.ok(!email.text.includes("Réduction"), "discount row leaked");
+  });
+
+  it("shows the transaction fee as its own line, on the post-discount base — not folded into the subtotal", () => {
+    // net_amount (3600) is the base AFTER the 400 discount, so the true base
+    // subtotal is 4000 (net + discount) — NOT charged_amount (3654) + discount,
+    // which would double-count the fee. charged_amount is feeInclusiveAmount
+    // of net_amount: 3600 * 1.015 = 3654.
+    const email = renderTicketReceipt(
+      ticketIntent({
+        net_amount: 3600,
+        discount_amount: 400,
+        charged_amount: 3654,
+      }),
+      tickets,
+    );
+    assert.match(email.html, /4\D?000/, "true base subtotal missing");
+    assert.match(email.html, /-400/, "deduction missing");
+    assert.ok(
+      email.html.includes("Frais de transaction"),
+      "fee row label missing",
+    );
+    assert.match(email.html, /54/, "fee amount missing");
+    assert.match(email.html, /3\D?654/, "fee-inclusive total missing");
+    assert.match(email.text, /54\D?XAF/, "text fee missing");
+  });
+
+  it("hides the fee row when it computes to zero, same rule as the discount row", () => {
+    // net_amount 0 (a fully-discounted order) means transactionFeeAmount(0)
+    // is 0 by construction — nothing to itemise.
+    const email = renderTicketReceipt(
+      ticketIntent({ net_amount: 0, discount_amount: 4000, charged_amount: 0 }),
+      tickets,
+    );
+    assert.ok(
+      !email.html.includes("Frais de transaction"),
+      "fee row shown on a zero fee",
+    );
   });
 
   it("escapes an attendee name rather than rendering it as markup", () => {

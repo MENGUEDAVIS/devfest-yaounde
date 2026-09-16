@@ -10,6 +10,7 @@ import type {
 } from "@/data/types";
 import { slugify } from "@/lib/admin/form-helpers";
 import type { AdminData } from "@/lib/admin/shape";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { EntityCrud } from "../forms/EntityCrud";
 import {
   ChipInput,
@@ -189,7 +190,10 @@ export function AdminShop({
                 {row.name.en || row.name.fr || row.id}
               </p>
               <p className="truncate text-caption text-black02/60">
-                {row.priceXAF.toLocaleString("en-CM")} XAF ·{" "}
+                {row.priceXAF.toLocaleString("en-CM")} XAF
+                {row.priceXAF > 0 &&
+                  ` (${feeInclusiveAmount(row.priceXAF).toLocaleString("en-CM")} with fee)`}{" "}
+                ·{" "}
                 {STATUSES.find((s) => s.value === row.status)?.label}
                 {row.published === false && " · Hidden"}
                 {tiersBundling(row.id).length > 0 &&
@@ -234,7 +238,14 @@ export function AdminShop({
                 />
               </Field>
 
-              <Field label="Price (XAF)">
+              <Field
+                label="Price (XAF)"
+                hint={
+                  draft.priceXAF > 0
+                    ? `Base price — fee-free. Customers pay ${feeInclusiveAmount(draft.priceXAF).toLocaleString("en-CM")} XAF, which includes the 1.5% transaction fee added automatically everywhere this product is shown.`
+                    : "Base price — fee-free. The 1.5% transaction fee is added automatically wherever this product is shown to a buyer."
+                }
+              >
                 <TextInput
                   type="number"
                   value={String(draft.priceXAF)}
