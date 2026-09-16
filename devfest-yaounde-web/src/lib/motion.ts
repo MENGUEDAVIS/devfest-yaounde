@@ -14,6 +14,8 @@ export const heroRise = "anim-hero-rise";
 export const shapeDrift = "anim-shape-drift";
 export const marqueeLoop = "anim-marquee";
 export const marqueeTrack = "anim-marquee-track";
+/** Active-dot countdown fill for a rotating set — set `--quote-rotate-ms` to the component's own interval. */
+export const quoteProgress = "anim-quote-progress";
 export const confettiPiece = "anim-confetti-piece";
 export const modalBackdropIn = "anim-modal-backdrop";
 export const modalPopIn = "anim-modal-pop";

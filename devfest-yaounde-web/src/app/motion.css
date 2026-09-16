@@ -70,6 +70,17 @@
   }
 }
 
+/* Fills left-to-right over the active dot's own rotation window — see
+   .anim-quote-progress below. */
+@keyframes df-quote-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 @keyframes df-modal-backdrop {
   0% {
     opacity: 0;
@@ -355,6 +366,16 @@
 
 .anim-marquee-track:hover .anim-marquee {
   animation-play-state: paused;
+}
+
+/*
+ * The active dot in a rotating set (testimonials) doubling as a countdown to
+ * its own next advance — set `--quote-rotate-ms` to match the component's
+ * actual rotation interval so the fill lands exactly as the next quote
+ * appears, not a guessed duration that drifts out of sync with it.
+ */
+.anim-quote-progress {
+  animation: df-quote-progress var(--quote-rotate-ms, 6000ms) linear forwards;
 }
 
 /* Easter-egg confetti piece — set --confetti-x/-y/-r per piece */
@@ -1426,6 +1447,7 @@
   .anim-hero-rise,
   .anim-shape-drift,
   .anim-marquee,
+  .anim-quote-progress,
   .anim-confetti-piece,
   .anim-modal-backdrop,
   .anim-modal-pop,
