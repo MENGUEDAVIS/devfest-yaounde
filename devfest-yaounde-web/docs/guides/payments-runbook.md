@@ -53,13 +53,18 @@ delivered and a human gets involved.
 
 ### 2. Environment variables
 
-Copy `.env.example`. Every variable is documented there. Three that matter most:
+Copy `.env.example`. Every variable is documented there. Four that matter most:
 
 - `SUPABASE_SERVICE_ROLE_KEY` — bypasses all access control. Server-side only,
   never prefixed `NEXT_PUBLIC_`.
 - `BADGE_CODE_SECRET` — generate once with `openssl rand -base64 48` and
   **never change it**. Every badge code is derived from it, so rotating it
   invalidates every ticket already issued.
+- `CLAIM_TOKEN_SECRET` — same rule, same command, but its OWN value — never
+  reuse `BADGE_CODE_SECRET` here. Rotating it invalidates every unclaimed
+  "claim your ticket" link already sent (ADR 0062); a ticket already claimed
+  is unaffected, since `claimed_at` is what actually gates re-claiming, not
+  the token's own validity.
 - `APP_BASE_URL` — the real public HTTPS origin. PawaPay sends people back
   here after paying, so `localhost` in production means nobody comes back.
 
@@ -234,6 +239,16 @@ With `RESEND_API_KEY` unset nothing is sent, the payment still completes, and
 
 A failed send never fails a payment. If receipts stop arriving, the tickets are
 still valid — the badge codes are in the database and on `/account`.
+
+**Claim emails** (ADR 0062) go out alongside the receipt, one per ticket where
+`is_self = false` — sent to `attendee_email`, not the buyer. Look for
+`claim_email_sent`/`claim_email_skipped`/`claim_email_failed` per deposit, and
+`claim_claimed`/`claim_already_claimed`/`claim_not_claimable`/`claim_expired`/
+`claim_invalid_token` (deposit id null on these — they come from
+`POST /api/tickets/claim`, after the link's already been opened) once someone
+actually opens the link. Requires `CLAIM_TOKEN_SECRET` to be set — see
+Environment variables below — or checkout itself refuses to start a ticket
+order, the same way a missing `BADGE_CODE_SECRET` already does.
 
 ## Background: the callback question
 

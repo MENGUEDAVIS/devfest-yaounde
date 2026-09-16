@@ -22,6 +22,11 @@ import {
   badgeCodesFor,
   verifyBadgeCode,
 } from "@/lib/security/badge-code";
+import {
+  assertClaimSecretConfigured,
+  claimToken,
+  verifyClaimToken,
+} from "@/lib/security/claim-token";
 import { verifyCallback } from "@/lib/pawapay/verify";
 import {
   quoteTickets,
@@ -44,7 +49,11 @@ import {
   isDiscountFailure,
 } from "@/lib/payments/errors";
 import { isDiscountFailure as clientIsDiscountFailure } from "@/lib/checkout-client";
-import { renderOrderReceipt, renderTicketReceipt } from "@/lib/email/templates";
+import {
+  renderOrderReceipt,
+  renderTicketClaim,
+  renderTicketReceipt,
+} from "@/lib/email/templates";
 import type { PaymentIntentRow } from "@/lib/payments/intents";
 import {
   declaredStock,
@@ -99,10 +108,12 @@ const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
 before(() => {
   process.env.BADGE_CODE_SECRET = "test-secret-that-is-comfortably-long-enough";
+  process.env.CLAIM_TOKEN_SECRET = "another-test-secret-comfortably-long-enough";
 });
 
 after(() => {
   delete process.env.BADGE_CODE_SECRET;
+  delete process.env.CLAIM_TOKEN_SECRET;
 });
 
 /** Helper: assert a promise rejects with a specific checkout error code. */
@@ -178,6 +189,53 @@ describe("badge codes", () => {
     process.env.BADGE_CODE_SECRET = "short";
     assert.throws(() => badgeCode(DEPOSIT, 1), /BADGE_CODE_SECRET/);
     process.env.BADGE_CODE_SECRET = saved;
+  });
+});
+
+describe("ticket claim tokens", () => {
+  const TICKET_A = "aaaaaaaa-2222-3333-4444-555555555555";
+  const TICKET_B = "bbbbbbbb-2222-3333-4444-555555555555";
+
+  it("are deterministic for the same ticket", () => {
+    assert.equal(claimToken(TICKET_A), claimToken(TICKET_A));
+  });
+
+  it("differ per ticket", () => {
+    assert.notEqual(claimToken(TICKET_A), claimToken(TICKET_B));
+  });
+
+  it("verify only against the right ticket", () => {
+    const token = claimToken(TICKET_A);
+    assert.ok(verifyClaimToken(token, TICKET_A));
+    assert.ok(!verifyClaimToken(token, TICKET_B));
+  });
+
+  it("reject a tampered or unrelated token", () => {
+    assert.ok(!verifyClaimToken("not-a-real-token", TICKET_A));
+    assert.ok(!verifyClaimToken(claimToken(TICKET_A) + "x", TICKET_A));
+  });
+
+  it("use a different secret from badge codes — rotating one never touches the other", () => {
+    // Same ticket id used as both a deposit id (badge codes) and a ticket id
+    // (claim tokens) on purpose: if the two ever shared a key, the two
+    // strings would collide by construction.
+    assert.notEqual(badgeCode(TICKET_A, 1), claimToken(TICKET_A));
+  });
+
+  it("are refused at checkout time when the secret is unusable", () => {
+    const saved = process.env.CLAIM_TOKEN_SECRET;
+
+    process.env.CLAIM_TOKEN_SECRET = "";
+    assert.throws(assertClaimSecretConfigured, /CLAIM_TOKEN_SECRET/);
+
+    delete process.env.CLAIM_TOKEN_SECRET;
+    assert.throws(assertClaimSecretConfigured, /CLAIM_TOKEN_SECRET/);
+
+    process.env.CLAIM_TOKEN_SECRET = "too-short";
+    assert.throws(assertClaimSecretConfigured, /CLAIM_TOKEN_SECRET/);
+
+    process.env.CLAIM_TOKEN_SECRET = saved;
+    assert.doesNotThrow(assertClaimSecretConfigured);
   });
 });
 
@@ -1447,6 +1505,61 @@ describe("receipt emails", () => {
     assert.ok(email.html.includes("Livraison souhaitée"));
     assert.ok(email.html.includes("Bastos, après 18h"));
     assert.ok(email.text.includes("Bastos, après 18h"));
+  });
+});
+
+describe("ticket claim emails", () => {
+  const claim = {
+    locale: "fr" as const,
+    attendeeName: "Bruno Fotso",
+    badgeCode: "DFY-ABCDE-FGHIJ",
+    tierName: "SONNET",
+    tierLabel: "Pass étudiant",
+    claimUrl: "https://devfest.gdgyaounde.com/fr/account/claim/t1/tok1",
+  };
+
+  it("carries the attendee's name, badge code and claim link", () => {
+    const email = renderTicketClaim(claim);
+    for (const fragment of [
+      "Bruno Fotso",
+      "DFY-ABCDE-FGHIJ",
+      "SONNET",
+      claim.claimUrl,
+    ]) {
+      assert.ok(email.html.includes(fragment), `HTML is missing ${fragment}`);
+      assert.ok(
+        email.text.includes(fragment),
+        `text part is missing ${fragment}`,
+      );
+    }
+  });
+
+  it("escapes an attendee name rather than rendering it as markup", () => {
+    const email = renderTicketClaim({
+      ...claim,
+      attendeeName: '<img src=x onerror="alert(1)">',
+    });
+    assert.ok(!email.html.includes("<img src=x"), "raw markup rendered");
+    assert.ok(email.html.includes("&lt;img"), "not escaped");
+  });
+
+  it("speaks the language the ticket was bought in", () => {
+    const fr = renderTicketClaim({ ...claim, locale: "fr" });
+    const en = renderTicketClaim({ ...claim, locale: "en" });
+    assert.ok(fr.subject.includes("attend"), fr.subject);
+    assert.ok(en.subject.includes("waiting"), en.subject);
+    assert.notEqual(fr.html, en.html);
+  });
+
+  it("works without a tier name or label — still a real message, not a blank one", () => {
+    const email = renderTicketClaim({
+      locale: "en",
+      attendeeName: "Bruno Fotso",
+      badgeCode: "DFY-ABCDE-FGHIJ",
+      claimUrl: claim.claimUrl,
+    });
+    assert.ok(email.html.includes("Bruno Fotso"));
+    assert.ok(email.html.includes("DFY-ABCDE-FGHIJ"));
   });
 });
 

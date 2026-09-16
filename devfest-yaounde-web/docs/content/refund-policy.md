@@ -14,6 +14,20 @@ and it is the reason a flat no-refunds rule is defensible rather than harsh.
 The free tier is not affected — it is an RSVP on the community platform, not a
 purchase, and nobody has paid anything to release.
 
+**Two different things, both called "transfer" loosely — worth keeping apart
+(ADR 0062):**
+
+- **Changing who's attending** — a different person entirely from who was
+  named at checkout — is the manual process above: the buyer tells us, we
+  reissue. Still true, still support-handled, unchanged by anything below.
+- **The already-named attendee getting their own account access** to a
+  ticket the buyer bought FOR them (never for themselves) is now
+  self-service: they get an emailed "claim your ticket" link, sign in with
+  Google, and it's linked to their own account from then on — they can see
+  it under `/account` and check in under their own name instead of the
+  buyer's. This does not change who the ticket is for; it only moves who can
+  manage it.
+
 ## Where this is stated
 
 Deliberately in several places, none of them small print:

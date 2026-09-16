@@ -83,6 +83,8 @@ or amend an earlier one.
 | [0058](decisions/0058-post-event-gallery-and-more-quote-stickers.md)    | Post-event gallery CTA, a timezone fix, and a 4th testimonial sticker | Accepted — **extends 0056**                           |
 | [0059](decisions/0059-stat-figure-polish-and-real-testimonials.md)     | Bigger, uncropped stat figures with alternating tilt; testimonials with voice | Accepted — **extends 0057**                    |
 | [0060](decisions/0060-sponsor-overhaul-and-memory-lane-uploads.md)      | Alpha upload bug, sponsor cursor popup + spotlight, tier rename, Memory Lane admin | Accepted                            |
+| [0061](decisions/0061-faq-and-testimonials-content.md)                  | Real FAQ content, four more role-attributed testimonials, a visible contact line | Accepted                            |
+| [0062](decisions/0062-ticket-claim-and-email-provider.md)               | Self-service ticket claim by email + Google sign-in; Resend closed out as the email provider | Accepted                            |
 
 **Site and design**
 

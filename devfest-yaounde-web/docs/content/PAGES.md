@@ -336,6 +336,17 @@ someone in (ADR 0020).
 and **My Orders**, shared with the shop. Both are scoped to the signed-in
 person by the database itself.
 
+**Claiming a ticket bought for you** — `/{locale}/account/claim/{ticketId}/{token}`
+(ADR 0062). Every ticket where the attendee isn't the buyer gets its own
+"claim your ticket" email, separate from the buyer's receipt. Opening the
+link asks for Google sign-in (same provider as everywhere else, ADR 0014),
+then links the ticket to that account automatically — no second
+confirmation click, since the emailed link plus Google's own consent screen
+already are two. After that it shows under the claimant's own **My
+Tickets**, not the buyer's. This only moves who can manage an
+already-named ticket; changing whose NAME is on it stays the manual,
+buyer-tells-us process in `docs/content/refund-policy.md`.
+
 ## 8. Shop Page (`/shop`)
 
 > **Built in Phase 14 Part B** against the real backend. Contract in

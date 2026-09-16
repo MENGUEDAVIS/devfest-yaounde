@@ -465,6 +465,7 @@ export type Database = {
           attendee_name: string
           badge_code: string
           checked_in_at: string | null
+          claimed_at: string | null
           created_at: string
           deposit_id: string
           id: string
@@ -478,6 +479,7 @@ export type Database = {
           attendee_name: string
           badge_code: string
           checked_in_at?: string | null
+          claimed_at?: string | null
           created_at?: string
           deposit_id: string
           id?: string
@@ -491,6 +493,7 @@ export type Database = {
           attendee_name?: string
           badge_code?: string
           checked_in_at?: string | null
+          claimed_at?: string | null
           created_at?: string
           deposit_id?: string
           id?: string
@@ -526,6 +529,10 @@ export type Database = {
         Returns: number
       }
       check_in_ticket: { Args: { p_badge_code: string }; Returns: Json }
+      claim_ticket: {
+        Args: { p_new_user_id: string; p_ticket_id: string }
+        Returns: Json
+      }
       cleanup_rate_limits: {
         Args: { p_older_than_seconds?: number }
         Returns: number
