@@ -11,10 +11,23 @@
   --color-blue: #4285f4;
   --color-blue-halftone: #57caff;
   --color-blue-pastel: #c3ecf6;
+  /*
+   * A darker step of --color-blue, for TEXT set on --color-blue-pastel or
+   * --color-offwhite (Badge/StatusPill's "blue" tone). --color-blue itself
+   * only reaches 2.8:1 / 3.1:1 there — short of WCAG AA's 4.5:1 for text
+   * (confirmed by a Lighthouse a11y audit, PHASE22 §G) — and it can't be
+   * darkened directly because the "blue" theme's --color-primary aliases it
+   * (globals.css below), so darkening it would also darken every button and
+   * accent in that theme. This token stays fixed regardless of theme, like
+   * --color-success/--color-danger.
+   */
+  --color-blue-ink: #2e5dab;
 
   --color-green: #34a853;
   --color-green-halftone: #5cdb6d;
   --color-green-pastel: #ccf6c5;
+  /* Darker step of --color-green, for TEXT — see --color-blue-ink above; raw --color-green on --color-green-pastel is only 2.55:1. */
+  --color-green-ink: #24763a;
 
   --color-yellow: #f9ab00;
   --color-yellow-halftone: #ffd427;
@@ -23,6 +36,8 @@
   --color-red: #ea4335;
   --color-red-halftone: #ff7daf;
   --color-red-pastel: #f8d8d8;
+  /* Darker step of --color-red, for TEXT — see --color-blue-ink above; raw --color-red on --color-red-pastel is only 2.95:1. */
+  --color-red-ink: #a42f25;
 
   --color-offwhite: #f0f0f0;
   --color-black02: #1e1e1e;
@@ -70,8 +85,10 @@
    */
   --color-success: var(--color-green);
   --color-success-pastel: var(--color-green-pastel);
+  --color-success-ink: var(--color-green-ink);
   --color-danger: var(--color-red);
   --color-danger-pastel: var(--color-red-pastel);
+  --color-danger-ink: var(--color-red-ink);
 
   --background: var(--color-pastel);
   --foreground: var(--color-black02);
@@ -99,7 +116,18 @@
   --color-contrast: var(--color-red);
 }
 :root[data-theme="red"] {
-  --color-primary: var(--color-red);
+  /*
+   * NOT var(--color-red) — raw Red against --color-black02 text (the
+   * standard "bg-primary text-black02" button/badge/marquee pattern used
+   * everywhere `--color-primary` appears) is only 4.24:1, short of WCAG
+   * AA's 4.5:1 for text (confirmed by an axe-core sweep across all 4
+   * themes, PHASE22 §G — Blue/Yellow/Green all clear this by a wide
+   * margin, only Red is dark enough to fall short). This is Red lightened
+   * ~8%, indistinguishable at a glance, that clears 4.65:1. --color-red
+   * itself (and --color-danger, which aliases it) is untouched, since
+   * "sold out" etc. pairs it with --color-danger-ink, not --color-black02.
+   */
+  --color-primary: #ec5245;
   --color-halftone: var(--color-red-halftone);
   --color-pastel: var(--color-red-pastel);
   --color-contrast: var(--color-blue);
@@ -124,15 +152,18 @@
   --color-blue: var(--color-blue);
   --color-blue-halftone: var(--color-blue-halftone);
   --color-blue-pastel: var(--color-blue-pastel);
+  --color-blue-ink: var(--color-blue-ink);
   --color-green: var(--color-green);
   --color-green-halftone: var(--color-green-halftone);
   --color-green-pastel: var(--color-green-pastel);
+  --color-green-ink: var(--color-green-ink);
   --color-yellow: var(--color-yellow);
   --color-yellow-halftone: var(--color-yellow-halftone);
   --color-yellow-pastel: var(--color-yellow-pastel);
   --color-red: var(--color-red);
   --color-red-halftone: var(--color-red-halftone);
   --color-red-pastel: var(--color-red-pastel);
+  --color-red-ink: var(--color-red-ink);
   --color-offwhite: var(--color-offwhite);
   --color-black02: var(--color-black02);
 
@@ -144,8 +175,10 @@
   /* Fixed status colours — never themed */
   --color-success: var(--color-success);
   --color-success-pastel: var(--color-success-pastel);
+  --color-success-ink: var(--color-success-ink);
   --color-danger: var(--color-danger);
   --color-danger-pastel: var(--color-danger-pastel);
+  --color-danger-ink: var(--color-danger-ink);
 
   /*
    * Real families loaded via next/font/google in src/app/[locale]/layout.tsx
@@ -588,6 +621,23 @@ html:not(.has-custom-cursor) .cursor-layer {
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .stat-inline-image,
   .sponsor-inline-card {
+    display: none;
+  }
+}
+
+/*
+ * The inverse of the query above — hides `.sponsor-sr-blurb` (an `sr-only`
+ * span carrying a sponsor's blurb, PHASE22 §G) from assistive tech whenever
+ * `.sponsor-inline-card` is the one actually visible and already speaks the
+ * same blurb as real text. Without this, a touchscreen + VoiceOver visitor
+ * would hear the blurb twice. Where the CURSOR CARD is the active reveal
+ * instead (hover-capable, fine pointer, motion OK), `.sponsor-sr-blurb`
+ * stays in the tree even though that card itself is `aria-hidden` — a mouse
+ * present but not currently hovering (the common desktop screen-reader
+ * case) would otherwise never hear the blurb at all.
+ */
+@media not all and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .sponsor-sr-blurb {
     display: none;
   }
 }

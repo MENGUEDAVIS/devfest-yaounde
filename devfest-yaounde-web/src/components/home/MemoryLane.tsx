@@ -128,7 +128,7 @@ export async function MemoryLane() {
                     <span className="sr-only">{t("galleryNewTab")}</span>
                   </a>
                 ) : (
-                  <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-pill border-2 border-black02/30 px-5 py-2.5 font-sans text-body-m font-bold text-black02/50">
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-pill border-2 border-black02/30 px-5 py-2.5 font-sans text-body-m font-bold text-black02/65">
                     {t("galleryComingSoon")}
                   </span>
                 ))}

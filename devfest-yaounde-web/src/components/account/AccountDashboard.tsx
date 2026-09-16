@@ -137,7 +137,7 @@ export function AccountDashboard() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
             {t("signedInAs")}
           </p>
           <p className="mt-1 font-sans text-heading-m font-bold text-black02">
@@ -222,7 +222,7 @@ export function AccountDashboard() {
                   </div>
 
                   {ticket.tier.label && (
-                    <p className="mt-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                    <p className="mt-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       {ticket.tier.label[locale === "en" ? "en" : "fr"]}
                     </p>
                   )}
@@ -244,7 +244,7 @@ export function AccountDashboard() {
                       sales page — where you cannot look it up afterwards. */}
                   {ticket.tier.perks.length > 0 && (
                     <div className="mt-5">
-                      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                         {t("included")}
                       </p>
                       <ul className="mt-2 flex flex-col gap-1.5">
@@ -314,7 +314,7 @@ export function AccountDashboard() {
                           {ticket.order.currency}
                         </span>
                       </div>
-                      <p className="mt-3 text-caption text-black02/55">
+                      <p className="mt-3 text-caption text-black02/65">
                         {t("purchasedOn", {
                           date: new Date(
                             ticket.order.paidAt,
@@ -324,7 +324,7 @@ export function AccountDashboard() {
                           ),
                         })}
                       </p>
-                      <p className="mt-1 font-mono text-caption text-black02/45">
+                      <p className="mt-1 font-mono text-caption text-black02/65">
                         {t("reference", {
                           ref: ticket.order.depositId.slice(0, 8),
                         })}

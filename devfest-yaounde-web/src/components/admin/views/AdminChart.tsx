@@ -182,7 +182,7 @@ export function AdminChart({
 
   if (labels.length === 0) {
     return (
-      <p className="py-16 text-center text-body-m text-black02/60">{caption}</p>
+      <p className="py-16 text-center text-body-m text-black02/65">{caption}</p>
     );
   }
 
@@ -191,7 +191,7 @@ export function AdminChart({
       <div ref={frame} className="h-[28rem] w-full">
         <canvas ref={canvas} />
       </div>
-      <p className="mt-3 text-caption text-black02/60">{caption}</p>
+      <p className="mt-3 text-caption text-black02/65">{caption}</p>
     </div>
   );
 }

@@ -80,7 +80,7 @@ export function AdminMemoryLane({ rows }: { rows: PastEditionPhoto[] }) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="font-mono text-caption text-black02/40">
+                <span className="font-mono text-caption text-black02/65">
                   —
                 </span>
               )}
@@ -89,7 +89,7 @@ export function AdminMemoryLane({ rows }: { rows: PastEditionPhoto[] }) {
               <p className="truncate font-sans text-body-m font-bold text-black02">
                 {row.alt.en || row.alt.fr || row.id}
               </p>
-              <p className="truncate text-caption text-black02/60">
+              <p className="truncate text-caption text-black02/65">
                 {row.year ?? "no year set"}
               </p>
             </div>

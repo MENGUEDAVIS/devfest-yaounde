@@ -58,7 +58,7 @@ export function BadgeCode({
         />
       )}
       <div className="min-w-0">
-        <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+        <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
           {label}
         </p>
         <p className="mt-1 select-all break-all font-mono text-heading-m font-bold tracking-wide text-black02">

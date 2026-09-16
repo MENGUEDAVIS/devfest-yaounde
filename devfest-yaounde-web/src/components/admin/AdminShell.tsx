@@ -583,7 +583,7 @@ export function AdminShell({
                         type="button"
                         onClick={() => setOpen(isOpen ? null : group.label)}
                         aria-expanded={isOpen}
-                        className="flex w-full items-center justify-between gap-2 rounded-pill px-3 py-2 text-left font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50 transition-colors hover:bg-pastel hover:text-black02"
+                        className="flex w-full items-center justify-between gap-2 rounded-pill px-3 py-2 text-left font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65 transition-colors hover:bg-pastel hover:text-black02"
                       >
                         {group.label}
                         <CaretDown
@@ -648,7 +648,7 @@ export function AdminShell({
                     {(data.organiserEmail?.trim()[0] ?? "?").toUpperCase()}
                   </span>
                   <span className="min-w-0">
-                    <span className="block font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/45">
+                    <span className="block font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       Signed in
                     </span>
                     <span

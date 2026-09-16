@@ -322,7 +322,7 @@ export function TicketCheckout({
             <Warning
               size={20}
               weight="fill"
-              className="mt-0.5 shrink-0 text-danger"
+              className="mt-0.5 shrink-0 text-danger-ink"
             />
             <div>
               <p className="text-body-m font-bold text-black02">
@@ -355,7 +355,7 @@ export function TicketCheckout({
                     {tier.name}
                   </Badge>
                   {tier.label?.[locale as "fr" | "en"] && (
-                    <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+                    <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       {tier.label[locale as "fr" | "en"]}
                     </span>
                   )}
@@ -379,7 +379,7 @@ export function TicketCheckout({
                         <span className="text-body-m text-black02/80">
                           {perk.label[locale as "fr" | "en"]}
                           {perk.note?.[locale as "fr" | "en"] && (
-                            <span className="block text-caption text-black02/55">
+                            <span className="block text-caption text-black02/65">
                               {perk.note[locale as "fr" | "en"]}
                             </span>
                           )}
@@ -397,7 +397,7 @@ export function TicketCheckout({
                   {t("rsvpFree")}
                   <ArrowSquareOut size={16} weight="bold" aria-hidden />
                 </a>
-                <p className="mt-3 text-caption text-black02/60">
+                <p className="mt-3 text-caption text-black02/65">
                   {t("rsvpNote")}
                 </p>
               </article>
@@ -426,7 +426,7 @@ export function TicketCheckout({
                           {tier.name}
                         </Badge>
                         {tier.label?.[locale as "fr" | "en"] && (
-                          <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+                          <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                             {tier.label[locale as "fr" | "en"]}
                           </span>
                         )}
@@ -491,7 +491,7 @@ export function TicketCheckout({
                           <span className="text-body-m text-black02/80">
                             {perk.label[locale as "fr" | "en"]}
                             {perk.note?.[locale as "fr" | "en"] && (
-                              <span className="block text-caption text-black02/55">
+                              <span className="block text-caption text-black02/65">
                                 {perk.note[locale as "fr" | "en"]}
                               </span>
                             )}

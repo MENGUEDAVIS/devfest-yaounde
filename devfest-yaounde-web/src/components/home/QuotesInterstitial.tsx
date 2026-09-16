@@ -64,7 +64,7 @@ export function QuotesInterstitial({ quotes }: { quotes: Quote[] }) {
       className="relative overflow-hidden"
     >
       <QuoteStickers locale={locale} />
-      <p className="relative text-center font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+      <p className="relative text-center font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
         {t("title")}
       </p>
 

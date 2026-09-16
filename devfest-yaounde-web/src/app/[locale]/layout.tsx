@@ -149,6 +149,14 @@ export default async function LocaleLayout({
       */}
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <NextIntlClientProvider>
+          {/*
+            Every page's `<main id="main-content">` also carries
+            `tabIndex={-1}` (PHASE22 §G a11y audit) — without it, jumping the
+            URL hash here scrolls `<main>` into view but does NOT move
+            keyboard focus there, so a keyboard user's very next Tab would
+            have resumed from the skip link itself rather than from inside
+            the content the link exists to reach.
+          */}
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-pill focus:bg-black02 focus:px-4 focus:py-2 focus:text-offwhite"

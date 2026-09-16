@@ -167,7 +167,7 @@ export function AdminSpeakers({ rows }: { rows: Speaker[] }) {
                 </span>
               )}
             </p>
-            <p className="truncate text-caption text-black02/60">
+            <p className="truncate text-caption text-black02/65">
               {row.role.en} · {row.company} · day {row.day}
             </p>
           </div>

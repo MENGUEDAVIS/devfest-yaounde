@@ -85,7 +85,7 @@ export function MorphedImageFrame({
         >
           <span
             aria-hidden
-            className="font-sans text-heading-l font-bold text-black02/45"
+            className="font-sans text-heading-l font-bold text-black02/65"
           >
             {initialsOf(alt)}
           </span>

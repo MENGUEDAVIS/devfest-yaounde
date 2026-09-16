@@ -80,6 +80,7 @@ export default async function WallPage({
   return (
     <main
       id="main-content"
+      tabIndex={-1}
       data-wall
       className="relative h-[100svh] overflow-hidden"
     >

@@ -513,7 +513,7 @@ export function EntityCrud<T extends EntityRow>({
                   disabled={busy || index === 0}
                   onClick={() => void move(index, -1)}
                   aria-label={`Move ${row.id} up`}
-                  className="rounded-pill p-1.5 text-black02/55 hover:bg-pastel hover:text-black02 disabled:opacity-25"
+                  className="rounded-pill p-1.5 text-black02/65 hover:bg-pastel hover:text-black02 disabled:opacity-25"
                 >
                   <ArrowsDownUp
                     size={14}
@@ -526,7 +526,7 @@ export function EntityCrud<T extends EntityRow>({
                   disabled={busy || index === rows.length - 1}
                   onClick={() => void move(index, 1)}
                   aria-label={`Move ${row.id} down`}
-                  className="rounded-pill p-1.5 text-black02/55 hover:bg-pastel hover:text-black02 disabled:opacity-25"
+                  className="rounded-pill p-1.5 text-black02/65 hover:bg-pastel hover:text-black02 disabled:opacity-25"
                 >
                   <ArrowsDownUp size={14} weight="bold" />
                 </button>
@@ -542,8 +542,8 @@ export function EntityCrud<T extends EntityRow>({
                 aria-busy={isToggling}
                 className={`rounded-pill border-2 px-3 py-1 text-caption font-bold transition-colors disabled:opacity-50 ${
                   rowToggle.value(row)
-                    ? "border-black02/25 text-black02/60 hover:bg-pastel hover:text-black02"
-                    : "border-success text-success hover:bg-success-pastel"
+                    ? "border-black02/25 text-black02/65 hover:bg-pastel hover:text-black02"
+                    : "border-success text-success-ink hover:bg-success-pastel"
                 }`}
               >
                 {rowToggle.label(rowToggle.value(row))}
@@ -563,7 +563,7 @@ export function EntityCrud<T extends EntityRow>({
               type="button"
               onClick={() => setConfirming(row.id)}
               aria-label={`Delete ${row.id}`}
-              className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-danger-pastel hover:text-danger"
+              className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-danger-pastel hover:text-danger-ink"
             >
               <Trash size={14} weight="bold" />
             </button>
@@ -586,7 +586,7 @@ export function EntityCrud<T extends EntityRow>({
       </div>
 
       {rows.length > 0 && filtered && (
-        <p className="text-caption text-black02/60">
+        <p className="text-caption text-black02/65">
           Showing {shown.length} of {rows.length}.
         </p>
       )}
@@ -633,7 +633,7 @@ export function EntityCrud<T extends EntityRow>({
                     type="button"
                     disabled={busy || togglingIds.size > 0}
                     onClick={() => void bulkFlip(true)}
-                    className="rounded-pill border-2 border-success px-3 py-1 font-sans text-caption font-bold text-success hover:bg-success-pastel disabled:opacity-40"
+                    className="rounded-pill border-2 border-success px-3 py-1 font-sans text-caption font-bold text-success-ink hover:bg-success-pastel disabled:opacity-40"
                   >
                     {rowToggle.label(false)}
                   </button>
@@ -641,7 +641,7 @@ export function EntityCrud<T extends EntityRow>({
                     type="button"
                     disabled={busy || togglingIds.size > 0}
                     onClick={() => void bulkFlip(false)}
-                    className="rounded-pill border-2 border-black02/25 px-3 py-1 font-sans text-caption font-bold text-black02/60 hover:bg-pastel disabled:opacity-40"
+                    className="rounded-pill border-2 border-black02/25 px-3 py-1 font-sans text-caption font-bold text-black02/65 hover:bg-pastel disabled:opacity-40"
                   >
                     {rowToggle.label(true)}
                   </button>
@@ -651,14 +651,14 @@ export function EntityCrud<T extends EntityRow>({
                 type="button"
                 disabled={busy}
                 onClick={() => setBulkConfirming(true)}
-                className="rounded-pill border-2 border-danger px-3 py-1 font-sans text-caption font-bold text-danger hover:bg-danger-pastel disabled:opacity-40"
+                className="rounded-pill border-2 border-danger px-3 py-1 font-sans text-caption font-bold text-danger-ink hover:bg-danger-pastel disabled:opacity-40"
               >
                 Delete selected
               </button>
               <button
                 type="button"
                 onClick={() => setSelected(new Set())}
-                className="font-mono text-caption font-bold uppercase tracking-wide text-black02/50 underline decoration-2 underline-offset-2 hover:text-black02"
+                className="font-mono text-caption font-bold uppercase tracking-wide text-black02/65 underline decoration-2 underline-offset-2 hover:text-black02"
               >
                 Clear
               </button>
@@ -668,7 +668,7 @@ export function EntityCrud<T extends EntityRow>({
       )}
 
       {shown.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-black02/25 px-4 py-10 text-center text-body-m text-black02/60">
+        <p className="rounded-lg border border-dashed border-black02/25 px-4 py-10 text-center text-body-m text-black02/65">
           {rows.length === 0 ? emptyLabel : "Nothing matches that."}
         </p>
       ) : grouped ? (
@@ -688,7 +688,7 @@ export function EntityCrud<T extends EntityRow>({
             .filter(([, group]) => group.length > 0)
             .map(([label, group]) => (
               <section key={label}>
-                <h3 className="mb-2 font-mono text-caption font-bold uppercase tracking-wide text-black02/45">
+                <h3 className="mb-2 font-mono text-caption font-bold uppercase tracking-wide text-black02/65">
                   {label}
                   <span className="ml-1.5 font-normal">({group.length})</span>
                 </h3>
@@ -807,7 +807,7 @@ function EditorDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-pill px-3 py-1.5 text-body-m font-bold text-black02/60 hover:bg-pastel hover:text-black02"
+            className="rounded-pill px-3 py-1.5 text-body-m font-bold text-black02/65 hover:bg-pastel hover:text-black02"
           >
             Close
           </button>

@@ -93,7 +93,7 @@ export function PersonDetail({
   const nameCls = dark ? "text-offwhite" : "text-black02";
   const metaCls = dark ? "text-primary" : "text-black02/70";
   const bodyCls = dark ? "text-offwhite/85" : "text-black02/80";
-  const labelCls = dark ? "text-offwhite/55" : "text-black02/50";
+  const labelCls = dark ? "text-offwhite/55" : "text-black02/65";
   const ruleCls = dark ? "border-offwhite/20" : "border-black02/15";
 
   return (

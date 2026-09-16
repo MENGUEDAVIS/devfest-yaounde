@@ -29,7 +29,7 @@ export default function NotFound() {
   ];
 
   return (
-    <main id="main-content" className="flex-1 pt-32 sm:pt-28">
+    <main id="main-content" tabIndex={-1} className="flex-1 pt-32 sm:pt-28">
       <SectionContainer background="yellow-wash" maxWidth="4xl">
         <div className="flex flex-col items-start gap-6">
           <span className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-4 py-1.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02">

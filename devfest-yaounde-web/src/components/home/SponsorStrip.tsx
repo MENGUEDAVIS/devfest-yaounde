@@ -56,7 +56,7 @@ export async function SponsorStrip({
       style={style}
     >
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1.5 px-5 sm:px-8">
-        <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+        <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
           {sponsors.length > 0 ? t("label") : t("labelEmpty")}
         </p>
       </div>

@@ -62,7 +62,13 @@ const TIER_ACCENT: Record<SponsorTier, string> = {
  */
 function HaikyuMark({ color }: { color: string }) {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      aria-hidden
+      focusable="false"
+    >
       <path
         fill={color}
         d="M12 2c3.4 3.6 4.4 7 3 9.9-1.2 2.5-3.8 3.4-3.8 3.4S12 11.6 8.6 8.3C6 5.8 12 2 12 2Z"
@@ -74,15 +80,30 @@ function HaikyuMark({ color }: { color: string }) {
 
 function SonnetMark({ color }: { color: string }) {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
-      <path fill={color} d="M9.5 15.2a2.8 2.8 0 1 0 2 2.68V8.4l6-1.2V4.1l-8 1.6v9.5Z" />
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      aria-hidden
+      focusable="false"
+    >
+      <path
+        fill={color}
+        d="M9.5 15.2a2.8 2.8 0 1 0 2 2.68V8.4l6-1.2V4.1l-8 1.6v9.5Z"
+      />
     </svg>
   );
 }
 
 function OpusMark({ color }: { color: string }) {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      aria-hidden
+      focusable="false"
+    >
       <path
         fill={color}
         d="M12 2.5 14.6 9l7 .55-5.4 4.5 1.7 6.8L12 17.1l-6 3.75 1.7-6.8-5.4-4.5 7-.55L12 2.5Z"
@@ -97,15 +118,30 @@ function FableMark({ color }: { color: string }) {
   // close to distinguish from two flat bars). A single tag-shaped silhouette
   // survives shrinking a lot better than two thin parallel shapes do.
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
-      <path fill={color} d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z" />
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      aria-hidden
+      focusable="false"
+    >
+      <path
+        fill={color}
+        d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"
+      />
     </svg>
   );
 }
 
 function MythosMark({ color }: { color: string }) {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      aria-hidden
+      focusable="false"
+    >
       <path
         fill={color}
         d="M12.4 2c1 3.4-.6 4.6-1.9 6.4-1.3 1.9-.3 3.1.9 3.1s2-1.2.9-3c1.9 1.6 3.7 4.4 3.7 7.2a5 5 0 1 1-10 0c0-4.3 3.6-8.6 6.4-13.7Z"
@@ -116,7 +152,13 @@ function MythosMark({ color }: { color: string }) {
 
 function CommunityMark({ color }: { color: string }) {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      aria-hidden
+      focusable="false"
+    >
       <g stroke={color} strokeWidth="1.6" strokeLinecap="round">
         <path d="M12 6.5 6 16.5M12 6.5l6 10" />
       </g>
@@ -129,9 +171,29 @@ function CommunityMark({ color }: { color: string }) {
 
 function PartnerMark({ color }: { color: string }) {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
-      <circle cx="9.5" cy="12" r="5" fill="none" stroke={color} strokeWidth="2" />
-      <circle cx="15.5" cy="12" r="5" fill="none" stroke={color} strokeWidth="2" />
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      aria-hidden
+      focusable="false"
+    >
+      <circle
+        cx="9.5"
+        cy="12"
+        r="5"
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+      />
+      <circle
+        cx="15.5"
+        cy="12"
+        r="5"
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+      />
     </svg>
   );
 }
@@ -353,6 +415,13 @@ function SponsorCard({
     >
       {tierSticker}
       {logo}
+      {/* Always in the a11y tree, unlike the popup (aria-hidden) and the
+          inline fallback below (display:none whenever a fine pointer with
+          hover is present) — a mouse-plus-screen-reader visitor, who
+          matches that same media query but never fires a real :hover,
+          would otherwise never hear the blurb at all. The logo's own alt
+          already carries the name (PHASE22 §G a11y audit). */}
+      {blurb && <span className="sr-only sponsor-sr-blurb">{blurb}</span>}
     </a>
   ) : (
     <span
@@ -365,6 +434,7 @@ function SponsorCard({
     >
       {tierSticker}
       {logo}
+      {blurb && <span className="sr-only sponsor-sr-blurb">{blurb}</span>}
     </span>
   );
 
@@ -383,7 +453,7 @@ function SponsorCard({
       <p className="sponsor-inline-card mt-1 max-w-32 truncate text-center font-mono text-caption font-bold text-black02/70">
         {sponsor.name}
         {blurb && (
-          <span className="block truncate font-normal text-black02/55">
+          <span className="block truncate font-normal text-black02/65">
             {blurb}
           </span>
         )}

@@ -219,7 +219,7 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
             <span
               key="c"
               className={`font-mono font-bold ${
-                d.active ? "" : "text-black02/45 line-through"
+                d.active ? "" : "text-black02/65 line-through"
               }`}
             >
               {d.code}
@@ -266,8 +266,8 @@ export function AdminDiscounts({ data }: { data: AdminData }) {
               onClick={() => void toggle(d.code, d.active)}
               className={`rounded-pill border-2 px-3 py-1 text-caption font-bold transition-colors disabled:opacity-50 ${
                 d.active
-                  ? "border-danger text-danger hover:bg-danger-pastel"
-                  : "border-success text-success hover:bg-success-pastel"
+                  ? "border-danger text-danger-ink hover:bg-danger-pastel"
+                  : "border-success text-success-ink hover:bg-success-pastel"
               }`}
             >
               {busy === d.code ? "…" : d.active ? "Disable" : "Enable"}

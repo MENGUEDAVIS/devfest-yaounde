@@ -41,7 +41,7 @@ export function Field({
         {label}
       </label>
       {children}
-      {hint && <p className="text-caption text-black02/60">{hint}</p>}
+      {hint && <p className="text-caption text-black02/65">{hint}</p>}
     </div>
   );
 }
@@ -121,7 +121,7 @@ export function LocalizedInput({
         <div key={lang} className="flex flex-col gap-1">
           <label
             htmlFor={`${base}-${lang}`}
-            className="font-mono text-caption font-bold uppercase text-black02/45"
+            className="font-mono text-caption font-bold uppercase text-black02/65"
           >
             {lang}
           </label>
@@ -193,12 +193,12 @@ export function Toggle({
           {label}
         </span>
         {disabled && disabledHint ? (
-          <span className="block text-caption text-black02/60">
+          <span className="block text-caption text-black02/65">
             {disabledHint}
           </span>
         ) : (
           hint && (
-            <span className="block text-caption text-black02/60">{hint}</span>
+            <span className="block text-caption text-black02/65">{hint}</span>
           )
         )}
       </span>
@@ -251,7 +251,7 @@ export function Segmented<T extends string>({
             className={`block rounded-pill px-3.5 py-1.5 font-sans text-body-m font-bold transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 ${
               value === option.value
                 ? "bg-primary text-black02"
-                : "text-black02/60 hover:bg-black02/5 hover:text-black02"
+                : "text-black02/65 hover:bg-black02/5 hover:text-black02"
             }`}
           >
             {option.label}
@@ -302,7 +302,7 @@ export function ChipInput({
                   type="button"
                   onClick={() => onChange(values.filter((v) => v !== value))}
                   aria-label={`Remove ${value}`}
-                  className="rounded-pill p-0.5 text-black02/60 hover:bg-black02/10 hover:text-black02"
+                  className="rounded-pill p-0.5 text-black02/65 hover:bg-black02/10 hover:text-black02"
                 >
                   <X size={11} weight="bold" />
                 </button>
@@ -364,7 +364,7 @@ export function SocialLinks({
         <div key={key} className="flex items-center gap-2">
           <label
             htmlFor={`${base}-${key}`}
-            className="w-24 shrink-0 font-mono text-caption font-bold uppercase text-black02/45"
+            className="w-24 shrink-0 font-mono text-caption font-bold uppercase text-black02/65"
           >
             {label}
           </label>
@@ -454,10 +454,10 @@ export function ImageField({
           {busy ? "Uploading…" : has ? "Replace photo" : "Upload photo"}
         </button>
         {disabled && disabledHint && (
-          <p className="text-caption text-black02/60">{disabledHint}</p>
+          <p className="text-caption text-black02/65">{disabledHint}</p>
         )}
         {preview && !busy && (
-          <p className="text-caption text-black02/60">
+          <p className="text-caption text-black02/65">
             Chosen — it uploads when you save.
           </p>
         )}
@@ -564,7 +564,7 @@ export function EntitlementListField({
               <RowIcon
                 size={18}
                 weight="bold"
-                className="mt-2.5 shrink-0 text-black02/60"
+                className="mt-2.5 shrink-0 text-black02/65"
               />
               <div className="min-w-0 flex-1">
                 <LocalizedInput
@@ -578,7 +578,7 @@ export function EntitlementListField({
                   disabled={i === 0}
                   onClick={() => move(i, -1)}
                   aria-label="Move up"
-                  className="rounded-pill p-1 text-black02/50 hover:bg-black02/10 disabled:opacity-25"
+                  className="rounded-pill p-1 text-black02/65 hover:bg-black02/10 disabled:opacity-25"
                 >
                   <ArrowsDownUp size={12} weight="bold" className="rotate-180" />
                 </button>
@@ -587,7 +587,7 @@ export function EntitlementListField({
                   disabled={i === values.length - 1}
                   onClick={() => move(i, 1)}
                   aria-label="Move down"
-                  className="rounded-pill p-1 text-black02/50 hover:bg-black02/10 disabled:opacity-25"
+                  className="rounded-pill p-1 text-black02/65 hover:bg-black02/10 disabled:opacity-25"
                 >
                   <ArrowsDownUp size={12} weight="bold" />
                 </button>
@@ -596,7 +596,7 @@ export function EntitlementListField({
                 type="button"
                 onClick={() => remove(i)}
                 aria-label="Remove entitlement"
-                className="mt-1 shrink-0 rounded-pill p-1.5 text-black02/50 hover:bg-danger-pastel hover:text-danger"
+                className="mt-1 shrink-0 rounded-pill p-1.5 text-black02/65 hover:bg-danger-pastel hover:text-danger-ink"
               >
                 <X size={14} weight="bold" />
               </button>
@@ -710,7 +710,7 @@ export function FilterBar({
                 className={`rounded-pill px-3 py-1 font-sans text-caption font-bold transition-colors ${
                   chip.value === option.value
                     ? "bg-primary text-black02"
-                    : "text-black02/60 hover:bg-black02/5 hover:text-black02"
+                    : "text-black02/65 hover:bg-black02/5 hover:text-black02"
                 }`}
               >
                 {option.label}

@@ -44,7 +44,7 @@ export default async function PaymentReturnPage({
   const { depositId } = await searchParams;
 
   return (
-    <main id="main-content" className="flex-1 pt-32 sm:pt-28">
+    <main id="main-content" tabIndex={-1} className="flex-1 pt-32 sm:pt-28">
       <SectionContainer background="yellow-wash" maxWidth="4xl">
         <PaymentReturn
           depositId={depositId ?? null}

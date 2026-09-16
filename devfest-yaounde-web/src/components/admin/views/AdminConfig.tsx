@@ -229,7 +229,7 @@ export function AdminConfig({
             value={announcementFr}
             onChange={(e) => setAnnouncementFr(e.target.value)}
           />
-          <span className="mt-1 block text-caption font-normal text-black02/60">
+          <span className="mt-1 block text-caption font-normal text-black02/65">
             {announcementFr.length}/{ANNOUNCE_MAX}
           </span>
         </label>
@@ -242,7 +242,7 @@ export function AdminConfig({
             value={announcementEn}
             onChange={(e) => setAnnouncementEn(e.target.value)}
           />
-          <span className="mt-1 block text-caption font-normal text-black02/60">
+          <span className="mt-1 block text-caption font-normal text-black02/65">
             {announcementEn.length}/{ANNOUNCE_MAX}
           </span>
         </label>
@@ -253,7 +253,7 @@ export function AdminConfig({
             value={bevyUrl}
             onChange={(e) => setBevyUrl(e.target.value)}
           />
-          <span className="mt-1 block text-caption font-normal text-black02/60">
+          <span className="mt-1 block text-caption font-normal text-black02/65">
             Where “Join the community” goes. Opens in a new tab.
           </span>
         </label>
@@ -286,7 +286,7 @@ export function AdminConfig({
               placeholder="Leave blank to hide the public counter"
               onChange={(e) => setCapacityTotal(e.target.value)}
             />
-            <span className="mt-1 block text-caption font-normal text-black02/60">
+            <span className="mt-1 block text-caption font-normal text-black02/65">
               Tier caps currently add up to {tierCapSum}.
             </span>
           </label>
@@ -326,7 +326,7 @@ export function AdminConfig({
             onPick={(file) => void uploadHero(file)}
           />
 
-          <p className="text-caption text-black02/60">
+          <p className="text-caption text-black02/65">
             One image — it is resized for phones and desktops automatically, so
             there is no second file to upload. Stored as WebP, so a picture with
             a transparent background keeps it and the theme colour shows
@@ -358,7 +358,7 @@ export function AdminConfig({
                 setMemoryLane({ ...memoryLane, galleryUrl: e.target.value })
               }
             />
-            <span className="mt-1 block text-caption font-normal text-black02/60">
+            <span className="mt-1 block text-caption font-normal text-black02/65">
               Last edition&rsquo;s photos. Empty hides this link rather than
               pointing it nowhere.
             </span>
@@ -377,7 +377,7 @@ export function AdminConfig({
                 })
               }
             />
-            <span className="mt-1 block text-caption font-normal text-black02/60">
+            <span className="mt-1 block text-caption font-normal text-black02/65">
               This edition&rsquo;s photos — there is normally nothing to put
               here until after the event. Once the event has passed, leaving
               this empty shows a &ldquo;photo album coming soon&rdquo; button
@@ -415,7 +415,7 @@ export function AdminConfig({
                 })
               }
             />
-            <span className="mt-1 block text-caption font-normal text-black02/60">
+            <span className="mt-1 block text-caption font-normal text-black02/65">
               The deck the CTA opens, in a new tab. Empty hides the CTA — there
               would be nothing behind it.
             </span>
@@ -435,7 +435,7 @@ export function AdminConfig({
                   })
                 }
               />
-              <span className="mt-1 block text-caption font-normal text-black02/60">
+              <span className="mt-1 block text-caption font-normal text-black02/65">
                 Yaoundé time. Empty means no deadline.
               </span>
             </label>
@@ -454,7 +454,7 @@ export function AdminConfig({
                   }
                 />
               </span>
-              <span className="mt-1.5 block text-caption font-normal text-black02/60">
+              <span className="mt-1.5 block text-caption font-normal text-black02/65">
                 Off takes it down everywhere at once, deadline or not.
               </span>
             </div>
@@ -488,7 +488,7 @@ export function AdminConfig({
                 setLegal({ ...legal, participationTermsUrl: e.target.value })
               }
             />
-            <span className="mt-1 block text-caption font-normal text-black02/60">
+            <span className="mt-1 block text-caption font-normal text-black02/65">
               Also what the “rules of conduct” answer in the FAQ links to.
             </span>
           </label>
@@ -535,7 +535,7 @@ export function AdminConfig({
               placeholder="https://sessionize.com/…"
               onChange={(e) => setCfsUrl(e.target.value)}
             />
-            <span className="mt-1 block text-caption font-normal text-black02/60">
+            <span className="mt-1 block text-caption font-normal text-black02/65">
               Where the submit button sends people. With this empty the call
               never shows — there would be nowhere to click.
             </span>
@@ -561,7 +561,7 @@ export function AdminConfig({
               />
             </label>
           </div>
-          <p className="-mt-2 text-caption text-black02/60">
+          <p className="-mt-2 text-caption text-black02/65">
             Both in Yaoundé time, whatever clock you are reading this on. Leave
             one empty for no bound — an empty close means the countdown
             disappears and the call stays open until you change it.
@@ -581,7 +581,7 @@ export function AdminConfig({
                 onChange={setCfsOverride}
               />
             </span>
-            <span className="mt-1.5 block text-caption font-normal text-black02/60">
+            <span className="mt-1.5 block text-caption font-normal text-black02/65">
               Automatic shows the call while the speaker list is empty and
               switches to the lineup as soon as you add one. Override it when
               the two disagree — a lineup announced before it is entered here,

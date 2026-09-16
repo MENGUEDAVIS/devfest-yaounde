@@ -58,11 +58,13 @@ export default async function TicketsPage({
    * the client for it to look ids up in. Only the products some tier
    * actually references cross the wire.
    */
-  const referenced = new Set(tiers.flatMap((tier) => tier.swagProductIds ?? []));
+  const referenced = new Set(
+    tiers.flatMap((tier) => tier.swagProductIds ?? []),
+  );
   const swagProducts = products.filter((product) => referenced.has(product.id));
 
   return (
-    <main id="main-content" className="flex-1 pt-32 sm:pt-28">
+    <main id="main-content" tabIndex={-1} className="flex-1 pt-32 sm:pt-28">
       <SectionContainer background="yellow-wash" maxWidth="6xl">
         <h1 className="font-sans text-display-hero font-bold leading-[0.9] text-black02">
           <ScrambleText text={t("title")} />

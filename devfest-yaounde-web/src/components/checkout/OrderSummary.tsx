@@ -162,7 +162,7 @@ export function OrderSummary({
                       <span className="min-w-0 text-body-m text-black02">
                         {line.label} × {line.quantity}
                         {line.sublabel && (
-                          <span className="block text-caption text-black02/60">
+                          <span className="block text-caption text-black02/65">
                             {line.sublabel}
                           </span>
                         )}
@@ -250,7 +250,7 @@ export function OrderSummary({
 
                 {/* The server re-prices from the catalog at checkout, so this is an
               estimate until the order comes back with its quote. */}
-                <p className="mt-3 text-caption text-black02/60">{note}</p>
+                <p className="mt-3 text-caption text-black02/65">{note}</p>
 
                 <div className="mt-5 border-t-2 border-black02/15 pt-4">
                   {!discount.open && !applied ? (
@@ -317,7 +317,7 @@ export function OrderSummary({
                       {discount.error && (
                         <p
                           role="alert"
-                          className="mt-2 text-body-m font-bold text-danger"
+                          className="mt-2 text-body-m font-bold text-danger-ink"
                         >
                           {discount.errorText(discount.error)}
                         </p>

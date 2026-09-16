@@ -25,7 +25,7 @@ export function CheckoutSteps({
           <span
             aria-current={i === current ? "step" : undefined}
             className={`flex items-center gap-2 font-mono text-mono-tag font-bold uppercase tracking-wide ${
-              i <= current ? "text-black02" : "text-black02/40"
+              i <= current ? "text-black02" : "text-black02/65"
             }`}
           >
             <span
@@ -34,7 +34,7 @@ export function CheckoutSteps({
                   ? "bg-black02 text-offwhite"
                   : i === current
                     ? "bg-primary text-black02"
-                    : "bg-transparent text-black02/40"
+                    : "bg-transparent text-black02/65"
               }`}
             >
               {i < current ? <Check size={12} weight="bold" /> : i + 1}

@@ -27,7 +27,7 @@ export function FaqPreview({ faqs }: { faqs: FaqItem[] }) {
           <h2 className="font-sans text-display-xl font-bold text-black02">
             {t("title")}
           </h2>
-          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
+          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
             {t("toggleHint")}
           </p>
         </div>

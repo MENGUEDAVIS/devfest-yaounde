@@ -140,7 +140,7 @@ export function AdminTestimonials({ rows }: { rows: Quote[] }) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="flex h-full w-full items-center justify-center font-sans text-caption font-bold text-black02/40">
+                <span className="flex h-full w-full items-center justify-center font-sans text-caption font-bold text-black02/65">
                   &ldquo;
                 </span>
               )}
@@ -149,7 +149,7 @@ export function AdminTestimonials({ rows }: { rows: Quote[] }) {
               <p className="truncate font-sans text-body-m font-bold text-black02">
                 &ldquo;{row.text.en || row.text.fr}&rdquo;
               </p>
-              <p className="truncate text-caption text-black02/60">
+              <p className="truncate text-caption text-black02/65">
                 {row.author.trim() || "Community member"}
                 {row.role?.en ? ` · ${row.role.en}` : ""}
               </p>
@@ -205,7 +205,7 @@ export function AdminTestimonials({ rows }: { rows: Quote[] }) {
               <button
                 type="button"
                 onClick={() => patch({ avatarUrl: undefined })}
-                className="w-fit rounded-pill border border-black02/20 px-3 py-1 text-caption font-bold text-black02 hover:bg-danger-pastel hover:text-danger"
+                className="w-fit rounded-pill border border-black02/20 px-3 py-1 text-caption font-bold text-black02 hover:bg-danger-pastel hover:text-danger-ink"
               >
                 Remove photo
               </button>

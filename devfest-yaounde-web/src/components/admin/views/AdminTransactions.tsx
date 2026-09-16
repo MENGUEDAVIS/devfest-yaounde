@@ -67,7 +67,7 @@ export function AdminTransactions({ data }: { data: AdminData }) {
           <span key="s" className="font-bold">
             {STATUS_LABEL[t.status] ?? t.status}
             {t.failureCode && (
-              <span className="block text-caption font-normal text-danger">
+              <span className="block text-caption font-normal text-danger-ink">
                 {t.failureCode}
               </span>
             )}

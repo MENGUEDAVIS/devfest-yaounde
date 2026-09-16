@@ -31,7 +31,7 @@ export default async function WallTermsPage({
   const t = await getTranslations("pages.wallTerms");
 
   return (
-    <main id="main-content" className="flex-1 pt-32 sm:pt-28">
+    <main id="main-content" tabIndex={-1} className="flex-1 pt-32 sm:pt-28">
       <SectionContainer background="yellow-wash" maxWidth="3xl">
         <h1 className="font-sans text-display-hero font-bold leading-[0.9] text-black02">
           <ScrambleText text={t("title")} />

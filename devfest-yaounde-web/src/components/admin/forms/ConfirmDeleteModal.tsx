@@ -92,7 +92,7 @@ export function ConfirmDeleteModal({
           <Warning
             size={22}
             weight="fill"
-            className="mt-0.5 shrink-0 text-danger"
+            className="mt-0.5 shrink-0 text-danger-ink"
             aria-hidden
           />
           <div>
@@ -122,7 +122,7 @@ export function ConfirmDeleteModal({
 
         {!impact?.blocked && (
           <label className="flex flex-col gap-1.5">
-            <span className="text-caption font-bold uppercase tracking-wide text-black02/60">
+            <span className="text-caption font-bold uppercase tracking-wide text-black02/65">
               Type <span className="font-mono text-black02">{id}</span> to
               confirm
             </span>

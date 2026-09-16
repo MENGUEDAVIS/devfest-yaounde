@@ -15,7 +15,11 @@ import { ScrambleText } from "@/components/ui/ScrambleText";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { Link } from "@/i18n/navigation";
 import { loadSettings } from "@/lib/content/settings";
-import { CHAPTER_EMAIL, isPlaceholderUrl, SOCIAL_LINKS } from "@/lib/site-config";
+import {
+  CHAPTER_EMAIL,
+  isPlaceholderUrl,
+  SOCIAL_LINKS,
+} from "@/lib/site-config";
 
 /*
  * Only the profiles that actually exist.
@@ -102,7 +106,7 @@ export async function Footer() {
           <Reveal index={1}>
             <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:pt-6">
               <div className="link-group">
-                <h3 className={GROUP_TITLE_CLASS}>{t("event.title")}</h3>
+                <h2 className={GROUP_TITLE_CLASS}>{t("event.title")}</h2>
                 <ul className="mt-5 flex flex-col gap-1">
                   <li>
                     <Link href="/schedule" className={LINK_CLASS}>
@@ -128,7 +132,7 @@ export async function Footer() {
               </div>
 
               <div className="link-group">
-                <h3 className={GROUP_TITLE_CLASS}>{t("getInvolved.title")}</h3>
+                <h2 className={GROUP_TITLE_CLASS}>{t("getInvolved.title")}</h2>
                 <ul className="mt-5 flex flex-col gap-1">
                   <li>
                     <Link href="/shop" className={LINK_CLASS}>
@@ -172,7 +176,7 @@ export async function Footer() {
               </div>
 
               <div className="link-group">
-                <h3 className={GROUP_TITLE_CLASS}>{t("legal.title")}</h3>
+                <h2 className={GROUP_TITLE_CLASS}>{t("legal.title")}</h2>
                 {/*
                   All three are somebody else's documents — Google's policies
                   and GDG's participation terms — which is correct: the

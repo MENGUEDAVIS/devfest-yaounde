@@ -104,7 +104,7 @@ export function ShopBrowser({
           size={18}
           weight="bold"
           aria-hidden
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-black02/50"
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-black02/65"
         />
         <input
           type="search"
@@ -150,7 +150,7 @@ export function ShopBrowser({
         </a>
       }
     >
-      <p className="mb-8 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
+      <p className="mb-8 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
         {t("results", { count: visible.length })}
       </p>
 
@@ -207,7 +207,7 @@ export function ShopBrowser({
                     XAF
                   </p>
                   {!BUYABLE.includes(product.status as ProductStatus) && (
-                    <p className="mt-2 text-caption text-black02/60">
+                    <p className="mt-2 text-caption text-black02/65">
                       {t(`unbuyable.${product.status}`)}
                     </p>
                   )}

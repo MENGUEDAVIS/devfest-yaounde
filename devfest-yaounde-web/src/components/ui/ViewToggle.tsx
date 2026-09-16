@@ -33,7 +33,7 @@ export function ViewToggle({
     <div className="flex items-center gap-3">
       <span
         id={labelId}
-        className="hidden font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50 sm:inline"
+        className="hidden font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65 sm:inline"
       >
         {t("label")}
       </span>

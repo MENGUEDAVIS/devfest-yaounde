@@ -103,7 +103,7 @@ export default async function ProductPage({
   };
 
   return (
-    <main id="main-content" className="flex-1 pt-32 sm:pt-28">
+    <main id="main-content" tabIndex={-1} className="flex-1 pt-32 sm:pt-28">
       <script
         type="application/ld+json"
         // Serialised from our own catalog, never from user input.

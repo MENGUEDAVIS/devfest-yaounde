@@ -203,7 +203,7 @@ export function SpeakerShowcase({ speakers }: { speakers: Speaker[] }) {
               <h2 className="font-sans text-display-xl font-bold text-black02">
                 {t("title")}
               </h2>
-              <p className="mt-4 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
+              <p className="mt-4 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                 {t("hint")}
               </p>
             </div>

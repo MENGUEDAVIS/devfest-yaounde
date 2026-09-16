@@ -82,7 +82,7 @@ export function AdminStats({ rows }: { rows: Stat[] }) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="font-mono text-caption text-black02/40">
+                <span className="font-mono text-caption text-black02/65">
                   —
                 </span>
               )}
@@ -92,7 +92,7 @@ export function AdminStats({ rows }: { rows: Stat[] }) {
                 {row.value.toLocaleString("en")}
                 {row.suffix}
               </p>
-              <p className="truncate text-caption text-black02/60">
+              <p className="truncate text-caption text-black02/65">
                 {row.label.en} · {row.label.fr}
                 {!row.imageUrl && " · no image"}
               </p>
@@ -159,7 +159,7 @@ export function AdminStats({ rows }: { rows: Stat[] }) {
               <button
                 type="button"
                 onClick={() => patch({ imageUrl: undefined })}
-                className="w-fit rounded-pill border border-black02/20 px-3 py-1 text-caption font-bold text-black02 hover:bg-danger-pastel hover:text-danger"
+                className="w-fit rounded-pill border border-black02/20 px-3 py-1 text-caption font-bold text-black02 hover:bg-danger-pastel hover:text-danger-ink"
               >
                 Remove image
               </button>

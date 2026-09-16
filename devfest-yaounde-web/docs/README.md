@@ -17,6 +17,7 @@ Start from what you are trying to do.
 | **Get into the admin dashboard**                   | [`guides/admin-dashboard.md`](guides/admin-dashboard.md) — the URL, the env vars, and the `organisers` row                     |
 | **Know how something should look or move**         | [`design/DESIGN.md`](design/DESIGN.md), [`content/PAGES.md`](content/PAGES.md)                                                 |
 | **Check a release**                                | [`setup/security-checklist.md`](setup/security-checklist.md)                                                                   |
+| **See the last accessibility/performance audit**   | [`audits/a11y-performance-2026-09-16.md`](audits/a11y-performance-2026-09-16.md)                                                |
 
 ---
 
@@ -89,6 +90,7 @@ or amend an earlier one.
 | [0064](decisions/0064-refund-exchange-tracker.md)                       | A visibility tracker for manual refund/exchange requests; consent recording was already done (0022) | Accepted                            |
 | [0065](decisions/0065-admin-bulk-actions.md)                            | Bulk publish/hide/delete, retrofit onto every admin list at once | Accepted — **extends 0052**                    |
 | [0066](decisions/0066-installable-pwa-offline-schedule.md)              | Installable PWA; offline caching limited by name to Schedule/Speakers/Team/FAQs; fixes a silent /apple-icon 404 | Accepted                            |
+| [0067](decisions/0067-a11y-audit-fixes.md)                              | `-ink` colour tokens, a lightened Red primary, and a skip link that actually moves focus | Accepted                            |
 
 **Site and design**
 

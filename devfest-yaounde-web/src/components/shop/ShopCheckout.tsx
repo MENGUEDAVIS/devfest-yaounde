@@ -166,7 +166,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
           size={36}
           weight="bold"
           aria-hidden
-          className="mx-auto text-black02/40"
+          className="mx-auto text-black02/65"
         />
         <p className="mt-5 font-sans text-heading-m font-bold text-black02">
           {t("emptyBagTitle")}
@@ -200,7 +200,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
             <Warning
               size={20}
               weight="fill"
-              className="mt-0.5 shrink-0 text-danger"
+              className="mt-0.5 shrink-0 text-danger-ink"
             />
             <div>
               <p className="text-body-m font-bold text-black02">
@@ -217,7 +217,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
 
         {step === "bag" && (
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+            <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
               {t("bagCount", { count })}
             </p>
             {/*
@@ -238,7 +238,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
                     clear();
                     setConfirmingEmpty(false);
                   }}
-                  className="rounded-pill border-2 border-danger bg-danger-pastel px-4 py-1.5 font-sans text-body-m font-bold text-danger"
+                  className="rounded-pill border-2 border-danger bg-danger-pastel px-4 py-1.5 font-sans text-body-m font-bold text-danger-ink"
                 >
                   {t("emptyAllYes")}
                 </button>
@@ -254,7 +254,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
               <button
                 type="button"
                 onClick={() => setConfirmingEmpty(true)}
-                className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 px-4 py-1.5 font-sans text-body-m font-bold text-black02 transition-colors hover:bg-danger-pastel hover:text-danger"
+                className="inline-flex items-center gap-2 rounded-pill border-2 border-black02 px-4 py-1.5 font-sans text-body-m font-bold text-black02 transition-colors hover:bg-danger-pastel hover:text-danger-ink"
               >
                 <Trash size={16} weight="bold" aria-hidden />
                 {t("emptyAll")}
@@ -292,7 +292,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
                       {p?.name[locale as "fr" | "en"] ?? line.productId}
                     </p>
                     {variant && (
-                      <p className="mt-1 font-mono text-mono-tag uppercase tracking-wide text-black02/60">
+                      <p className="mt-1 font-mono text-mono-tag uppercase tracking-wide text-black02/65">
                         {variant}
                       </p>
                     )}
@@ -300,7 +300,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
                       {money((p?.priceXAF ?? 0) * line.quantity)} XAF
                     </p>
                     {gone && (
-                      <p className="mt-2 text-body-m font-bold text-danger">
+                      <p className="mt-2 text-body-m font-bold text-danger-ink">
                         {t("lineUnavailable")}
                       </p>
                     )}
@@ -330,7 +330,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
                       type="button"
                       onClick={() => remove(i)}
                       aria-label={t("removeLine")}
-                      className="flex h-10 w-10 items-center justify-center rounded-pill border-2 border-black02 text-black02 transition-colors hover:bg-danger-pastel hover:text-danger"
+                      className="flex h-10 w-10 items-center justify-center rounded-pill border-2 border-black02 text-black02 transition-colors hover:bg-danger-pastel hover:text-danger-ink"
                     >
                       <Trash size={16} weight="bold" />
                     </button>
@@ -486,7 +486,7 @@ export function ShopCheckout({ products }: { products: Product[] }) {
             errorText: (code) => te(code as never),
           }}
         >
-          <p className="mt-5 text-caption text-black02/60">
+          <p className="mt-5 text-caption text-black02/65">
             <Link
               href="/shop"
               className="underline decoration-2 underline-offset-4"

@@ -232,7 +232,7 @@ export async function Hero({
                 <span className="block font-sans text-display-l font-bold leading-none text-black02">
                   {when.value}
                 </span>
-                <span className="mt-2 block font-mono text-mono-tag uppercase tracking-wide text-black02/55">
+                <span className="mt-2 block font-mono text-mono-tag uppercase tracking-wide text-black02/65">
                   {when.caption}
                 </span>
               </dd>
@@ -252,7 +252,7 @@ export async function Hero({
               <span className="block font-sans text-display-l font-bold leading-none text-black02">
                 {EVENT.city}
               </span>
-              <span className="mt-2 block font-mono text-mono-tag uppercase tracking-wide text-black02/55">
+              <span className="mt-2 block font-mono text-mono-tag uppercase tracking-wide text-black02/65">
                 {EVENT.venue ?? t("venueCaption")}
               </span>
             </dd>

@@ -17,13 +17,13 @@ function Stat({
 }) {
   return (
     <div className="min-w-0">
-      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
         {label}
       </p>
       <p className="mt-0.5 font-sans text-heading-m font-bold text-black02">
         {value}
       </p>
-      {note && <p className="text-caption text-black02/60">{note}</p>}
+      {note && <p className="text-caption text-black02/65">{note}</p>}
     </div>
   );
 }

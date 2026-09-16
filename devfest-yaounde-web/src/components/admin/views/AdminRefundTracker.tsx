@@ -187,7 +187,7 @@ export function AdminRefundTracker({ data }: { data: AdminData }) {
         </div>
 
         {formError && (
-          <p className="mt-3 flex items-center gap-2 text-body-m font-bold text-danger">
+          <p className="mt-3 flex items-center gap-2 text-body-m font-bold text-danger-ink">
             <Warning size={16} weight="fill" aria-hidden />
             {formError}
           </p>
@@ -259,7 +259,7 @@ export function AdminRefundTracker({ data }: { data: AdminData }) {
             r.kind,
             <span key="who">
               {r.requesterName}
-              <span className="block text-caption text-black02/60">
+              <span className="block text-caption text-black02/65">
                 {r.requesterEmail}
               </span>
             </span>,
@@ -279,7 +279,7 @@ export function AdminRefundTracker({ data }: { data: AdminData }) {
               key="delete"
               type="button"
               onClick={() => setDeleteTarget(r)}
-              className="rounded-pill border-2 border-danger px-3 py-1 font-sans text-caption font-bold text-danger hover:bg-danger-pastel"
+              className="rounded-pill border-2 border-danger px-3 py-1 font-sans text-caption font-bold text-danger-ink hover:bg-danger-pastel"
             >
               Delete
             </button>,
@@ -350,7 +350,7 @@ function RequestActions({
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       {options.length === 0 ? (
-        <span className="text-black02/60">—</span>
+        <span className="text-black02/65">—</span>
       ) : (
         options.map((s) => (
           <button
@@ -365,7 +365,7 @@ function RequestActions({
         ))
       )}
       {error && (
-        <span className="text-caption font-bold text-danger">{error}</span>
+        <span className="text-caption font-bold text-danger-ink">{error}</span>
       )}
     </span>
   );

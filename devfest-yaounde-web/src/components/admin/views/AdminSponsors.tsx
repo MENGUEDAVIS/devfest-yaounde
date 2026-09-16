@@ -115,7 +115,7 @@ export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
                   className="max-h-full max-w-full object-contain"
                 />
               ) : (
-                <span className="font-mono text-caption text-black02/40">
+                <span className="font-mono text-caption text-black02/65">
                   logo
                 </span>
               )}
@@ -124,7 +124,7 @@ export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
               <p className="truncate font-sans text-body-m font-bold text-black02">
                 {row.name}
               </p>
-              <p className="truncate text-caption capitalize text-black02/60">
+              <p className="truncate text-caption capitalize text-black02/65">
                 {row.tier ?? "community"}
                 {!row.blurb?.en && !row.blurb?.fr && " · no blurb"}
               </p>

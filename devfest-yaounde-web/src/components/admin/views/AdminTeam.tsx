@@ -146,7 +146,7 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="flex h-full w-full items-center justify-center font-sans text-caption font-bold text-black02/40">
+                <span className="flex h-full w-full items-center justify-center font-sans text-caption font-bold text-black02/65">
                   {(row.name.trim()[0] ?? "?").toUpperCase()}
                 </span>
               )}
@@ -155,12 +155,12 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
               <p className="truncate font-sans text-body-m font-bold text-black02">
                 {row.name}
                 {row.alumni && (
-                  <span className="ml-2 rounded-pill bg-black02/10 px-2 py-0.5 font-mono text-caption font-bold uppercase text-black02/60">
+                  <span className="ml-2 rounded-pill bg-black02/10 px-2 py-0.5 font-mono text-caption font-bold uppercase text-black02/65">
                     past
                   </span>
                 )}
               </p>
-              <p className="truncate text-caption text-black02/60">
+              <p className="truncate text-caption text-black02/65">
                 {row.role.en} · {row.contribution.en}
               </p>
             </div>
