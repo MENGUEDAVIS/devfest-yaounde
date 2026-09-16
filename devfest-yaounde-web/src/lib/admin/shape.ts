@@ -58,6 +58,25 @@ export interface AdminTransaction {
   createdAt: string;
 }
 
+/**
+ * A manually-logged refund/exchange request — a visibility tracker, not a
+ * money-moving system. See `lib/admin/refund-lifecycle.ts` and PHASE22 §D.
+ */
+export interface AdminRefundRequest {
+  id: string;
+  kind: "tickets" | "shop";
+  reference: string;
+  requesterName: string;
+  requesterEmail: string;
+  reason: string;
+  status: "requested" | "in_progress" | "resolved" | "denied";
+  notes: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt: string | null;
+}
+
 export interface AdminUser {
   id: string;
   displayName: string | null;
@@ -176,6 +195,7 @@ export interface AdminData {
   transactions: { rows: AdminTransaction[]; total: number };
   users: { rows: AdminUser[]; total: number };
   discounts: AdminDiscount[];
+  refundRequests: { rows: AdminRefundRequest[]; total: number };
   wallEnabled: boolean;
   wallReports: AdminWallReport[];
   wallCards: AdminWallCard[];

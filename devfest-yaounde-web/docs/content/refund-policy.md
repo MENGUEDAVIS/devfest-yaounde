@@ -43,19 +43,35 @@ is not pre-checked, not hidden behind a link, and not written smaller than the
 text around it — someone is about to part with money, and a policy they have
 to hunt for is a dark pattern.
 
-## What is NOT enforced server-side
+## The acknowledgment is recorded as evidence — RESOLVED
 
-**The acknowledgment is a client-side gate only**, for tickets and shop
-alike. There is no field for it in either checkout schema, so a request posted
-directly to the API succeeds without it. Recorded as **G9** in
-`docs/backend/GAPS.md`, and flagged there as a backend-phase priority.
+<!-- Stale before 2026-09-16: this section used to say the acknowledgment
+     was a client-side gate only, with no server record. That was true when
+     it was written, and stopped being true on 2026-09-02 (ADR 0022) — this
+     section just never got updated to say so. Caught while building the
+     refund tracker below, PHASE22 §D. -->
 
-The _policies_ are settled; what is not recorded is the **consent**.
+Both checkout schemas require `acceptedTerms: true` — a request posted
+directly to the API without it is refused with `terms_not_accepted`. Once
+accepted, `payment_intents` stores **when** (`terms_accepted_at`, the
+server's own clock) and **exactly what wording was shown** (`terms_text`,
+re-read server-side from that locale's messages, never taken from the
+request body) — a boolean alone proves nothing without both. Tickets and
+shop record their own separate wording, because they are different
+policies. Full design: `docs/decisions/0022-terms-consent-record.md`,
+closing **G9** in `docs/backend/GAPS.md`.
 
-This matters if the acknowledgment is ever needed as evidence of consent. As a
-UI affordance it does its job; as a legal record it does not exist. Deciding
-whether that is enough is a question for whoever owns the policy, not a bug to
-be quietly patched in the frontend.
+## Tracking a manual refund or exchange request
+
+**Settled 2026-09-16 (PHASE22 §D).** The policies above are unchanged —
+tickets stay non-refundable, shop exchanges stay handled manually,
+off-platform. What used to have nowhere to live is the REQUEST itself: an
+organiser logs one (from *Commerce → Refunds & exchanges* in the
+dashboard) when an email comes in, and moves it through
+`requested → in progress → resolved` or `denied` as it's handled. This is
+a visibility tracker, not a feature that refunds anything — no money moves
+through it, and it does not touch a ticket, a badge code, or an order's
+own status. See `docs/decisions/0064-refund-exchange-tracker.md`.
 
 ## Shop — non-refundable, but exchangeable
 

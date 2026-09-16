@@ -64,6 +64,12 @@ read-only. The `amount_mismatch` state gets copy that says the team is looking
 into it and **does not offer a retry** — the guide is explicit that retrying is
 wrong there.
 
+**2026-09-16 addendum:** the policy still stands — nothing above changed.
+What organisers gained is a place to LOG a manual refund/exchange request
+that comes in by email and track its status (*Commerce → Refunds &
+exchanges*). It does not move money, does not touch a ticket or order, and
+does not add a self-service request path for buyers. ADR 0064.
+
 ### G3 — Email provider not chosen — **CLOSED 2026-09-16**
 
 Templates and dispatch are written and bilingual; Resend is wired as the one

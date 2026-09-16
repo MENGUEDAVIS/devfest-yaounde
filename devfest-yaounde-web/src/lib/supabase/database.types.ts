@@ -416,6 +416,51 @@ export type Database = {
         }
         Relationships: []
       }
+      refund_requests: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          kind: string
+          notes: string | null
+          reason: string
+          reference: string
+          requester_email: string
+          requester_name: string
+          resolved_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          kind: string
+          notes?: string | null
+          reason: string
+          reference: string
+          requester_email: string
+          requester_name: string
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          reason?: string
+          reference?: string
+          requester_email?: string
+          requester_name?: string
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           announcement: Json | null

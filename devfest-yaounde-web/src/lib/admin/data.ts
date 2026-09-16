@@ -33,43 +33,52 @@ export async function loadAdminData(): Promise<AdminData> {
   const organiser = await gate();
   const db = createAdminSupabase();
 
-  const [tickets, orders, intents, users, discounts] = await Promise.all([
-    db
-      .from("tickets")
-      .select(
-        "id, badge_code, attendee_name, attendee_email, tier_id, apparel_size, checked_in_at, created_at",
-        { count: "exact" },
-      )
-      .order("created_at", { ascending: false })
-      .limit(LIST_CAP),
-    db
-      .from("orders")
-      .select(
-        "id, status, total_amount, currency, created_at, fulfilment, order_items(product_id, name_snapshot, quantity, unit_amount, variant)",
-        { count: "exact" },
-      )
-      .order("created_at", { ascending: false })
-      .limit(LIST_CAP),
-    db
-      .from("payment_intents")
-      .select(
-        "deposit_id, kind, status, charged_amount, net_amount, discount_code, discount_amount, currency, failure_code, created_at",
-        { count: "exact" },
-      )
-      .order("created_at", { ascending: false })
-      .limit(LIST_CAP),
-    db
-      .from("profiles")
-      .select("id, display_name, email, created_at", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .limit(LIST_CAP),
-    db
-      .from("discount_codes")
-      .select(
-        "code, kind, value, applies_to, active, redeemed_count, max_redemptions, expires_at",
-      )
-      .order("code"),
-  ]);
+  const [tickets, orders, intents, users, discounts, refundRequests] =
+    await Promise.all([
+      db
+        .from("tickets")
+        .select(
+          "id, badge_code, attendee_name, attendee_email, tier_id, apparel_size, checked_in_at, created_at",
+          { count: "exact" },
+        )
+        .order("created_at", { ascending: false })
+        .limit(LIST_CAP),
+      db
+        .from("orders")
+        .select(
+          "id, status, total_amount, currency, created_at, fulfilment, order_items(product_id, name_snapshot, quantity, unit_amount, variant)",
+          { count: "exact" },
+        )
+        .order("created_at", { ascending: false })
+        .limit(LIST_CAP),
+      db
+        .from("payment_intents")
+        .select(
+          "deposit_id, kind, status, charged_amount, net_amount, discount_code, discount_amount, currency, failure_code, created_at",
+          { count: "exact" },
+        )
+        .order("created_at", { ascending: false })
+        .limit(LIST_CAP),
+      db
+        .from("profiles")
+        .select("id, display_name, email, created_at", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .limit(LIST_CAP),
+      db
+        .from("discount_codes")
+        .select(
+          "code, kind, value, applies_to, active, redeemed_count, max_redemptions, expires_at",
+        )
+        .order("code"),
+      db
+        .from("refund_requests")
+        .select(
+          "id, kind, reference, requester_name, requester_email, reason, status, notes, created_by, created_at, updated_at, resolved_at",
+          { count: "exact" },
+        )
+        .order("created_at", { ascending: false })
+        .limit(LIST_CAP),
+    ]);
 
   const wallEnabled = process.env.NEXT_PUBLIC_DP_GALLERY === "1";
   let wallPending = 0;
@@ -243,6 +252,23 @@ export async function loadAdminData(): Promise<AdminData> {
       maxRedemptions: d.max_redemptions,
       expiresAt: d.expires_at,
     })),
+    refundRequests: {
+      total: refundRequests.count ?? refundRequests.data?.length ?? 0,
+      rows: (refundRequests.data ?? []).map((r) => ({
+        id: r.id,
+        kind: r.kind as "tickets" | "shop",
+        reference: r.reference,
+        requesterName: r.requester_name,
+        requesterEmail: r.requester_email,
+        reason: r.reason,
+        status: r.status as "requested" | "in_progress" | "resolved" | "denied",
+        notes: r.notes,
+        createdBy: r.created_by,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        resolvedAt: r.resolved_at,
+      })),
+    },
     wallEnabled,
     wallReports,
     wallCards,

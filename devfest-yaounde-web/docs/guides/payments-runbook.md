@@ -389,7 +389,9 @@ other application does that, a payment meant for this one is lost silently.
 - **Card payments.** `PAGES.md` §7 wants card as a secondary option; this
   integration is Mobile Money only. Tracked in `0013`.
 - **Refunds.** Cancelling an order moves no money. Refunding is manual, in the
-  PawaPay dashboard.
+  PawaPay dashboard. *Commerce → Refunds & exchanges* in the admin dashboard
+  (ADR 0064) tracks that a request was made and its status — it does not
+  perform the refund or exchange itself.
 - **Any interface** for check-in or order management — the endpoints exist, the
   screens do not. See `docs/guides/check-in-and-orders.md`.
 - **Discount code admin.** Codes are rows in `discount_codes`, managed by hand

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowCounterClockwise,
   ArrowLeft,
   CalendarBlank,
   CaretDown,
@@ -37,6 +38,7 @@ import { AdminTicketTiers } from "./views/AdminTicketTiers";
 import { AdminShop } from "./views/AdminShop";
 import { AdminTransactions } from "./views/AdminTransactions";
 import { AdminOrders } from "./views/AdminOrders";
+import { AdminRefundTracker } from "./views/AdminRefundTracker";
 import { AdminDiscounts } from "./views/AdminDiscounts";
 import { AdminUsers } from "./views/AdminUsers";
 import { AdminContent } from "./views/AdminContent";
@@ -80,6 +82,7 @@ export type ViewId =
   | "shop"
   | "transactions"
   | "orders"
+  | "refunds"
   | "discounts"
   | "wall"
   | "testimonials"
@@ -113,6 +116,7 @@ const GROUPS: {
       { id: "shop", label: "Shop", Icon: Storefront },
       { id: "transactions", label: "Transactions", Icon: Receipt },
       { id: "orders", label: "Shop orders", Icon: Package },
+      { id: "refunds", label: "Refunds & exchanges", Icon: ArrowCounterClockwise },
       { id: "discounts", label: "Discounts", Icon: Percent },
     ],
   },
@@ -228,6 +232,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
   orders: {
     title: "Shop orders",
     blurb: "Fulfilment for merch. Move a row along when you pack it.",
+  },
+  refunds: {
+    title: "Refunds & exchanges",
+    blurb:
+      "Log a request that came in by email, and track it through to done. Tickets stay non-refundable; this does not move money.",
   },
   discounts: {
     title: "Discount codes",
@@ -687,6 +696,7 @@ export function AdminShell({
             )}
             {view === "transactions" && <AdminTransactions data={data} />}
             {view === "orders" && <AdminOrders data={data} />}
+            {view === "refunds" && <AdminRefundTracker data={data} />}
             {view === "discounts" && <AdminDiscounts data={data} />}
             {view === "wall" && <AdminWall data={data} />}
             {view === "stats" && <AdminStats rows={collections.stats} />}

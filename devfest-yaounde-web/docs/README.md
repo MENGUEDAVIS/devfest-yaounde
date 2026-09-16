@@ -86,6 +86,7 @@ or amend an earlier one.
 | [0061](decisions/0061-faq-and-testimonials-content.md)                  | Real FAQ content, four more role-attributed testimonials, a visible contact line | Accepted                            |
 | [0062](decisions/0062-ticket-claim-and-email-provider.md)               | Self-service ticket claim by email + Google sign-in; Resend closed out as the email provider | Accepted                            |
 | [0063](decisions/0063-transaction-fee.md)                               | A 1.5% transaction fee, computed at display/checkout time, base price never stored with it | Accepted                            |
+| [0064](decisions/0064-refund-exchange-tracker.md)                       | A visibility tracker for manual refund/exchange requests; consent recording was already done (0022) | Accepted                            |
 
 **Site and design**
 
