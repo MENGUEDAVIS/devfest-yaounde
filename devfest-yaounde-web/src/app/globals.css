@@ -586,9 +586,94 @@ html:not(.has-custom-cursor) .cursor-layer {
  * never both show, and never both be missing.
  */
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .stat-inline-image {
+  .stat-inline-image,
+  .sponsor-inline-card {
     display: none;
   }
+}
+
+/*
+ * TEXT CARD STATE — PHASE22 §A2, `[data-cursor-card]` zones (the sponsor
+ * popup). Same three-layer construction as `.cursor-image` and the same
+ * reason: position+tilt on `.cursor-card`, the continuous bob on its own
+ * `.cursor-card-float` (an animated `transform` would otherwise erase
+ * whichever other `transform` shares its element), the reveal's clip+scale
+ * on `.cursor-card-inner`.
+ *
+ * SIZED BY CONTENT, not a fixed box like the image card — a name and a
+ * short blurb are natively different lengths, and `object-fit`-style
+ * cropping has no equivalent for text. `max-width` keeps a long blurb from
+ * stretching the card across half the screen; `--card-x/-y` still centres
+ * it on the tracked point via a fixed assumed half-size (see `CARD_HALF_W`/
+ * `CARD_HALF_H` in the component) — an approximation, not a measurement,
+ * which is fine for a card this small.
+ */
+.cursor-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: 260px;
+  margin: -56px 0 0 -140px;
+  transform: translate3d(var(--card-x, -400px), var(--card-y, -400px), 0)
+    rotate(var(--card-tilt, -2deg));
+  will-change: transform;
+}
+.cursor-card-float {
+  display: block;
+}
+.cursor-layer[data-state="card"] .cursor-card-float {
+  animation: df-cursor-image-bob 3600ms ease-in-out infinite;
+}
+.cursor-card-inner {
+  padding: 0.65rem 0.9rem;
+  border: 2px solid var(--color-black02);
+  border-radius: var(--radius-md);
+  background: var(--color-offwhite);
+  box-shadow: 0 4px 0 0 var(--color-black02);
+  opacity: 0;
+  clip-path: inset(50% 50% 50% 50% round var(--radius-md));
+  transform: scale(0.7);
+  transition:
+    clip-path 380ms var(--ease-in-out-devfest),
+    transform 380ms var(--ease-in-out-devfest),
+    opacity 200ms var(--ease-out-devfest) 120ms;
+}
+.cursor-layer[data-state="card"] .cursor-card-inner {
+  opacity: 1;
+  clip-path: inset(0 0 0 0 round var(--radius-md));
+  transform: scale(1);
+  transition:
+    clip-path 460ms var(--ease-out-devfest),
+    transform 560ms var(--ease-bouncy),
+    opacity 160ms var(--ease-out-devfest);
+}
+.cursor-card-title {
+  margin: 0;
+  font: 700 var(--text-body-m) / 1.25 var(--font-sans);
+  color: var(--color-black02);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cursor-card-body {
+  margin: 0.15rem 0 0;
+  font: 400 var(--text-caption) / 1.35 var(--font-sans);
+  color: color-mix(in srgb, var(--color-black02) 70%, transparent);
+  /* Two lines, then an ellipsis — a blurb this small has to stay a blurb. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* An empty blurb takes no space at all, rather than an empty line's worth. */
+.cursor-card-body:empty {
+  display: none;
+}
+/* The card takes over from the pointer while it is up. */
+.cursor-layer[data-state="card"] .cursor-dot,
+.cursor-layer[data-state="card"] .cursor-arrow {
+  opacity: 0;
 }
 
 /* Pressed: a quick squeeze, so a click has a physical read. */

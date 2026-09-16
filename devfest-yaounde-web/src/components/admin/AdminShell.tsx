@@ -10,6 +10,7 @@ import {
   Gear,
   Handshake,
   Image as ImageIcon,
+  Images,
   List,
   Microphone,
   Package,
@@ -47,10 +48,12 @@ import { AdminSchedule } from "./views/AdminSchedule";
 import { AdminSponsors } from "./views/AdminSponsors";
 import { AdminTestimonials } from "./views/AdminTestimonials";
 import { AdminStats } from "./views/AdminStats";
+import { AdminMemoryLane } from "./views/AdminMemoryLane";
 import { ToastProvider } from "./forms/Toast";
 import type {
   Product,
   Quote,
+  PastEditionPhoto,
   Session,
   Speaker,
   Sponsor,
@@ -87,6 +90,7 @@ export type ViewId =
   | "schedule"
   | "sponsors"
   | "stats"
+  | "memory-lane"
   | "config";
 
 const GROUPS: {
@@ -128,6 +132,7 @@ const GROUPS: {
       { id: "team", label: "Team", Icon: UsersThree },
       { id: "sponsors", label: "Sponsors", Icon: Handshake },
       { id: "stats", label: "Figures", Icon: ChartLineUp },
+      { id: "memory-lane", label: "Memory Lane", Icon: Images },
       { id: "content", label: "Bulk & photos", Icon: Table },
     ],
   },
@@ -271,6 +276,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
     blurb:
       "The big numbers on the home page. Order here is left to right. Give a figure an image and hovering its number on a computer turns the cursor into that picture.",
   },
+  "memory-lane": {
+    title: "Memory Lane",
+    blurb:
+      "The photo grid on the home page's Memory Lane section. Order here is the order they're shown in; with nothing here the section shows a \u201ccoming soon\u201d placeholder instead.",
+  },
   config: {
     title: "Info bar and policies",
     blurb:
@@ -299,6 +309,7 @@ export interface AdminCollections {
   tiers: TicketTier[];
   quotes: Quote[];
   stats: Stat[];
+  pastEditions: PastEditionPhoto[];
 }
 
 export function AdminShell({
@@ -679,6 +690,9 @@ export function AdminShell({
             {view === "discounts" && <AdminDiscounts data={data} />}
             {view === "wall" && <AdminWall data={data} />}
             {view === "stats" && <AdminStats rows={collections.stats} />}
+            {view === "memory-lane" && (
+              <AdminMemoryLane rows={collections.pastEditions} />
+            )}
             {view === "testimonials" && (
               <AdminTestimonials rows={collections.quotes} />
             )}

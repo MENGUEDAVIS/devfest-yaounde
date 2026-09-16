@@ -9,14 +9,17 @@
 import { NextRequest } from "next/server";
 import { recordAudit } from "@/lib/admin/audit";
 import {
+  PHOTO_CONTENT_TYPE,
   PHOTO_FIELDS,
   PhotoRejected,
   applyPhotoUrl,
+  deletePhotoIfExists,
   isPhotoCollection,
   normalisePhoto,
   publicPhotoUrl,
   storagePath,
   storePhoto,
+  type PhotoFormat,
 } from "@/lib/content/photos";
 import {
   isCollectionId,
@@ -72,8 +75,9 @@ export async function POST(
   }
 
   let bytes: Buffer;
+  let format: PhotoFormat;
   try {
-    bytes = await normalisePhoto(image);
+    ({ bytes, format } = await normalisePhoto(image));
   } catch (err) {
     if (err instanceof PhotoRejected) {
       return Response.json({ error: err.reason }, { status: 422 });
@@ -82,15 +86,23 @@ export async function POST(
     return errorResponse(CHECKOUT_ERRORS.SERVER_ERROR, 500);
   }
 
-  const path = storagePath(id, entryId);
+  const path = storagePath(id, entryId, format);
   try {
-    await storePhoto(path, bytes);
+    await storePhoto(path, bytes, PHOTO_CONTENT_TYPE[format]);
   } catch (err) {
     console.error("[admin/photo] storage failed", err);
     return errorResponse(CHECKOUT_ERRORS.SERVER_ERROR, 500);
   }
 
-  const url = publicPhotoUrl(id, entryId);
+  // A re-upload that CHANGED format (e.g. a plain photo replaced with a
+  // transparent one) writes to a different extension than before — clean up
+  // the other one so a stale, unreferenced file doesn't sit in storage
+  // forever. Best-effort: a first-ever upload has nothing to remove, and
+  // that's the expected, harmless case this swallows.
+  const staleFormat: PhotoFormat = format === "jpeg" ? "webp" : "jpeg";
+  void deletePhotoIfExists(storagePath(id, entryId, staleFormat));
+
+  const url = publicPhotoUrl(id, entryId, format);
   const before = rows[index];
   const next = rows.map((row, i) =>
     i === index ? applyPhotoUrl(row, spec, url) : row,

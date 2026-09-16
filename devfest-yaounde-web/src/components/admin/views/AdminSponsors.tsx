@@ -7,6 +7,7 @@ import { EntityCrud } from "../forms/EntityCrud";
 import {
   Field,
   ImageField,
+  LocalizedInput,
   Segmented,
   TextInput,
   usePendingPhoto,
@@ -14,17 +15,26 @@ import {
 import { useToast } from "../forms/Toast";
 import { InfoBanner } from "./shared";
 
+const EMPTY = { fr: "", en: "" };
+
 /**
  * `partner` sits in the same list as the sponsor tiers.
  *
  * It is a tier rather than a separate collection (ADR 0038): a Partner record
  * would be a byte-for-byte copy of a Sponsor, and the site renders one
  * marquee for both.
+ *
+ * RENAMED to match the ticket tiers' own naming, ascending — Haikyu the
+ * entry paid tier, Mythos the top — with Community and Partner kept as the
+ * two non-monetary options. The old platinum/gold/silver names are gone;
+ * see the sponsor-tier-rename ADR for the migration.
  */
 const TIERS: { value: NonNullable<Sponsor["tier"]>; label: string }[] = [
-  { value: "platinum", label: "Platinum" },
-  { value: "gold", label: "Gold" },
-  { value: "silver", label: "Silver" },
+  { value: "haikyu", label: "Haikyu" },
+  { value: "sonnet", label: "Sonnet" },
+  { value: "opus", label: "Opus" },
+  { value: "fable", label: "Fable" },
+  { value: "mythos", label: "Mythos" },
   { value: "community", label: "Community" },
   { value: "partner", label: "Partner" },
 ];
@@ -72,6 +82,13 @@ export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
         </InfoBanner>
       )}
 
+      <InfoBanner>
+        Logos with a transparent background now stay transparent — re-upload
+        any sponsor logo saved before today&rsquo;s fix if it still shows a
+        black box behind it (the Google logo does; that is the exact bug this
+        fixed).
+      </InfoBanner>
+
       <EntityCrud<Sponsor>
         collection="sponsors"
         rows={rows}
@@ -109,6 +126,7 @@ export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
               </p>
               <p className="truncate text-caption capitalize text-black02/60">
                 {row.tier ?? "community"}
+                {!row.blurb?.en && !row.blurb?.fr && " · no blurb"}
               </p>
             </div>
           </div>
@@ -155,6 +173,18 @@ export function AdminSponsors({ rows }: { rows: Sponsor[] }) {
                 value={draft.websiteUrl ?? ""}
                 onChange={(websiteUrl) =>
                   patch({ websiteUrl: websiteUrl || undefined })
+                }
+              />
+            </Field>
+
+            <Field
+              label="Blurb"
+              hint="Shown in the popup that follows the cursor over their logo (and inline on touch). Optional — empty just shows the name."
+            >
+              <LocalizedInput
+                value={draft.blurb ?? { ...EMPTY }}
+                onChange={(blurb) =>
+                  patch({ blurb: blurb.fr || blurb.en ? blurb : undefined })
                 }
               />
             </Field>

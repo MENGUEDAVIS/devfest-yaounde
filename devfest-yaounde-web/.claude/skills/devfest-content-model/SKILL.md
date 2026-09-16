@@ -181,12 +181,18 @@ interface PersonalityFields {
 // which was never confirmed. See docs/decisions/0010-team-grouping.md.
 
 // Home-page-specific shapes (added feat/home-page — Phase 3)
+// Tiers ascending, matching the ticket tiers' own naming exactly (ADR 0060 —
+// renamed from platinum/gold/silver). Community and Partner are the two
+// non-monetary options. Admin: Content → Sponsors.
 interface Sponsor {
   id: string;
   name: string; // language-neutral
   logoUrl: string;
-  tier?: "platinum" | "gold" | "silver" | "community";
+  tier?: "haikyu" | "sonnet" | "opus" | "fable" | "mythos" | "community" | "partner";
   websiteUrl?: string;
+  // Cursor-popup / inline-fallback text (ADR 0060). Optional — empty just
+  // shows the name.
+  blurb?: LocalizedString;
 }
 
 // Home page figures. Admin: Content → Figures (order = left to right).
@@ -214,6 +220,9 @@ interface Quote {
 // Order in the array is the rotation order. No visible quotes → the section
 // is not rendered at all.
 
+// Memory Lane's photo grid. Admin: Content → Memory Lane (order = display
+// order). Empty → the home page shows a "coming soon" placeholder, not a
+// blank grid (ADR 0060).
 interface PastEditionPhoto {
   id: string;
   imageUrl: string;

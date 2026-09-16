@@ -136,33 +136,59 @@ export async function MemoryLane() {
           </div>
         </div>
 
-        <div className="mt-16 grid grid-cols-2 gap-6 sm:grid-cols-4">
-          {photos.map((photo, i) => (
-            <div
-              key={photo.id}
-              className={`${stageParallax} ${PHOTO_NUDGE[i % PHOTO_NUDGE.length]}`}
-              style={parallaxStyle(PARALLAX_DEPTH[i % PARALLAX_DEPTH.length])}
-            >
-              {/* Parallax lives on the wrapper, stage choreography on the
-                  inner element — two elements so the two transforms don't
-                  overwrite each other. */}
+        {photos.length === 0 ? (
+          /*
+            EMPTY STATE (PHASE22 §A7) — matching the sponsor strip's own
+            empty-seat visual language (dashed border, quiet caption)
+            rather than a bespoke "no photos" treatment. `getPastEditions`
+            can genuinely return nothing now that this collection has a
+            real admin screen: an organiser might clear the seed placeholders
+            before real photos are ready.
+          */
+          <div className="mt-16 flex h-48 items-center justify-center rounded-lg border-2 border-dashed border-black02/25 sm:h-64">
+            <p className="font-mono text-caption font-bold uppercase tracking-wide text-black02/40">
+              {t("photosComingSoon")}
+            </p>
+          </div>
+        ) : (
+          <div className="mt-16 grid grid-cols-2 gap-6 sm:grid-cols-4">
+            {photos.map((photo, i) => (
               <div
-                className={stagePhoto}
-                style={stagePhotoStyle(
-                  i,
-                  PHOTO_ROTATION[i % PHOTO_ROTATION.length],
-                )}
+                key={photo.id}
+                className={`${stageParallax} ${PHOTO_NUDGE[i % PHOTO_NUDGE.length]}`}
+                style={parallaxStyle(PARALLAX_DEPTH[i % PARALLAX_DEPTH.length])}
               >
-                <MorphedImageFrame
-                  src={photo.imageUrl}
-                  alt={photo.alt[locale]}
-                  aspectRatio="4/5"
-                  className="border-2 border-black02 shadow-[0_5px_0_0_var(--color-black02)]"
-                />
+                {/* Parallax lives on the wrapper, stage choreography on the
+                    inner element — two elements so the two transforms don't
+                    overwrite each other. */}
+                <div
+                  className={stagePhoto}
+                  style={stagePhotoStyle(
+                    i,
+                    PHOTO_ROTATION[i % PHOTO_ROTATION.length],
+                  )}
+                >
+                  {/*
+                    The polaroid treatment already built for the speaker/team
+                    slider (`PersonSlider.tsx`), reused rather than rebuilt —
+                    same thick white border, black outline and offset shadow.
+                    `.memory-polaroid` only changes its SIZING (width-driven
+                    for a grid cell, instead of the slider's height-driven
+                    box) — see the note on that class in motion.css.
+                  */}
+                  <div className="polaroid memory-polaroid">
+                    <MorphedImageFrame
+                      src={photo.imageUrl}
+                      alt={photo.alt[locale]}
+                      aspectRatio="4/5"
+                      className="rounded-none border-0"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </ScrollStage>
     </SectionContainer>
   );

@@ -16,6 +16,7 @@ import { NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
 import { recordAudit } from "@/lib/admin/audit";
 import {
+  PHOTO_CONTENT_TYPE,
   PhotoRejected,
   isSafeUploadPath,
   normalisePhoto,
@@ -56,8 +57,9 @@ export async function POST(request: NextRequest) {
   }
 
   let bytes: Buffer;
+  let format: "jpeg" | "webp";
   try {
-    bytes = await normalisePhoto(file);
+    ({ bytes, format } = await normalisePhoto(file));
   } catch (err) {
     if (err instanceof PhotoRejected) {
       return Response.json({ error: err.reason }, { status: 422 });
@@ -66,9 +68,13 @@ export async function POST(request: NextRequest) {
     return errorResponse(CHECKOUT_ERRORS.SERVER_ERROR, 500);
   }
 
-  const key = `${path}/${randomUUID()}.jpg`;
+  // Every upload here is a fresh, randomly-named key (see the file doc
+  // comment) — unlike the by-entry photo route, there is no earlier upload
+  // at a DIFFERENT extension to ever clean up.
+  const extension = format === "webp" ? "webp" : "jpg";
+  const key = `${path}/${randomUUID()}.${extension}`;
   try {
-    await storePhoto(key, bytes);
+    await storePhoto(key, bytes, PHOTO_CONTENT_TYPE[format]);
   } catch (err) {
     console.error("[admin/uploads/image] storage failed", err);
     return errorResponse(CHECKOUT_ERRORS.SERVER_ERROR, 500);

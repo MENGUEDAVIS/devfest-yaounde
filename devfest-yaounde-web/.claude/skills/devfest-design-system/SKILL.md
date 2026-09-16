@@ -218,9 +218,24 @@ Mark anything draggable that isn't a link or button with `data-cursor="grab"`
 so the ring reacts to it.
 
 `data-cursor-image="<url>"` turns the cursor into a trailing picture card while
-hovering that element (ADR 0057). The cursor never runs on touch or under
-reduced motion, so anything using it MUST also show the image another way for
-those visitors — see `.stat-inline-image`.
+hovering that element (ADR 0057). `data-cursor-card="<name>"` (+ optional
+`data-cursor-card-body`) does the same with a small name+blurb card instead
+of a picture (ADR 0060, the sponsor popup) — a separate, parallel state, not
+a variant of the image one. Both accept `data-cursor-tilt="<deg>"` for a
+per-zone lean. The cursor never runs on touch or under reduced motion, so
+anything using EITHER MUST also show its content another way for those
+visitors — see `.stat-inline-image` and `.sponsor-inline-card`.
+
+## Spotlight + dim on hover (Community Wall, reused for sponsors — ADR 0060)
+
+`.wall-tile` / `.is-spotlit` / `.is-dimmed` in globals.css: the hovered item
+scales/rotates up and raises its z-index, everything else in the group fades
+to 0.28 opacity. Reduced motion drops the transition and the scale entirely.
+**Key the hovered state by the rendered SLOT, not the record's id**, if the
+same id can ever render twice (a marquee's seamless-loop duplicate, e.g.) —
+keying by id spotlights every copy at once, which is the exact bug this
+pattern was first built to fix on the wall and fixed again identically on
+the sponsor strip.
 
 ## Scrollbars (PHASE10 §4, matched in PHASE11 §4)
 

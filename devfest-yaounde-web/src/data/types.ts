@@ -83,13 +83,38 @@ export interface TeamMember {
   hidden?: boolean;
 }
 
+/**
+ * Ascending — Haikyu is the entry paid tier, Mythos the top, matching the
+ * ticket tiers' own naming exactly (a deliberate shared scheme across two
+ * separate entities, not a coincidence). `community` and `partner` are the
+ * two non-monetary options, kept from the original scheme. See ADR on the
+ * sponsor tier rename for the migration from the old platinum/gold/silver
+ * naming.
+ */
+export const SPONSOR_TIERS = [
+  "haikyu",
+  "sonnet",
+  "opus",
+  "fable",
+  "mythos",
+  "community",
+  "partner",
+] as const;
+export type SponsorTier = (typeof SPONSOR_TIERS)[number];
+
 export interface Sponsor {
   id: string;
   name: string;
   logoUrl: string;
   /** `partner` is a tier rather than a separate entity — see `sponsorSchema`. */
-  tier?: "platinum" | "gold" | "silver" | "community" | "partner";
+  tier?: SponsorTier;
   websiteUrl?: string;
+  /**
+   * Short line for the cursor-reveal popup (desktop) and its inline fallback
+   * (touch/reduced motion) — see `SponsorStrip`. Optional: a sponsor with
+   * none still gets the popup, just with only their name in it.
+   */
+  blurb?: LocalizedString;
 }
 
 export interface Stat {

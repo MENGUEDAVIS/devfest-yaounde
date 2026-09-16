@@ -202,6 +202,28 @@ be regrouped — it's driven by one field, so it's a small change.
 
 ---
 
+## Sponsors and Memory Lane — from the dashboard (ADR 0060)
+
+- **Sponsors** — *Content → Sponsors*. Name, logo, website, tier, and an
+  optional blurb. The tier list is Haikyu, Sonnet, Opus, Fable, Mythos
+  (ascending, same names as the ticket tiers), plus Community and Partner
+  for non-monetary listings.
+  - The **blurb** shows in the popup that follows the cursor over their logo
+    on a computer, and inline under the logo on a phone. Leave it empty and
+    the popup just shows the name.
+  - **Transparent logos now stay transparent.** If a sponsor's logo was
+    uploaded before this fix and still shows a black box behind it (Google's
+    did — that was the actual bug), re-upload it and the black box is gone.
+  - Every logo gets a small coloured corner badge showing its tier — this is
+    **placeholder art**, standing in until a real designed sticker exists
+    for each tier.
+- **Memory Lane** — *Content → Memory Lane*. Photo, alt text (both
+  languages), an optional year. Order here is the order the grid on the home
+  page shows them in. Four or five portrait photos is the sweet spot — this
+  is a taste of past editions, not the full album (that's the gallery link
+  above). With nothing uploaded, the home page shows a "coming soon"
+  placeholder instead of an empty grid.
+
 ## Testimonials and the gallery link — from the dashboard
 
 Both live in the admin now, not in files.
@@ -243,7 +265,8 @@ Everything in all four files is placeholder and needs replacing:
 | `team.json`            | All 8 — every name literally reads "Placeholder Organizer" |
 | `public/placeholders/` | Every image is a flat colour block, not a photo            |
 | `quotes.json`          | All 3 quotes were written as samples, not said by anyone. The "Placeholder quote —" labels and invented names are gone (ADR 0056), but the words themselves still need replacing with real, permitted testimonials |
-| `past-editions.json`   | Memory Lane's 4 photos are placeholder SVGs — now sitting right above a link to the real album |
+| `past-editions.json`   | Memory Lane's 4 photos are placeholder SVGs — now sitting right above a link to the real album, and now editable at Content → Memory Lane |
+| Sponsor tier badges    | The small coloured corner badge on every sponsor logo is placeholder art — real designed stickers per tier don't exist yet (ADR 0060) |
 
 The images make the biggest visual difference. Swapping in real community
 photos will change how the site feels more than any styling change.

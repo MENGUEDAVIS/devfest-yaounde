@@ -92,6 +92,30 @@ tilt reworked in ADR 0059).
   `object-fit: contain` was the fix for images reading as over-cropped; this
   design system doesn't letterbox.
 
+## The text card state — `data-cursor-card`
+
+`[data-cursor-card="<name>"]` is the same idea as the image state, adapted
+for a small name+blurb popup — the sponsor cards (ADR 0060). Optional
+`data-cursor-card-body` is the blurb line; `data-cursor-tilt` works the same
+way it does on an image zone.
+
+- **A separate, parallel system**, not a variant of the image state — its
+  own eased point (`CARD_EASE`, its own `jx/jy`), its own CSS vars
+  (`--card-x/-y/-tilt`), its own DOM (`.cursor-card`/`.cursor-card-float`/
+  `.cursor-card-inner`). The two reveals are never shown at once, but
+  keeping them independent means either can change without re-verifying the
+  other.
+- **Sized by content**, not a fixed box like the image card — a name and an
+  optional one-line blurb are natively different lengths. `max-width` caps a
+  long blurb; the blurb itself is clamped to two lines with CSS
+  `line-clamp`. Centring on the tracked point still uses a fixed ASSUMED
+  half-size (`CARD_HALF_W`/`CARD_HALF_H`) for the edge-clamp math, since the
+  real box is variable — an approximation, fine at this size.
+- Same three-layer construction as the image card, same reason: the bob
+  needs its own element or it erases the position/tilt or the reveal scale.
+- Same inline fallback pattern: `.sponsor-inline-card`, hidden under exactly
+  the cursor's own media query.
+
 ## Changing it
 
 - **Chase speed**: `EASE` in the component (0–1; higher is snappier), and

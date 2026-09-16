@@ -74,6 +74,15 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
      link is not yet set) — there is nothing left to sell a ticket to. Shop
      stays as-is; it is evergreen either side of the event. See ADR 0058.
    - Sponsor/partner logo marquee (linear-eased, continuous scroll, like Lagos's) directly under the hero — bold and boastful, sponsors deserve prime real estate.
+   - **Built as:** the `sponsors` collection, admin-editable (Content →
+     Sponsors), tiers named to match the ticket tiers (Haikyu…Mythos, plus
+     Community/Partner — ADR 0060). Hovering a logo dims the others and
+     shows a name+blurb popup that trails the cursor (touch/reduced-motion:
+     the name and blurb sit inline under the logo instead); clicking still
+     opens the sponsor's site regardless. Each logo carries a small,
+     tier-coloured corner badge — **placeholder art, awaiting a real
+     designed sticker per tier.** The "Become a sponsor" CTA is sized and
+     positioned to read as one more open seat, not a banner.
 
 2. **What is DevFest Yaoundé** (community + this year's direction)
    - Short, warm paragraph: what DevFest is, what GDG Yaoundé is, and a line specific to _this_ year's theme/focus (AI, cloud, whatever the direction is).
@@ -113,6 +122,11 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 8. **Memory Lane / Past Edition Recap**
    - Recap video link + photo grid from last year(s) — this is what proves the community is real and has history, which matters a lot for a "template built to last across years."
+   - **Built as:** the `past-editions` collection, admin-editable (Content →
+     Memory Lane), each photo framed in the same polaroid treatment as the
+     speaker/team slider's print (ADR 0060). With nothing uploaded, the grid
+     shows a "coming soon" placeholder matching the sponsor strip's own
+     empty-seat visual language, rather than a blank section.
    - **"View the {year} gallery"** — the past edition's album, opening in a
      new tab (`noopener noreferrer`), the year filled in automatically. The
      URL is a dashboard setting (Settings → Gallery links); empty hides the

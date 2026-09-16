@@ -106,7 +106,8 @@
       "labelEmpty": "Seats open for your logo",
       "seat": "Your logo here",
       "cta": "Become a sponsor",
-      "openSeats": "{count, plural, one {# sponsor seat still open} other {# sponsor seats still open}}."
+      "openSeats": "{count, plural, one {# sponsor seat still open} other {# sponsor seats still open}}.",
+      "newTab": "(opens in a new tab)"
     },
     "about": {
       "title": "What is DevFest Yaoundé?",
@@ -157,7 +158,8 @@
       "recapCta": "Watch the recap",
       "galleryCta": "View the {year} gallery",
       "galleryNewTab": "(opens in a new tab)",
-      "galleryComingSoon": "Photo album coming soon"
+      "galleryComingSoon": "Photo album coming soon",
+      "photosComingSoon": "Photos coming soon"
     },
     "community": {
       "title": "What is GDG Yaoundé up to?",
