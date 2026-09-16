@@ -78,7 +78,8 @@
     "copyright": "DevFest Yaoundé · GDG Yaoundé",
     "closingLine": "On se voit à Yaoundé",
     "photoAlt": "La communauté DevFest Yaoundé lors d'une édition précédente",
-    "ticketsCta": "Prends ta place"
+    "ticketsCta": "Prends ta place",
+    "contact": "Des questions ? {email}"
   },
   "home": {
     "hero": {

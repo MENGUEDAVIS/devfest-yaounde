@@ -34,5 +34,53 @@
       "fr": "Intervenante, édition précédente",
       "en": "Speaker, past edition"
     }
+  },
+  {
+    "id": "quote-4",
+    "text": {
+      "fr": "Inscrite pour aider aux badges, restée jusqu'aux mots de clôture parce que je ne voulais rien manquer. Faire du bénévolat à DevFest, c'est la meilleure place dans la salle.",
+      "en": "I signed up to help with badges and ended up staying for closing remarks because I didn't want to miss a thing. Volunteering at DevFest is the best seat in the house."
+    },
+    "author": "",
+    "role": {
+      "fr": "Bénévole DevFest Yaoundé",
+      "en": "DevFest Yaoundé Volunteer"
+    }
+  },
+  {
+    "id": "quote-5",
+    "text": {
+      "fr": "On apprend plus en tenant le micro entre deux talks qu'en assistant à la moitié des sessions. Et le swag a un autre goût quand c'est toi qui l'as distribué.",
+      "en": "You learn more running a mic between talks than sitting through half the sessions. Plus the swag hits different when you helped hand it out."
+    },
+    "author": "",
+    "role": {
+      "fr": "Bénévole DevFest Yaoundé",
+      "en": "DevFest Yaoundé Volunteer"
+    }
+  },
+  {
+    "id": "quote-6",
+    "text": {
+      "fr": "Chaque année je me dis « c'est la dernière fois que j'organise ça », et chaque année une salle pleine de gens qui construisent des trucs dingues me convainc du contraire.",
+      "en": "Every year I say 'this is the last time I organize this,' and every year a room full of people building wild things convinces me otherwise."
+    },
+    "author": "",
+    "role": {
+      "fr": "Organisateur GDG Yaoundé",
+      "en": "GDG Yaoundé Organizer"
+    }
+  },
+  {
+    "id": "quote-7",
+    "text": {
+      "fr": "On a sponsorisé pas mal d'événements tech. Peu ont une communauté qui reste vraiment présente après coup, pas seulement le jour J.",
+      "en": "We've sponsored a lot of tech events. Few have a community that actually shows up for you afterward, not just on the day."
+    },
+    "author": "",
+    "role": {
+      "fr": "Sponsor DevFest Yaoundé",
+      "en": "DevFest Yaoundé Sponsor"
+    }
   }
 ]

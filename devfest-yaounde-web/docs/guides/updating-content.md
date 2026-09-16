@@ -257,17 +257,24 @@ Both live in the admin now, not in files.
 
 ## What's still placeholder
 
-Everything in all four files is placeholder and needs replacing:
-
 | File                   | What's fake                                                |
 | ---------------------- | ---------------------------------------------------------- |
 | `speakers.json`        | All 14 entries — invented names, companies and bios        |
 | `sessions.json`        | All 8 — invented titles, times, tracks and rooms           |
-| `faqs.json`            | All 12 — plausible answers, but not confirmed policy       |
 | `team.json`            | All 8 — every name literally reads "Placeholder Organizer" |
 | `public/placeholders/` | Every image is a flat colour block, not a photo            |
-| `quotes.json`          | All 3 quotes were written as samples, not said by anyone. The "Placeholder quote —" labels and invented names are gone (ADR 0056), but the words themselves still need replacing with real, permitted testimonials |
 | `past-editions.json`   | Empty (`[]`) — the old 4 fake colourful placeholder photos were removed; the home page shows dashed empty frames until real ones are uploaded at Content → Memory Lane |
 
 The images make the biggest visual difference. Swapping in real community
 photos will change how the site feels more than any styling change.
+
+**`faqs.json`** and **`quotes.json`** are no longer in this table — both hold
+confirmed content (ADR 0061). One nuance worth knowing about `quotes.json`:
+its 7 testimonials are attributed by role only (Volunteer, Organiser,
+Sponsor, Attendee, Speaker), never a name, and they were supplied as text by
+whoever is maintaining this repo's content rather than sourced individually
+from a named person with their own sign-off. That's not the same as an
+invented quote — nobody's name is on it — but it's also not a verified
+first-person quote either. If a real, individually-sourced testimonial comes
+in later (with a name and consent), say so explicitly rather than letting it
+blend in.

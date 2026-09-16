@@ -15,7 +15,7 @@ import { ScrambleText } from "@/components/ui/ScrambleText";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { Link } from "@/i18n/navigation";
 import { loadSettings } from "@/lib/content/settings";
-import { isPlaceholderUrl, SOCIAL_LINKS } from "@/lib/site-config";
+import { CHAPTER_EMAIL, isPlaceholderUrl, SOCIAL_LINKS } from "@/lib/site-config";
 
 /*
  * Only the profiles that actually exist.
@@ -269,6 +269,19 @@ export async function Footer() {
             © {year} {t("copyright")}
           </p>
         </div>
+        {/*
+          A general contact point, visible on every page rather than buried
+          inside one FAQ answer — the PHASE22 §B2 ask. `CHAPTER_EMAIL` is a
+          repo constant, not a dashboard setting, so it is safe to bake into
+          the translated string the same way `wall/page.tsx`'s takedown
+          hint already does.
+        */}
+        <a
+          href={`mailto:${CHAPTER_EMAIL}`}
+          className="mt-6 block text-center font-mono text-caption text-offwhite/55 underline decoration-offwhite/30 underline-offset-2 transition-colors duration-200 hover:text-offwhite"
+        >
+          {t("contact", { email: CHAPTER_EMAIL })}
+        </a>
       </div>
     </footer>
   );

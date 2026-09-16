@@ -78,7 +78,8 @@
     "copyright": "DevFest Yaoundé · GDG Yaoundé",
     "closingLine": "See you in Yaoundé",
     "photoAlt": "The DevFest Yaoundé community at a past edition",
-    "ticketsCta": "Grab your ticket"
+    "ticketsCta": "Grab your ticket",
+    "contact": "Questions? {email}"
   },
   "home": {
     "hero": {
