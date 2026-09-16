@@ -87,6 +87,7 @@ or amend an earlier one.
 | [0062](decisions/0062-ticket-claim-and-email-provider.md)               | Self-service ticket claim by email + Google sign-in; Resend closed out as the email provider | Accepted                            |
 | [0063](decisions/0063-transaction-fee.md)                               | A 1.5% transaction fee, computed at display/checkout time, base price never stored with it | Accepted                            |
 | [0064](decisions/0064-refund-exchange-tracker.md)                       | A visibility tracker for manual refund/exchange requests; consent recording was already done (0022) | Accepted                            |
+| [0065](decisions/0065-admin-bulk-actions.md)                            | Bulk publish/hide/delete, retrofit onto every admin list at once | Accepted — **extends 0052**                    |
 
 **Site and design**
 

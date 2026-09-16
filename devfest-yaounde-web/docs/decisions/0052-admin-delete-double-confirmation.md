@@ -1,7 +1,7 @@
 # 0052 — Every admin delete goes through one shared, double-confirmed modal
 
 Date: 2026-09-11
-Status: Accepted
+Status: Accepted — extended by 0065 (bulk delete, same double-confirmation standard)
 
 ## Context
 
