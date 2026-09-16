@@ -88,6 +88,7 @@ or amend an earlier one.
 | [0063](decisions/0063-transaction-fee.md)                               | A 1.5% transaction fee, computed at display/checkout time, base price never stored with it | Accepted                            |
 | [0064](decisions/0064-refund-exchange-tracker.md)                       | A visibility tracker for manual refund/exchange requests; consent recording was already done (0022) | Accepted                            |
 | [0065](decisions/0065-admin-bulk-actions.md)                            | Bulk publish/hide/delete, retrofit onto every admin list at once | Accepted — **extends 0052**                    |
+| [0066](decisions/0066-installable-pwa-offline-schedule.md)              | Installable PWA; offline caching limited by name to Schedule/Speakers/Team/FAQs; fixes a silent /apple-icon 404 | Accepted                            |
 
 **Site and design**
 
