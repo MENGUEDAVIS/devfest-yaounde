@@ -80,9 +80,10 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
      shows a name+blurb popup that trails the cursor (touch/reduced-motion:
      the name and blurb sit inline under the logo instead); clicking still
      opens the sponsor's site regardless. Each logo carries a small,
-     tier-coloured corner badge — **placeholder art, awaiting a real
-     designed sticker per tier.** The "Become a sponsor" CTA is sized and
-     positioned to read as one more open seat, not a banner.
+     tier-coloured corner sticker — its own designed mark per tier, never
+     reused as decoration elsewhere on the site. The "Become a sponsor" CTA
+     is sized like one more open seat and sits last in the row, not a
+     banner ahead of the logos.
 
 2. **What is DevFest Yaoundé** (community + this year's direction)
    - Short, warm paragraph: what DevFest is, what GDG Yaoundé is, and a line specific to _this_ year's theme/focus (AI, cloud, whatever the direction is).

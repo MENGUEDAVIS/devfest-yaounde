@@ -138,17 +138,30 @@ export async function MemoryLane() {
 
         {photos.length === 0 ? (
           /*
-            EMPTY STATE (PHASE22 §A7) — matching the sponsor strip's own
-            empty-seat visual language (dashed border, quiet caption)
-            rather than a bespoke "no photos" treatment. `getPastEditions`
-            can genuinely return nothing now that this collection has a
-            real admin screen: an organiser might clear the seed placeholders
-            before real photos are ready.
+            EMPTY STATE (PHASE22 §A7, redrawn per follow-up feedback) — a row
+            of dashed OUTLINE frames, the same idiom as the sponsor strip's
+            `EmptySeat`: an open slot is a shape with nothing in it yet, not
+            a fabricated photo and not a single message box standing alone.
+            Sized and cropped like the real polaroid grid below (same 4:5
+            frame, same alternating tilt) so the empty state reads as "these
+            slots," not as a different component. `getPastEditions` can
+            genuinely return nothing now that this collection has a real
+            admin screen — an organiser cleared the old placeholder seed.
           */
-          <div className="mt-16 flex h-48 items-center justify-center rounded-lg border-2 border-dashed border-black02/25 sm:h-64">
-            <p className="font-mono text-caption font-bold uppercase tracking-wide text-black02/40">
-              {t("photosComingSoon")}
-            </p>
+          <div className="mt-16 grid grid-cols-2 gap-6 sm:grid-cols-4">
+            {PHOTO_ROTATION.map((rotate, i) => (
+              <div
+                key={i}
+                className={PHOTO_NUDGE[i % PHOTO_NUDGE.length]}
+                style={{ transform: `rotate(${rotate}deg)` }}
+              >
+                <div
+                  aria-hidden
+                  className="flex aspect-[4/5] items-center justify-center rounded-lg border-2 border-dashed border-black02/25"
+                />
+              </div>
+            ))}
+            <p className="sr-only col-span-full">{t("photosComingSoon")}</p>
           </div>
         ) : (
           <div className="mt-16 grid grid-cols-2 gap-6 sm:grid-cols-4">

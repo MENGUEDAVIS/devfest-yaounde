@@ -73,18 +73,21 @@ export async function SponsorStrip({
               : "mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-5 sm:gap-4 sm:px-8"
           }
         >
+          <SponsorRow seats={seats} scrolls={scrolls} />
+
           {/*
             THE ASK, SIZED AND ALIGNED LIKE A SEAT (PHASE22 §A6) — not the
-            pill-banner it used to be in the header row above. It sits
-            outside the scrolling track even while sponsors ARE scrolling
-            (the track duplicates its contents for a seamless loop, and an
-            "apply here" link should never render, or be tabbable, twice),
-            but shares `EmptySeat`'s exact box so scanning the row lands on
-            it exactly the way it would land on an open seat.
+            pill-banner it used to be in the header row above, and placed
+            LAST rather than first: it reads as "the next seat in line"
+            after the logos and open seats, not as a banner ahead of them.
+            It sits outside the scrolling track even while sponsors ARE
+            scrolling (the track duplicates its contents for a seamless
+            loop, and an "apply here" link should never render, or be
+            tabbable, twice), but shares `EmptySeat`'s exact box so scanning
+            the row lands on it exactly the way it would land on an open
+            seat.
           */}
           {asking && <SponsorCtaSeat url={call.prospectusUrl} label={t("cta")} />}
-
-          <SponsorRow seats={seats} scrolls={scrolls} />
         </div>
       </div>
 

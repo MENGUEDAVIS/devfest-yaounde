@@ -13,7 +13,6 @@
  */
 /* eslint-disable @next/next/no-img-element */
 
-import { Handshake, UsersThree } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Sponsor, SponsorTier } from "@/data/types";
@@ -28,14 +27,14 @@ import type { SponsorSeat } from "@/lib/content/sponsors";
  */
 
 /**
- * Placeholder tier-badge colours (PHASE22 §A5) — AWAITING REAL DESIGNED
- * STICKER ART. Only the design system's fixed literal accents are used
- * (never `--color-primary`/`--color-contrast`, which follow the swappable
- * theme — a badge whose colour depended on the active theme could collide
- * with whichever OTHER tier happens to map to that same live colour). Five
- * paid tiers get five distinct trues; the two non-monetary tiers share
- * black02 and are told apart by icon instead, because the palette only has
- * four non-neutral accents to spend.
+ * Tier-badge colours (PHASE22 §A5, stickers replacing the letter/icon
+ * placeholder per the follow-up round). Only the design system's fixed
+ * literal accents are used (never `--color-primary`/`--color-contrast`,
+ * which follow the swappable theme — a badge whose colour depended on the
+ * active theme could collide with whichever OTHER tier happens to map to
+ * that same live colour). Five paid tiers get five distinct trues; the two
+ * non-monetary tiers share black02 and are told apart by their own mark
+ * instead, because the palette only has four non-neutral accents to spend.
  */
 const TIER_ACCENT: Record<SponsorTier, string> = {
   haikyu: "var(--color-offwhite)",
@@ -47,19 +46,118 @@ const TIER_ACCENT: Record<SponsorTier, string> = {
   partner: "var(--color-black02)",
 };
 
-/** Letter badges for the five named tiers; icons for the two non-monetary ones. */
-function TierBadgeContent({ tier }: { tier: SponsorTier }) {
-  if (tier === "community") {
-    return <UsersThree size={13} weight="bold" color="var(--color-offwhite)" />;
-  }
-  if (tier === "partner") {
-    return <Handshake size={13} weight="bold" color="var(--color-offwhite)" />;
-  }
+/**
+ * One small mark per tier — drawn for this badge alone, in a 24×24 box,
+ * single-colour so it reads at 13px. Each is its OWN function rather than a
+ * shared `paths` table like `dp/stickers.ts`'s sheet: that sheet feeds the DP
+ * generator's picker and the hero/testimonial random scatters, and a tier's
+ * identity mark must never turn up as a decorative pick somewhere else on
+ * the site, nor let a sticker meant for decoration leak in here as a tier
+ * mark. Two separate, unconnected catalogs, on purpose.
+ *
+ * The shapes nod at each tier's own name rather than being interchangeable
+ * dots: a seed for the entry tier, a note for Sonnet, a star for Opus (as in
+ * "magnum opus"), an open book for Fable, a flame for Mythos, a small
+ * connected-node cluster for Community, and two linked rings for Partner.
+ */
+function HaikyuMark({ color }: { color: string }) {
   return (
-    <span aria-hidden className="font-mono text-[11px] font-bold leading-none text-black02">
-      {tier[0].toUpperCase()}
-    </span>
+    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <path
+        fill={color}
+        d="M12 2c3.4 3.6 4.4 7 3 9.9-1.2 2.5-3.8 3.4-3.8 3.4S12 11.6 8.6 8.3C6 5.8 12 2 12 2Z"
+      />
+      <path fill={color} d="M7.5 13.5c0 3 2 5.5 4.5 5.5s4.5-2.5 4.5-5.5H7.5Z" />
+    </svg>
   );
+}
+
+function SonnetMark({ color }: { color: string }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <path fill={color} d="M9.5 15.2a2.8 2.8 0 1 0 2 2.68V8.4l6-1.2V4.1l-8 1.6v9.5Z" />
+    </svg>
+  );
+}
+
+function OpusMark({ color }: { color: string }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <path
+        fill={color}
+        d="M12 2.5 14.6 9l7 .55-5.4 4.5 1.7 6.8L12 17.1l-6 3.75 1.7-6.8-5.4-4.5 7-.55L12 2.5Z"
+      />
+    </svg>
+  );
+}
+
+function FableMark({ color }: { color: string }) {
+  // A bookmark ribbon, not an open book — at 13px an open book's two pages
+  // read as a pause icon (checked against a screenshot; the pages sat too
+  // close to distinguish from two flat bars). A single tag-shaped silhouette
+  // survives shrinking a lot better than two thin parallel shapes do.
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <path fill={color} d="M19 21 12 16 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z" />
+    </svg>
+  );
+}
+
+function MythosMark({ color }: { color: string }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <path
+        fill={color}
+        d="M12.4 2c1 3.4-.6 4.6-1.9 6.4-1.3 1.9-.3 3.1.9 3.1s2-1.2.9-3c1.9 1.6 3.7 4.4 3.7 7.2a5 5 0 1 1-10 0c0-4.3 3.6-8.6 6.4-13.7Z"
+      />
+    </svg>
+  );
+}
+
+function CommunityMark({ color }: { color: string }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <g stroke={color} strokeWidth="1.6" strokeLinecap="round">
+        <path d="M12 6.5 6 16.5M12 6.5l6 10" />
+      </g>
+      <circle cx="12" cy="5" r="2.4" fill={color} />
+      <circle cx="5" cy="18" r="2.4" fill={color} />
+      <circle cx="19" cy="18" r="2.4" fill={color} />
+    </svg>
+  );
+}
+
+function PartnerMark({ color }: { color: string }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <circle cx="9.5" cy="12" r="5" fill="none" stroke={color} strokeWidth="2" />
+      <circle cx="15.5" cy="12" r="5" fill="none" stroke={color} strokeWidth="2" />
+    </svg>
+  );
+}
+
+/** Dispatch to the tier's own mark — light ink on the light Haikyu badge, offwhite ink on the dark Community/Partner ones, dark ink everywhere else. */
+function TierBadgeContent({ tier }: { tier: SponsorTier }) {
+  const ink =
+    tier === "community" || tier === "partner"
+      ? "var(--color-offwhite)"
+      : "var(--color-black02)";
+  switch (tier) {
+    case "haikyu":
+      return <HaikyuMark color={ink} />;
+    case "sonnet":
+      return <SonnetMark color={ink} />;
+    case "opus":
+      return <OpusMark color={ink} />;
+    case "fable":
+      return <FableMark color={ink} />;
+    case "mythos":
+      return <MythosMark color={ink} />;
+    case "community":
+      return <CommunityMark color={ink} />;
+    case "partner":
+      return <PartnerMark color={ink} />;
+  }
 }
 
 /**
@@ -217,7 +315,6 @@ function SponsorCard({
         backgroundColor: TIER_ACCENT[tier],
         transform: `rotate(${badge.rotate}deg)`,
       }}
-      title="Placeholder tier badge — real sticker art pending"
     >
       <TierBadgeContent tier={tier} />
     </span>

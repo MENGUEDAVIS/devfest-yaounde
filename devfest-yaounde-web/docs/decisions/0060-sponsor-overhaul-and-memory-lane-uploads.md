@@ -216,7 +216,30 @@ real photos are ready.
   collection again with the OLD tier names still present — the new schema's
   enum no longer accepts `platinum`/`gold`/`silver`, so an unmigrated record
   would fail validation on its next save (not before; reads are unaffected).
-- The tier stickers are explicitly temporary. Swapping in real designed art
-  later is a change to `TierBadgeContent`/`TIER_ACCENT` in `SponsorRow.tsx`
-  alone — nothing about the corner-placement or hover mechanics needs to
-  change.
+
+## Addendum — three follow-up fixes, same day
+
+Feedback on the first pass, applied before Part A shipped further:
+
+- **CTA moved to the end of the row.** `SponsorCtaSeat` now renders AFTER
+  `SponsorRow`, not before it — it reads as the next seat in line rather
+  than a banner ahead of the logos. Still outside the scrolling track, for
+  the reason above.
+- **Real tier stickers, not the letter/icon placeholder.** `TierBadgeContent`
+  in `SponsorRow.tsx` now dispatches to one hand-drawn mark per tier (a seed
+  for Haikyu, a note for Sonnet, a star for Opus, an open book for Fable, a
+  flame for Mythos, a small connected-node cluster for Community, two linked
+  rings for Partner) — each its own function in `SponsorRow.tsx`, kept
+  structurally apart from `src/lib/dp/stickers.ts`'s shared sheet on
+  purpose: that sheet feeds the DP generator's picker and the hero/
+  testimonial random scatters, and a tier's identity mark must never turn up
+  as a decorative pick somewhere else, nor let a scatter sticker leak in
+  here as a tier mark. `TIER_ACCENT` (the fixed literal background colours)
+  is unchanged.
+- **Memory Lane's empty state redrawn as dashed OUTLINE frames**, plural —
+  matching `EmptySeat`'s idiom of an open slot being an empty shape, not a
+  single "coming soon" message box and not a fabricated photo. The four
+  old placeholder SVGs (flat colour blocks standing in as "photos") are
+  gone; `past-editions.json`'s seed is now `[]`, so the real site is
+  honestly in the "nothing uploaded yet" state until real photos are added
+  from Content → Memory Lane.
