@@ -66,17 +66,40 @@ export function entryNeedsPhoto(
   return isPlaceholderPhoto(entry[spec.field]);
 }
 
+/**
+ * The two formats `normalisePhoto` can produce, and the extension/content
+ * type each is stored and served as. See `normalisePhoto`'s doc comment for
+ * which one a given upload gets and why.
+ */
+export type PhotoFormat = "jpeg" | "webp";
+
+const PHOTO_EXTENSION: Record<PhotoFormat, "jpg" | "webp"> = {
+  jpeg: "jpg",
+  webp: "webp",
+};
+
+export const PHOTO_CONTENT_TYPE: Record<PhotoFormat, "image/jpeg" | "image/webp"> =
+  {
+    jpeg: "image/jpeg",
+    webp: "image/webp",
+  };
+
 export function publicPhotoUrl(
   collection: CollectionId,
   entryId: string,
+  format: PhotoFormat = "jpeg",
 ): string {
   const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
-  const path = `${collection}/${entryId}.jpg`;
+  const path = storagePath(collection, entryId, format);
   return `${base}/storage/v1/object/public/${EDITORIAL_BUCKET}/${path}?v=${Date.now()}`;
 }
 
-export function storagePath(collection: CollectionId, entryId: string): string {
-  return `${collection}/${entryId}.jpg`;
+export function storagePath(
+  collection: CollectionId,
+  entryId: string,
+  format: PhotoFormat = "jpeg",
+): string {
+  return `${collection}/${entryId}.${PHOTO_EXTENSION[format]}`;
 }
 
 /**
@@ -105,7 +128,37 @@ export function isSafeUploadPath(path: string): boolean {
   return /^[a-z0-9_-]+(\/[a-z0-9_-]+)*$/i.test(path);
 }
 
-export async function normalisePhoto(file: Blob): Promise<Buffer> {
+export interface NormalisedPhoto {
+  bytes: Buffer;
+  format: PhotoFormat;
+}
+
+/**
+ * Decode, re-encode, resize — and the ALPHA BUG this used to have.
+ *
+ * This unconditionally encoded JPEG, which has no alpha channel. Verified
+ * directly (not assumed): feeding sharp a PNG with a genuinely transparent
+ * region and encoding it as JPEG turns that region **solid black** —
+ * `(0,0,0)` at every formerly-transparent pixel, sampled back from the raw
+ * output. That is the sponsor-logo bug — a logo with a cut-out background
+ * came out with a black rectangle behind it — and it was silent, because
+ * every OTHER upload here (speaker/team portraits, product shots) is a
+ * normal opaque photo, where losing an alpha channel that was never doing
+ * anything is invisible.
+ *
+ * The fix reads the SOURCE's own alpha channel and only changes format for
+ * images that actually use it: `meta.hasAlpha` true → WebP, with
+ * `alphaQuality: 100` (verified: alpha sampled back as `0` exactly, not
+ * merely "low but nonzero") — same treatment `normaliseBackdrop` already
+ * gives the hero image, for the same reason. Otherwise: JPEG, unchanged,
+ * because there is nothing an alpha channel would have preserved and JPEG
+ * is smaller at the same visual quality.
+ *
+ * Callers must store and serve the result under the extension/content-type
+ * `format` implies (see `storagePath`/`publicPhotoUrl`/`PHOTO_CONTENT_TYPE`)
+ * — the two are chosen together and must not drift apart.
+ */
+export async function normalisePhoto(file: Blob): Promise<NormalisedPhoto> {
   if (file.size > PHOTO_MAX_BYTES) throw new PhotoRejected("too_large");
 
   const input = Buffer.from(await file.arrayBuffer());
@@ -125,22 +178,49 @@ export async function normalisePhoto(file: Blob): Promise<Buffer> {
     throw new PhotoRejected("too_big_dimensions");
   }
 
-  return image
-    .rotate()
-    .resize({
-      width: PHOTO_MAX_EDGE,
-      height: PHOTO_MAX_EDGE,
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .jpeg({ quality: 85, mozjpeg: true })
-    .toBuffer();
+  const resized = image.rotate().resize({
+    width: PHOTO_MAX_EDGE,
+    height: PHOTO_MAX_EDGE,
+    fit: "inside",
+    withoutEnlargement: true,
+  });
+
+  if (meta.hasAlpha) {
+    const bytes = await resized
+      .webp({ quality: 85, alphaQuality: 100 })
+      .toBuffer();
+    return { bytes, format: "webp" };
+  }
+
+  const bytes = await resized.jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+  return { bytes, format: "jpeg" };
+}
+
+/**
+ * Best-effort cleanup for the OTHER extension a re-upload didn't use this
+ * time. Storage `remove()` on a path that isn't there is not an error worth
+ * surfacing — it's the expected result for every entry's first upload — so
+ * failures here are logged and swallowed rather than propagated: a stray
+ * unused file is a storage-cost annoyance, never a correctness problem, and
+ * must not be allowed to fail the upload it is tidying up after.
+ */
+export async function deletePhotoIfExists(path: string): Promise<void> {
+  const supabase = createAdminSupabase();
+  const { error } = await supabase.storage.from(EDITORIAL_BUCKET).remove([path]);
+  if (error) {
+    console.warn("[content/photos] stale-file cleanup failed", path, error.message);
+  }
 }
 
 export async function storePhoto(
   path: string,
   bytes: Buffer,
-  /* The backdrop is WebP so its transparency survives; portraits are JPEG. */
+  /*
+   * Callers should pass `PHOTO_CONTENT_TYPE[format]` from whatever
+   * `normalisePhoto`/`normaliseBackdrop` returned — the default here exists
+   * only for call sites that never had a choice to make (there aren't any
+   * left; kept so this stays a safe, non-breaking signature).
+   */
   contentType: "image/jpeg" | "image/webp" = "image/jpeg",
 ): Promise<void> {
   const supabase = createAdminSupabase();

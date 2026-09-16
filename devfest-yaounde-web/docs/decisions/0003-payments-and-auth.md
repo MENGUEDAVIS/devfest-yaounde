@@ -56,6 +56,9 @@ persistence layer. `feat/auth-shared-account`, `feat/tickets-flow` and
   remain undecided, which is why `fulfilment` stays free-form.
 - **Card payments.** `PAGES.md` §7 wants card as a secondary option; this
   integration is Mobile Money only.
-- **Receipt emails.** Templates and dispatch are implemented, bilingual, sent
+- **Receipt emails.** ~~Templates and dispatch are implemented, bilingual, sent
   exactly once. The provider is still not _chosen_: Resend is wired as the one
-  concrete adapter and the feature degrades to a logged no-op without a key.
+  concrete adapter and the feature degrades to a logged no-op without a key.~~
+  **CLOSED 2026-09-16 by ADR 0062: Resend is the provider**, not just the one
+  wired so far. The feature still degrades to a logged no-op without
+  `RESEND_API_KEY` set — that part was always the point, not a gap.

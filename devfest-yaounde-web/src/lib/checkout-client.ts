@@ -116,6 +116,8 @@ export interface BasketQuote {
   subtotal: number;
   discountCode: string | null;
   discountAmount: number;
+  /** The 1.5% transaction fee, already folded into `charged`. */
+  feeAmount: number;
   charged: number;
   currency: string;
 }

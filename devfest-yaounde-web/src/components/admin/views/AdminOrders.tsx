@@ -58,7 +58,7 @@ function OrderRow({
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       {options.length === 0 ? (
-        <span className="text-black02/60">—</span>
+        <span className="text-black02/65">—</span>
       ) : (
         options.map((s) => (
           <button
@@ -73,7 +73,7 @@ function OrderRow({
         ))
       )}
       {error && (
-        <span className="text-caption font-bold text-danger">{error}</span>
+        <span className="text-caption font-bold text-danger-ink">{error}</span>
       )}
     </span>
   );

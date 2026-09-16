@@ -99,11 +99,11 @@ export function SessionCard({
               {/* Icon + text: kind is never conveyed by colour alone (§2.8) */}
               {t(KIND_LABEL_KEY[session.kind])}
             </span>
-            <span className="flex items-center gap-1.5 font-mono text-caption text-black02/60">
+            <span className="flex items-center gap-1.5 font-mono text-caption text-black02/65">
               <Clock size={14} weight="bold" aria-hidden />
               {t("duration", { min: session.durationMin })}
             </span>
-            <span className="flex items-center gap-1.5 font-mono text-caption text-black02/60">
+            <span className="flex items-center gap-1.5 font-mono text-caption text-black02/65">
               <MapPin size={14} weight="bold" aria-hidden />
               <span className="sr-only">{t("room")}: </span>
               {session.room[locale]}
@@ -161,7 +161,7 @@ export function SessionCard({
               <dl className="mt-5 flex flex-col gap-2.5">
                 {session.bring && (
                   <div className="flex flex-wrap gap-x-2 gap-y-1">
-                    <dt className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+                    <dt className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       {t("bring")}
                     </dt>
                     <dd className="text-body-m text-black02/85">
@@ -171,7 +171,7 @@ export function SessionCard({
                 )}
                 {session.provided && (
                   <div className="flex flex-wrap gap-x-2 gap-y-1">
-                    <dt className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+                    <dt className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       {t("provided")}
                     </dt>
                     <dd className="text-body-m text-black02/85">
@@ -184,7 +184,7 @@ export function SessionCard({
 
             {showCalendar && EVENT_BASE_DATE && session.kind !== "break" && (
               <div className="mt-5">
-                <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+                <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                   {t("addToCalendar")}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -211,7 +211,7 @@ export function SessionCard({
 
             {sessionSpeakers.length > 0 && (
               <div className="mt-5">
-                <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+                <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                   {t("speakers")}
                 </p>
                 <ul className="mt-2 flex flex-wrap gap-2">

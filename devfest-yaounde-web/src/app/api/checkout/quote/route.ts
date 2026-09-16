@@ -2,7 +2,7 @@
  * POST /api/checkout/quote — what this basket costs, before paying for it.
  *
  * Body: { kind: "tickets", tiers[] } | { kind: "shop", cart[] }, discountCode?
- * Returns: { subtotal, discountCode, discountAmount, charged, currency }
+ * Returns: { subtotal, discountCode, discountAmount, feeAmount, charged, currency }
  *
  * ## This reverses a documented decision, on purpose
  *
@@ -80,11 +80,12 @@ export async function POST(request: NextRequest) {
 
     // The line breakdown stays out of the response: the screen already has
     // the catalog and renders its own lines from it. What it cannot compute —
-    // and must never guess — is the discount.
+    // and must never guess — is the discount, or the fee that follows it.
     return Response.json({
       subtotal: quote.subtotal,
       discountCode: quote.discountCode ?? null,
       discountAmount: quote.discountAmount,
+      feeAmount: quote.feeAmount,
       charged: quote.charged,
       currency: quote.currency,
     });

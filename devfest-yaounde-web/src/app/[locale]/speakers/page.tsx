@@ -46,7 +46,7 @@ export default async function SpeakersPage({
   const cfs = cfsView(settings.cfs, allSpeakers.length);
 
   return (
-    <main id="main-content" className="flex-1 pt-32 sm:pt-28">
+    <main id="main-content" tabIndex={-1} className="flex-1 pt-32 sm:pt-28">
       <SectionContainer background="yellow-wash" maxWidth="7xl">
         {/* Scramble egg (PHASE11 §1) — deliberately NOT on every page
             headline; /schedule and /faqs stay plain so this reads as a find

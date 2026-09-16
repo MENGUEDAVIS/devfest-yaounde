@@ -111,6 +111,7 @@ const COPY = {
     orderHeading: "Ta commande",
     subtotal: "Sous-total",
     discount: "Réduction",
+    transactionFee: "Frais de transaction (1,5 %)",
     totalPaid: "Total payé",
     free: "Offert",
     myTickets: "Voir mes billets",
@@ -123,6 +124,12 @@ const COPY = {
     why: "Tu reçois cet e-mail parce que tu as commandé sur",
     contact: "Une question ? Réponds simplement à cet e-mail.",
     ref: "Référence",
+    claimSubject: "Un billet t'attend — DevFest Yaoundé 2026",
+    claimTitle: "Celui-ci est pour toi.",
+    claimIntro:
+      "Quelqu'un t'a pris une place pour DevFest Yaoundé 2026. Récupère-la sur ton propre compte et c'est réglé — tu t'en serviras pour l'accueil le jour J.",
+    claimCta: "Récupérer mon billet",
+    claimHint: "Tu te connectes avec Google — même compte, pas de nouveau mot de passe.",
   },
   en: {
     chapter: "GDG Yaoundé",
@@ -141,6 +148,7 @@ const COPY = {
     orderHeading: "Your order",
     subtotal: "Subtotal",
     discount: "Discount",
+    transactionFee: "Transaction fee (1.5%)",
     totalPaid: "Total paid",
     free: "Free",
     myTickets: "See my tickets",
@@ -152,6 +160,12 @@ const COPY = {
     why: "You're getting this because you ordered on",
     contact: "A question? Just reply to this email.",
     ref: "Reference",
+    claimSubject: "A ticket's waiting for you — DevFest Yaoundé 2026",
+    claimTitle: "This one's yours.",
+    claimIntro:
+      "Someone got you a ticket to DevFest Yaoundé 2026. Claim it into your own account and you're all set — you'll use it to check in on the day.",
+    claimCta: "Claim my ticket",
+    claimHint: "You'll sign in with Google — same account, no new password.",
   },
 } as const;
 
@@ -224,11 +238,22 @@ function button(label: string, href: string): string {
 </td></tr></table>`;
 }
 
-/** The money block. Subtotal and discount appear only when there was one. */
+/**
+ * The money block. Subtotal and discount appear only when there was one; the
+ * transaction fee appears whenever it is non-zero (it is zero exactly when
+ * the base, post-discount amount is zero — a free tier, or a 100%-off code —
+ * since `transactionFeeAmount(0)` is 0 by construction).
+ *
+ * `subtotal` is derived from `net_amount + discount_amount`, NOT from
+ * `charged_amount + discount_amount` — `charged_amount` includes the fee
+ * now, so adding the discount back to it would overstate the base price by
+ * the fee amount. `net_amount` is always the fee-free, post-discount base.
+ */
 function totalsHtml(intent: PaymentIntentRow, l: Locale): string {
   const c = COPY[l];
   const discounted = intent.discount_amount > 0;
-  const subtotal = intent.charged_amount + intent.discount_amount;
+  const subtotal = intent.net_amount + intent.discount_amount;
+  const feeAmount = intent.charged_amount - intent.net_amount;
 
   // Nothing was charged and nothing was taken off: there is no money story to
   // tell, and "Total paid: Free" on a free pass reads like a bill for zero.
@@ -252,6 +277,7 @@ ${
       )
     : ""
 }
+${feeAmount > 0 ? row(c.transactionFee, money(feeAmount, l)) : ""}
 ${row(c.totalPaid, intent.charged_amount === 0 ? c.free : money(intent.charged_amount, l), true)}
 </table>`;
 }
@@ -259,15 +285,19 @@ ${row(c.totalPaid, intent.charged_amount === 0 ? c.free : money(intent.charged_a
 function totalsText(intent: PaymentIntentRow, l: Locale): string[] {
   const c = COPY[l];
   const out: string[] = [];
+  const feeAmount = intent.charged_amount - intent.net_amount;
   // Same rule as the HTML side, and for the same reason.
   if (intent.charged_amount === 0 && intent.discount_amount === 0) return out;
   if (intent.discount_amount > 0) {
     out.push(
-      `${c.subtotal}: ${money(intent.charged_amount + intent.discount_amount, l)}`,
+      `${c.subtotal}: ${money(intent.net_amount + intent.discount_amount, l)}`,
     );
     out.push(
       `${c.discount}${intent.discount_code ? ` (${intent.discount_code})` : ""}: -${money(intent.discount_amount, l)}`,
     );
+  }
+  if (feeAmount > 0) {
+    out.push(`${c.transactionFee}: ${money(feeAmount, l)}`);
   }
   out.push(
     `${c.totalPaid}: ${intent.charged_amount === 0 ? c.free : money(intent.charged_amount, l)}`,
@@ -506,4 +536,81 @@ ${button(c.myTickets, `${SITE_URL}/${l}/account`)}
   ].join("\n");
 
   return { subject, text, html };
+}
+
+export interface TicketClaimEmailInput {
+  locale: Locale;
+  attendeeName: string;
+  badgeCode: string;
+  /** The tier's proper name, e.g. "SONNET" — not the slug. */
+  tierName?: string;
+  /** Sub-title beside the name: "Free pass". Already localised. */
+  tierLabel?: string;
+  claimUrl: string;
+}
+
+/**
+ * Sent once per ticket bought for someone else (`is_self = false`),
+ * ALONGSIDE the buyer's own receipt, not instead of it (PHASE22 §C).
+ *
+ * The buyer's receipt already lists every badge code in the order — this is
+ * the SEPARATE message that lets the actual attendee link the ticket to
+ * their own account, so it shows under their own `/account` and they can
+ * check in under their own name rather than the buyer's. Sending it to
+ * `attendee_email` rather than the buyer's inbox is the entire point: the
+ * buyer already has everything they need in their own receipt.
+ */
+export function renderTicketClaim(input: TicketClaimEmailInput): RenderedEmail {
+  const l = input.locale;
+  const c = COPY[l];
+  const tierName = input.tierName?.toUpperCase();
+
+  const html = layout(
+    l,
+    c.claimTitle,
+    `<p style="margin:0 0 24px;font-family:${FONT};font-size:16px;line-height:1.6;color:${BRAND.ink};">${escapeHtml(c.claimIntro)}</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;border:2px solid ${BRAND.ink};border-radius:14px;background:${BRAND.paper};">
+<tr><td style="padding:20px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+    ${tierName ? `<td style="font-family:${MONO};font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${BRAND.ink};">${escapeHtml(tierName)}</td>` : "<td></td>"}
+    ${
+      input.tierLabel
+        ? `<td align="right" style="font-family:${FONT};font-size:12px;color:${BRAND.muted};">${escapeHtml(input.tierLabel)}</td>`
+        : "<td></td>"
+    }
+  </tr></table>
+  <p style="margin:10px 0 0;font-family:${FONT};font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:${BRAND.muted};">${escapeHtml(c.forWhom)}</p>
+  <p style="margin:2px 0 0;font-family:${FONT};font-size:18px;font-weight:700;color:${BRAND.ink};">${escapeHtml(input.attendeeName)}</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0 0;background:${BRAND.yellowPastel};border-radius:10px;">
+  <tr><td style="padding:14px 16px;">
+    <p style="margin:0;font-family:${FONT};font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:${BRAND.ink};">${escapeHtml(c.entryCode)}</p>
+    <p style="margin:4px 0 0;font-family:${MONO};font-size:22px;font-weight:700;letter-spacing:1.5px;color:${BRAND.ink};">${escapeHtml(input.badgeCode)}</p>
+  </td></tr></table>
+</td></tr></table>
+
+${button(c.claimCta, input.claimUrl)}
+
+<p style="margin:16px 0 0;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(c.claimHint)}</p>`,
+  );
+
+  const text = [
+    `${c.chapter} × ${c.edition}`,
+    "",
+    c.claimTitle,
+    c.claimIntro,
+    "",
+    ...(tierName
+      ? [`  ${tierName}${input.tierLabel ? ` (${input.tierLabel})` : ""}`]
+      : []),
+    `  ${c.forWhom} : ${input.attendeeName}`,
+    `  ${c.entryCode} : ${input.badgeCode}`,
+    "",
+    `${c.claimCta} : ${input.claimUrl}`,
+    c.claimHint,
+    "",
+    `${c.contact} ${CHAPTER_EMAIL}`,
+  ].join("\n");
+
+  return { subject: c.claimSubject, text, html };
 }

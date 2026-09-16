@@ -141,7 +141,7 @@ export function FaqBrowser({
           size={18}
           weight="bold"
           aria-hidden
-          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-black02/50"
+          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-black02/65"
         />
         <input
           type="search"
@@ -154,7 +154,7 @@ export function FaqBrowser({
       </div>
 
       <nav aria-label={t("jumpLabel")}>
-        <p className="mb-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+        <p className="mb-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
           {t("jumpLabel")}
         </p>
         <ul className="flex flex-col gap-1">
@@ -167,7 +167,7 @@ export function FaqBrowser({
                 className="faq-spy flex w-full items-center justify-between gap-3 rounded-pill px-4 py-2 text-left font-sans text-body-m font-bold text-black02/65"
               >
                 <span>{t(CATEGORY_KEY[cat])}</span>
-                <span className="font-mono text-caption text-black02/45">
+                <span className="font-mono text-caption text-black02/65">
                   {items.length}
                 </span>
               </button>
@@ -194,7 +194,7 @@ export function FaqBrowser({
           {grouped.map(({ cat, items }) => (
             <section key={cat} id={sectionId(cat)} className="scroll-mt-40">
               <Reveal>
-                <h2 className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                <h2 className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                   {t(CATEGORY_KEY[cat])}
                 </h2>
               </Reveal>

@@ -13,6 +13,7 @@ import {
   getAllProducts,
   getAllQuotes,
   getStats,
+  getPastEditions,
   getTiers,
 } from "@/lib/content/store";
 
@@ -47,6 +48,7 @@ export default async function AdminPage() {
     tiers,
     quotes,
     stats,
+    pastEditions,
   ] = await Promise.all([
     loadAdminData(),
     collectionCounts(),
@@ -59,6 +61,7 @@ export default async function AdminPage() {
     getTiers(),
     getAllQuotes(),
     getStats(),
+    getPastEditions(),
   ]);
 
   const missingPhotos: MissingPhoto[] = [
@@ -103,6 +106,7 @@ export default async function AdminPage() {
           tiers,
           quotes,
           stats,
+          pastEditions,
         }}
         content={{
           speakers: counts.speakers,

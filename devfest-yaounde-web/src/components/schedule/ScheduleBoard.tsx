@@ -159,7 +159,7 @@ export function ScheduleBoard({
           <div className="flex items-center gap-3">
             <span
               id="schedule-view-label"
-              className="hidden font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50 sm:inline"
+              className="hidden font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65 sm:inline"
             >
               {t("viewLabel")}
             </span>
@@ -219,7 +219,7 @@ export function ScheduleBoard({
                 </span>
                 <div className="ml-6 sm:ml-8">
                   {group.length > 1 && (
-                    <p className="mb-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                    <p className="mb-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       {t("parallel", { count: group.length })}
                     </p>
                   )}
@@ -272,7 +272,7 @@ export function ScheduleBoard({
                   </span>
                   <div className="min-w-0 flex-1">
                     {group.length > 1 && (
-                      <p className="pr-6 pt-5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                      <p className="pr-6 pt-5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                         {t("parallel", { count: group.length })}
                       </p>
                     )}

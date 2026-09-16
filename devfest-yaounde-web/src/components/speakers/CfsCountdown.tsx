@@ -54,7 +54,7 @@ export function CfsCountdown({ closesAt }: { closesAt: string }) {
 
   return (
     <div>
-      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
         {t("closesIn")}
       </p>
       {/*
@@ -72,7 +72,7 @@ export function CfsCountdown({ closesAt }: { closesAt: string }) {
             <span className="font-sans text-heading-l font-bold tabular-nums leading-none text-black02">
               {String(part.value).padStart(2, "0")}
             </span>
-            <span className="mt-1 font-mono text-caption uppercase text-black02/55">
+            <span className="mt-1 font-mono text-caption uppercase text-black02/65">
               {part.label}
             </span>
           </li>

@@ -96,7 +96,10 @@ interface TicketTier {
   id: string; // e.g. "haikyu", "sonnet" — rendered in mono-tag style
   name: string; // e.g. "HAIKYU" — language-neutral (proper noun tier name)
   label?: LocalizedString; // optional sub-title beside the name; "" for most tiers
-  priceXAF: number; // 0 for free tier
+  // BASE price, fee-free — 0 for the free tier. Every displayed/charged
+  // price is feeInclusiveAmount(priceXAF), a 1.5% fee added at render and
+  // checkout time (ADR 0063). Never rewrite this field to include the fee.
+  priceXAF: number;
   description: LocalizedString;
   // "What your ticket grants you" — reorderable, icon optional (fixed set,
   // src/lib/entitlement-icons.ts), falls back to a plain check.
@@ -115,7 +118,7 @@ interface Product {
   id: string;
   name: LocalizedString;
   description: LocalizedString;
-  priceXAF: number;
+  priceXAF: number; // BASE price, fee-free — same rule as TicketTier's, above.
   images: string[];
   variants?: { size?: string[]; color?: string[] };
   status: "pre-order" | "in-stock" | "venue-only" | "sold-out"; // always paired with a visible text label, never color alone
@@ -181,12 +184,18 @@ interface PersonalityFields {
 // which was never confirmed. See docs/decisions/0010-team-grouping.md.
 
 // Home-page-specific shapes (added feat/home-page — Phase 3)
+// Tiers ascending, matching the ticket tiers' own naming exactly (ADR 0060 —
+// renamed from platinum/gold/silver). Community and Partner are the two
+// non-monetary options. Admin: Content → Sponsors.
 interface Sponsor {
   id: string;
   name: string; // language-neutral
   logoUrl: string;
-  tier?: "platinum" | "gold" | "silver" | "community";
+  tier?: "haikyu" | "sonnet" | "opus" | "fable" | "mythos" | "community" | "partner";
   websiteUrl?: string;
+  // Cursor-popup / inline-fallback text (ADR 0060). Optional — empty just
+  // shows the name.
+  blurb?: LocalizedString;
 }
 
 // Home page figures. Admin: Content → Figures (order = left to right).
@@ -214,6 +223,9 @@ interface Quote {
 // Order in the array is the rotation order. No visible quotes → the section
 // is not rendered at all.
 
+// Memory Lane's photo grid. Admin: Content → Memory Lane (order = display
+// order). Empty → the home page shows a "coming soon" placeholder, not a
+// blank grid (ADR 0060).
 interface PastEditionPhoto {
   id: string;
   imageUrl: string;

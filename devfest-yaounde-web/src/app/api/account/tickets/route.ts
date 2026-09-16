@@ -35,6 +35,8 @@ interface IntentSummary {
   discount_code: string | null;
   discount_amount: number;
   charged_amount: number;
+  /** Base, post-discount, pre-fee — `charged_amount - net_amount` is the fee. */
+  net_amount: number;
   line_items: PricedLine[];
   activated_at: string | null;
   created_at: string;
@@ -66,7 +68,7 @@ export async function GET() {
     supabase
       .from("payment_intents")
       .select(
-        "deposit_id, currency, discount_code, discount_amount, charged_amount, line_items, activated_at, created_at",
+        "deposit_id, currency, discount_code, discount_amount, charged_amount, net_amount, line_items, activated_at, created_at",
       )
       .in("deposit_id", depositIds),
   ]);
@@ -119,6 +121,9 @@ export async function GET() {
               currency: intent.currency,
               discountCode: intent.discount_code,
               discountAmount: intent.discount_amount,
+              // The 1.5% transaction fee, itemised the same way the
+              // discount already is — never folded silently into the total.
+              feeAmount: intent.charged_amount - intent.net_amount,
               chargedAmount: intent.charged_amount,
               paidAt: intent.activated_at ?? intent.created_at,
             }

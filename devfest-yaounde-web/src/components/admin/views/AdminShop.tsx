@@ -10,6 +10,7 @@ import type {
 } from "@/data/types";
 import { slugify } from "@/lib/admin/form-helpers";
 import type { AdminData } from "@/lib/admin/shape";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { EntityCrud } from "../forms/EntityCrud";
 import {
   ChipInput,
@@ -179,7 +180,7 @@ export function AdminShop({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="font-mono text-caption text-black02/40">
+                <span className="font-mono text-caption text-black02/65">
                   —
                 </span>
               )}
@@ -188,8 +189,11 @@ export function AdminShop({
               <p className="truncate font-sans text-body-m font-bold text-black02">
                 {row.name.en || row.name.fr || row.id}
               </p>
-              <p className="truncate text-caption text-black02/60">
-                {row.priceXAF.toLocaleString("en-CM")} XAF ·{" "}
+              <p className="truncate text-caption text-black02/65">
+                {row.priceXAF.toLocaleString("en-CM")} XAF
+                {row.priceXAF > 0 &&
+                  ` (${feeInclusiveAmount(row.priceXAF).toLocaleString("en-CM")} with fee)`}{" "}
+                ·{" "}
                 {STATUSES.find((s) => s.value === row.status)?.label}
                 {row.published === false && " · Hidden"}
                 {tiersBundling(row.id).length > 0 &&
@@ -234,7 +238,14 @@ export function AdminShop({
                 />
               </Field>
 
-              <Field label="Price (XAF)">
+              <Field
+                label="Price (XAF)"
+                hint={
+                  draft.priceXAF > 0
+                    ? `Base price — fee-free. Customers pay ${feeInclusiveAmount(draft.priceXAF).toLocaleString("en-CM")} XAF, which includes the 1.5% transaction fee added automatically everywhere this product is shown.`
+                    : "Base price — fee-free. The 1.5% transaction fee is added automatically wherever this product is shown to a buyer."
+                }
+              >
                 <TextInput
                   type="number"
                   value={String(draft.priceXAF)}
@@ -292,7 +303,7 @@ export function AdminShop({
                         className={`rounded-pill border-2 px-3 py-1 font-mono text-caption font-bold transition-colors ${
                           on
                             ? "border-black02 bg-primary text-black02"
-                            : "border-black02/25 text-black02/60 hover:bg-pastel"
+                            : "border-black02/25 text-black02/65 hover:bg-pastel"
                         }`}
                       >
                         {size}
@@ -413,7 +424,7 @@ function StockField({
           <button
             type="button"
             onClick={() => remove(i)}
-            className="rounded-pill border border-black02/20 px-2.5 py-1 text-caption font-bold text-black02 hover:bg-danger-pastel hover:text-danger"
+            className="rounded-pill border border-black02/20 px-2.5 py-1 text-caption font-bold text-black02 hover:bg-danger-pastel hover:text-danger-ink"
           >
             Remove
           </button>

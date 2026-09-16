@@ -5,6 +5,7 @@ import { ArrowSquareOut, Check, MagnifyingGlass, X } from "@phosphor-icons/react
 import type { Product, TicketTier } from "@/data/types";
 import type { AdminData, AdminSettings } from "@/lib/admin/shape";
 import { slugify } from "@/lib/admin/form-helpers";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { EntityCrud } from "../forms/EntityCrud";
 import {
   EntitlementListField,
@@ -102,7 +103,13 @@ export function AdminTicketTiers({
                   : `${row.priceXAF.toLocaleString("en-CM")} XAF`}
                 {row.quantityAvailable != null && ` · ${row.quantityAvailable} cap`}
               </p>
-              <p className="truncate text-caption text-black02/60">
+              {row.priceXAF > 0 && (
+                <p className="truncate text-caption text-black02/65">
+                  {feeInclusiveAmount(row.priceXAF).toLocaleString("en-CM")}{" "}
+                  XAF with the transaction fee
+                </p>
+              )}
+              <p className="truncate text-caption text-black02/65">
                 {row.onSale ? "On sale" : "Off sale"}
                 {row.soldOut && " · Sold out"}
               </p>
@@ -134,7 +141,14 @@ export function AdminTicketTiers({
               />
             </Field>
 
-            <Field label="Price (XAF)">
+            <Field
+              label="Price (XAF)"
+              hint={
+                draft.priceXAF > 0
+                  ? `Base price — fee-free. Customers pay ${feeInclusiveAmount(draft.priceXAF).toLocaleString("en-CM")} XAF, which includes the 1.5% transaction fee added automatically everywhere this tier is shown.`
+                  : "Base price — fee-free. The 1.5% transaction fee is added automatically wherever this tier is shown to a buyer."
+              }
+            >
               <TextInput
                 type="number"
                 value={String(draft.priceXAF)}
@@ -291,7 +305,7 @@ function SwagPickerField({
         <p className="font-sans text-body-m font-bold text-black02">
           No shop items yet.
         </p>
-        <p className="mx-auto mt-1 max-w-sm text-caption text-black02/60">
+        <p className="mx-auto mt-1 max-w-sm text-caption text-black02/65">
           Swag is picked from the Shop, not created here. Add the products
           first and they will show up in this list.
         </p>
@@ -310,7 +324,7 @@ function SwagPickerField({
   return (
     <div className="flex flex-col gap-3">
       {selected.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-black02/25 px-4 py-4 text-center text-caption text-black02/60">
+        <p className="rounded-lg border border-dashed border-black02/25 px-4 py-4 text-center text-caption text-black02/65">
           Nothing attached yet — this tier shows no swag on the public page.
         </p>
       ) : (
@@ -335,7 +349,7 @@ function SwagPickerField({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="font-mono text-caption text-black02/40">
+                    <span className="font-mono text-caption text-black02/65">
                       —
                     </span>
                   )}
@@ -345,7 +359,7 @@ function SwagPickerField({
                   <span className="block truncate font-sans text-body-m font-bold text-black02">
                     {product ? product.name.en || product.name.fr : id}
                   </span>
-                  <span className="block truncate text-caption text-black02/60">
+                  <span className="block truncate text-caption text-black02/65">
                     {product ? (
                       <>
                         {product.priceXAF.toLocaleString("en-CM")} XAF
@@ -364,7 +378,7 @@ function SwagPickerField({
                     disabled={index === 0}
                     onClick={() => move(index, -1)}
                     aria-label={`Move ${id} earlier`}
-                    className="rounded-pill px-1.5 py-1 font-mono text-caption font-bold text-black02/55 hover:bg-offwhite hover:text-black02 disabled:opacity-25"
+                    className="rounded-pill px-1.5 py-1 font-mono text-caption font-bold text-black02/65 hover:bg-offwhite hover:text-black02 disabled:opacity-25"
                   >
                     ↑
                   </button>
@@ -373,7 +387,7 @@ function SwagPickerField({
                     disabled={index === selected.length - 1}
                     onClick={() => move(index, 1)}
                     aria-label={`Move ${id} later`}
-                    className="rounded-pill px-1.5 py-1 font-mono text-caption font-bold text-black02/55 hover:bg-offwhite hover:text-black02 disabled:opacity-25"
+                    className="rounded-pill px-1.5 py-1 font-mono text-caption font-bold text-black02/65 hover:bg-offwhite hover:text-black02 disabled:opacity-25"
                   >
                     ↓
                   </button>
@@ -383,7 +397,7 @@ function SwagPickerField({
                   type="button"
                   onClick={() => detach(id)}
                   aria-label={`Detach ${id}`}
-                  className="shrink-0 rounded-pill border border-black02/20 p-1.5 text-black02 hover:bg-danger-pastel hover:text-danger"
+                  className="shrink-0 rounded-pill border border-black02/20 p-1.5 text-black02 hover:bg-danger-pastel hover:text-danger-ink"
                 >
                   <X size={12} weight="bold" />
                 </button>
@@ -394,7 +408,7 @@ function SwagPickerField({
       )}
 
       {dangling.length > 0 && (
-        <p className="text-caption font-bold text-danger">
+        <p className="text-caption font-bold text-danger-ink">
           {dangling.length} attached item
           {dangling.length === 1 ? " is" : "s are"} no longer in the shop.
           Detaching {dangling.length === 1 ? "it" : "them"} here is safe — the
@@ -408,7 +422,7 @@ function SwagPickerField({
             size={14}
             weight="bold"
             aria-hidden
-            className="shrink-0 text-black02/50"
+            className="shrink-0 text-black02/65"
           />
           <input
             value={query}
@@ -419,7 +433,7 @@ function SwagPickerField({
         </label>
 
         {available.length === 0 ? (
-          <p className="px-1 py-3 text-center text-caption text-black02/55">
+          <p className="px-1 py-3 text-center text-caption text-black02/65">
             {needle
               ? "Nothing in the shop matches that."
               : "Every shop product is already attached to this tier."}
@@ -445,7 +459,7 @@ function SwagPickerField({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="font-mono text-caption text-black02/40">
+                      <span className="font-mono text-caption text-black02/65">
                         —
                       </span>
                     )}
@@ -453,7 +467,7 @@ function SwagPickerField({
                   <span className="min-w-0 flex-1 truncate font-sans text-body-m text-black02">
                     {product.name.en || product.name.fr || product.id}
                     {product.published === false && (
-                      <span className="ml-1.5 font-mono text-caption text-black02/50">
+                      <span className="ml-1.5 font-mono text-caption text-black02/65">
                         (hidden in shop)
                       </span>
                     )}

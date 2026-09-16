@@ -48,6 +48,8 @@ interface Ticket {
     currency: string;
     discountCode: string | null;
     discountAmount: number;
+    /** The 1.5% transaction fee, already folded into `chargedAmount`. */
+    feeAmount: number;
     chargedAmount: number;
     paidAt: string;
   } | null;
@@ -135,7 +137,7 @@ export function AccountDashboard() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
             {t("signedInAs")}
           </p>
           <p className="mt-1 font-sans text-heading-m font-bold text-black02">
@@ -220,7 +222,7 @@ export function AccountDashboard() {
                   </div>
 
                   {ticket.tier.label && (
-                    <p className="mt-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                    <p className="mt-3 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       {ticket.tier.label[locale === "en" ? "en" : "fr"]}
                     </p>
                   )}
@@ -242,7 +244,7 @@ export function AccountDashboard() {
                       sales page — where you cannot look it up afterwards. */}
                   {ticket.tier.perks.length > 0 && (
                     <div className="mt-5">
-                      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+                      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                         {t("included")}
                       </p>
                       <ul className="mt-2 flex flex-col gap-1.5">
@@ -264,10 +266,11 @@ export function AccountDashboard() {
                     </div>
                   )}
 
-                  {/* What it cost. `unitAmount` is what this ticket was
-                      charged at; the discount and the total belong to the
-                      whole ORDER, so they are labelled as such rather than
-                      implying this one ticket carried them. */}
+                  {/* What it cost. `unitAmount` is this ticket's BASE price
+                      (fee-free, matching every other per-line price on the
+                      site); the discount, the transaction fee and the total
+                      belong to the whole ORDER, so they are labelled as such
+                      rather than implying this one ticket carried them. */}
                   {ticket.order && (
                     <div className="mt-5 border-t-2 border-black02/15 pt-4">
                       {ticket.unitAmount !== null && (
@@ -292,6 +295,16 @@ export function AccountDashboard() {
                           </span>
                         </div>
                       )}
+                      {ticket.order.feeAmount > 0 && (
+                        <div className="mt-1.5 flex items-baseline justify-between gap-4">
+                          <span className="text-body-m text-black02/70">
+                            {t("orderFee")}
+                          </span>
+                          <span className="font-mono text-body-m text-black02/70">
+                            {money(ticket.order.feeAmount)}
+                          </span>
+                        </div>
+                      )}
                       <div className="mt-1.5 flex items-baseline justify-between gap-4">
                         <span className="text-body-m text-black02/70">
                           {t("orderTotal")}
@@ -301,7 +314,7 @@ export function AccountDashboard() {
                           {ticket.order.currency}
                         </span>
                       </div>
-                      <p className="mt-3 text-caption text-black02/55">
+                      <p className="mt-3 text-caption text-black02/65">
                         {t("purchasedOn", {
                           date: new Date(
                             ticket.order.paidAt,
@@ -311,7 +324,7 @@ export function AccountDashboard() {
                           ),
                         })}
                       </p>
-                      <p className="mt-1 font-mono text-caption text-black02/45">
+                      <p className="mt-1 font-mono text-caption text-black02/65">
                         {t("reference", {
                           ref: ticket.order.depositId.slice(0, 8),
                         })}

@@ -22,6 +22,12 @@ import {
   badgeCodesFor,
   verifyBadgeCode,
 } from "@/lib/security/badge-code";
+import {
+  assertClaimSecretConfigured,
+  claimToken,
+  verifyClaimToken,
+} from "@/lib/security/claim-token";
+import { feeInclusiveAmount, transactionFeeAmount } from "@/lib/payments/fees";
 import { verifyCallback } from "@/lib/pawapay/verify";
 import {
   quoteTickets,
@@ -44,7 +50,11 @@ import {
   isDiscountFailure,
 } from "@/lib/payments/errors";
 import { isDiscountFailure as clientIsDiscountFailure } from "@/lib/checkout-client";
-import { renderOrderReceipt, renderTicketReceipt } from "@/lib/email/templates";
+import {
+  renderOrderReceipt,
+  renderTicketClaim,
+  renderTicketReceipt,
+} from "@/lib/email/templates";
 import type { PaymentIntentRow } from "@/lib/payments/intents";
 import {
   declaredStock,
@@ -99,10 +109,12 @@ const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
 before(() => {
   process.env.BADGE_CODE_SECRET = "test-secret-that-is-comfortably-long-enough";
+  process.env.CLAIM_TOKEN_SECRET = "another-test-secret-comfortably-long-enough";
 });
 
 after(() => {
   delete process.env.BADGE_CODE_SECRET;
+  delete process.env.CLAIM_TOKEN_SECRET;
 });
 
 /** Helper: assert a promise rejects with a specific checkout error code. */
@@ -178,6 +190,86 @@ describe("badge codes", () => {
     process.env.BADGE_CODE_SECRET = "short";
     assert.throws(() => badgeCode(DEPOSIT, 1), /BADGE_CODE_SECRET/);
     process.env.BADGE_CODE_SECRET = saved;
+  });
+});
+
+describe("ticket claim tokens", () => {
+  const TICKET_A = "aaaaaaaa-2222-3333-4444-555555555555";
+  const TICKET_B = "bbbbbbbb-2222-3333-4444-555555555555";
+
+  it("are deterministic for the same ticket", () => {
+    assert.equal(claimToken(TICKET_A), claimToken(TICKET_A));
+  });
+
+  it("differ per ticket", () => {
+    assert.notEqual(claimToken(TICKET_A), claimToken(TICKET_B));
+  });
+
+  it("verify only against the right ticket", () => {
+    const token = claimToken(TICKET_A);
+    assert.ok(verifyClaimToken(token, TICKET_A));
+    assert.ok(!verifyClaimToken(token, TICKET_B));
+  });
+
+  it("reject a tampered or unrelated token", () => {
+    assert.ok(!verifyClaimToken("not-a-real-token", TICKET_A));
+    assert.ok(!verifyClaimToken(claimToken(TICKET_A) + "x", TICKET_A));
+  });
+
+  it("use a different secret from badge codes — rotating one never touches the other", () => {
+    // Same ticket id used as both a deposit id (badge codes) and a ticket id
+    // (claim tokens) on purpose: if the two ever shared a key, the two
+    // strings would collide by construction.
+    assert.notEqual(badgeCode(TICKET_A, 1), claimToken(TICKET_A));
+  });
+
+  it("are refused at checkout time when the secret is unusable", () => {
+    const saved = process.env.CLAIM_TOKEN_SECRET;
+
+    process.env.CLAIM_TOKEN_SECRET = "";
+    assert.throws(assertClaimSecretConfigured, /CLAIM_TOKEN_SECRET/);
+
+    delete process.env.CLAIM_TOKEN_SECRET;
+    assert.throws(assertClaimSecretConfigured, /CLAIM_TOKEN_SECRET/);
+
+    process.env.CLAIM_TOKEN_SECRET = "too-short";
+    assert.throws(assertClaimSecretConfigured, /CLAIM_TOKEN_SECRET/);
+
+    process.env.CLAIM_TOKEN_SECRET = saved;
+    assert.doesNotThrow(assertClaimSecretConfigured);
+  });
+});
+
+describe("the 1.5% transaction fee", () => {
+  it("adds exactly 1.5%, rounded to the nearest franc", () => {
+    assert.equal(feeInclusiveAmount(1000), 1015);
+    assert.equal(feeInclusiveAmount(2000), 2030);
+    assert.equal(feeInclusiveAmount(3600), 3654);
+  });
+
+  it("rounds half up, not banker's rounding or truncation", () => {
+    // 100 * 1.015 = 101.5 exactly — half up means 102, not 101.
+    assert.equal(feeInclusiveAmount(100), 102);
+  });
+
+  it("is zero on a zero base — a genuinely free ticket stays free", () => {
+    assert.equal(feeInclusiveAmount(0), 0);
+    assert.equal(transactionFeeAmount(0), 0);
+  });
+
+  it("transactionFeeAmount is always exactly the difference the fee adds", () => {
+    for (const base of [0, 1, 100, 1015, 30000, 999999]) {
+      assert.equal(
+        transactionFeeAmount(base),
+        feeInclusiveAmount(base) - base,
+      );
+    }
+  });
+
+  it("never returns a fractional franc — XAF has no subunit", () => {
+    for (const base of [1, 3, 7, 33, 101, 999, 12345]) {
+      assert.equal(Number.isInteger(feeInclusiveAmount(base)), true);
+    }
   });
 });
 
@@ -404,7 +496,15 @@ describe("server-side pricing", () => {
     const sonnet = findTier("sonnet")!.priceXAF;
     assert.equal(basket.lines.length, 1, "same tier collapses to one line");
     assert.equal(basket.lines[0].quantity, 2);
-    assert.equal(basket.charged, sonnet * 2);
+    assert.equal(basket.subtotal, sonnet * 2, "subtotal stays base, fee-free");
+    assert.equal(basket.net, sonnet * 2, "no discount, so net equals subtotal");
+    assert.equal(basket.feeAmount, transactionFeeAmount(sonnet * 2));
+    assert.equal(basket.charged, feeInclusiveAmount(sonnet * 2));
+    assert.equal(
+      basket.charged,
+      basket.net + basket.feeAmount,
+      "charged is always net plus the fee, nothing else",
+    );
     assert.equal(basket.currency, "XAF");
   });
 
@@ -454,7 +554,7 @@ describe("server-side pricing", () => {
         lineAmount: 1,
       } as never,
     ]);
-    assert.equal(basket.charged, findTier("sonnet")!.priceXAF);
+    assert.equal(basket.charged, feeInclusiveAmount(findTier("sonnet")!.priceXAF));
   });
 
   it("demands an apparel size on an apparel tier", async () => {
@@ -492,7 +592,10 @@ describe("server-side pricing", () => {
     const basket = await quoteCart([
       { productId: "sticker-pack", quantity: 3 },
     ]);
-    assert.equal(basket.charged, findProduct("sticker-pack")!.priceXAF * 3);
+    assert.equal(
+      basket.charged,
+      feeInclusiveAmount(findProduct("sticker-pack")!.priceXAF * 3),
+    );
     assert.equal(basket.lines[0].quantity, 3);
   });
 
@@ -1088,7 +1191,10 @@ describe("per-variant stock", () => {
         variant: { size: "M", color: "Noir" },
       },
     ]);
-    assert.equal(basket.charged, findProduct("tee-edition")!.priceXAF * 2);
+    assert.equal(
+      basket.charged,
+      feeInclusiveAmount(findProduct("tee-edition")!.priceXAF * 2),
+    );
   });
 
   it("leaves an unstocked product unlimited", async () => {
@@ -1419,6 +1525,43 @@ describe("receipt emails", () => {
     assert.ok(!email.text.includes("Réduction"), "discount row leaked");
   });
 
+  it("shows the transaction fee as its own line, on the post-discount base — not folded into the subtotal", () => {
+    // net_amount (3600) is the base AFTER the 400 discount, so the true base
+    // subtotal is 4000 (net + discount) — NOT charged_amount (3654) + discount,
+    // which would double-count the fee. charged_amount is feeInclusiveAmount
+    // of net_amount: 3600 * 1.015 = 3654.
+    const email = renderTicketReceipt(
+      ticketIntent({
+        net_amount: 3600,
+        discount_amount: 400,
+        charged_amount: 3654,
+      }),
+      tickets,
+    );
+    assert.match(email.html, /4\D?000/, "true base subtotal missing");
+    assert.match(email.html, /-400/, "deduction missing");
+    assert.ok(
+      email.html.includes("Frais de transaction"),
+      "fee row label missing",
+    );
+    assert.match(email.html, /54/, "fee amount missing");
+    assert.match(email.html, /3\D?654/, "fee-inclusive total missing");
+    assert.match(email.text, /54\D?XAF/, "text fee missing");
+  });
+
+  it("hides the fee row when it computes to zero, same rule as the discount row", () => {
+    // net_amount 0 (a fully-discounted order) means transactionFeeAmount(0)
+    // is 0 by construction — nothing to itemise.
+    const email = renderTicketReceipt(
+      ticketIntent({ net_amount: 0, discount_amount: 4000, charged_amount: 0 }),
+      tickets,
+    );
+    assert.ok(
+      !email.html.includes("Frais de transaction"),
+      "fee row shown on a zero fee",
+    );
+  });
+
   it("escapes an attendee name rather than rendering it as markup", () => {
     // The name is typed by a buyer and lands in HTML. It is also printed on a
     // badge, so it is not sanitised at the source — it has to be escaped here.
@@ -1447,6 +1590,61 @@ describe("receipt emails", () => {
     assert.ok(email.html.includes("Livraison souhaitée"));
     assert.ok(email.html.includes("Bastos, après 18h"));
     assert.ok(email.text.includes("Bastos, après 18h"));
+  });
+});
+
+describe("ticket claim emails", () => {
+  const claim = {
+    locale: "fr" as const,
+    attendeeName: "Bruno Fotso",
+    badgeCode: "DFY-ABCDE-FGHIJ",
+    tierName: "SONNET",
+    tierLabel: "Pass étudiant",
+    claimUrl: "https://devfest.gdgyaounde.com/fr/account/claim/t1/tok1",
+  };
+
+  it("carries the attendee's name, badge code and claim link", () => {
+    const email = renderTicketClaim(claim);
+    for (const fragment of [
+      "Bruno Fotso",
+      "DFY-ABCDE-FGHIJ",
+      "SONNET",
+      claim.claimUrl,
+    ]) {
+      assert.ok(email.html.includes(fragment), `HTML is missing ${fragment}`);
+      assert.ok(
+        email.text.includes(fragment),
+        `text part is missing ${fragment}`,
+      );
+    }
+  });
+
+  it("escapes an attendee name rather than rendering it as markup", () => {
+    const email = renderTicketClaim({
+      ...claim,
+      attendeeName: '<img src=x onerror="alert(1)">',
+    });
+    assert.ok(!email.html.includes("<img src=x"), "raw markup rendered");
+    assert.ok(email.html.includes("&lt;img"), "not escaped");
+  });
+
+  it("speaks the language the ticket was bought in", () => {
+    const fr = renderTicketClaim({ ...claim, locale: "fr" });
+    const en = renderTicketClaim({ ...claim, locale: "en" });
+    assert.ok(fr.subject.includes("attend"), fr.subject);
+    assert.ok(en.subject.includes("waiting"), en.subject);
+    assert.notEqual(fr.html, en.html);
+  });
+
+  it("works without a tier name or label — still a real message, not a blank one", () => {
+    const email = renderTicketClaim({
+      locale: "en",
+      attendeeName: "Bruno Fotso",
+      badgeCode: "DFY-ABCDE-FGHIJ",
+      claimUrl: claim.claimUrl,
+    });
+    assert.ok(email.html.includes("Bruno Fotso"));
+    assert.ok(email.html.includes("DFY-ABCDE-FGHIJ"));
   });
 });
 

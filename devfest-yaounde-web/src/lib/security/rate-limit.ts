@@ -66,6 +66,12 @@ export const RATE_LIMITS = {
    * own 60s interval, tight enough that a script hammering it gets refused.
    */
   capacityRead: { bucket: "capacity-read", limit: 30, windowSeconds: 60 },
+  /**
+   * Claiming a ticket. A person tries this once, maybe twice if they mistype
+   * something; a script trying every ticket id in an order is what this
+   * fences, on top of the token itself already being unguessable.
+   */
+  ticketClaim: { bucket: "ticket-claim", limit: 10, windowSeconds: 300 },
   /** Dashboard writes. Generous for a person, useless for a script. */
   adminWrite: { bucket: "admin-write", limit: 60, windowSeconds: 300 },
   /** One picture per remaining profile, so this is higher than adminWrite. */

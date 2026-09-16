@@ -16,6 +16,18 @@
  * and it is fetched by crawlers and chat apps that follow no redirects and
  * carry no locale. Left in, every unfurl got a 307 to `/fr/og` and, from the
  * stricter clients, no image at all.
+ *
+ * `apple-icon` / `icon-192` / `icon-512` are excluded for the SAME reason,
+ * found while wiring up the PWA manifest (PHASE22 §F): none of their
+ * filenames contain a dot, so the matcher's "any path with a dot is a
+ * static file" rule did not catch them the way it already does for
+ * `icon.svg`, `robots.txt`, `sitemap.xml` and `manifest.webmanifest`.
+ * `/apple-icon` had been silently 307-ing to `/fr/apple-icon` or
+ * `/en/apple-icon` — neither of which exists, since the route lives
+ * outside `[locale]` on purpose — meaning the iOS home-screen icon has
+ * been a 404 since it was added. Verified directly: before this line, both
+ * locale-prefixed paths 404, and `curl -I /apple-icon` returns a 307, not
+ * the PNG.
  */
 import createMiddleware from "next-intl/middleware";
 import { createServerClient } from "@supabase/ssr";
@@ -61,5 +73,7 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|auth|og|trpc|_next|_vercel|.*\\..*).*)"],
+  matcher: [
+    "/((?!api|auth|og|apple-icon|icon-192|icon-512|trpc|_next|_vercel|.*\\..*).*)",
+  ],
 };

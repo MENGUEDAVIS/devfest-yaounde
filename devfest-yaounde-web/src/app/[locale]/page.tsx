@@ -60,7 +60,7 @@ export default async function HomePage({
   const cfs = cfsView(settings.cfs, speakers.length);
 
   return (
-    <main id="main-content" className="flex-1">
+    <main id="main-content" tabIndex={-1} className="flex-1">
       {/*
         `Event` structured data, live since the dates were confirmed — 21 and
         28 November 2026 (ADR 0038). It reads `EVENT_DATES` in calendar.ts,

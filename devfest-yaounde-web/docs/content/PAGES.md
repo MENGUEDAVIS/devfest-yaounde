@@ -74,6 +74,16 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
      link is not yet set) — there is nothing left to sell a ticket to. Shop
      stays as-is; it is evergreen either side of the event. See ADR 0058.
    - Sponsor/partner logo marquee (linear-eased, continuous scroll, like Lagos's) directly under the hero — bold and boastful, sponsors deserve prime real estate.
+   - **Built as:** the `sponsors` collection, admin-editable (Content →
+     Sponsors), tiers named to match the ticket tiers (Haikyu…Mythos, plus
+     Community/Partner — ADR 0060). Hovering a logo dims the others and
+     shows a name+blurb popup that trails the cursor (touch/reduced-motion:
+     the name and blurb sit inline under the logo instead); clicking still
+     opens the sponsor's site regardless. Each logo carries a small,
+     tier-coloured corner sticker — its own designed mark per tier, never
+     reused as decoration elsewhere on the site. The "Become a sponsor" CTA
+     is sized like one more open seat and sits last in the row, not a
+     banner ahead of the logos.
 
 2. **What is DevFest Yaoundé** (community + this year's direction)
    - Short, warm paragraph: what DevFest is, what GDG Yaoundé is, and a line specific to _this_ year's theme/focus (AI, cloud, whatever the direction is).
@@ -113,6 +123,11 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 8. **Memory Lane / Past Edition Recap**
    - Recap video link + photo grid from last year(s) — this is what proves the community is real and has history, which matters a lot for a "template built to last across years."
+   - **Built as:** the `past-editions` collection, admin-editable (Content →
+     Memory Lane), each photo framed in the same polaroid treatment as the
+     speaker/team slider's print (ADR 0060). With nothing uploaded, the grid
+     shows a "coming soon" placeholder matching the sponsor strip's own
+     empty-seat visual language, rather than a blank section.
    - **"View the {year} gallery"** — the past edition's album, opening in a
      new tab (`noopener noreferrer`), the year filled in automatically. The
      URL is a dashboard setting (Settings → Gallery links); empty hides the
@@ -243,13 +258,20 @@ tiers" dashboard screen; `src/data/ticket-tiers.json` is the seed/fallback
 for a fresh clone with no database, not the live source once a save has
 happened.
 
-| Tier       | Label          | Price  | Sold here?            |
-| ---------- | -------------- | ------ | --------------------- |
-| **HAIKYU** | Free pass      | 0      | **No — RSVP on Bevy** |
-| **SONNET** | —              | 2,000  | yes                   |
-| **OPUS**   | —              | 5,000  | yes                   |
-| **FABLE**  | —              | 10,000 | yes                   |
-| **MYTHOS** | Legendary pass | 25,000 | yes                   |
+| Tier       | Label          | Base price | Sold here?            |
+| ---------- | -------------- | ---------- | --------------------- |
+| **HAIKYU** | Free pass      | 0          | **No — RSVP on Bevy** |
+| **SONNET** | —              | 2,000      | yes                   |
+| **OPUS**   | —              | 5,000      | yes                   |
+| **FABLE**  | —              | 10,000     | yes                   |
+| **MYTHOS** | Legendary pass | 25,000     | yes                   |
+
+**"Base price" is what's stored and what an admin edits — never what a
+buyer actually sees.** Every price shown anywhere on the site, and every
+amount actually charged, is the base price plus a 1.5% transaction fee
+(`feeInclusiveAmount()`, ADR 0063), rounded to the nearest franc — so
+SONNET's base 2,000 shows and charges as 2,030. The same rule applies to
+every shop product's price.
 
 SONNET has no sub-label — it dropped the "Student pass" framing (Phase 20):
 the tier is not restricted to students, and nothing on the site checked for
@@ -320,6 +342,17 @@ someone in (ADR 0020).
 `/{locale}/account` — **My Tickets** (badge QR + code, tier, check-in state)
 and **My Orders**, shared with the shop. Both are scoped to the signed-in
 person by the database itself.
+
+**Claiming a ticket bought for you** — `/{locale}/account/claim/{ticketId}/{token}`
+(ADR 0062). Every ticket where the attendee isn't the buyer gets its own
+"claim your ticket" email, separate from the buyer's receipt. Opening the
+link asks for Google sign-in (same provider as everywhere else, ADR 0014),
+then links the ticket to that account automatically — no second
+confirmation click, since the emailed link plus Google's own consent screen
+already are two. After that it shows under the claimant's own **My
+Tickets**, not the buyer's. This only moves who can manage an
+already-named ticket; changing whose NAME is on it stays the manual,
+buyer-tells-us process in `docs/content/refund-policy.md`.
 
 ## 8. Shop Page (`/shop`)
 

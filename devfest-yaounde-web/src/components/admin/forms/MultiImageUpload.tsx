@@ -189,7 +189,7 @@ export function MultiImageUpload({
               </div>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-danger-pastel/90 px-1 text-center">
-                <Warning size={16} weight="fill" className="text-danger" />
+                <Warning size={16} weight="fill" className="text-danger-ink" />
                 <button
                   type="button"
                   onClick={() => retry(s.localId)}
@@ -212,7 +212,7 @@ export function MultiImageUpload({
         ))}
 
         {slotsLeft > 0 && (
-          <label className="flex h-20 w-20 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-black02/30 text-black02/50 hover:border-black02/50 hover:text-black02/70">
+          <label className="flex h-20 w-20 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-black02/30 text-black02/65 hover:border-black02/50 hover:text-black02/70">
             <Plus size={18} weight="bold" aria-hidden />
             <span className="text-caption">Add</span>
             <input
@@ -227,7 +227,7 @@ export function MultiImageUpload({
         )}
       </div>
       {staged.some((s) => s.status === "error") && (
-        <p className="mt-2 text-caption text-danger">
+        <p className="mt-2 text-caption text-danger-ink">
           One or more images failed to upload — the rest are unaffected. Retry
           or remove the failed one.
         </p>

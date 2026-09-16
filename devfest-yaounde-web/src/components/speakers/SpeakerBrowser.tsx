@@ -144,7 +144,7 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
           size={18}
           weight="bold"
           aria-hidden
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-black02/50"
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-black02/65"
         />
         <input
           type="search"
@@ -190,7 +190,7 @@ export function SpeakerBrowser({ speakers }: { speakers: Speaker[] }) {
     >
       <p
         aria-live="polite"
-        className="mb-8 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50"
+        className="mb-8 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65"
       >
         {t("results", { count: visible.length })}
       </p>

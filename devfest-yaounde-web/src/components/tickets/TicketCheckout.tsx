@@ -27,6 +27,7 @@ import {
   type AttendeeInput,
 } from "@/lib/checkout-client";
 import { useDiscount } from "@/components/checkout/use-discount";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { signInWithGoogle, useSession } from "@/lib/use-session";
 import type { Product, TicketTier } from "@/data/types";
 
@@ -321,7 +322,7 @@ export function TicketCheckout({
             <Warning
               size={20}
               weight="fill"
-              className="mt-0.5 shrink-0 text-danger"
+              className="mt-0.5 shrink-0 text-danger-ink"
             />
             <div>
               <p className="text-body-m font-bold text-black02">
@@ -354,7 +355,7 @@ export function TicketCheckout({
                     {tier.name}
                   </Badge>
                   {tier.label?.[locale as "fr" | "en"] && (
-                    <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+                    <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       {tier.label[locale as "fr" | "en"]}
                     </span>
                   )}
@@ -378,7 +379,7 @@ export function TicketCheckout({
                         <span className="text-body-m text-black02/80">
                           {perk.label[locale as "fr" | "en"]}
                           {perk.note?.[locale as "fr" | "en"] && (
-                            <span className="block text-caption text-black02/55">
+                            <span className="block text-caption text-black02/65">
                               {perk.note[locale as "fr" | "en"]}
                             </span>
                           )}
@@ -396,7 +397,7 @@ export function TicketCheckout({
                   {t("rsvpFree")}
                   <ArrowSquareOut size={16} weight="bold" aria-hidden />
                 </a>
-                <p className="mt-3 text-caption text-black02/60">
+                <p className="mt-3 text-caption text-black02/65">
                   {t("rsvpNote")}
                 </p>
               </article>
@@ -425,7 +426,7 @@ export function TicketCheckout({
                           {tier.name}
                         </Badge>
                         {tier.label?.[locale as "fr" | "en"] && (
-                          <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+                          <span className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                             {tier.label[locale as "fr" | "en"]}
                           </span>
                         )}
@@ -442,7 +443,7 @@ export function TicketCheckout({
                       <p className="mt-4 font-sans text-display-l font-bold leading-none text-black02">
                         {tier.priceXAF === 0
                           ? t("free")
-                          : `${money(tier.priceXAF)} XAF`}
+                          : `${money(feeInclusiveAmount(tier.priceXAF))} XAF`}
                       </p>
                       <p className="mt-3 max-w-prose text-body-m text-black02/75">
                         {tier.description[locale as "fr" | "en"]}
@@ -490,7 +491,7 @@ export function TicketCheckout({
                           <span className="text-body-m text-black02/80">
                             {perk.label[locale as "fr" | "en"]}
                             {perk.note?.[locale as "fr" | "en"] && (
-                              <span className="block text-caption text-black02/55">
+                              <span className="block text-caption text-black02/65">
                                 {perk.note[locale as "fr" | "en"]}
                               </span>
                             )}

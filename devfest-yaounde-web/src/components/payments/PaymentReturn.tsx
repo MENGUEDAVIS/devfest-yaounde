@@ -205,14 +205,14 @@ export function PaymentReturn({
       >
         <p className="text-body-l text-black02/80">{tp("activated")}</p>
         {amount && (
-          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60">
+          <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
             {t("charged", { amount, currency: detail?.currency ?? "XAF" })}
           </p>
         )}
 
         {tickets && tickets.length > 0 && (
           <div className="w-full rounded-lg border-2 border-black02 bg-offwhite p-6">
-            <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+            <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
               {t("badgeLabel")}
             </p>
             <ul className="mt-4 flex flex-col gap-6">
@@ -220,7 +220,7 @@ export function PaymentReturn({
                 <li key={ticket.id} className="flex flex-col gap-2">
                   <span className="text-body-m text-black02/70">
                     {ticket.attendeeName}
-                    <span className="ml-2 font-mono text-caption uppercase tracking-wide text-black02/55">
+                    <span className="ml-2 font-mono text-caption uppercase tracking-wide text-black02/65">
                       {ticket.tier?.name}
                     </span>
                   </span>
@@ -228,7 +228,7 @@ export function PaymentReturn({
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-caption text-black02/60">
+            <p className="mt-4 text-caption text-black02/65">
               {t("badgeHint")}
             </p>
           </div>

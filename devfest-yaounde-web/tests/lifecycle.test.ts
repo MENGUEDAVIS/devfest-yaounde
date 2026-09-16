@@ -17,6 +17,11 @@ import {
   type OrderStatus,
 } from "@/lib/payments/order-lifecycle";
 import {
+  REFUND_REQUEST_STATUSES,
+  canTransition as canTransitionRefund,
+  isRefundRequestStatus,
+} from "@/lib/admin/refund-lifecycle";
+import {
   RESERVATION_WINDOW_SECONDS,
   tierCapacities,
 } from "@/lib/payments/catalog";
@@ -78,6 +83,40 @@ describe("order lifecycle", () => {
     assert.ok(!isOrderStatus("PROCESSING"));
     assert.ok(!isOrderStatus("refunded"));
     assert.ok(!isOrderStatus(3));
+  });
+});
+
+describe("refund request lifecycle", () => {
+  it("moves from requested into work or straight to a verdict", () => {
+    assert.ok(canTransitionRefund("requested", "in_progress"));
+    assert.ok(canTransitionRefund("requested", "resolved"));
+    assert.ok(canTransitionRefund("requested", "denied"));
+  });
+
+  it("treats resolved as terminal — a completed refund is not undone", () => {
+    for (const status of REFUND_REQUEST_STATUSES) {
+      assert.ok(
+        !canTransitionRefund("resolved", status),
+        `resolved -> ${status}`,
+      );
+    }
+  });
+
+  it("lets a denial be reconsidered, back into active work", () => {
+    assert.ok(canTransitionRefund("denied", "in_progress"));
+    assert.ok(!canTransitionRefund("denied", "resolved"));
+    assert.ok(!canTransitionRefund("denied", "requested"));
+  });
+
+  it("lets in-progress requests be put back in the open queue", () => {
+    assert.ok(canTransitionRefund("in_progress", "requested"));
+  });
+
+  it("rejects anything that is not a status", () => {
+    assert.ok(isRefundRequestStatus("requested"));
+    assert.ok(!isRefundRequestStatus("REQUESTED"));
+    assert.ok(!isRefundRequestStatus("approved"));
+    assert.ok(!isRefundRequestStatus(3));
   });
 });
 

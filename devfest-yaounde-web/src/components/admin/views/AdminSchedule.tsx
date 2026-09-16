@@ -46,12 +46,12 @@ export function AdminSchedule({ rows }: { rows: Session[] }) {
         renderRow={(row) => (
           <div className="min-w-0">
             <p className="truncate font-sans text-body-m font-bold text-black02">
-              <span className="font-mono text-caption text-black02/60">
+              <span className="font-mono text-caption text-black02/65">
                 D{row.day} {row.time}
               </span>{" "}
               {row.title.en || row.id}
             </p>
-            <p className="truncate text-caption text-black02/60">
+            <p className="truncate text-caption text-black02/65">
               {row.kind} · {row.durationMin} min · {row.room.en}
             </p>
           </div>

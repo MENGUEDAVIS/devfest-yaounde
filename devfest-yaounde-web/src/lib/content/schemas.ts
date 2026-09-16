@@ -114,14 +114,22 @@ export const sessionSchema = z.object({
  * So a partner is a sponsor whose tier says so. One collection, one form, and
  * grouping by tier already exists.
  */
+/**
+ * Ascending paid tiers matching the ticket tiers' naming (ADR: sponsor tier
+ * rename), plus the two non-monetary options carried over from the original
+ * scheme. See `SPONSOR_TIERS` in `data/types.ts` — same list, kept in sync
+ * by hand since Zod's `z.enum` needs its own literal tuple.
+ */
 export const sponsorSchema = z.object({
   id: slug,
   name: z.string().trim().min(1).max(120),
   logoUrl: z.string().max(400),
   tier: z
-    .enum(["platinum", "gold", "silver", "community", "partner"])
+    .enum(["haikyu", "sonnet", "opus", "fable", "mythos", "community", "partner"])
     .optional(),
   websiteUrl: z.string().max(400).optional(),
+  /** Short line for the cursor-reveal popup. Optional, both languages. */
+  blurb: localized.optional(),
 });
 
 export const faqSchema = z.object({

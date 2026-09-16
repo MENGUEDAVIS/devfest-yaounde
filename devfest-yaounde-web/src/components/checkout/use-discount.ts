@@ -95,6 +95,7 @@ export function useDiscount(basket: QuoteBasket) {
           applied: {
             code: quote.discountCode,
             amount: quote.discountAmount,
+            feeAmount: quote.feeAmount,
             charged: quote.charged,
           },
         };

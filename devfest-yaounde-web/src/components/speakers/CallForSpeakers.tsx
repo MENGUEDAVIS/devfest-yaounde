@@ -53,13 +53,13 @@ export async function CallForSpeakers({
           {t("eyebrow")}
         </span>
 
-        <h3
+        <h2
           className={`mt-5 font-sans font-bold leading-[0.95] text-black02 ${
             compact ? "text-display-l" : "text-display-xl"
           }`}
         >
           {heading}
-        </h3>
+        </h2>
 
         <p className="mt-4 max-w-2xl text-body-l text-black02/80">{body}</p>
 
@@ -87,7 +87,7 @@ export async function CallForSpeakers({
         </div>
 
         {view.state === "open" && view.closesAt && (
-          <p className="mt-5 text-caption text-black02/60">
+          <p className="mt-5 text-caption text-black02/65">
             {t("deadline", { date: formatDeadline(view.closesAt) })}
           </p>
         )}

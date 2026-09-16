@@ -17,6 +17,7 @@ Start from what you are trying to do.
 | **Get into the admin dashboard**                   | [`guides/admin-dashboard.md`](guides/admin-dashboard.md) — the URL, the env vars, and the `organisers` row                     |
 | **Know how something should look or move**         | [`design/DESIGN.md`](design/DESIGN.md), [`content/PAGES.md`](content/PAGES.md)                                                 |
 | **Check a release**                                | [`setup/security-checklist.md`](setup/security-checklist.md)                                                                   |
+| **See the last accessibility/performance audit**   | [`audits/a11y-performance-2026-09-16.md`](audits/a11y-performance-2026-09-16.md)                                                |
 
 ---
 
@@ -82,6 +83,14 @@ or amend an earlier one.
 | [0057](decisions/0057-interactive-figures.md)                           | Figures that roll in, and a cursor that becomes a picture           | Accepted                                              |
 | [0058](decisions/0058-post-event-gallery-and-more-quote-stickers.md)    | Post-event gallery CTA, a timezone fix, and a 4th testimonial sticker | Accepted — **extends 0056**                           |
 | [0059](decisions/0059-stat-figure-polish-and-real-testimonials.md)     | Bigger, uncropped stat figures with alternating tilt; testimonials with voice | Accepted — **extends 0057**                    |
+| [0060](decisions/0060-sponsor-overhaul-and-memory-lane-uploads.md)      | Alpha upload bug, sponsor cursor popup + spotlight, tier rename, Memory Lane admin | Accepted                            |
+| [0061](decisions/0061-faq-and-testimonials-content.md)                  | Real FAQ content, four more role-attributed testimonials, a visible contact line | Accepted                            |
+| [0062](decisions/0062-ticket-claim-and-email-provider.md)               | Self-service ticket claim by email + Google sign-in; Resend closed out as the email provider | Accepted                            |
+| [0063](decisions/0063-transaction-fee.md)                               | A 1.5% transaction fee, computed at display/checkout time, base price never stored with it | Accepted                            |
+| [0064](decisions/0064-refund-exchange-tracker.md)                       | A visibility tracker for manual refund/exchange requests; consent recording was already done (0022) | Accepted                            |
+| [0065](decisions/0065-admin-bulk-actions.md)                            | Bulk publish/hide/delete, retrofit onto every admin list at once | Accepted — **extends 0052**                    |
+| [0066](decisions/0066-installable-pwa-offline-schedule.md)              | Installable PWA; offline caching limited by name to Schedule/Speakers/Team/FAQs; fixes a silent /apple-icon 404 | Accepted                            |
+| [0067](decisions/0067-a11y-audit-fixes.md)                              | `-ink` colour tokens, a lightened Red primary, and a skip link that actually moves focus | Accepted                            |
 
 **Site and design**
 

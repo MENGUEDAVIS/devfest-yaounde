@@ -18,16 +18,20 @@ import type { ProductStatus } from "@/data/types";
 const STATUS = {
   "in-stock": {
     Icon: CheckCircle,
-    classes: "border-success bg-success-pastel text-success",
+    classes: "border-success bg-success-pastel text-success-ink",
   },
-  "pre-order": { Icon: Clock, classes: "border-blue bg-blue-pastel text-blue" },
+  "pre-order": {
+    Icon: Clock,
+    /** `text-blue` itself is under 4.5:1 on `bg-blue-pastel` — see `--color-blue-ink` in globals.css. */
+    classes: "border-blue bg-blue-pastel text-blue-ink",
+  },
   "venue-only": {
     Icon: MapPin,
     classes: "border-black02 bg-pastel text-black02",
   },
   "sold-out": {
     Icon: XCircle,
-    classes: "border-danger bg-danger-pastel text-danger",
+    classes: "border-danger bg-danger-pastel text-danger-ink",
   },
 } as const;
 

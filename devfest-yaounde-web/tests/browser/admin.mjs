@@ -32,6 +32,14 @@ try {
     })));
   ok("9 the moderation queue refuses a stranger",
     [401, 403, 404].includes(await code("/api/dp/gallery/pending")));
+  ok("9b the refund-request tracker refuses a stranger",
+    [401, 403].includes(await code("/api/admin/refund-requests", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: "tickets", reference: "x", requesterName: "x",
+        requesterEmail: "x@example.com", reason: "x",
+      }),
+    })));
 
   // ============ not advertised ============
   const sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();

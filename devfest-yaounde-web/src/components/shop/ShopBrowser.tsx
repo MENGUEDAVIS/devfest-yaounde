@@ -8,6 +8,7 @@ import { FilterLayout } from "@/components/ui/FilterLayout";
 import { Reveal } from "@/components/ui/Reveal";
 import { useCart } from "@/lib/use-cart";
 import { Modal } from "@/components/ui/Modal";
+import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { ProductDetail } from "./ProductDetail";
 import { ProductImage } from "./ProductImage";
 import { BUYABLE, StatusPill } from "./StatusPill";
@@ -103,7 +104,7 @@ export function ShopBrowser({
           size={18}
           weight="bold"
           aria-hidden
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-black02/50"
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-black02/65"
         />
         <input
           type="search"
@@ -149,7 +150,7 @@ export function ShopBrowser({
         </a>
       }
     >
-      <p className="mb-8 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50">
+      <p className="mb-8 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
         {t("results", { count: visible.length })}
       </p>
 
@@ -202,11 +203,11 @@ export function ShopBrowser({
                   <p className="mt-4 font-mono text-body-l font-bold text-black02">
                     {new Intl.NumberFormat(
                       locale === "fr" ? "fr-CM" : "en-CM",
-                    ).format(product.priceXAF)}{" "}
+                    ).format(feeInclusiveAmount(product.priceXAF))}{" "}
                     XAF
                   </p>
                   {!BUYABLE.includes(product.status as ProductStatus) && (
-                    <p className="mt-2 text-caption text-black02/60">
+                    <p className="mt-2 text-caption text-black02/65">
                       {t(`unbuyable.${product.status}`)}
                     </p>
                   )}

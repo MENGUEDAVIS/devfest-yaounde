@@ -9,8 +9,14 @@
  * a successful payment into a retried callback — the tickets already exist.
  */
 import "server-only";
-import { renderOrderReceipt, renderTicketReceipt } from "@/lib/email/templates";
+import {
+  renderOrderReceipt,
+  renderTicketClaim,
+  renderTicketReceipt,
+} from "@/lib/email/templates";
 import { sendEmail } from "@/lib/email/send";
+import { claimToken } from "@/lib/security/claim-token";
+import { SITE_URL } from "@/lib/site-config";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { findTier, loadTiers } from "./catalog";
 import { logPaymentEvent, type PaymentIntentRow } from "./intents";
@@ -32,7 +38,9 @@ export async function sendReceipt(intent: PaymentIntentRow): Promise<void> {
       const supabase = createAdminSupabase();
       const { data, error } = await supabase
         .from("tickets")
-        .select("attendee_name, tier_id, badge_code, apparel_size")
+        .select(
+          "id, attendee_name, attendee_email, tier_id, badge_code, apparel_size, is_self",
+        )
         .eq("deposit_id", intent.deposit_id)
         .order("created_at", { ascending: true });
 
@@ -63,6 +71,31 @@ export async function sendReceipt(intent: PaymentIntentRow): Promise<void> {
             perks: tier?.perks?.map((perk) => perk.label[l] ?? perk.label.fr),
           };
         }),
+      );
+
+      // A ticket bought for someone else gets its OWN email, to the
+      // attendee rather than the buyer — the buyer's receipt above already
+      // has everything they need. Best-effort per ticket: one bad address
+      // among several attendees must not cost the others their claim link.
+      await Promise.all(
+        data
+          .filter((t) => !t.is_self)
+          .map(async (t) => {
+            const tier = findTier(t.tier_id, tiers);
+            const claimUrl = `${SITE_URL}/${l}/account/claim/${t.id}/${claimToken(t.id)}`;
+            const claimEmail = renderTicketClaim({
+              locale: l,
+              attendeeName: t.attendee_name,
+              badgeCode: t.badge_code,
+              tierName: tier?.name,
+              tierLabel: tier?.label?.[l],
+              claimUrl,
+            });
+            const outcome = await sendEmail(t.attendee_email, claimEmail);
+            await logPaymentEvent(intent.deposit_id, `claim_email_${outcome.status}`, {
+              ticketId: t.id,
+            });
+          }),
       );
     } else {
       email = renderOrderReceipt(intent);

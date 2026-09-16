@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { useToast } from "./Toast";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
+import { ConfirmBulkDeleteModal } from "./ConfirmBulkDeleteModal";
 
 /**
  * The plumbing behind every content list, once.
@@ -170,8 +171,12 @@ export function EntityCrud<T extends EntityRow>({
   const [isNew, setIsNew] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  /** Which row's toggle is mid-flight — drives its shimmer. */
-  const [toggling, setToggling] = useState<string | null>(null);
+  /** Which rows' toggle is mid-flight — drives their shimmer. A set rather
+   *  than a single id because a bulk publish/hide flips several at once. */
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+  /** Rows checked for a bulk action — cleared on every commit. */
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkConfirming, setBulkConfirming] = useState(false);
 
   function open(row: T, fresh: boolean) {
     // Whatever was picked for the last record is not this record's.
@@ -272,8 +277,29 @@ export function EntityCrud<T extends EntityRow>({
     );
   }
 
+  /**
+   * Bulk delete — at least as safe as the single-record path, not a
+   * shortcut around it (PHASE22 §E).
+   *
+   * `describeImpact` is checked per selected row, exactly like the single
+   * delete already does, and a blocked row is NEVER silently dropped from
+   * view: `ConfirmBulkDeleteModal` lists it by name and reason, and only
+   * the un-blocked rows are removed. One whole-array commit either way —
+   * N separate DELETE-equivalents would mean N concurrency checks racing
+   * each other the same way bulk publish/hide would.
+   */
+  async function confirmBulkDelete(deletableIds: Set<string>) {
+    if (deletableIds.size === 0) return;
+    setBulkConfirming(false);
+    setSelected(new Set());
+    await commit(
+      rows.filter((r) => !deletableIds.has(r.id)),
+      `Deleted ${deletableIds.size} record${deletableIds.size === 1 ? "" : "s"}.`,
+    );
+  }
+
   async function flip(row: T) {
-    if (!rowToggle || toggling) return;
+    if (!rowToggle || togglingIds.has(row.id)) return;
     const next = !rowToggle.value(row);
     const flipped = rows.map((r) =>
       r.id === row.id ? rowToggle.apply(r, next) : r,
@@ -282,7 +308,7 @@ export function EntityCrud<T extends EntityRow>({
     // On screen immediately; the shimmer says the server has not agreed yet.
     const previous = rows;
     setRows(flipped);
-    setToggling(row.id);
+    setTogglingIds(new Set([row.id]));
 
     try {
       const current = await fetchCurrent();
@@ -292,7 +318,7 @@ export function EntityCrud<T extends EntityRow>({
           "error",
           "Someone else changed this list while you were editing. Reload before saving so their work is not lost.",
         );
-        setToggling(null);
+        setTogglingIds(new Set());
         return;
       }
 
@@ -307,7 +333,7 @@ export function EntityCrud<T extends EntityRow>({
         } | null;
         setRows(previous);
         toast.push("error", body?.detail ?? "That did not save.");
-        setToggling(null);
+        setTogglingIds(new Set());
         return;
       }
 
@@ -317,7 +343,70 @@ export function EntityCrud<T extends EntityRow>({
       setRows(previous);
       toast.push("error", "Could not reach the server — put back as it was.");
     }
-    setToggling(null);
+    setTogglingIds(new Set());
+  }
+
+  /**
+   * Bulk publish/hide — the same whole-array write `flip` uses, just with
+   * more than one row changed before the single commit. One round trip
+   * rather than N: besides being faster, N separate writes would each run
+   * their own concurrency check against a `baseline` that the FIRST write
+   * already moved past, so writes 2..N would spuriously fail as "someone
+   * else changed this list" against their own sibling.
+   */
+  async function bulkFlip(next: boolean) {
+    if (!rowToggle || selected.size === 0) return;
+    const ids = new Set(selected);
+    const flipped = rows.map((r) =>
+      ids.has(r.id) ? rowToggle.apply(r, next) : r,
+    );
+
+    const previous = rows;
+    setRows(flipped);
+    setTogglingIds(ids);
+
+    try {
+      const current = await fetchCurrent();
+      if (current && JSON.stringify(current) !== JSON.stringify(baseline)) {
+        setRows(previous);
+        toast.push(
+          "error",
+          "Someone else changed this list while you were editing. Reload before saving so their work is not lost.",
+        );
+        setTogglingIds(new Set());
+        return;
+      }
+
+      const res = await fetch(`/api/admin/content/${collection}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload: flipped }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          detail?: string;
+        } | null;
+        setRows(previous);
+        toast.push("error", body?.detail ?? "That did not save.");
+        setTogglingIds(new Set());
+        return;
+      }
+
+      setBaseline(flipped);
+      setSelected(new Set());
+      // The row's OWN verb, read at the state it is moving FROM — "Put on
+      // sale" for a bulk turn-on, "Hide" for a bulk turn-off — so this reads
+      // in whatever vocabulary the collection already uses, with no new
+      // per-collection copy required.
+      toast.push(
+        "ok",
+        `${rowToggle.label(!next)} — ${ids.size} record${ids.size === 1 ? "" : "s"}.`,
+      );
+    } catch {
+      setRows(previous);
+      toast.push("error", "Could not reach the server — put back as it was.");
+    }
+    setTogglingIds(new Set());
   }
 
   async function move(index: number, dir: -1 | 1) {
@@ -359,7 +448,8 @@ export function EntityCrud<T extends EntityRow>({
    * would move the wrong row as soon as anything was filtered out.
    */
   function renderItem(row: T, index: number) {
-    const isToggling = toggling === row.id;
+    const isToggling = togglingIds.has(row.id);
+    const isSelected = selected.has(row.id);
     return (
           <li
             key={row.id}
@@ -371,6 +461,22 @@ export function EntityCrud<T extends EntityRow>({
               carry the state for anyone not looking at it.
             */}
             {isToggling && <span aria-hidden className="admin-shimmer" />}
+            {/*
+              Bulk selection (PHASE22 §E) — every row, on every collection
+              that uses this shell, with no per-view opt-in required.
+            */}
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={(e) => {
+                const next = new Set(selected);
+                if (e.target.checked) next.add(row.id);
+                else next.delete(row.id);
+                setSelected(next);
+              }}
+              aria-label={`Select ${row.id}`}
+              className="h-4 w-4 shrink-0 accent-black02"
+            />
             {/*
               Faded, not struck through or greyed to unreadable: the record
               is intact and one press from being back, and it still has to
@@ -407,7 +513,7 @@ export function EntityCrud<T extends EntityRow>({
                   disabled={busy || index === 0}
                   onClick={() => void move(index, -1)}
                   aria-label={`Move ${row.id} up`}
-                  className="rounded-pill p-1.5 text-black02/55 hover:bg-pastel hover:text-black02 disabled:opacity-25"
+                  className="rounded-pill p-1.5 text-black02/65 hover:bg-pastel hover:text-black02 disabled:opacity-25"
                 >
                   <ArrowsDownUp
                     size={14}
@@ -420,7 +526,7 @@ export function EntityCrud<T extends EntityRow>({
                   disabled={busy || index === rows.length - 1}
                   onClick={() => void move(index, 1)}
                   aria-label={`Move ${row.id} down`}
-                  className="rounded-pill p-1.5 text-black02/55 hover:bg-pastel hover:text-black02 disabled:opacity-25"
+                  className="rounded-pill p-1.5 text-black02/65 hover:bg-pastel hover:text-black02 disabled:opacity-25"
                 >
                   <ArrowsDownUp size={14} weight="bold" />
                 </button>
@@ -436,8 +542,8 @@ export function EntityCrud<T extends EntityRow>({
                 aria-busy={isToggling}
                 className={`rounded-pill border-2 px-3 py-1 text-caption font-bold transition-colors disabled:opacity-50 ${
                   rowToggle.value(row)
-                    ? "border-black02/25 text-black02/60 hover:bg-pastel hover:text-black02"
-                    : "border-success text-success hover:bg-success-pastel"
+                    ? "border-black02/25 text-black02/65 hover:bg-pastel hover:text-black02"
+                    : "border-success text-success-ink hover:bg-success-pastel"
                 }`}
               >
                 {rowToggle.label(rowToggle.value(row))}
@@ -457,7 +563,7 @@ export function EntityCrud<T extends EntityRow>({
               type="button"
               onClick={() => setConfirming(row.id)}
               aria-label={`Delete ${row.id}`}
-              className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-danger-pastel hover:text-danger"
+              className="rounded-pill border border-black02/20 p-2 text-black02 hover:bg-danger-pastel hover:text-danger-ink"
             >
               <Trash size={14} weight="bold" />
             </button>
@@ -480,13 +586,89 @@ export function EntityCrud<T extends EntityRow>({
       </div>
 
       {rows.length > 0 && filtered && (
-        <p className="text-caption text-black02/60">
+        <p className="text-caption text-black02/65">
           Showing {shown.length} of {rows.length}.
         </p>
       )}
 
+      {/*
+        Bulk actions (PHASE22 §E) — select-all scoped to what a FILTER is
+        currently showing, never the whole underlying array, the same rule
+        `filter` already applies to everything else in this shell: what is
+        on screen is what an action here can reach, nothing hidden by a
+        search box gets touched by accident.
+      */}
+      {shown.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-black02/15 bg-pastel/40 px-4 py-2.5">
+          <label className="flex items-center gap-2 text-caption font-bold text-black02/70">
+            <input
+              type="checkbox"
+              checked={
+                selected.size > 0 &&
+                shown.every((row) => selected.has(row.id))
+              }
+              ref={(el) => {
+                if (!el) return;
+                const some = shown.some((row) => selected.has(row.id));
+                const all = shown.every((row) => selected.has(row.id));
+                el.indeterminate = some && !all;
+              }}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelected(new Set(shown.map((row) => row.id)));
+                } else {
+                  setSelected(new Set());
+                }
+              }}
+              className="h-4 w-4 accent-black02"
+            />
+            {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+          </label>
+
+          {selected.size > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {rowToggle && (
+                <>
+                  <button
+                    type="button"
+                    disabled={busy || togglingIds.size > 0}
+                    onClick={() => void bulkFlip(true)}
+                    className="rounded-pill border-2 border-success px-3 py-1 font-sans text-caption font-bold text-success-ink hover:bg-success-pastel disabled:opacity-40"
+                  >
+                    {rowToggle.label(false)}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy || togglingIds.size > 0}
+                    onClick={() => void bulkFlip(false)}
+                    className="rounded-pill border-2 border-black02/25 px-3 py-1 font-sans text-caption font-bold text-black02/65 hover:bg-pastel disabled:opacity-40"
+                  >
+                    {rowToggle.label(true)}
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setBulkConfirming(true)}
+                className="rounded-pill border-2 border-danger px-3 py-1 font-sans text-caption font-bold text-danger-ink hover:bg-danger-pastel disabled:opacity-40"
+              >
+                Delete selected
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelected(new Set())}
+                className="font-mono text-caption font-bold uppercase tracking-wide text-black02/65 underline decoration-2 underline-offset-2 hover:text-black02"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {shown.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-black02/25 px-4 py-10 text-center text-body-m text-black02/60">
+        <p className="rounded-lg border border-dashed border-black02/25 px-4 py-10 text-center text-body-m text-black02/65">
           {rows.length === 0 ? emptyLabel : "Nothing matches that."}
         </p>
       ) : grouped ? (
@@ -506,7 +688,7 @@ export function EntityCrud<T extends EntityRow>({
             .filter(([, group]) => group.length > 0)
             .map(([label, group]) => (
               <section key={label}>
-                <h3 className="mb-2 font-mono text-caption font-bold uppercase tracking-wide text-black02/45">
+                <h3 className="mb-2 font-mono text-caption font-bold uppercase tracking-wide text-black02/65">
                   {label}
                   <span className="ml-1.5 font-normal">({group.length})</span>
                 </h3>
@@ -538,6 +720,32 @@ export function EntityCrud<T extends EntityRow>({
             />
           );
         })()}
+
+      {bulkConfirming && (
+        <ConfirmBulkDeleteModal
+          items={rows
+            .filter((row) => selected.has(row.id))
+            .map((row) => ({
+              id: row.id,
+              label: row.id,
+              impact: describeImpact?.(row) ?? null,
+            }))}
+          busy={busy}
+          onConfirm={() => {
+            const deletableIds = new Set(
+              rows
+                .filter(
+                  (row) =>
+                    selected.has(row.id) &&
+                    !describeImpact?.(row)?.blocked,
+                )
+                .map((row) => row.id),
+            );
+            void confirmBulkDelete(deletableIds);
+          }}
+          onCancel={() => setBulkConfirming(false)}
+        />
+      )}
 
       {draft && (
         <EditorDrawer
@@ -599,7 +807,7 @@ function EditorDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-pill px-3 py-1.5 text-body-m font-bold text-black02/60 hover:bg-pastel hover:text-black02"
+            className="rounded-pill px-3 py-1.5 text-body-m font-bold text-black02/65 hover:bg-pastel hover:text-black02"
           >
             Close
           </button>

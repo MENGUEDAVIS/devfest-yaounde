@@ -27,8 +27,9 @@ const OUTLINE_CLASSES: Record<ButtonTone, string> = {
   black02: "border-black02 text-black02 hover:bg-black02 hover:text-offwhite",
   offwhite:
     "border-offwhite text-offwhite hover:bg-offwhite hover:text-black02",
-  blue: "border-blue text-blue hover:bg-blue hover:text-offwhite",
-  success: "border-success text-success hover:bg-success hover:text-offwhite",
+  blue: "border-blue text-blue-ink hover:bg-blue hover:text-offwhite",
+  success:
+    "border-success text-success-ink hover:bg-success hover:text-offwhite",
 };
 
 /** §7b: chunky. ~18-24px vertical, ~32-40px horizontal, 18px+ bold label. */

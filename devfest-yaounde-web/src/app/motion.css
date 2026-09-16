@@ -70,6 +70,17 @@
   }
 }
 
+/* Fills left-to-right over the active dot's own rotation window — see
+   .anim-quote-progress below. */
+@keyframes df-quote-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 @keyframes df-modal-backdrop {
   0% {
     opacity: 0;
@@ -355,6 +366,16 @@
 
 .anim-marquee-track:hover .anim-marquee {
   animation-play-state: paused;
+}
+
+/*
+ * The active dot in a rotating set (testimonials) doubling as a countdown to
+ * its own next advance — set `--quote-rotate-ms` to match the component's
+ * actual rotation interval so the fill lands exactly as the next quote
+ * appears, not a guessed duration that drifts out of sync with it.
+ */
+.anim-quote-progress {
+  animation: df-quote-progress var(--quote-rotate-ms, 6000ms) linear forwards;
 }
 
 /* Easter-egg confetti piece — set --confetti-x/-y/-r per piece */
@@ -1223,6 +1244,38 @@
   transform: rotate(calc(var(--polaroid-tilt, 2deg) * 0.45));
 }
 
+/*
+ * MEMORY LANE'S PHOTOS REUSE THIS FRAME (PHASE22 §A7) — the same thick
+ * white border, black outline and offset shadow, not a second print
+ * treatment built to look similar.
+ *
+ * `.polaroid`'s base sizing is HEIGHT-DRIVEN (`height: 72%` of a definite-
+ * height parent), because it was built for the cinema slide, whose row has
+ * one. A grid cell doesn't — it is sized by its own column width — so this
+ * override switches the frame to WIDTH-DRIVEN instead: fill the cell,
+ * derive height from the photo's own aspect ratio. Everything else
+ * (border, padding, shadow, the `--polaroid-tilt` lean) is untouched.
+ */
+.polaroid.memory-polaroid {
+  height: auto;
+  width: 100%;
+  /*
+   * No independent tilt here — `.polaroid`'s base rule always rotates by
+   * `--polaroid-tilt` (default 2deg), and Memory Lane already has its OWN
+   * per-photo resting tilt on the OUTER `.stage-photo` wrapper
+   * (`--stage-rot`, driven by the scroll-in/out choreography). Leaving both
+   * active would add a flat +2deg on top of every photo's real tilt rather
+   * than varying anything; zeroing this one keeps the frame's border,
+   * padding and shadow while leaving rotation entirely to the wrapper that
+   * already owns it.
+   */
+  transform: none;
+}
+.polaroid.memory-polaroid > * {
+  height: auto;
+  width: 100%;
+}
+
 /* SCHEDULE (PHASE7 §6) — session cards fanning in on view change */
 @keyframes df-session-in {
   0% {
@@ -1394,6 +1447,7 @@
   .anim-hero-rise,
   .anim-shape-drift,
   .anim-marquee,
+  .anim-quote-progress,
   .anim-confetti-piece,
   .anim-modal-backdrop,
   .anim-modal-pop,

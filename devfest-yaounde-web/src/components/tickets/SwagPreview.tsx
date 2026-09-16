@@ -32,7 +32,7 @@ export function SwagPreview({ items }: { items: Product[] }) {
 
   return (
     <div className="mt-6">
-      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/55">
+      <p className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
         {t("swagLabel", { count: items.length })}
       </p>
       <ul className="swag-row mt-3 flex flex-wrap items-end gap-3">

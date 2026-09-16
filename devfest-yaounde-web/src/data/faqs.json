@@ -1,95 +1,38 @@
 [
   {
-    "id": "faq-ticket-required",
+    "id": "faq-what-is-devfest",
     "category": "general",
     "question": {
-      "fr": "Ai-je besoin d'un billet pour participer ?",
-      "en": "Do I need a ticket to attend?"
+      "fr": "C'est quoi DevFest Yaoundé ?",
+      "en": "What is DevFest Yaoundé?"
     },
     "answer": {
-      "fr": "Oui — même notre billet gratuit nécessite une réservation, pour qu'on puisse bien organiser la salle. Direction la page Billets pour récupérer le vôtre.",
-      "en": "Yes — even our free tier needs a ticket so we can plan the room properly. Head to the Tickets page to grab yours."
-    },
-    "cta": {
-      "label": {
-        "fr": "Prendre un billet",
-        "en": "Get a ticket"
-      },
-      "href": "/tickets"
+      "fr": "DevFest Yaoundé, c'est le grand rendez-vous annuel de notre communauté, organisé par GDG Yaoundé — une journée complète de talks, d'ateliers et de vraies conversations avec des développeurs, designers et passionnés de tech du Cameroun et d'ailleurs. Moins « conférence », plus « une super journée avec sa communauté ».",
+      "en": "DevFest Yaoundé is our community's flagship yearly conference, organized by GDG Yaoundé — a full day of talks, workshops, and hallway conversations with developers, designers, and tech enthusiasts from Cameroon and beyond. Think less \"conference,\" more \"a really good day with your community.\""
     }
   },
   {
-    "id": "faq-beginner-friendly",
+    "id": "faq-who-organizes",
     "category": "general",
     "question": {
-      "fr": "Est-ce adapté aux débutants ?",
-      "en": "Is this beginner-friendly?"
+      "fr": "Qui organise DevFest Yaoundé ?",
+      "en": "Who organizes DevFest Yaoundé?"
     },
     "answer": {
-      "fr": "Tout à fait. DevFest Yaoundé s'adresse à toute personne curieuse de construire des choses, pas seulement aux ingénieurs expérimentés — aucune expérience de conférence requise.",
-      "en": "Very. DevFest Yaoundé is for anyone curious about building things, not just senior engineers — no prior conference experience required."
-    },
-    "cta": {
-      "label": {
-        "fr": "Voir les speakers",
-        "en": "Meet the speakers"
-      },
-      "href": "/speakers"
+      "fr": "GDG Yaoundé (Google Developer Group Yaoundé) — une communauté animée par des bénévoles, ouverte à toute personne curieuse de tech, du débutant complet à l'ingénieur chevronné. DevFest est notre plus gros événement de l'année, mais on organise des meetups et ateliers toute l'année.",
+      "en": "GDG Yaoundé (Google Developer Group Yaoundé) — a volunteer-run community open to anyone curious about tech, from complete beginners to seasoned engineers. DevFest is our biggest event of the year, but we run meetups and workshops year-round too."
     }
   },
   {
-    "id": "faq-language",
+    "id": "faq-when-where",
     "category": "general",
     "question": {
-      "fr": "Les sessions sont-elles en français ou en anglais ?",
-      "en": "Are sessions in French or English?"
+      "fr": "Quand et où ça se passe ?",
+      "en": "When and where is it happening?"
     },
     "answer": {
-      "fr": "Les deux. Chaque intervenant présente dans la langue où il est le plus à l'aise, et le programme indiquera la langue de chaque session.",
-      "en": "Both. Each speaker presents in whichever language they're most comfortable in, and the schedule will label the language per session."
-    }
-  },
-  {
-    "id": "faq-price",
-    "category": "tickets",
-    "question": {
-      "fr": "Combien coûte un billet ?",
-      "en": "How much is a ticket?"
-    },
-    "answer": {
-      "fr": "Les tarifs ne sont pas encore finalisés. Il y aura un palier gratuit et plusieurs paliers payants avec du swag — tout sera détaillé sur la page Billets.",
-      "en": "Pricing isn't finalised yet. There'll be a free tier plus a few paid tiers with swag — full details will land on the Tickets page."
-    },
-    "cta": {
-      "label": {
-        "fr": "Voir les tarifs",
-        "en": "See ticket tiers"
-      },
-      "href": "/tickets"
-    }
-  },
-  {
-    "id": "faq-refunds",
-    "category": "tickets",
-    "question": {
-      "fr": "Puis-je me faire rembourser un billet ?",
-      "en": "Can I get a refund on a ticket?"
-    },
-    "answer": {
-      "fr": "Non. Les billets ne sont ni remboursables ni annulables, une fois payés — ni en cas de changement de programme, ni après l'événement. En revanche, tu peux transférer ta place : donne-nous le nom de la personne avant le jour J et on met le billet à son nom.",
-      "en": "No. Tickets are non-refundable and non-cancellable once paid — not for a change of plans, and not after the event. You can pass yours on, though: tell us the new name before the day and we'll put the ticket in it."
-    }
-  },
-  {
-    "id": "faq-venue",
-    "category": "venue",
-    "question": {
-      "fr": "Où se déroule DevFest Yaoundé ?",
-      "en": "Where is DevFest Yaoundé held?"
-    },
-    "answer": {
-      "fr": "À Yaoundé — le lieu exact sera annoncé à l'approche de la date.",
-      "en": "In Yaoundé — exact venue details will be announced closer to the date."
+      "fr": "DevFest Yaoundé 2026 se déroule sur deux samedis, les 21 et 28 novembre 2026, à Yaoundé, au Cameroun. Les détails du lieu et le programme complet sont sur la page Programme — reviens un peu avant la date pour les infos définitives.",
+      "en": "DevFest Yaoundé 2026 runs across two Saturdays, November 21 and 28, 2026, in Yaoundé, Cameroon. Full venue details and the day's schedule are on the Schedule page — check back as we get closer to the date."
     },
     "cta": {
       "label": {
@@ -100,39 +43,215 @@
     }
   },
   {
-    "id": "faq-food",
-    "category": "venue",
+    "id": "faq-speak",
+    "category": "general",
     "question": {
-      "fr": "Y a-t-il de quoi manger sur place ?",
-      "en": "Is there food at the event?"
+      "fr": "Comment je postule pour parler ?",
+      "en": "How do I apply to speak?"
     },
     "answer": {
-      "fr": "Oui, le déjeuner est prévu. Préviens-nous de tes restrictions alimentaires au moment de la réservation.",
-      "en": "Yes, lunch is covered. Tell us about dietary needs when you book and we'll sort it."
+      "fr": "Notre appel à conférenciers est ouvert sur Sessionize jusqu'au 31 octobre 2026. Soumets ta session là-bas — le lien est dans la bannière ou sur la page Speakers.",
+      "en": "Our Call for Speakers is open on Sessionize through October 31, 2026. Submit your session there — look for the link in the banner or on the Speakers page."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir les speakers",
+        "en": "Meet the speakers"
+      },
+      "href": "/speakers"
     }
   },
   {
-    "id": "faq-accessibility",
-    "category": "venue",
+    "id": "faq-contact",
+    "category": "general",
     "question": {
-      "fr": "Le lieu est-il accessible ?",
-      "en": "Is the venue accessible?"
+      "fr": "J'ai une question qui n'est pas ici — je contacte qui ?",
+      "en": "I have a question that's not answered here — who do I contact?"
     },
     "answer": {
-      "fr": "C'est un critère dans notre choix de lieu. Si tu as un besoin d'accès précis, écris-nous — on préfère le savoir tôt.",
-      "en": "It's a factor in how we choose the venue. If you have a specific access need, tell us — earlier is easier."
+      "fr": "Écris-nous à gdgyaounde@gmail.com — un vrai humain (enfin, un bénévole) te répondra.",
+      "en": "Email us at gdgyaounde@gmail.com — a real human (well, a volunteer) will get back to you."
+    },
+    "cta": {
+      "label": {
+        "fr": "Nous écrire",
+        "en": "Email us"
+      },
+      "href": "mailto:gdgyaounde@gmail.com",
+      "external": true
     }
   },
   {
-    "id": "faq-swag-ship",
+    "id": "faq-ticket-types",
+    "category": "tickets",
+    "question": {
+      "fr": "Quels sont les types de billets disponibles ?",
+      "en": "What ticket types are available?"
+    },
+    "answer": {
+      "fr": "Cinq paliers, nommés d'après les versions de Claude (oui, vraiment) : Haikyu (gratuit), Sonnet, Opus, Fable et Mythos — chaque palier au-dessus débloque plus de swag et d'avantages. Regarde la page Billets pour le détail de chacun.",
+      "en": "Five tiers, named after Claude model releases (yes, really): Haikyu (free), Sonnet, Opus, Fable, and Mythos — each higher tier unlocking more swag and perks. See the Tickets page for exactly what each includes."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir les tarifs",
+        "en": "See ticket tiers"
+      },
+      "href": "/tickets"
+    }
+  },
+  {
+    "id": "faq-free-ticket",
+    "category": "tickets",
+    "question": {
+      "fr": "Comment j'obtiens le billet gratuit ?",
+      "en": "How do I get the free ticket?"
+    },
+    "answer": {
+      "fr": "Le pass gratuit (Haikyu) se réserve sur notre page communautaire GDG Bevy plutôt que sur ce site — clique depuis la page Billets pour y aller. Une seule réservation gratuite par personne.",
+      "en": "The free pass (Haikyu) is handled through our GDG Bevy page rather than on this site — click through from the Tickets page and RSVP there. You can only claim one free RSVP per person."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir les tarifs",
+        "en": "See ticket tiers"
+      },
+      "href": "/tickets"
+    }
+  },
+  {
+    "id": "faq-payment-method",
+    "category": "tickets",
+    "question": {
+      "fr": "Comment je paie un billet payant ?",
+      "en": "How do I pay for a paid ticket?"
+    },
+    "answer": {
+      "fr": "On accepte uniquement le Mobile Money — MTN MoMo et Orange Money. Pas encore de paiement par carte.",
+      "en": "We currently accept Mobile Money only — MTN MoMo and Orange Money. We don't support card payments yet."
+    }
+  },
+  {
+    "id": "faq-ticket-for-someone-else",
+    "category": "tickets",
+    "question": {
+      "fr": "Puis-je acheter un billet pour quelqu'un d'autre ?",
+      "en": "Can I buy a ticket for someone else?"
+    },
+    "answer": {
+      "fr": "Oui — achète autant de billets payants que tu veux et remplis les infos de chaque participant séparément, y compris en te marquant toi-même si tu assistes aussi. Il nous faut juste un moyen d'identifier chaque participant (téléphone et/ou email).",
+      "en": "Yes — buy any number of paid tickets and fill in each attendee's details separately, including marking one as your own if you're attending too. We just need a way to identify each attendee (phone and/or email)."
+    }
+  },
+  {
+    "id": "faq-discount-codes",
+    "category": "tickets",
+    "question": {
+      "fr": "Proposez-vous des codes de réduction ?",
+      "en": "Do you offer discount codes?"
+    },
+    "answer": {
+      "fr": "Si tu as un code (donné par un sponsor ou un partenaire, par exemple), ajoute-le dans le récapitulatif de commande au moment du paiement, avant de payer.",
+      "en": "If you have a code (from a sponsor or partner, say), add it in the order summary during checkout, before you pay."
+    }
+  },
+  {
+    "id": "faq-refunds",
+    "category": "tickets",
+    "question": {
+      "fr": "Les billets sont-ils remboursables ?",
+      "en": "Are tickets refundable?"
+    },
+    "answer": {
+      "fr": "Non — les billets ne sont pas remboursables une fois achetés. On le précise clairement au moment du paiement, avant que tu paies, pour qu'il n'y ait pas de surprise.",
+      "en": "No — tickets are non-refundable once purchased. We flag this clearly at checkout before you pay, so there are no surprises."
+    }
+  },
+  {
+    "id": "faq-no-confirmation-email",
+    "category": "tickets",
+    "question": {
+      "fr": "J'ai acheté un billet mais je n'ai pas reçu d'email de confirmation.",
+      "en": "I bought a ticket but haven't received a confirmation email."
+    },
+    "answer": {
+      "fr": "Tu dois recevoir une confirmation avec ton billet et ton QR code peu après le paiement. Si rien n'arrive après quelques minutes, vérifie tes spams, puis écris-nous à gdgyaounde@gmail.com et on règle ça.",
+      "en": "You should get a confirmation with your ticket and QR code shortly after payment. If it hasn't arrived after a few minutes, check spam, then email gdgyaounde@gmail.com and we'll sort it out."
+    },
+    "cta": {
+      "label": {
+        "fr": "Nous écrire",
+        "en": "Email us"
+      },
+      "href": "mailto:gdgyaounde@gmail.com",
+      "external": true
+    }
+  },
+  {
+    "id": "faq-ticket-bought-for-friend",
+    "category": "tickets",
+    "question": {
+      "fr": "J'ai acheté un billet pour un ami — peut-il le gérer lui-même ?",
+      "en": "I bought a ticket for a friend — can they manage it themselves?"
+    },
+    "answer": {
+      "fr": "Oui — si tu as acheté un billet pour quelqu'un d'autre, cette personne peut le récupérer sur son propre compte pour le gérer et se présenter à l'accueil avec.",
+      "en": "Yes — if you bought a ticket on someone else's behalf, they can claim it into their own account to manage and check in with it themselves."
+    }
+  },
+  {
+    "id": "faq-what-to-bring",
+    "category": "venue",
+    "question": {
+      "fr": "Qu'est-ce que je dois apporter ?",
+      "en": "What should I bring?"
+    },
+    "answer": {
+      "fr": "Juste toi-même, une pièce d'identité valide au nom indiqué sur ton billet, et peut-être une veste si tu es frileux dans les salles climatisées. Les laptops sont bienvenus si tu suis un atelier.",
+      "en": "Just yourself, a valid ID matching the name on your ticket, and maybe a jacket if you run cold in AC'd rooms. Laptops are welcome if you're following along with a workshop."
+    }
+  },
+  {
+    "id": "faq-parking-accessibility",
+    "category": "venue",
+    "question": {
+      "fr": "Y a-t-il un parking / le lieu est-il accessible ?",
+      "en": "Is there parking / is the venue accessible?"
+    },
+    "answer": {
+      "fr": "Les détails seront publiés sur la page Événement une fois le lieu confirmé — reviens à l'approche de la date.",
+      "en": "Details will be posted on the Event page once the venue is finalized — check back closer to the date."
+    }
+  },
+  {
+    "id": "faq-food-venue",
+    "category": "venue",
+    "question": {
+      "fr": "Y aura-t-il de quoi manger ?",
+      "en": "Will there be food?"
+    },
+    "answer": {
+      "fr": "Ça dépend de ton palier de billet — regarde la page Billets pour voir exactement ce qui est inclus dans chacun.",
+      "en": "Depends on your ticket tier — check the Tickets page for exactly what's included with each pass."
+    },
+    "cta": {
+      "label": {
+        "fr": "Voir les tarifs",
+        "en": "See ticket tiers"
+      },
+      "href": "/tickets"
+    }
+  },
+  {
+    "id": "faq-shop-without-ticket",
     "category": "shop",
     "question": {
-      "fr": "Livrez-vous le swag ?",
-      "en": "Do you ship the swag?"
+      "fr": "Puis-je acheter du merch sans acheter de billet ?",
+      "en": "Can I buy merch without buying a ticket?"
     },
     "answer": {
-      "fr": "La logistique de livraison n'est pas encore arrêtée. Le retrait sur place le jour J sera possible dans tous les cas.",
-      "en": "Shipping logistics aren't settled yet. Pickup at the venue on the day will always be an option."
+      "fr": "Oui — la boutique est ouverte à tous, billet ou pas, avant, pendant et après l'événement.",
+      "en": "Yes — the shop is open to everyone, ticket or not, and stays open before, during, and after the event."
     },
     "cta": {
       "label": {
@@ -143,15 +262,15 @@
     }
   },
   {
-    "id": "faq-swag-after",
+    "id": "faq-order-pickup-delivery",
     "category": "shop",
     "question": {
-      "fr": "Puis-je acheter du swag après l'événement ?",
-      "en": "Can I buy swag after the event?"
+      "fr": "Comment je récupère ma commande — retrait ou livraison ?",
+      "en": "How do I get my order — pickup or delivery?"
     },
     "answer": {
-      "fr": "La boutique reste ouverte toute l'année, pas seulement pendant l'événement.",
-      "en": "The shop stays open year-round, not just during the event."
+      "fr": "Au moment de payer, tu choisis retrait sur place ou livraison directement dans le récapitulatif de commande.",
+      "en": "You choose pickup at the venue or shipping right in the order summary at checkout."
     }
   },
   {
@@ -159,35 +278,47 @@
     "category": "shop",
     "question": {
       "fr": "Puis-je retourner ou échanger un article ?",
-      "en": "Can I return or exchange an item?"
+      "en": "Can I return or exchange something I bought?"
     },
     "answer": {
-      "fr": "Pas de remboursement si tu changes d'avis. Mais si un article arrive abîmé, défectueux ou ne correspond pas à ta commande, on le remplace. Et pour les vêtements, tu peux échanger contre une autre taille tant qu'il en reste. Les échanges se règlent directement avec nous — écris-nous ou retrouve-nous au prochain événement.",
-      "en": "No refunds if you change your mind. But if something arrives damaged, faulty or isn't what you ordered, we'll replace it. And apparel can be exchanged for another size while stock lasts. Exchanges are handled directly with us — write to us, or find us at the next event."
+      "fr": "Pas de remboursement en cas de changement d'avis, mais si un article arrive abîmé, défectueux ou incorrect — ou qu'un vêtement ne te va pas — écris-nous et on trouve un échange, selon le stock disponible.",
+      "en": "Change-of-mind purchases aren't refundable, but if something arrives damaged, defective, or wrong — or apparel just doesn't fit — reach out and we'll sort out an exchange, subject to stock."
+    }
+  },
+  {
+    "id": "faq-sold-out",
+    "category": "shop",
+    "question": {
+      "fr": "Et si un produit que je veux est en rupture de stock ?",
+      "en": "What if a product I want is sold out?"
+    },
+    "answer": {
+      "fr": "Les articles épuisés sont clairement indiqués sur la boutique. Repasse de temps en temps — on se réapprovisionne parfois.",
+      "en": "Sold-out items are marked clearly on the shop page. Check back — we sometimes restock."
+    }
+  },
+  {
+    "id": "faq-inclusive",
+    "category": "code-of-conduct",
+    "question": {
+      "fr": "DevFest Yaoundé est-il inclusif / qui peut y assister ?",
+      "en": "Is DevFest Yaoundé inclusive / who can attend?"
+    },
+    "answer": {
+      "fr": "Tout le monde. GDG Yaoundé est une communauté inclusive pour toute personne curieuse de tech — débutant ou expert, étudiant ou professionnel. DevFest est fait pour vous tous.",
+      "en": "Everyone. GDG Yaoundé is an inclusive community for anyone curious about tech — beginner or expert, student or professional. DevFest is for all of you."
     }
   },
   {
     "id": "faq-conduct",
     "category": "code-of-conduct",
     "question": {
-      "fr": "Y a-t-il des règles de conduite ?",
-      "en": "Are there rules of conduct?"
+      "fr": "Quelles sont vos règles de conduite ?",
+      "en": "What's your code of conduct?"
     },
     "answer": {
-      "fr": "Oui — les conditions de participation GDG, et elles s'appliquent à tout le monde : participants, intervenants, organisateurs, sponsors. Le lien est en bas de page.",
-      "en": "Yes — the GDG participation terms, and they apply to everyone: attendees, speakers, organisers, sponsors. The link is in the footer."
-    }
-  },
-  {
-    "id": "faq-report",
-    "category": "code-of-conduct",
-    "question": {
-      "fr": "Comment signaler un problème pendant l'événement ?",
-      "en": "How do I report a problem during the event?"
-    },
-    "answer": {
-      "fr": "Trouve n'importe quel organisateur — on est identifiables — ou écris-nous sur les réseaux. On te prend au sérieux, et on ne te demandera pas de régler ça toi-même.",
-      "en": "Find any organiser — we're identifiable — or reach us on socials. We take it seriously, and we will not ask you to handle it yourself."
+      "fr": "On suit les conditions de participation des Google Developer Groups — respectueuses, sans harcèlement et accueillantes pour tout le monde. Si quelque chose te semble anormal pendant l'événement, préviens un organisateur tout de suite ou écris à gdgyaounde@gmail.com.",
+      "en": "We follow Google Developer Groups' participation terms — respectful, harassment-free, and welcoming to everyone. If anything ever feels off during the event, tell an organizer immediately or email gdgyaounde@gmail.com."
     }
   }
 ]

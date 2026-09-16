@@ -78,7 +78,7 @@ export function PaymentStep({
           inputMode="numeric"
           className="rounded-lg border-2 border-black02 bg-offwhite px-4 py-2.5 font-mono text-body-m text-black02"
         />
-        <span className="text-caption text-black02/60">{t("phoneHint")}</span>
+        <span className="text-caption text-black02/65">{t("phoneHint")}</span>
       </label>
 
       {extra}

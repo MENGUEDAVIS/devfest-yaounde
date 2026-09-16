@@ -51,7 +51,7 @@ export function FilterGroup({
         >
           <span
             id={headingId}
-            className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60"
+            className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65"
           >
             {label}
           </span>
@@ -59,7 +59,7 @@ export function FilterGroup({
             size={16}
             weight="bold"
             aria-hidden
-            className={`shrink-0 text-black02/50 transition-transform duration-300 ease-bouncy motion-reduce:transition-none ${
+            className={`shrink-0 text-black02/65 transition-transform duration-300 ease-bouncy motion-reduce:transition-none ${
               open ? "rotate-180" : ""
             }`}
           />
@@ -67,7 +67,7 @@ export function FilterGroup({
       ) : (
         <p
           id={headingId}
-          className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60"
+          className="font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65"
         >
           {label}
         </p>

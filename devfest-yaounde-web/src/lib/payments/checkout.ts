@@ -20,6 +20,7 @@ import { createPaymentIntent, logPaymentEvent, markFailed } from "./intents";
 import { fulfilFreeIntent } from "./apply";
 import { createDepositId, createPaymentPage } from "@/lib/pawapay/client";
 import { assertBadgeSecretConfigured } from "@/lib/security/badge-code";
+import { assertClaimSecretConfigured } from "@/lib/security/claim-token";
 import { refundAcknowledgment } from "./terms";
 
 export interface CheckoutResult {
@@ -53,8 +54,11 @@ export async function startCheckout(
   input: StartCheckoutInput,
 ): Promise<CheckoutResult> {
   // Before anything irreversible: a ticket order that cannot mint badge codes
-  // must fail now, not after the buyer has paid for it.
-  if (input.kind === "tickets") assertBadgeSecretConfigured();
+  // or claim links must fail now, not after the buyer has paid for it.
+  if (input.kind === "tickets") {
+    assertBadgeSecretConfigured();
+    assertClaimSecretConfigured();
+  }
 
   const depositId = createDepositId();
 

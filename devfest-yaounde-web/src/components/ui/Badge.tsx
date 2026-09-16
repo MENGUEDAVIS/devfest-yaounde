@@ -6,10 +6,11 @@ export type BadgeVariant = "solid" | "outline";
 const SOLID_CLASSES: Record<BadgeTone, string> = {
   /** Follows the active theme (DESIGN.md §2.5). */
   primary: "bg-pastel text-black02",
-  blue: "bg-blue-pastel text-blue",
+  /** `text-blue` itself is under 4.5:1 on `bg-blue-pastel` — see `--color-blue-ink` in globals.css. */
+  blue: "bg-blue-pastel text-blue-ink",
   /** FIXED status colours — never themed, so meaning survives a theme swap. */
-  success: "bg-success-pastel text-success",
-  danger: "bg-danger-pastel text-danger",
+  success: "bg-success-pastel text-success-ink",
+  danger: "bg-danger-pastel text-danger-ink",
 };
 
 /**
@@ -21,9 +22,9 @@ const SOLID_CLASSES: Record<BadgeTone, string> = {
  */
 const OUTLINE_CLASSES: Record<BadgeTone, string> = {
   primary: "border-2 border-black02 bg-offwhite text-black02",
-  blue: "border-2 border-blue bg-offwhite text-blue",
-  success: "border-2 border-success bg-offwhite text-success",
-  danger: "border-2 border-danger bg-offwhite text-danger",
+  blue: "border-2 border-blue bg-offwhite text-blue-ink",
+  success: "border-2 border-success bg-offwhite text-success-ink",
+  danger: "border-2 border-danger bg-offwhite text-danger-ink",
 };
 
 export interface BadgeProps {

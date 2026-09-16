@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowCounterClockwise,
   ArrowLeft,
   CalendarBlank,
   CaretDown,
@@ -10,6 +11,7 @@ import {
   Gear,
   Handshake,
   Image as ImageIcon,
+  Images,
   List,
   Microphone,
   Package,
@@ -36,6 +38,7 @@ import { AdminTicketTiers } from "./views/AdminTicketTiers";
 import { AdminShop } from "./views/AdminShop";
 import { AdminTransactions } from "./views/AdminTransactions";
 import { AdminOrders } from "./views/AdminOrders";
+import { AdminRefundTracker } from "./views/AdminRefundTracker";
 import { AdminDiscounts } from "./views/AdminDiscounts";
 import { AdminUsers } from "./views/AdminUsers";
 import { AdminContent } from "./views/AdminContent";
@@ -47,10 +50,12 @@ import { AdminSchedule } from "./views/AdminSchedule";
 import { AdminSponsors } from "./views/AdminSponsors";
 import { AdminTestimonials } from "./views/AdminTestimonials";
 import { AdminStats } from "./views/AdminStats";
+import { AdminMemoryLane } from "./views/AdminMemoryLane";
 import { ToastProvider } from "./forms/Toast";
 import type {
   Product,
   Quote,
+  PastEditionPhoto,
   Session,
   Speaker,
   Sponsor,
@@ -77,6 +82,7 @@ export type ViewId =
   | "shop"
   | "transactions"
   | "orders"
+  | "refunds"
   | "discounts"
   | "wall"
   | "testimonials"
@@ -87,6 +93,7 @@ export type ViewId =
   | "schedule"
   | "sponsors"
   | "stats"
+  | "memory-lane"
   | "config";
 
 const GROUPS: {
@@ -109,6 +116,7 @@ const GROUPS: {
       { id: "shop", label: "Shop", Icon: Storefront },
       { id: "transactions", label: "Transactions", Icon: Receipt },
       { id: "orders", label: "Shop orders", Icon: Package },
+      { id: "refunds", label: "Refunds & exchanges", Icon: ArrowCounterClockwise },
       { id: "discounts", label: "Discounts", Icon: Percent },
     ],
   },
@@ -128,6 +136,7 @@ const GROUPS: {
       { id: "team", label: "Team", Icon: UsersThree },
       { id: "sponsors", label: "Sponsors", Icon: Handshake },
       { id: "stats", label: "Figures", Icon: ChartLineUp },
+      { id: "memory-lane", label: "Memory Lane", Icon: Images },
       { id: "content", label: "Bulk & photos", Icon: Table },
     ],
   },
@@ -224,6 +233,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
     title: "Shop orders",
     blurb: "Fulfilment for merch. Move a row along when you pack it.",
   },
+  refunds: {
+    title: "Refunds & exchanges",
+    blurb:
+      "Log a request that came in by email, and track it through to done. Tickets stay non-refundable; this does not move money.",
+  },
   discounts: {
     title: "Discount codes",
     blurb: "Create a code, disable one. Redemptions are not editable.",
@@ -271,6 +285,11 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
     blurb:
       "The big numbers on the home page. Order here is left to right. Give a figure an image and hovering its number on a computer turns the cursor into that picture.",
   },
+  "memory-lane": {
+    title: "Memory Lane",
+    blurb:
+      "The photo grid on the home page's Memory Lane section. Order here is the order they're shown in; with nothing here the section shows a \u201ccoming soon\u201d placeholder instead.",
+  },
   config: {
     title: "Info bar and policies",
     blurb:
@@ -299,6 +318,7 @@ export interface AdminCollections {
   tiers: TicketTier[];
   quotes: Quote[];
   stats: Stat[];
+  pastEditions: PastEditionPhoto[];
 }
 
 export function AdminShell({
@@ -563,7 +583,7 @@ export function AdminShell({
                         type="button"
                         onClick={() => setOpen(isOpen ? null : group.label)}
                         aria-expanded={isOpen}
-                        className="flex w-full items-center justify-between gap-2 rounded-pill px-3 py-2 text-left font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/50 transition-colors hover:bg-pastel hover:text-black02"
+                        className="flex w-full items-center justify-between gap-2 rounded-pill px-3 py-2 text-left font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65 transition-colors hover:bg-pastel hover:text-black02"
                       >
                         {group.label}
                         <CaretDown
@@ -628,7 +648,7 @@ export function AdminShell({
                     {(data.organiserEmail?.trim()[0] ?? "?").toUpperCase()}
                   </span>
                   <span className="min-w-0">
-                    <span className="block font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/45">
+                    <span className="block font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       Signed in
                     </span>
                     <span
@@ -676,9 +696,13 @@ export function AdminShell({
             )}
             {view === "transactions" && <AdminTransactions data={data} />}
             {view === "orders" && <AdminOrders data={data} />}
+            {view === "refunds" && <AdminRefundTracker data={data} />}
             {view === "discounts" && <AdminDiscounts data={data} />}
             {view === "wall" && <AdminWall data={data} />}
             {view === "stats" && <AdminStats rows={collections.stats} />}
+            {view === "memory-lane" && (
+              <AdminMemoryLane rows={collections.pastEditions} />
+            )}
             {view === "testimonials" && (
               <AdminTestimonials rows={collections.quotes} />
             )}

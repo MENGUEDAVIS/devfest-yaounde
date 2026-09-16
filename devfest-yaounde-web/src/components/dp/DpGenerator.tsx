@@ -530,7 +530,7 @@ export function DpGenerator() {
                       autoComplete="off"
                       className="w-full max-w-sm rounded-lg border-2 border-black02 bg-offwhite px-4 py-2.5 font-sans text-body-l font-bold text-black02"
                     />
-                    <span className="flex max-w-sm items-center justify-between gap-4 text-caption text-black02/60">
+                    <span className="flex max-w-sm items-center justify-between gap-4 text-caption text-black02/65">
                       {t("nickname.hint")}
                       <span className="shrink-0 font-mono tabular-nums">
                         {nickname.length}/{MAX_NICKNAME}
@@ -569,7 +569,7 @@ export function DpGenerator() {
                       aria-label={t("photo.cta")}
                     />
                   </div>
-                  <p className="mt-2 text-caption text-black02/60">
+                  <p className="mt-2 text-caption text-black02/65">
                     {t("photo.hint")}
                   </p>
 
@@ -582,7 +582,7 @@ export function DpGenerator() {
                         size={20}
                         weight="bold"
                         aria-hidden
-                        className="mt-0.5 shrink-0 text-danger"
+                        className="mt-0.5 shrink-0 text-danger-ink"
                       />
                       {tError(error)}
                     </p>
@@ -867,7 +867,7 @@ export function DpGenerator() {
                           );
                           setSelected(null);
                         }}
-                        className="mt-3 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-4 py-2 font-sans text-body-m font-bold text-black02 hover:bg-danger-pastel hover:text-danger"
+                        className="mt-3 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-offwhite px-4 py-2 font-sans text-body-m font-bold text-black02 hover:bg-danger-pastel hover:text-danger-ink"
                       >
                         <Trash size={16} weight="bold" aria-hidden />
                         {t("stickers.remove")}
@@ -1045,7 +1045,7 @@ function Group({
       className={active ? "" : "max-md:hidden"}
     >
       <h2 className="mb-3 hidden items-baseline gap-3 md:flex">
-        <span className="font-mono text-mono-tag font-bold text-black02/50">
+        <span className="font-mono text-mono-tag font-bold text-black02/65">
           {step}
         </span>
         <span className="font-sans text-heading-m font-bold text-black02">
@@ -1066,7 +1066,7 @@ function Legend({
 }) {
   return (
     <p
-      className={`mb-2.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/60 ${className}`}
+      className={`mb-2.5 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65 ${className}`}
     >
       {children}
     </p>

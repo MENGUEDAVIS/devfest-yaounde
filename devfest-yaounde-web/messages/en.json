@@ -51,6 +51,11 @@
     "dismiss": "Dismiss announcement",
     "wall": "Every card here was made by somebody in this community, in a browser, probably instead of doing something more productive. Look at them all. Genuinely, thank you — this wall is just you lot."
   },
+  "offline": {
+    "banner": "You're offline — {pages} still work.",
+    "install": "Install the app",
+    "installDismiss": "Dismiss install prompt"
+  },
   "footer": {
     "rsvpCta": "Come build with us",
     "event": {
@@ -78,7 +83,8 @@
     "copyright": "DevFest Yaoundé · GDG Yaoundé",
     "closingLine": "See you in Yaoundé",
     "photoAlt": "The DevFest Yaoundé community at a past edition",
-    "ticketsCta": "Grab your ticket"
+    "ticketsCta": "Grab your ticket",
+    "contact": "Questions? {email}"
   },
   "home": {
     "hero": {
@@ -106,7 +112,8 @@
       "labelEmpty": "Seats open for your logo",
       "seat": "Your logo here",
       "cta": "Become a sponsor",
-      "openSeats": "{count, plural, one {# sponsor seat still open} other {# sponsor seats still open}}."
+      "openSeats": "{count, plural, one {# sponsor seat still open} other {# sponsor seats still open}}.",
+      "newTab": "(opens in a new tab)"
     },
     "about": {
       "title": "What is DevFest Yaoundé?",
@@ -157,7 +164,8 @@
       "recapCta": "Watch the recap",
       "galleryCta": "View the {year} gallery",
       "galleryNewTab": "(opens in a new tab)",
-      "galleryComingSoon": "Photo album coming soon"
+      "galleryComingSoon": "Photo album coming soon",
+      "photosComingSoon": "Photos coming soon"
     },
     "community": {
       "title": "What is GDG Yaoundé up to?",
@@ -276,6 +284,7 @@
       "apply": "Apply",
       "subtotal": "Subtotal",
       "discountRow": "Discount",
+      "transactionFeeRow": "Transaction fee (1.5%)",
       "removeDiscount": "Remove",
       "applying": "Checking…",
       "totalToPay": "Total to pay",
@@ -524,6 +533,7 @@
       "included": "What's included",
       "pricePaid": "Ticket price",
       "orderDiscount": "Discount {code}",
+      "orderFee": "Transaction fee (1.5%)",
       "orderTotal": "Order total",
       "purchasedOn": "Bought on {date}",
       "reference": "Ref. {ref}",
@@ -534,6 +544,32 @@
       "noOrdersBody": "Anything you buy from the shop lands here, with where it is in the process.",
       "browseShop": "Browse the shop",
       "metaDesc": "Your tickets, your orders, your badge codes."
+    },
+    "claimTicket": {
+      "title": "Claim your ticket",
+      "metaDesc": "Link a ticket bought for you to your own account.",
+      "loading": "Loading…",
+      "signInTitle": "Sign in to claim it",
+      "signInPrompt": "Sign in with Google — same account you'd use anywhere else on the site.",
+      "continueWithGoogle": "Continue with Google",
+      "claiming": "Claiming your ticket…",
+      "successTitle": "It's yours now.",
+      "successBody": "This ticket is linked to your account. You'll find it, and its badge code, under My Tickets.",
+      "successBodyNamed": "{name}'s ticket is linked to your account. You'll find it, and its badge code, under My Tickets.",
+      "viewMyTickets": "See my tickets",
+      "alreadyClaimedTitle": "Already claimed",
+      "alreadyClaimedBody": "This ticket has already been linked to an account.",
+      "notClaimableTitle": "Nothing to claim",
+      "notClaimableBody": "This ticket is already the buyer's own — there's nothing to link.",
+      "expiredTitle": "This link has expired",
+      "expiredBody": "Claim links stop working once the event is over.",
+      "notFoundTitle": "We can't find that ticket",
+      "notFoundBody": "Double check the link, or get in touch and we'll sort it out.",
+      "invalidTitle": "That link doesn't look right",
+      "invalidBody": "Double check you copied the whole link from your email.",
+      "errorTitle": "Something went wrong",
+      "errorBody": "Give it another try in a moment, or get in touch if it keeps happening.",
+      "contact": "Email {email}"
     },
     "wall": {
       "title": "Community wall",

@@ -51,6 +51,11 @@
     "dismiss": "Fermer l'annonce",
     "wall": "Chaque carte ici a été faite par quelqu'un de cette communauté, dans un navigateur, probablement au lieu de faire quelque chose de plus productif. Regarde-moi ça. Sincèrement, merci — ce mur, c'est juste vous."
   },
+  "offline": {
+    "banner": "Tu es hors ligne — {pages} restent disponibles.",
+    "install": "Installer l'application",
+    "installDismiss": "Fermer la proposition d'installation"
+  },
   "footer": {
     "rsvpCta": "Viens construire avec nous",
     "event": {
@@ -78,7 +83,8 @@
     "copyright": "DevFest Yaoundé · GDG Yaoundé",
     "closingLine": "On se voit à Yaoundé",
     "photoAlt": "La communauté DevFest Yaoundé lors d'une édition précédente",
-    "ticketsCta": "Prends ta place"
+    "ticketsCta": "Prends ta place",
+    "contact": "Des questions ? {email}"
   },
   "home": {
     "hero": {
@@ -106,7 +112,8 @@
       "labelEmpty": "Places libres pour vos logos",
       "seat": "Votre logo ici",
       "cta": "Devenir sponsor",
-      "openSeats": "{count, plural, one {# place de sponsor encore libre} other {# places de sponsor encore libres}}."
+      "openSeats": "{count, plural, one {# place de sponsor encore libre} other {# places de sponsor encore libres}}.",
+      "newTab": "(s'ouvre dans un nouvel onglet)"
     },
     "about": {
       "title": "C'est quoi, DevFest Yaoundé ?",
@@ -157,7 +164,8 @@
       "recapCta": "Voir le récap",
       "galleryCta": "Voir la galerie {year}",
       "galleryNewTab": "(s'ouvre dans un nouvel onglet)",
-      "galleryComingSoon": "Album photo bientôt disponible"
+      "galleryComingSoon": "Album photo bientôt disponible",
+      "photosComingSoon": "Photos bientôt disponibles"
     },
     "community": {
       "title": "Que prépare GDG Yaoundé ?",
@@ -276,6 +284,7 @@
       "apply": "Appliquer",
       "subtotal": "Sous-total",
       "discountRow": "Réduction",
+      "transactionFeeRow": "Frais de transaction (1,5 %)",
       "removeDiscount": "Retirer",
       "applying": "On vérifie…",
       "totalToPay": "Total à payer",
@@ -524,6 +533,7 @@
       "included": "Ce qui est compris",
       "pricePaid": "Prix du billet",
       "orderDiscount": "Réduction {code}",
+      "orderFee": "Frais de transaction (1,5 %)",
       "orderTotal": "Total de la commande",
       "purchasedOn": "Acheté le {date}",
       "reference": "Réf. {ref}",
@@ -534,6 +544,32 @@
       "noOrdersBody": "Tout ce que tu achètes à la boutique arrive ici, avec son état d'avancement.",
       "browseShop": "Voir la boutique",
       "metaDesc": "Tes billets, tes commandes, tes codes de badge."
+    },
+    "claimTicket": {
+      "title": "Récupérer ton billet",
+      "metaDesc": "Relie un billet acheté pour toi à ton propre compte.",
+      "loading": "Chargement…",
+      "signInTitle": "Connecte-toi pour le récupérer",
+      "signInPrompt": "Connecte-toi avec Google — le même compte que partout ailleurs sur le site.",
+      "continueWithGoogle": "Continuer avec Google",
+      "claiming": "Récupération de ton billet…",
+      "successTitle": "C'est fait, il est à toi.",
+      "successBody": "Ce billet est relié à ton compte. Tu le retrouveras, avec son code de badge, dans Mes billets.",
+      "successBodyNamed": "Le billet de {name} est relié à ton compte. Tu le retrouveras, avec son code de badge, dans Mes billets.",
+      "viewMyTickets": "Voir mes billets",
+      "alreadyClaimedTitle": "Déjà récupéré",
+      "alreadyClaimedBody": "Ce billet est déjà relié à un compte.",
+      "notClaimableTitle": "Rien à récupérer",
+      "notClaimableBody": "Ce billet est déjà celui de l'acheteur — il n'y a rien à relier.",
+      "expiredTitle": "Ce lien a expiré",
+      "expiredBody": "Les liens de récupération arrêtent de fonctionner une fois l'événement terminé.",
+      "notFoundTitle": "On ne trouve pas ce billet",
+      "notFoundBody": "Vérifie le lien, ou contacte-nous et on règle ça.",
+      "invalidTitle": "Ce lien ne semble pas correct",
+      "invalidBody": "Vérifie que tu as copié le lien en entier depuis ton e-mail.",
+      "errorTitle": "Un problème est survenu",
+      "errorBody": "Réessaie dans un instant, ou contacte-nous si ça persiste.",
+      "contact": "Écris à {email}"
     },
     "wall": {
       "title": "Mur de la communauté",

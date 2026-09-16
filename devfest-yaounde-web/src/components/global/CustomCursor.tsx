@@ -21,6 +21,28 @@ const IMAGE_HALF_W = 160;
 const IMAGE_HALF_H = 100;
 /** The lean a zone gets when it doesn't specify `data-cursor-tilt`. */
 const DEFAULT_IMAGE_TILT_DEG = -4;
+
+/**
+ * How fast the TEXT CARD chases the pointer (PHASE22 §A2 — sponsor
+ * name+blurb popups). Its own, separate eased point rather than sharing the
+ * image's: the two are never up at once, but keeping them independent means
+ * this can be tuned (or the whole card feature removed) without touching
+ * the already-shipped, already-verified image reveal at all.
+ */
+const CARD_EASE = 0.14;
+/**
+ * Half the text card's ASSUMED box (see `.cursor-card` in globals.css) —
+ * used only to keep the reveal fully on screen near an edge. The real box
+ * is content-sized (a short name, an optional one-line blurb), so this is a
+ * generous estimate rather than an exact measurement; being slightly
+ * conservative here only means the card sits a little further from the
+ * true edge than it strictly had to, never that it overflows one.
+ */
+const CARD_HALF_W = 140;
+const CARD_HALF_H = 56;
+/** The lean a card zone gets when it doesn't specify `data-cursor-tilt`. */
+const DEFAULT_CARD_TILT_DEG = -2;
+
 /** Below this distance the loop parks itself rather than burning frames. */
 const REST_EPSILON = 0.05;
 
@@ -30,6 +52,16 @@ const REST_EPSILON = 0.05;
  * over anything nested in it.
  */
 const IMAGE_ZONE = "[data-cursor-image]";
+/**
+ * An element that turns the cursor into a small name+blurb card while
+ * hovered — the sponsor popup (PHASE22 §A2). The value is the name;
+ * `data-cursor-card-body` on the same element is the optional blurb line.
+ * Mutually exclusive with `IMAGE_ZONE` by convention (an element is one
+ * kind of reveal zone or the other, never both) — checked second, so an
+ * image zone nested inside a card zone would still win, though nothing
+ * does that today.
+ */
+const CARD_ZONE = "[data-cursor-card]";
 
 const INTERACTIVE =
   'a[href], button, [role="button"], [role="radio"], input[type="checkbox"], input[type="radio"], select, summary, .scramble, [data-cursor="grab"]';
@@ -90,6 +122,14 @@ const TEXTUAL =
  * runs, so the bob can never share an element with the position/tilt or the
  * reveal scale without one silently erasing the other.
  *
+ * TEXT CARD STATE (PHASE22 §A2). `[data-cursor-card="<name>"]` is the same
+ * idea, adapted for the sponsor popup: a small name+blurb card instead of a
+ * picture. Deliberately a SEPARATE, parallel system (own eased point, own
+ * CSS vars, own DOM) rather than a refactor of the image state to share
+ * one — the two are never shown at once, but keeping them independent means
+ * either can be changed without re-verifying the other. `data-cursor-tilt`
+ * works the same way here as it does on an image zone.
+ *
  * Position is written to CSS custom properties inside a rAF loop rather than
  * held in React state: this fires on every pointer move, and re-rendering a
  * component tree at pointer frequency for a decorative dot is not a trade
@@ -99,10 +139,14 @@ const TEXTUAL =
 export function CustomCursor() {
   const rootRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const cardTitleRef = useRef<HTMLParagraphElement>(null);
+  const cardBodyRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     const root = rootRef.current;
     const image = imageRef.current;
+    const cardTitle = cardTitleRef.current;
+    const cardBody = cardBodyRef.current;
     if (!root) return;
 
     const fineQuery = window.matchMedia("(pointer: fine) and (hover: hover)");
@@ -118,6 +162,9 @@ export function CustomCursor() {
     // The image card's own eased point — lazier than the arrow's.
     let ix = tx;
     let iy = ty;
+    // The text card's own eased point — independent of the image's.
+    let jx = tx;
+    let jy = ty;
 
     const tick = () => {
       cx += (tx - cx) * EASE;
@@ -134,19 +181,34 @@ export function CustomCursor() {
       );
       ix += (itx - ix) * IMAGE_EASE;
       iy += (ity - iy) * IMAGE_EASE;
+      // Same clamping idea, the text card's own (smaller, assumed) box.
+      const jtx = Math.min(
+        Math.max(tx, CARD_HALF_W + 8),
+        window.innerWidth - CARD_HALF_W - 8,
+      );
+      const jty = Math.min(
+        Math.max(ty, CARD_HALF_H + 8),
+        window.innerHeight - CARD_HALF_H - 8,
+      );
+      jx += (jtx - jx) * CARD_EASE;
+      jy += (jty - jy) * CARD_EASE;
       root.style.setProperty("--cursor-x", `${tx}px`);
       root.style.setProperty("--cursor-y", `${ty}px`);
       root.style.setProperty("--ring-x", `${cx}px`);
       root.style.setProperty("--ring-y", `${cy}px`);
       root.style.setProperty("--image-x", `${ix}px`);
       root.style.setProperty("--image-y", `${iy}px`);
+      root.style.setProperty("--card-x", `${jx}px`);
+      root.style.setProperty("--card-y", `${jy}px`);
 
-      // Park the loop once BOTH chasers have effectively arrived.
+      // Park the loop once EVERY chaser has effectively arrived.
       if (
         Math.abs(tx - cx) < REST_EPSILON &&
         Math.abs(ty - cy) < REST_EPSILON &&
         Math.abs(itx - ix) < REST_EPSILON &&
-        Math.abs(ity - iy) < REST_EPSILON
+        Math.abs(ity - iy) < REST_EPSILON &&
+        Math.abs(jtx - jx) < REST_EPSILON &&
+        Math.abs(jty - jy) < REST_EPSILON
       ) {
         raf = null;
         return;
@@ -192,6 +254,26 @@ export function CustomCursor() {
           kick();
         }
         root!.dataset.state = "image";
+        return;
+      }
+
+      const cardZone = target.closest<HTMLElement>(CARD_ZONE);
+      const title = cardZone?.dataset.cursorCard;
+      if (title && cardTitle && cardBody) {
+        if (cardTitle.textContent !== title) cardTitle.textContent = title;
+        const body = cardZone.dataset.cursorCardBody ?? "";
+        if (cardBody.textContent !== body) cardBody.textContent = body;
+        const tilt =
+          cardZone.dataset.cursorTilt ?? String(DEFAULT_CARD_TILT_DEG);
+        root!.style.setProperty("--card-tilt", `${tilt}deg`);
+        if (root!.dataset.state !== "card") {
+          // Same reasoning as the image zone: start where the pointer
+          // already is, not wherever the card last parked.
+          jx = tx;
+          jy = ty;
+          kick();
+        }
+        root!.dataset.state = "card";
         return;
       }
 
@@ -274,6 +356,21 @@ export function CustomCursor() {
         <div className="cursor-image-float">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img ref={imageRef} alt="" decoding="async" />
+        </div>
+      </div>
+      {/*
+        The text card for `[data-cursor-card]` zones — the sponsor popup.
+        Same "decorative, no content until a zone is entered" reasoning as
+        the picture card above; the sponsor's own logo and (for the
+        touch/reduced-motion fallback) inline text carry this information
+        for anyone this layer cannot reach.
+      */}
+      <div className="cursor-card">
+        <div className="cursor-card-float">
+          <div className="cursor-card-inner">
+            <p ref={cardTitleRef} className="cursor-card-title" />
+            <p ref={cardBodyRef} className="cursor-card-body" />
+          </div>
         </div>
       </div>
       <div className="cursor-ring">

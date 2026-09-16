@@ -416,6 +416,51 @@ export type Database = {
         }
         Relationships: []
       }
+      refund_requests: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          kind: string
+          notes: string | null
+          reason: string
+          reference: string
+          requester_email: string
+          requester_name: string
+          resolved_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          kind: string
+          notes?: string | null
+          reason: string
+          reference: string
+          requester_email: string
+          requester_name: string
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          reason?: string
+          reference?: string
+          requester_email?: string
+          requester_name?: string
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           announcement: Json | null
@@ -465,6 +510,7 @@ export type Database = {
           attendee_name: string
           badge_code: string
           checked_in_at: string | null
+          claimed_at: string | null
           created_at: string
           deposit_id: string
           id: string
@@ -478,6 +524,7 @@ export type Database = {
           attendee_name: string
           badge_code: string
           checked_in_at?: string | null
+          claimed_at?: string | null
           created_at?: string
           deposit_id: string
           id?: string
@@ -491,6 +538,7 @@ export type Database = {
           attendee_name?: string
           badge_code?: string
           checked_in_at?: string | null
+          claimed_at?: string | null
           created_at?: string
           deposit_id?: string
           id?: string
@@ -526,6 +574,10 @@ export type Database = {
         Returns: number
       }
       check_in_ticket: { Args: { p_badge_code: string }; Returns: Json }
+      claim_ticket: {
+        Args: { p_new_user_id: string; p_ticket_id: string }
+        Returns: Json
+      }
       cleanup_rate_limits: {
         Args: { p_older_than_seconds?: number }
         Returns: number

@@ -44,6 +44,8 @@ import {
   applyPhotoUrl,
   entryNeedsPhoto,
   isPlaceholderPhoto,
+  normalisePhoto,
+  PHOTO_CONTENT_TYPE,
 } from "@/lib/content/photos";
 
 /**
@@ -377,6 +379,96 @@ describe("editorial photos", () => {
   });
 });
 
+describe("the transparent-logo bug — normalisePhoto preserves alpha", () => {
+  /*
+   * Built with `sharp` directly rather than a checked-in fixture file: a
+   * 100×60 canvas that starts fully transparent, with an OPAQUE red block
+   * composited onto the left half only — so the right half is genuinely
+   * transparent (alpha 0), not merely "has an alpha channel that happens to
+   * be 255 everywhere", which a naive test could pass by accident.
+   */
+  async function transparentPng(): Promise<Buffer> {
+    const sharp = (await import("sharp")).default;
+    const redHalf = await sharp({
+      create: {
+        width: 50,
+        height: 60,
+        channels: 4,
+        background: { r: 234, g: 67, b: 53, alpha: 1 },
+      },
+    })
+      .png()
+      .toBuffer();
+    return sharp({
+      create: {
+        width: 100,
+        height: 60,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      },
+    })
+      .composite([{ input: redHalf, left: 0, top: 0 }])
+      .png()
+      .toBuffer();
+  }
+
+  async function opaqueJpeg(): Promise<Buffer> {
+    const sharp = (await import("sharp")).default;
+    return sharp({
+      create: {
+        width: 100,
+        height: 60,
+        channels: 3,
+        background: { r: 100, g: 150, b: 200 },
+      },
+    })
+      .jpeg()
+      .toBuffer();
+  }
+
+  it("keeps a transparent region transparent, encoded as WebP", async () => {
+    const sharp = (await import("sharp")).default;
+    const png = await transparentPng();
+
+    const { bytes, format } = await normalisePhoto(
+      new Blob([new Uint8Array(png)]),
+    );
+
+    // THE BUG, pinned directly: before the fix this was "jpeg", and the
+    // formerly-transparent region below came back solid black — verified by
+    // hand while diagnosing this, and asserted here so it cannot regress.
+    assert.equal(format, "webp");
+    assert.equal(PHOTO_CONTENT_TYPE[format], "image/webp");
+
+    const raw = await sharp(bytes).ensureAlpha().raw().toBuffer({
+      resolveWithObject: true,
+    });
+    // The right half started fully transparent and nothing was ever
+    // composited onto it — sample well inside that region.
+    const x = Math.round(raw.info.width * 0.75);
+    const y = Math.round(raw.info.height * 0.5);
+    const idx = (y * raw.info.width + x) * raw.info.channels;
+    assert.equal(
+      raw.data[idx + 3],
+      0,
+      `expected alpha 0 at (${x},${y}), got ${raw.data[idx + 3]} — a transparent region must not come back opaque`,
+    );
+
+    // And the opaque red half must still read as opaque, not itself
+    // corrupted by whatever fixed the transparent side.
+    const idxRed = (y * raw.info.width + Math.round(raw.info.width * 0.25)) *
+      raw.info.channels;
+    assert.equal(raw.data[idxRed + 3], 255);
+  });
+
+  it("leaves an ordinary opaque photo as JPEG — no format change for images with nothing to preserve", async () => {
+    const jpeg = await opaqueJpeg();
+    const { format } = await normalisePhoto(new Blob([new Uint8Array(jpeg)]));
+    assert.equal(format, "jpeg");
+    assert.equal(PHOTO_CONTENT_TYPE[format], "image/jpeg");
+  });
+});
+
 describe("crm form helpers", () => {
   it("folds accents into a slug rather than dropping the letter", () => {
     // "Joël" must become joel, not jol — the id ends up in a URL and is what
@@ -579,7 +671,7 @@ describe("sponsor seats and the sponsor call", () => {
     id,
     name: id,
     logoUrl: `/logos/${id}.svg`,
-    tier: "gold",
+    tier: "opus",
   });
 
   it("leaves the rest of the row visibly open when nobody has signed", () => {

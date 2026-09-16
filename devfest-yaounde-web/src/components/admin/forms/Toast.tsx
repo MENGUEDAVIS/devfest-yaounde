@@ -79,14 +79,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 size={18}
                 weight="fill"
                 aria-hidden
-                className="mt-0.5 shrink-0 text-success"
+                className="mt-0.5 shrink-0 text-success-ink"
               />
             ) : (
               <WarningCircle
                 size={18}
                 weight="fill"
                 aria-hidden
-                className="mt-0.5 shrink-0 text-danger"
+                className="mt-0.5 shrink-0 text-danger-ink"
               />
             )}
             <span className="min-w-0 flex-1 font-bold">{toast.message}</span>
@@ -96,7 +96,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 setToasts((prev) => prev.filter((t) => t.id !== toast.id))
               }
               aria-label="Dismiss"
-              className="shrink-0 rounded-pill p-0.5 text-black02/60 hover:bg-black02/10 hover:text-black02"
+              className="shrink-0 rounded-pill p-0.5 text-black02/65 hover:bg-black02/10 hover:text-black02"
             >
               <X size={14} weight="bold" />
             </button>
