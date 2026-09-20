@@ -153,6 +153,29 @@ export async function loadAdminData(): Promise<AdminData> {
     );
   }
 
+  // Who the admins are (PHASE23 §E). Read separately from `users` because
+  // that list is capped and newest-first — an admin who signed up long ago
+  // must still show up here, and the count of admins has to be the REAL count
+  // for the "last admin" screen state to be right.
+  const { data: adminRows } = await db
+    .from("organisers")
+    .select("user_id, added_at")
+    .order("added_at", { ascending: true });
+  const adminIds = (adminRows ?? []).map((row) => row.user_id);
+  const { data: adminProfiles } = adminIds.length
+    ? await db
+        .from("profiles")
+        .select("id, display_name, email")
+        .in("id", adminIds)
+    : { data: [] };
+  const profileById = new Map((adminProfiles ?? []).map((p) => [p.id, p]));
+  const admins = (adminRows ?? []).map((row) => ({
+    id: row.user_id,
+    displayName: profileById.get(row.user_id)?.display_name ?? null,
+    email: profileById.get(row.user_id)?.email ?? null,
+    addedAt: row.added_at,
+  }));
+
   const ticketRows = tickets.data ?? [];
   const intentRows = intents.data ?? [];
 
@@ -160,6 +183,8 @@ export async function loadAdminData(): Promise<AdminData> {
     organiserEmail: organiser.email,
     organiserAvatarUrl: organiser.avatarUrl,
     organiserName: organiser.name,
+    organiserId: organiser.userId,
+    admins,
     counts: {
       paidTickets: tickets.count ?? ticketRows.length,
       checkedIn: ticketRows.filter((t) => t.checked_in_at).length,

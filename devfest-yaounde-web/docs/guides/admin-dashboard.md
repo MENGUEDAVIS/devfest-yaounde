@@ -80,6 +80,35 @@ adding a volunteer on the morning of the event is one row.
 
 **To remove someone**, delete their row. Access stops on their next request.
 
+### Once you are in, use the Users page instead
+
+The SQL above is how the **first** admin is created — somebody has to be able to
+open the dashboard before they can use it. After that, **Users** in the sidebar
+promotes and removes admins without the SQL console (Phase 23 §E, ADR 0069):
+
+- **Admins** are listed first, in full, with who you are marked. **Make admin**
+  is on every other signed-in user.
+- Both directions ask you to **type the person's email address** to confirm,
+  after a plain statement of what is being granted (full control of content,
+  money and other people's data, including making more admins) or lost
+  (immediately, on their next request).
+- **The last admin can never be removed** — the button is disabled with an
+  explanation, the server refuses it, and so does the database. Make someone
+  else an admin first.
+- Removing **yourself** needs an extra tick, and is refused by the server
+  without it.
+- Every promotion, removal **and refused attempt** goes in the audit log
+  (`admin_audit`: `organiser.promoted`, `organiser.demoted`,
+  `organiser.demote_refused`, `organiser.change_refused`,
+  `organiser.rapid_changes`), written in the same database transaction as the
+  change.
+- **Needs migration 0026 applied first.** Without it the buttons fail closed —
+  nothing changes.
+
+One consequence worth knowing: because of the database safeguard, **deleting the
+Supabase auth user of the last admin is refused too** (it cascades into
+`organisers`). Add the next admin first, then remove the old one.
+
 ---
 
 ## Why it is a table and not an env var

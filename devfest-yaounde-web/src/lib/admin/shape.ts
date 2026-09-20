@@ -84,6 +84,14 @@ export interface AdminUser {
   createdAt: string;
 }
 
+/** Somebody in the `organisers` table — an admin (PHASE23 §E). */
+export interface AdminAdmin {
+  id: string;
+  displayName: string | null;
+  email: string | null;
+  addedAt: string;
+}
+
 export interface AdminDiscount {
   code: string;
   kind: string;
@@ -184,6 +192,10 @@ export interface AdminData {
   /** Google profile picture — only ever a vetted Google-hosted https URL. */
   organiserAvatarUrl: string | null;
   organiserName: string | null;
+  /** The signed-in admin's own id — so the screen can tell "you" apart. */
+  organiserId: string;
+  /** Every current admin, oldest first. */
+  admins: AdminAdmin[];
   counts: {
     paidTickets: number;
     checkedIn: number;

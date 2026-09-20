@@ -92,6 +92,7 @@ or amend an earlier one.
 | [0066](decisions/0066-installable-pwa-offline-schedule.md)              | Installable PWA; offline caching limited by name to Schedule/Speakers/Team/FAQs; fixes a silent /apple-icon 404 | Accepted                            |
 | [0067](decisions/0067-a11y-audit-fixes.md)                              | `-ink` colour tokens, a lightened Red primary, and a skip link that actually moves focus | Accepted                            |
 | [0068](decisions/0068-round-up-to-nearest-50.md)                        | Fee-inclusive prices round UP to the next 50 XAF: `ceil(base × 1.015 / 50) × 50` | Accepted — **amends the rounding rule in 0063** |
+| [0069](decisions/0069-admin-role-management.md)                         | Promote/remove admins from Users; the last-admin rule, actor re-check and audit live in Postgres | Accepted — **apply migration 0026 first** |
 
 **Site and design**
 
