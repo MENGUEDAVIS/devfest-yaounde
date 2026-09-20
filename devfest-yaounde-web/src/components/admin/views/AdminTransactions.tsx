@@ -16,7 +16,7 @@ export function AdminTransactions({ data }: { data: AdminData }) {
   return (
     <Panel
       title="Transactions"
-      subtitle={`Showing ${rows.length} of ${data.transactions.total}. "Settled" is the state that produced a ticket or an order. "Charged" is what PawaPay actually took — base price, minus any discount, plus the 1.5% transaction fee. "Net" is the base amount after the discount, before that fee: what the chapter actually earns from the sale.`}
+      subtitle={`Showing ${rows.length} of ${data.transactions.total}. "Settled" is the state that produced a ticket or an order. "Charged" is what PawaPay actually took — base price, minus any discount, plus the 1.5% transaction fee, rounded up to the next 50 XAF (the "Fee" column is that fee and the round-up together). "Net" is the base amount after the discount, before that fee: what the chapter actually earns from the sale.`}
       action={
         <ExportButton
           filename="devfest-transactions.csv"

@@ -111,7 +111,8 @@ const COPY = {
     orderHeading: "Ta commande",
     subtotal: "Sous-total",
     discount: "Réduction",
-    transactionFee: "Frais de transaction (1,5 %)",
+    transactionFee:
+      "Frais de transaction (1,5 %, arrondi aux 50 XAF supérieurs)",
     totalPaid: "Total payé",
     free: "Offert",
     myTickets: "Voir mes billets",
@@ -129,7 +130,8 @@ const COPY = {
     claimIntro:
       "Quelqu'un t'a pris une place pour DevFest Yaoundé 2026. Récupère-la sur ton propre compte et c'est réglé — tu t'en serviras pour l'accueil le jour J.",
     claimCta: "Récupérer mon billet",
-    claimHint: "Tu te connectes avec Google — même compte, pas de nouveau mot de passe.",
+    claimHint:
+      "Tu te connectes avec Google — même compte, pas de nouveau mot de passe.",
   },
   en: {
     chapter: "GDG Yaoundé",
@@ -148,7 +150,7 @@ const COPY = {
     orderHeading: "Your order",
     subtotal: "Subtotal",
     discount: "Discount",
-    transactionFee: "Transaction fee (1.5%)",
+    transactionFee: "Transaction fee (1.5%, rounded up to the next 50 XAF)",
     totalPaid: "Total paid",
     free: "Free",
     myTickets: "See my tickets",

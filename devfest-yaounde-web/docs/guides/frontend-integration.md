@@ -11,7 +11,8 @@ Three rules that shape every flow below:
    prices from the same JSON files, but the charge comes from the server. **A
    displayed price is never the raw `priceXAF`** — every price shown to a
    visitor runs through `feeInclusiveAmount()` (`lib/payments/fees.ts`)
-   first, which adds the 1.5% transaction fee (PHASE22 §D+, ADR 0063). The
+   first, which adds the 1.5% transaction fee and rounds the result up to the
+   next 50 XAF (`ceil(base × 1.015 / 50) × 50` — ADRs 0063 and 0068). The
    base price stored in the catalog is fee-free on purpose; the fee is
    computed at render/checkout time, everywhere, from that one function.
 2. **Never treat the return from the payment page as proof of payment.** The
@@ -92,7 +93,7 @@ until the person confirms. Everything is one call.
   → { subtotal, discountCode, discountAmount, feeAmount, charged, currency }
   ```
 
-  `subtotal` is the base, fee-free amount. `charged` is `subtotal - discountAmount + feeAmount` — the 1.5% transaction fee, applied ONCE to the post-discount base, never split across lines. `feeAmount` is there so the screen can show it as its own line the way `discountAmount` already is, rather than a bigger total appearing with no explanation.
+  `subtotal` is the base, fee-free amount. `charged` is `subtotal - discountAmount + feeAmount` — the 1.5% transaction fee **and the round-up to the next 50 XAF** (`feeAmount` is both together, so the rows always add up to the charged total), applied ONCE to the post-discount base, never split across lines. Because it is applied once to the whole basket, `charged` can be lower than `quantity × the card's displayed unit price` (3 × 2,050 = 6,150 on cards, 6,100 charged) — never higher. `feeAmount` is there so the screen can show it as its own line the way `discountAmount` already is, rather than a bigger total appearing with no explanation.
 
   Shop baskets use `{ "kind": "shop", "cart": [...] }`, the same `cart` shape
   as the checkout call. `discountCode` is optional on both: leave it out to

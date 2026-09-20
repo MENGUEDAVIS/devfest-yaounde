@@ -268,10 +268,12 @@ happened.
 
 **"Base price" is what's stored and what an admin edits — never what a
 buyer actually sees.** Every price shown anywhere on the site, and every
-amount actually charged, is the base price plus a 1.5% transaction fee
-(`feeInclusiveAmount()`, ADR 0063), rounded to the nearest franc — so
-SONNET's base 2,000 shows and charges as 2,030. The same rule applies to
-every shop product's price.
+amount actually charged, is the base price plus a 1.5% transaction fee,
+rounded **up to the next 50 XAF** (`feeInclusiveAmount()`, ADRs 0063 and
+0068: `ceil(base × 1.015 / 50) × 50`) — so SONNET's base 2,000 shows and
+charges as 2,050, and OPUS's 5,000 as 5,100. A figure that already lands
+on a multiple of 50 (FABLE's 10,000 → 10,150) is unchanged. The same rule
+applies to every shop product's price.
 
 SONNET has no sub-label — it dropped the "Student pass" framing (Phase 20):
 the tier is not restricted to students, and nothing on the site checked for

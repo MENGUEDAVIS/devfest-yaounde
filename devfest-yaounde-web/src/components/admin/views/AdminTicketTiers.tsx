@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowSquareOut, Check, MagnifyingGlass, X } from "@phosphor-icons/react";
+import {
+  ArrowSquareOut,
+  Check,
+  MagnifyingGlass,
+  X,
+} from "@phosphor-icons/react";
 import type { Product, TicketTier } from "@/data/types";
 import type { AdminData, AdminSettings } from "@/lib/admin/shape";
 import { slugify } from "@/lib/admin/form-helpers";
@@ -53,9 +58,9 @@ export function AdminTicketTiers({
         <InfoBanner tone="warn">
           Tier caps add up to {capSum} tickets, above the overall capacity of{" "}
           {capacityTotal} set in Info bar &amp; policies. This does not block
-          sales — checkout still gates on each tier&rsquo;s own cap — but the public
-          counter can undercount how many of these tiers could actually sell
-          out. Raise the overall capacity or lower a tier cap.
+          sales — checkout still gates on each tier&rsquo;s own cap — but the
+          public counter can undercount how many of these tiers could actually
+          sell out. Raise the overall capacity or lower a tier cap.
         </InfoBanner>
       )}
 
@@ -101,12 +106,14 @@ export function AdminTicketTiers({
                 {row.priceXAF === 0
                   ? "Free"
                   : `${row.priceXAF.toLocaleString("en-CM")} XAF`}
-                {row.quantityAvailable != null && ` · ${row.quantityAvailable} cap`}
+                {row.quantityAvailable != null &&
+                  ` · ${row.quantityAvailable} cap`}
               </p>
               {row.priceXAF > 0 && (
                 <p className="truncate text-caption text-black02/65">
-                  {feeInclusiveAmount(row.priceXAF).toLocaleString("en-CM")}{" "}
-                  XAF with the transaction fee
+                  Customer pays{" "}
+                  {feeInclusiveAmount(row.priceXAF).toLocaleString("en-CM")} XAF
+                  (1.5% fee, rounded up to 50)
                 </p>
               )}
               <p className="truncate text-caption text-black02/65">
@@ -145,14 +152,16 @@ export function AdminTicketTiers({
               label="Price (XAF)"
               hint={
                 draft.priceXAF > 0
-                  ? `Base price — fee-free. Customers pay ${feeInclusiveAmount(draft.priceXAF).toLocaleString("en-CM")} XAF, which includes the 1.5% transaction fee added automatically everywhere this tier is shown.`
-                  : "Base price — fee-free. The 1.5% transaction fee is added automatically wherever this tier is shown to a buyer."
+                  ? `Base price — fee-free. Customers pay ${feeInclusiveAmount(draft.priceXAF).toLocaleString("en-CM")} XAF, which is this base plus the 1.5% transaction fee, rounded up to the next 50 XAF — all added automatically everywhere this tier is shown.`
+                  : "Base price — fee-free. The 1.5% transaction fee, rounded up to the next 50 XAF, is added automatically wherever this tier is shown to a buyer."
               }
             >
               <TextInput
                 type="number"
                 value={String(draft.priceXAF)}
-                onChange={(v) => patch({ priceXAF: Math.max(0, Number(v) || 0) })}
+                onChange={(v) =>
+                  patch({ priceXAF: Math.max(0, Number(v) || 0) })
+                }
               />
             </Field>
 
@@ -165,7 +174,8 @@ export function AdminTicketTiers({
                 value={draft.quantityAvailable?.toString() ?? ""}
                 onChange={(v) =>
                   patch({
-                    quantityAvailable: v.trim() === "" ? undefined : Math.max(0, Number(v) || 0),
+                    quantityAvailable:
+                      v.trim() === "" ? undefined : Math.max(0, Number(v) || 0),
                   })
                 }
               />
@@ -306,8 +316,8 @@ function SwagPickerField({
           No shop items yet.
         </p>
         <p className="mx-auto mt-1 max-w-sm text-caption text-black02/65">
-          Swag is picked from the Shop, not created here. Add the products
-          first and they will show up in this list.
+          Swag is picked from the Shop, not created here. Add the products first
+          and they will show up in this list.
         </p>
         <button
           type="button"

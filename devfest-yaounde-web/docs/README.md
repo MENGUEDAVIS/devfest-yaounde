@@ -91,6 +91,7 @@ or amend an earlier one.
 | [0065](decisions/0065-admin-bulk-actions.md)                            | Bulk publish/hide/delete, retrofit onto every admin list at once | Accepted — **extends 0052**                    |
 | [0066](decisions/0066-installable-pwa-offline-schedule.md)              | Installable PWA; offline caching limited by name to Schedule/Speakers/Team/FAQs; fixes a silent /apple-icon 404 | Accepted                            |
 | [0067](decisions/0067-a11y-audit-fixes.md)                              | `-ink` colour tokens, a lightened Red primary, and a skip link that actually moves focus | Accepted                            |
+| [0068](decisions/0068-round-up-to-nearest-50.md)                        | Fee-inclusive prices round UP to the next 50 XAF: `ceil(base × 1.015 / 50) × 50` | Accepted — **amends the rounding rule in 0063** |
 
 **Site and design**
 

@@ -1,14 +1,14 @@
 # 0063 — A 1.5% transaction fee, computed at display and checkout time, never stored
 
 Date: 2026-09-16
-Status: Accepted
+Status: Accepted — **rounding rule amended by [0068](0068-round-up-to-nearest-50.md)** (the fee itself, where it is computed, and the discount ordering all stand; only "rounded to the nearest whole franc, half up" is superseded — see 0068)
 
 ## What
 
 Every price a visitor or buyer sees, and every amount actually charged,
 now includes a 1.5% transaction fee on top of the catalog's stored base
-price — tickets and shop alike. `displayed = base × 1.015`, rounded to the
-nearest whole franc.
+price — tickets and shop alike. `displayed = base × 1.015`, ~~rounded to the
+nearest whole franc~~ (now rounded **up to the next 50 XAF** — ADR 0068).
 
 **The base price is the only thing stored, and the only thing an admin
 edits.** `tier.priceXAF` / `product.priceXAF` in `ticket-tiers.json` /
