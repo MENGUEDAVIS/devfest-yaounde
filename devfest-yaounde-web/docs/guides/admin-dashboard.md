@@ -119,6 +119,20 @@ short version:
 - **Fallback:** until a collection is published, the public site still reads
   `src/data/*.json`. See ADR 0031.
 
+### Your avatar in the sidebar
+
+The circle above "Back to site" shows your **Google profile picture**, with
+your email under it. There is nothing to configure: signing in with Google
+already returns the picture (the site requests the standard `openid email
+profile` scopes, and `profile` includes it), and no extra permission is asked
+for. If the picture is missing, or fails to load, it falls back to the first
+letter of your name.
+
+Only an `https` image on Google's own image host is ever shown — the value
+sits in account metadata that a signed-in person can edit for themselves, so
+anything else is ignored rather than trusted (`src/lib/admin/avatar.ts`).
+Change your picture in your Google account; it appears next time you sign in.
+
 ### Editing content record by record
 
 **Content** in the sidebar is now four editors — Speakers, Schedule, Team,

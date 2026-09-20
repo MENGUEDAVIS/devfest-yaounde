@@ -10,11 +10,15 @@
  * row, not a re-deploy. See docs/guides/check-in-and-orders.md.
  */
 import "server-only";
+import { googleAvatarUrl, googleDisplayName } from "@/lib/admin/avatar";
 import { createAdminSupabase, currentUser } from "@/lib/supabase/server";
 
 export interface OrganiserContext {
   userId: string;
   email: string | null;
+  /** Google profile picture, only if it is a safe Google-hosted https URL. */
+  avatarUrl: string | null;
+  name: string | null;
 }
 
 /**
@@ -44,5 +48,10 @@ export async function currentOrganiser(): Promise<OrganiserContext | null> {
   }
   if (!data) return null;
 
-  return { userId: user.id, email: user.email ?? null };
+  return {
+    userId: user.id,
+    email: user.email ?? null,
+    avatarUrl: googleAvatarUrl(user.user_metadata),
+    name: googleDisplayName(user.user_metadata),
+  };
 }

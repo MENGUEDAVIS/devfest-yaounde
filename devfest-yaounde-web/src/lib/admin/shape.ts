@@ -181,6 +181,9 @@ export interface AdminSettings {
 
 export interface AdminData {
   organiserEmail: string | null;
+  /** Google profile picture — only ever a vetted Google-hosted https URL. */
+  organiserAvatarUrl: string | null;
+  organiserName: string | null;
   counts: {
     paidTickets: number;
     checkedIn: number;

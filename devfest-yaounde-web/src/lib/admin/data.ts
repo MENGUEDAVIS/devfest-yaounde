@@ -158,6 +158,8 @@ export async function loadAdminData(): Promise<AdminData> {
 
   return {
     organiserEmail: organiser.email,
+    organiserAvatarUrl: organiser.avatarUrl,
+    organiserName: organiser.name,
     counts: {
       paidTickets: tickets.count ?? ticketRows.length,
       checkedIn: ticketRows.filter((t) => t.checked_in_at).length,
