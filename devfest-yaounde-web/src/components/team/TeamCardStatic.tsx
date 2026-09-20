@@ -3,6 +3,8 @@ import {
   LinkedinLogo,
   XLogo,
 } from "@phosphor-icons/react/dist/ssr";
+import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/Badge";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 import { realSocials } from "@/lib/people-socials";
 import type { TeamMember } from "@/data/types";
@@ -32,6 +34,7 @@ export function TeamCardStatic({
   member: TeamMember;
   locale: "fr" | "en";
 }) {
+  const t = useTranslations("common.person");
   const socials = realSocials(member).map((social) => ({
     ...social,
     Icon: SOCIAL_ICONS[social.key],
@@ -52,10 +55,26 @@ export function TeamCardStatic({
         {member.contribution[locale]}
         {member.years ? ` · ${member.years}` : ""}
       </p>
+      {member.gdgSince && (
+        <p className="mt-1 text-caption text-black02/65">
+          {t("gdgSince", { year: member.gdgSince })}
+        </p>
+      )}
       {member.oneLiner && (
         <p className="mt-3 text-body-m text-black02/80">
           {member.oneLiner[locale]}
         </p>
+      )}
+      {member.expertise && member.expertise.length > 0 && (
+        <ul aria-label={t("expertise")} className="mt-3 flex flex-wrap gap-2">
+          {member.expertise.map((tag) => (
+            <li key={`${tag.en}|${tag.fr}`}>
+              <Badge tone="primary" variant="outline">
+                {tag[locale]}
+              </Badge>
+            </li>
+          ))}
+        </ul>
       )}
       {member.icebreakerAnswer && (
         <p className="mt-3 border-l-4 border-primary pl-3 text-body-m italic text-black02/75">

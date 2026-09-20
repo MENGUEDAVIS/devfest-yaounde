@@ -22,7 +22,9 @@
     "person": {
       "icebreaker": "Quick question",
       "funny": "True story",
-      "contribution": "On the team"
+      "contribution": "On the team",
+      "gdgSince": "With GDG since {year}",
+      "expertise": "Expertise"
     },
     "theme": {
       "label": "Theme",

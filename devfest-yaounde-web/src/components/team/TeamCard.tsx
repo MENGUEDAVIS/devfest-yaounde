@@ -112,6 +112,14 @@ export function TeamCard({
             <p className="mt-1 truncate text-body-m text-black02/70">
               {member.role[locale]}
             </p>
+            {/* The tagline is the one enrichment the face carries — a single
+                clamped line, so the card stays a portrait first. The chips
+                and the join year live in the detail, where there is room. */}
+            {member.oneLiner?.[locale] && (
+              <p className="mt-1 line-clamp-1 text-caption text-black02/65">
+                {member.oneLiner[locale]}
+              </p>
+            )}
             {/* Signature moment (/team): the contribution chip lands like a
                 rubber stamp when the card scrolls in — see
                 .anim-contrib-stamp. It carries more weight now that the grid

@@ -136,6 +136,79 @@ export function LocalizedInput({
   );
 }
 
+/**
+ * A short list of bilingual tags — each one an EN box and an FR box, with a
+ * cap (PHASE23 §B: a team member's expertise chips).
+ *
+ * Rows live in local state, not derived from the value, so a freshly added
+ * row can sit empty while somebody types into it: the parent only ever
+ * receives rows with something in them, and a row filled in one language is
+ * completed from the other (the same fallback the schedule's tags use, and
+ * right for the many tags — "Design", "Android" — that are the same word in
+ * both). The owner should mount this with a `key` per entry so switching
+ * records starts from that record's tags.
+ */
+export function LocalizedTagsField({
+  value,
+  onChange,
+  max,
+  addLabel = "Add a tag",
+}: {
+  value: { fr: string; en: string }[];
+  onChange: (v: { fr: string; en: string }[]) => void;
+  max: number;
+  addLabel?: string;
+}) {
+  const [rows, setRows] = useState(value);
+
+  function update(next: { fr: string; en: string }[]) {
+    setRows(next);
+    onChange(
+      next
+        .map((row) => ({ en: row.en.trim(), fr: row.fr.trim() }))
+        .filter((row) => row.en || row.fr)
+        .map((row) => ({ en: row.en || row.fr, fr: row.fr || row.en })),
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {rows.map((row, i) => (
+        <div key={i} className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <LocalizedInput
+              value={row}
+              onChange={(next) =>
+                update(rows.map((r, j) => (j === i ? next : r)))
+              }
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => update(rows.filter((_, j) => j !== i))}
+            aria-label={`Remove tag ${i + 1}`}
+            className="mt-6 shrink-0 rounded-pill p-1.5 text-black02/65 hover:bg-danger-pastel hover:text-danger-ink"
+          >
+            <X size={14} weight="bold" />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        disabled={rows.length >= max}
+        onClick={() => setRows([...rows, { fr: "", en: "" }])}
+        className="inline-flex w-fit items-center gap-1.5 rounded-pill border border-black02/25 px-3 py-1.5 font-sans text-caption font-bold text-black02 hover:bg-pastel disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <Plus size={12} weight="bold" />
+        {addLabel}
+        <span className="font-mono text-black02/65">
+          {rows.length}/{max}
+        </span>
+      </button>
+    </div>
+  );
+}
+
 /** A switch. Reads as on/off at a glance, and is a real checkbox underneath. */
 export function Toggle({
   checked,
@@ -580,7 +653,11 @@ export function EntitlementListField({
                   aria-label="Move up"
                   className="rounded-pill p-1 text-black02/65 hover:bg-black02/10 disabled:opacity-25"
                 >
-                  <ArrowsDownUp size={12} weight="bold" className="rotate-180" />
+                  <ArrowsDownUp
+                    size={12}
+                    weight="bold"
+                    className="rotate-180"
+                  />
                 </button>
                 <button
                   type="button"

@@ -76,6 +76,13 @@ export const teamSchema = z.object({
   icebreakerQuestion: localized.optional(),
   icebreakerAnswer: localized.optional(),
   funnyMoment: localized.optional(),
+  /*
+   * PHASE23 §B. Same absent-is-fine convention: a tag list and a join year
+   * are theirs to supply. Capped at 3 so a card can never turn into a wall
+   * of chips, and each tag is short enough to sit on one line.
+   */
+  expertise: z.array(localizedRequired).max(3).optional(),
+  gdgSince: z.number().int().min(2000).max(2100).optional(),
   alumni: z.boolean().optional(),
   hidden: z.boolean().optional(),
   years: z.string().max(40).optional(),

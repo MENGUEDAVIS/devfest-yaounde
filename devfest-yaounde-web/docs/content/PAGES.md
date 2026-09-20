@@ -240,6 +240,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 - Organizer photos (morphed frames), name, role/title (Lead Organizer, Design, Logistics, DevRel/Partnerships, Community, etc.) — grouped by sub-team if the org chart supports it, otherwise one grid.
 - Short, personality-forward one-liners rather than formal bios — e.g. "Keeps the Wi-Fi (and the vibes) running."
+- **Enriched in Phase 23 §B:** an optional row of up to 3 **expertise chips** (the shared `Badge`) and a quiet **"With GDG since {year}"** line join the tagline. The grid card face carries only the tagline (one clamped line); the chips and join year live in the detail — popover, bottom sheet, and slider — and inline on the static alumni cards. The shared slider centres and width-constrains (`max-w-xl`) its text so a one-line tagline or bio isn't stranded on the wide stage; Speakers gets that too.
 - Social links per person, same treatment as speakers.
 - Optional but valuable for a multi-year template: an **"Alumni / Past Organizers"** section lower on the page — reinforces the community-over-time story you're building the whole site around.
 

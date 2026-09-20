@@ -18,7 +18,12 @@ import {
   settingsSchema,
 } from "@/lib/content/schemas";
 import { dryRun, parseCsv } from "@/lib/admin/csv";
-import { SPEAKER_CSV_SPEC, speakersFromCsv } from "@/lib/content/from-csv";
+import {
+  SPEAKER_CSV_SPEC,
+  TEAM_CSV_SPEC,
+  speakersFromCsv,
+  teamFromCsv,
+} from "@/lib/content/from-csv";
 import {
   endsAt,
   isoToWatLocal,
@@ -284,6 +289,73 @@ describe("csv of names, photos later", () => {
   });
 });
 
+describe("team card enrichment — tags, tagline, join year", () => {
+  const MEMBER = {
+    id: "ama-nkeng",
+    name: "Ama Nkeng",
+    role: { en: "Lead", fr: "Responsable" },
+    contribution: { en: "Design", fr: "Design" },
+    photoUrl: "",
+  };
+  const tag = (en: string, fr = en) => ({ en, fr });
+
+  it("accepts a member with none of the new fields — every existing record", () => {
+    assert.equal(collectionSchemas.team.safeParse([MEMBER]).success, true);
+  });
+
+  it("accepts up to three bilingual tags, a tagline and a join year", () => {
+    const row = {
+      ...MEMBER,
+      oneLiner: {
+        en: "Ships Android by day",
+        fr: "Livre de l'Android le jour",
+      },
+      expertise: [
+        tag("Frontend"),
+        tag("Community", "Communauté"),
+        tag("Design"),
+      ],
+      gdgSince: 2022,
+    };
+    assert.equal(collectionSchemas.team.safeParse([row]).success, true);
+  });
+
+  it("refuses a fourth tag, a blank tag, and an implausible join year", () => {
+    const parse = (extra: object) =>
+      collectionSchemas.team.safeParse([{ ...MEMBER, ...extra }]).success;
+    assert.equal(
+      parse({ expertise: [tag("a"), tag("b"), tag("c"), tag("d")] }),
+      false,
+      "a fourth tag turns the card into a wall of chips",
+    );
+    assert.equal(parse({ expertise: [tag("")] }), false, "blank tag");
+    assert.equal(parse({ expertise: [{ en: "Only EN", fr: "" }] }), false);
+    assert.equal(parse({ gdgSince: 1999 }), false);
+    assert.equal(parse({ gdgSince: 2022.5 }), false);
+    assert.equal(parse({ gdgSince: "2022" as unknown as number }), false);
+  });
+
+  it("a CSV re-import keeps the tags and join year an organiser entered", () => {
+    // None of these are CSV columns, and the import rebuilds every row —
+    // without carrying them over, re-importing the sheet would silently
+    // erase them.
+    const sheet = parseCsv(
+      [
+        "id,name,role_en,role_fr,oneLiner_en,oneLiner_fr,contribution_en,contribution_fr,photoUrl",
+        "ama-nkeng,Ama Nkeng,Lead,Responsable,Hi,Salut,Design,Design,",
+      ].join("\n"),
+    );
+    const dry = dryRun(sheet, TEAM_CSV_SPEC);
+    assert.equal(dry.issues.length, 0);
+    const payload = teamFromCsv(dry, [
+      { ...MEMBER, expertise: [tag("Frontend")], gdgSince: 2021 },
+    ]);
+    assert.deepEqual(payload[0].expertise, [tag("Frontend")]);
+    assert.equal(payload[0].gdgSince, 2021);
+    assert.equal(collectionSchemas.team.safeParse(payload).success, true);
+  });
+});
+
 describe("hiding somebody without deleting them", () => {
   const visible = <T extends { id: string; hidden?: boolean }>(rows: T[]) =>
     rows.filter((row) => !row.hidden);
@@ -456,7 +528,8 @@ describe("the transparent-logo bug — normalisePhoto preserves alpha", () => {
 
     // And the opaque red half must still read as opaque, not itself
     // corrupted by whatever fixed the transparent side.
-    const idxRed = (y * raw.info.width + Math.round(raw.info.width * 0.25)) *
+    const idxRed =
+      (y * raw.info.width + Math.round(raw.info.width * 0.25)) *
       raw.info.channels;
     assert.equal(raw.data[idxRed + 3], 255);
   });

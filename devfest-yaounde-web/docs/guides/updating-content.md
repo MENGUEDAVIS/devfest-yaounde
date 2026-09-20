@@ -169,6 +169,11 @@ Day 2 is worked out automatically as the following day. The buttons appear on
   "photoUrl": "/team/real-name.jpg",
   "social": { "linkedin": "https://..." },
   "contribution": { "fr": "Logistique", "en": "Logistics" },
+  "expertise": [
+    { "fr": "Front-end", "en": "Frontend" },
+    { "fr": "Communauté", "en": "Community" }
+  ],
+  "gdgSince": 2022,
   "icebreakerQuestion": { "fr": "...", "en": "..." },
   "icebreakerAnswer": { "fr": "...", "en": "..." },
   "funnyMoment": { "fr": "...", "en": "..." }
@@ -184,7 +189,17 @@ Day 2 is worked out automatically as the following day. The buttons appear on
   and render through the same component.
 
 - **`oneLiner`** is the point of this page — "keeps the Wi-Fi (and the vibes)
-  running" beats "responsible for infrastructure operations".
+  running" beats "responsible for infrastructure operations". In the admin it
+  is labelled **Tagline**: one line on what they do beyond GDG (day job,
+  studies, something personal). It shows on the card itself and in the detail.
+- **`expertise`** (admin: *Expertise tags*) is up to **3** short bilingual chips
+  — "Frontend", "Community", "Design". They show in the detail (popover, sheet
+  and slider) and on alumni cards, not on the grid card face, which stays a
+  portrait first. Fill one language in the admin and the other is copied.
+- **`gdgSince`** (admin: *With GDG since*) is the four-digit year they joined,
+  shown quietly under their role as "With GDG since 2022". All three are
+  optional — nothing is invented for someone who hasn't supplied them, and a
+  CSV re-import keeps whatever is already saved.
 - To move someone to the **past organizers** section, add
   `"alumni": true` and `"years": "2024"`. They keep their entry; it just moves
   down the page. Nobody gets deleted — that's the multi-year community story.

@@ -332,7 +332,25 @@ export function PersonSlider({
                     the text stays reachable. It uses the shared themed pill.
                   */}
                   <div className="max-h-full min-h-0 min-w-0 overflow-y-auto scroll-on-dark">
-                    <PersonDetail person={person} tone="dark" size="roomy" />
+                    {/*
+                      Centred and width-constrained (PHASE23 §B2). This
+                      column is ~1.4 fr of a very wide stage, so a single
+                      short sentence — a tagline, a one-line bio — used to
+                      run hard left and stop, an orphan on a big dark
+                      field. `max-w-xl` (36rem) keeps line length readable
+                      and `mx-auto` sits the block in the middle of the
+                      column; `align="center"` centres the text and the chip
+                      and icon rows inside it. Shared, so Speakers gets it
+                      too.
+                    */}
+                    <div className="mx-auto w-full max-w-xl">
+                      <PersonDetail
+                        person={person}
+                        tone="dark"
+                        size="roomy"
+                        align="center"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
