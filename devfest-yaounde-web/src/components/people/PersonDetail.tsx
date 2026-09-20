@@ -64,13 +64,6 @@ export interface PersonDetailProps {
    * /speakers, which is where someone has actually asked for it.
    */
   personality?: boolean;
-  /**
-   * `center` centres every line and chip row — the slider passes it, where a
-   * single short sentence (a tagline, a one-line bio) otherwise sits hard
-   * left on a very wide stage and reads as an orphan (PHASE23 §B2). The
-   * cards keep `start`: they are narrow, and left-aligned reads better there.
-   */
-  align?: "start" | "center";
 }
 
 /**
@@ -91,7 +84,6 @@ export function PersonDetail({
   size = "compact",
   interactive = true,
   personality = true,
-  align = "start",
 }: PersonDetailProps) {
   const locale = useLocale() as "fr" | "en";
   const t = useTranslations("common.person");
@@ -100,8 +92,6 @@ export function PersonDetail({
 
   const dark = tone === "dark";
   const roomy = size === "roomy";
-  const centered = align === "center";
-  const justify = centered ? "justify-center" : "";
   const tags = person.expertise ?? [];
 
   const nameCls = dark ? "text-offwhite" : "text-black02";
@@ -112,11 +102,11 @@ export function PersonDetail({
 
   return (
     <div
-      className={`${
+      className={
         roomy
           ? "person-detail-roomy flex flex-col gap-5"
           : "flex flex-col gap-4"
-      } ${centered ? "text-center" : ""}`}
+      }
     >
       <div>
         <p
@@ -154,10 +144,7 @@ export function PersonDetail({
       {/* Expertise chips — the same Badge as the contribution chip, outlined
           so they stay visible on the dark scrim and the light sheet alike. */}
       {tags.length > 0 && (
-        <ul
-          aria-label={t("expertise")}
-          className={`flex flex-wrap gap-2 ${justify}`}
-        >
+        <ul aria-label={t("expertise")} className="flex flex-wrap gap-2">
           {tags.map((tag) => (
             <li key={`${tag.en}|${tag.fr}`}>
               <Badge tone="primary" variant="outline">
@@ -181,7 +168,7 @@ export function PersonDetail({
           <p className={`mt-2 text-body-m ${bodyCls}`}>
             {person.icebreakerQuestion[locale]}
           </p>
-          <div className={`mt-3 flex gap-2.5 ${justify}`}>
+          <div className="mt-3 flex gap-2.5">
             <Quotes
               size={roomy ? 24 : 20}
               weight="fill"
@@ -202,7 +189,7 @@ export function PersonDetail({
 
       {personality && person.funnyMoment && (
         <div
-          className={`flex items-start gap-2.5 rounded-lg border-2 px-4 py-3 ${justify} ${
+          className={`flex items-start gap-2.5 rounded-lg border-2 px-4 py-3 ${
             dark
               ? "border-offwhite/25 bg-offwhite/5"
               : "border-black02/20 bg-pastel"
@@ -228,7 +215,7 @@ export function PersonDetail({
       )}
 
       {socials.length > 0 && (
-        <div className={`flex gap-2.5 ${justify}`}>
+        <div className="flex gap-2.5">
           {socials.map(({ key, href, Icon, label }) => (
             <a
               key={key}

@@ -825,6 +825,30 @@
  * two axes instead of one. The inactive slides stay full width, so what
  * peeks past the active card's edges is the neighbouring card itself.
  */
+/*
+ * THE CONTENT SITS INSET FROM THE SLIDE'S SIDES (PHASE23 feedback).
+ *
+ * On a wide stage the photo and the details used to run almost to the edge of
+ * the dark slide, so the whole composition felt pushed against its frame. The
+ * inset is horizontal only and lives in its own variable, because the height
+ * tiers below tighten VERTICAL padding to make the words fit a short screen
+ * (`padding-block`) and must not take the sides back with them. It grows with
+ * the viewport and stops at 7.5rem; on a phone it stays a plain 1rem, where
+ * every pixel of width is needed. The details keep their left alignment.
+ */
+.cinema-slide {
+  --slide-inset-x: 1rem;
+}
+@media (min-width: 768px) {
+  .cinema-slide {
+    --slide-inset-x: clamp(2rem, 7vw, 7.5rem);
+  }
+}
+.cinema-slide > div {
+  padding-block: 2rem;
+  padding-inline: var(--slide-inset-x);
+}
+
 .cinema-slide {
   height: var(--slide-h);
   flex: 0 0 auto;
@@ -1041,7 +1065,7 @@
     --slide-h: calc(var(--stage-h) * 0.9);
   }
   .cinema-slide > div {
-    padding: 1.25rem;
+    padding-block: 1.25rem;
   }
   .cinema-slide .polaroid {
     height: 66%;
@@ -1076,15 +1100,17 @@
     --slide-h: var(--stage-h);
   }
   .cinema-slide > div {
-    padding: 1.25rem;
+    padding-block: 1.25rem;
     gap: 1.25rem;
   }
   .cinema-slide .person-detail-roomy {
     gap: 0.4rem;
   }
-  /* Slide padding tightens too — 32px a side is a lot of the 720p budget. */
+  /* Slide padding tightens too — 32px a side is a lot of the 720p budget.
+     Vertical only: the side inset is `--slide-inset-x` and is deliberately
+     NOT given back on a short screen, which is wide, not tight, on the sides. */
   .cinema-slide > div {
-    padding: 1.25rem;
+    padding-block: 1.25rem;
   }
   .cinema-slide .person-detail-roomy .person-bio {
     font-size: var(--text-caption);
@@ -1179,7 +1205,7 @@
     padding-top: 0.5rem;
   }
   .cinema-slide > div {
-    padding: 0.875rem;
+    padding-block: 0.875rem;
     gap: 0.625rem;
   }
 }

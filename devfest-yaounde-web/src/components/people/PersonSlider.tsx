@@ -297,7 +297,7 @@ export function PersonSlider({
                     overflow was silently clipped. A definite row is what
                     lets the print shrink to fit.
                   */}
-                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-offwhite/15 bg-black02 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.45)] sm:p-8 md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
+                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-offwhite/15 bg-black02 shadow-[0_10px_40px_rgba(0,0,0,0.45)] md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
                   {/* Mobile: a circle avatar. It costs a fraction of the
                       height a polaroid does, which is what leaves room for
                       the whole detail to fit on a phone. */}
@@ -332,25 +332,7 @@ export function PersonSlider({
                     the text stays reachable. It uses the shared themed pill.
                   */}
                   <div className="max-h-full min-h-0 min-w-0 overflow-y-auto scroll-on-dark">
-                    {/*
-                      Centred and width-constrained (PHASE23 §B2). This
-                      column is ~1.4 fr of a very wide stage, so a single
-                      short sentence — a tagline, a one-line bio — used to
-                      run hard left and stop, an orphan on a big dark
-                      field. `max-w-xl` (36rem) keeps line length readable
-                      and `mx-auto` sits the block in the middle of the
-                      column; `align="center"` centres the text and the chip
-                      and icon rows inside it. Shared, so Speakers gets it
-                      too.
-                    */}
-                    <div className="mx-auto w-full max-w-xl">
-                      <PersonDetail
-                        person={person}
-                        tone="dark"
-                        size="roomy"
-                        align="center"
-                      />
-                    </div>
+                    <PersonDetail person={person} tone="dark" size="roomy" />
                   </div>
                 </div>
               </div>
