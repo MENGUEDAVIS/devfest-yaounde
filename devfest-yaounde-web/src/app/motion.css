@@ -1301,6 +1301,50 @@
   height: auto;
   width: 100%;
 }
+/* The caption is written on the print's deep lower border. */
+.polaroid.memory-polaroid {
+  position: relative;
+}
+.polaroid.memory-polaroid > .memory-inline-caption {
+  position: absolute;
+  inset-inline: 0.9rem;
+  bottom: 0.5rem;
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+
+/*
+ * MEMORY LANE HOVER (PHASE23 feedback). Only where the cursor system itself
+ * runs — a fine pointer, real hover, motion allowed — so touch and
+ * reduced-motion visitors get a still grid and the inline caption instead.
+ *
+ * The lift is on the POLAROID, not the wrappers around it: those already own
+ * the scroll parallax and the stage choreography, and a second `transform` on
+ * either would overwrite it (the same reason `.hero-sticker` is two elements).
+ * The neighbours dim rather than move, so the row never reflows under the
+ * pointer.
+ */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .memory-photo:hover {
+    /* Above the prints beside it, which the lift can overlap. */
+    z-index: 5;
+  }
+  .polaroid.memory-polaroid {
+    transition:
+      transform 320ms var(--ease-bouncy),
+      box-shadow 320ms var(--ease-bouncy),
+      opacity 260ms var(--ease-out-devfest);
+  }
+  .polaroid.memory-polaroid:hover {
+    transform: translateY(-10px) scale(1.06)
+      rotate(calc(var(--memory-lift, 0) * 1deg));
+    box-shadow: 0 14px 0 0 var(--color-black02);
+  }
+  .memory-grid:has(.memory-polaroid:hover) .memory-polaroid:not(:hover) {
+    opacity: 0.45;
+  }
+}
 
 /* SCHEDULE (PHASE7 §6) — session cards fanning in on view change */
 @keyframes df-session-in {

@@ -128,6 +128,10 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
      speaker/team slider's print (ADR 0060). With nothing uploaded, the grid
      shows a "coming soon" placeholder matching the sponsor strip's own
      empty-seat visual language, rather than a blank section.
+   - **Hover (Phase 23):** pointing at a print shows its description (alt
+     text, plus the year when set) in the cursor popover, lifts and straightens
+     the print, and steps its neighbours back. Touch and reduced-motion visitors
+     get the description written on the print's lower border instead.
    - **"View the {year} gallery"** — the past edition's album, opening in a
      new tab (`noopener noreferrer`), the year filled in automatically. The
      URL is a dashboard setting (Settings → Gallery links); empty hides the
