@@ -418,7 +418,8 @@
         "mono": "Noir et blanc",
         "chromatic": "Décalage",
         "poster": "Sérigraphie",
-        "pixel": "Pixel art"
+        "pixel": "Pixel art",
+        "mosaic": "Mosaïque"
       },
       "edges": {
         "legend": "Bord",

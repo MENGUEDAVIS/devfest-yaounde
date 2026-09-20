@@ -418,7 +418,8 @@
         "mono": "Black & white",
         "chromatic": "Misprint",
         "poster": "Screen print",
-        "pixel": "Pixel art"
+        "pixel": "Pixel art",
+        "mosaic": "Mosaic"
       },
       "edges": {
         "legend": "Edge",

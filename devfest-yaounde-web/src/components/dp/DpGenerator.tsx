@@ -75,6 +75,7 @@ const LOOKS: DpLook[] = [
   "chromatic",
   "poster",
   "pixel",
+  "mosaic",
 ];
 const EDGES: DpEdge[] = ["clean", "torn", "brush"];
 const TEXTURES = ["grain", "paper", "vignette", "warp", "lens"] as const;
