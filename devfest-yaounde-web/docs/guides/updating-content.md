@@ -152,6 +152,17 @@ Day 2 is worked out automatically as the following day. The buttons appear on
   with an empty heading.
 - Keep answers short and conversational. The search box matches both the
   question and the answer text.
+- **"Email us" buttons write the message for the visitor.** An answer can carry
+  a `cta` (`{ "label": {…}, "href": "mailto:gdgyaounde@gmail.com" }`). A bare
+  `mailto:` there is opened with a subject and a friendly opening already
+  filled in, in the visitor's language — a `general` answer gets a plain
+  "hello", any other names its own question in the subject so whoever answers
+  knows which FAQ fell short. **A `mailto:` that already has its own
+  `?subject=…` is left exactly as you wrote it.** The wording lives in
+  `messages/*.json` under `mail`, and every email link on the site (footer,
+  claim page, community-wall pages, the receipt emails) is built the same way
+  through `src/lib/mailto.ts` — a test fails if a bare `mailto:` is added to
+  the code.
 
 ---
 

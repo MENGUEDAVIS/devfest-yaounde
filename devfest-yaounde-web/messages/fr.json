@@ -56,6 +56,24 @@
   "offline": {
     "banner": "Tu es hors ligne — {pages} restent disponibles."
   },
+  "mail": {
+    "general": {
+      "subject": "Bonjour depuis le site DevFest Yaoundé",
+      "body": "Bonjour l'équipe DevFest Yaoundé,\n\nJ'ai une question au sujet de :\n\n\nMerci !"
+    },
+    "claim": {
+      "subject": "J'ai besoin d'aide pour récupérer mon billet",
+      "body": "Bonjour l'équipe DevFest Yaoundé,\n\nJe n'arrive pas à récupérer mon billet.\n\nRéférence du billet : {ticketId}\nCe que je vois à l'écran :\n\n\nMerci !"
+    },
+    "takedown": {
+      "subject": "Merci de retirer une carte du mur de la communauté",
+      "body": "Bonjour l'équipe DevFest Yaoundé,\n\nMerci de retirer une carte du mur de la communauté.\n\nLe surnom sur la carte :\nCe que montre l'image (pour la retrouver) :\n\n\nMerci beaucoup !"
+    },
+    "faq": {
+      "subject": "FAQ : {question}",
+      "body": "Bonjour l'équipe DevFest Yaoundé,\n\nJ'ai lu la FAQ (« {question} ») et j'ai encore besoin d'aide.\n\nCe que je voudrais savoir, ou ce qui s'est passé :\n\n\nMerci !"
+    }
+  },
   "footer": {
     "rsvpCta": "Viens construire avec nous",
     "event": {

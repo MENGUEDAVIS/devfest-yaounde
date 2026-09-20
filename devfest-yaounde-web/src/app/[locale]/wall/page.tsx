@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { DpWall } from "@/components/wall/DpWall";
 import { pageMetadata } from "@/lib/seo";
 import type { WallCard } from "@/data/wall-placeholders";
+import { mailtoHref } from "@/lib/mailto";
 import { CHAPTER_EMAIL } from "@/lib/site-config";
 import { readWallPage } from "@/lib/dp/gallery-server";
 
@@ -56,6 +57,7 @@ export default async function WallPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.wall");
+  const tMail = await getTranslations("mail");
 
   let cards: WallCard[] = [];
   let hasMore = false;
@@ -103,7 +105,10 @@ export default async function WallPage({
         </div>
       )}
       <a
-        href={`mailto:${CHAPTER_EMAIL}`}
+        href={mailtoHref(CHAPTER_EMAIL, {
+          subject: tMail("takedown.subject"),
+          body: tMail("takedown.body"),
+        })}
         className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-pill border-2 border-black02 bg-offwhite px-4 py-1.5 text-center font-mono text-mono-tag font-bold uppercase tracking-wide text-black02"
       >
         {t("takedownHint", { email: CHAPTER_EMAIL })}

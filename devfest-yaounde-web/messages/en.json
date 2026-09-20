@@ -56,6 +56,24 @@
   "offline": {
     "banner": "You're offline — {pages} still work."
   },
+  "mail": {
+    "general": {
+      "subject": "Hello from a DevFest Yaoundé visitor",
+      "body": "Hi DevFest Yaoundé team,\n\nI have a question about:\n\n\nThanks!"
+    },
+    "claim": {
+      "subject": "I need help claiming my ticket",
+      "body": "Hi DevFest Yaoundé team,\n\nI can't claim my ticket.\n\nTicket reference: {ticketId}\nWhat I see on screen:\n\n\nThanks!"
+    },
+    "takedown": {
+      "subject": "Please take down a card from the Community Wall",
+      "body": "Hi DevFest Yaoundé team,\n\nPlease remove a card from the Community Wall.\n\nThe nickname on the card:\nWhat the picture shows (so you can find it):\n\n\nThank you!"
+    },
+    "faq": {
+      "subject": "FAQ: {question}",
+      "body": "Hi DevFest Yaoundé team,\n\nI read the FAQ (\"{question}\") and I still need a hand.\n\nWhat I'd like to know, or what happened:\n\n\nThanks!"
+    }
+  },
   "footer": {
     "rsvpCta": "Come build with us",
     "event": {

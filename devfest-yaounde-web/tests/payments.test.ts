@@ -1691,6 +1691,25 @@ describe("receipt emails", () => {
     );
   });
 
+  it("the support link in the footer arrives with a subject and a friendly opening", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const email = renderTicketReceipt(ticketIntent({ locale }), tickets);
+      const href = /href="(mailto:[^"]+)"/.exec(email.html)?.[1];
+      assert.ok(href, `${locale}: no mailto link in the footer`);
+      const url = new URL(href.replace(/&amp;/g, "&"));
+      const subject = url.searchParams.get("subject") ?? "";
+      const body = url.searchParams.get("body") ?? "";
+      assert.ok(subject.length > 10, `${locale}: subject ${subject}`);
+      assert.ok(body.includes("\r\n"), `${locale}: body has line breaks`);
+      // Names this email and carries the order reference, so whoever answers
+      // can find it.
+      assert.ok(
+        body.includes(ticketIntent({ locale }).deposit_id),
+        `${locale}: reference missing`,
+      );
+    }
+  });
+
   it("hides the fee row when it computes to zero, same rule as the discount row", () => {
     // net_amount 0 (a fully-discounted order) means transactionFeeAmount(0)
     // is 0 by construction — nothing to itemise.

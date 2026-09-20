@@ -7,6 +7,7 @@ import {
   YoutubeLogo,
 } from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
+import { mailtoHref } from "@/lib/mailto";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { Button } from "@/components/ui/Button";
 import { MaybeLink } from "@/components/ui/MaybeLink";
@@ -73,6 +74,7 @@ const SOCIAL_CLASS =
  */
 export async function Footer() {
   const t = await getTranslations("footer");
+  const tMail = await getTranslations("mail");
   const year = new Date().getFullYear();
   const settings = await loadSettings();
   const BEVY_URL = settings.bevyUrl;
@@ -281,7 +283,10 @@ export async function Footer() {
           hint already does.
         */}
         <a
-          href={`mailto:${CHAPTER_EMAIL}`}
+          href={mailtoHref(CHAPTER_EMAIL, {
+            subject: tMail("general.subject"),
+            body: tMail("general.body"),
+          })}
           className="mt-6 block text-center font-mono text-caption text-offwhite/55 underline decoration-offwhite/30 underline-offset-2 transition-colors duration-200 hover:text-offwhite"
         >
           {t("contact", { email: CHAPTER_EMAIL })}
