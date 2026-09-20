@@ -1,7 +1,7 @@
 # 0066 — An installable PWA, with offline caching limited to four pages by name
 
 Date: 2026-09-16
-Status: Accepted (PHASE22 §F)
+Status: Accepted (PHASE22 §F) — **amended: the in-page install button was removed** (PHASE23 feedback). The site is still installable through the browser's own menu/address-bar UI; nothing on the page prompts for it.
 
 ## What, and the one rule that matters more than the feature
 
@@ -9,7 +9,7 @@ Schedule, Speakers, Team and FAQs — in both locales, eight exact
 pathnames — now work with no connection, once visited once with one. The
 site is also genuinely installable: a real service worker with a fetch
 handler, a complete manifest (name, colours, a 192px and a 512px icon),
-and a visible install affordance.
+and ~~a visible install affordance~~ (removed — see the note under "Installability").
 
 **The rule the brief actually cared about: Tickets, Shop, checkout,
 payments, `/account` and `/admin` are never cached, never served stale,
@@ -90,7 +90,15 @@ translation), because "you're offline" alone leaves someone wondering
 whether ANYTHING on the site still works — telling them exactly what does
 is the more useful message.
 
-## Installability: a real `beforeinstallprompt`-driven button, not just a manifest and a hope
+## Installability: a real manifest and service worker; ~~a `beforeinstallprompt`-driven button~~ no button
+
+> **Amended (PHASE23 feedback).** The `InstallPrompt` button described below was
+> **removed** — the site should not lay an "Install the app" button out on the
+> page. Anybody who wants the app installs it from the browser's own UI, which
+> Chromium still offers because everything the button waited on is unchanged:
+> a valid manifest, HTTPS, a service worker with a fetch handler and 192/512
+> icons. The offline behaviour, the offline indicator and the icons stay. The
+> section below is kept as the record of what was decided at the time.
 
 `InstallPrompt.tsx` only ever renders when Chromium has ALREADY decided
 the site meets the bar and fired `beforeinstallprompt` — a valid

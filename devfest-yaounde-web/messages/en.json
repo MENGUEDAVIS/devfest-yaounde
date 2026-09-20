@@ -54,9 +54,7 @@
     "wall": "Every card here was made by somebody in this community, in a browser, probably instead of doing something more productive. Look at them all. Genuinely, thank you — this wall is just you lot."
   },
   "offline": {
-    "banner": "You're offline — {pages} still work.",
-    "install": "Install the app",
-    "installDismiss": "Dismiss install prompt"
+    "banner": "You're offline — {pages} still work."
   },
   "footer": {
     "rsvpCta": "Come build with us",

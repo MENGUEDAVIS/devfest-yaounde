@@ -54,9 +54,7 @@
     "wall": "Chaque carte ici a été faite par quelqu'un de cette communauté, dans un navigateur, probablement au lieu de faire quelque chose de plus productif. Regarde-moi ça. Sincèrement, merci — ce mur, c'est juste vous."
   },
   "offline": {
-    "banner": "Tu es hors ligne — {pages} restent disponibles.",
-    "install": "Installer l'application",
-    "installDismiss": "Fermer la proposition d'installation"
+    "banner": "Tu es hors ligne — {pages} restent disponibles."
   },
   "footer": {
     "rsvpCta": "Viens construire avec nous",

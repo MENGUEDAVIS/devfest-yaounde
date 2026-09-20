@@ -7,7 +7,6 @@ import { CustomCursor } from "@/components/global/CustomCursor";
 import { FloatingScrollbar } from "@/components/global/FloatingScrollbar";
 import { Footer } from "@/components/global/Footer";
 import { GlobalChrome } from "@/components/global/GlobalChrome";
-import { InstallPrompt } from "@/components/global/InstallPrompt";
 import { OfflineIndicator } from "@/components/global/OfflineIndicator";
 import { Preloader } from "@/components/global/Preloader";
 import { ServiceWorkerRegistration } from "@/components/global/ServiceWorkerRegistration";
@@ -175,7 +174,6 @@ export default async function LocaleLayout({
           <CustomCursor />
           <ServiceWorkerRegistration />
           <OfflineIndicator />
-          <InstallPrompt />
           {/*
             The chrome is fixed-position, so page content needs its own top
             offset. Hero sections apply their own generous top padding
