@@ -10,8 +10,8 @@ import {
 import type { Product, TicketTier } from "@/data/types";
 import type { AdminData, AdminSettings } from "@/lib/admin/shape";
 import { slugify } from "@/lib/admin/form-helpers";
-import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { EntityCrud } from "../forms/EntityCrud";
+import { PriceReadout } from "../forms/PriceReadout";
 import {
   EntitlementListField,
   Field,
@@ -102,18 +102,10 @@ export function AdminTicketTiers({
               {row.name}
             </span>
             <div className="min-w-0">
-              <p className="truncate font-sans text-body-m font-bold text-black02">
-                {row.priceXAF === 0
-                  ? "Free"
-                  : `${row.priceXAF.toLocaleString("en-CM")} XAF`}
-                {row.quantityAvailable != null &&
-                  ` · ${row.quantityAvailable} cap`}
-              </p>
-              {row.priceXAF > 0 && (
+              <PriceReadout base={row.priceXAF} />
+              {row.quantityAvailable != null && (
                 <p className="truncate text-caption text-black02/65">
-                  Customer pays{" "}
-                  {feeInclusiveAmount(row.priceXAF).toLocaleString("en-CM")} XAF
-                  (1.5% fee, rounded up to 50)
+                  {row.quantityAvailable} cap
                 </p>
               )}
               <p className="truncate text-caption text-black02/65">
@@ -149,12 +141,8 @@ export function AdminTicketTiers({
             </Field>
 
             <Field
-              label="Price (XAF)"
-              hint={
-                draft.priceXAF > 0
-                  ? `Base price — fee-free. Customers pay ${feeInclusiveAmount(draft.priceXAF).toLocaleString("en-CM")} XAF, which is this base plus the 1.5% transaction fee, rounded up to the next 50 XAF — all added automatically everywhere this tier is shown.`
-                  : "Base price — fee-free. The 1.5% transaction fee, rounded up to the next 50 XAF, is added automatically wherever this tier is shown to a buyer."
-              }
+              label="Base price (XAF)"
+              hint="Enter the base price, without the fee. The displayed price is worked out from it automatically, everywhere this tier is shown."
             >
               <TextInput
                 type="number"
@@ -163,6 +151,7 @@ export function AdminTicketTiers({
                   patch({ priceXAF: Math.max(0, Number(v) || 0) })
                 }
               />
+              <PriceReadout base={draft.priceXAF} layout="panel" />
             </Field>
 
             <Field
@@ -369,11 +358,13 @@ function SwagPickerField({
                   <span className="block truncate font-sans text-body-m font-bold text-black02">
                     {product ? product.name.en || product.name.fr : id}
                   </span>
-                  <span className="block truncate text-caption text-black02/65">
+                  <span className="block text-caption text-black02/65">
                     {product ? (
                       <>
-                        {product.priceXAF.toLocaleString("en-CM")} XAF
-                        {product.published === false && " · Hidden in shop"}
+                        <PriceReadout base={product.priceXAF} />
+                        {product.published === false && (
+                          <span className="block">Hidden in shop</span>
+                        )}
                       </>
                     ) : (
                       "No longer in the shop — remove it, or re-add the product."

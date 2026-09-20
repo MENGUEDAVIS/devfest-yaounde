@@ -10,8 +10,8 @@ import type {
 } from "@/data/types";
 import { slugify } from "@/lib/admin/form-helpers";
 import type { AdminData } from "@/lib/admin/shape";
-import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { EntityCrud } from "../forms/EntityCrud";
+import { PriceReadout } from "../forms/PriceReadout";
 import {
   ChipInput,
   Field,
@@ -189,11 +189,9 @@ export function AdminShop({
               <p className="truncate font-sans text-body-m font-bold text-black02">
                 {row.name.en || row.name.fr || row.id}
               </p>
+              <PriceReadout base={row.priceXAF} />
               <p className="truncate text-caption text-black02/65">
-                {row.priceXAF.toLocaleString("en-CM")} XAF base
-                {row.priceXAF > 0 &&
-                  ` → customer pays ${feeInclusiveAmount(row.priceXAF).toLocaleString("en-CM")} (1.5% fee, rounded up to 50)`}{" "}
-                · {STATUSES.find((s) => s.value === row.status)?.label}
+                {STATUSES.find((s) => s.value === row.status)?.label}
                 {row.published === false && " · Hidden"}
                 {tiersBundling(row.id).length > 0 &&
                   ` · In ${tiersBundling(row.id).join(", ")}`}
@@ -238,12 +236,8 @@ export function AdminShop({
               </Field>
 
               <Field
-                label="Price (XAF)"
-                hint={
-                  draft.priceXAF > 0
-                    ? `Base price — fee-free. Customers pay ${feeInclusiveAmount(draft.priceXAF).toLocaleString("en-CM")} XAF, which is this base plus the 1.5% transaction fee, rounded up to the next 50 XAF — all added automatically everywhere this product is shown.`
-                    : "Base price — fee-free. The 1.5% transaction fee, rounded up to the next 50 XAF, is added automatically wherever this product is shown to a buyer."
-                }
+                label="Base price (XAF)"
+                hint="Enter the base price, without the fee. The displayed price is worked out from it automatically, everywhere this product is shown."
               >
                 <TextInput
                   type="number"
@@ -252,6 +246,7 @@ export function AdminShop({
                     patch({ priceXAF: Math.max(0, Number(v) || 0) })
                   }
                 />
+                <PriceReadout base={draft.priceXAF} layout="panel" />
               </Field>
 
               <Field

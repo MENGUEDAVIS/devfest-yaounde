@@ -85,6 +85,13 @@ total` with no row that has to explain itself.
 - **A tiny post-discount remainder costs 50 XAF minimum** (10 XAF left after a
   code → 50 charged). A fully discounted order is still exactly 0 and still
   takes the free path.
+- **The admin shows both prices, labelled** (follow-up to the first cut, which
+  had only a small caption): a `PriceReadout` under the price field in the tier
+  and product forms — *Base price — what you enter* beside *Displayed price —
+  what visitors pay*, updating as you type, with how much the fee and round-up
+  add — and a compact **Base / Displayed** pair on every list row and in the
+  tier's swag picker. The field itself is now labelled *Base price (XAF)*. It
+  calls the same `feeInclusiveAmount` as the storefront and checkout.
 - Revenue reporting is unaffected: `settledRevenue` sums `net_amount`, which
   never included the fee or the round-up.
 - FAQ / messages: no FAQ answer quoted a price or the fee percentage
