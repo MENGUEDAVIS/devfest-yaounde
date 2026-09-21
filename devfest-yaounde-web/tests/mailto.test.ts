@@ -139,7 +139,13 @@ describe("no bare mailto can creep back in", () => {
       for (const name of readdirSync(dir)) {
         const path = join(dir, name);
         if (statSync(path).isDirectory()) walk(path);
-        else if (/\.(ts|tsx)$/.test(name) && !path.endsWith("lib/mailto.ts")) {
+        else if (
+          /\.(ts|tsx)$/.test(name) &&
+          // Normalised before the check: `path.join` uses `\` on Windows, so
+          // the literal forward-slash suffix never matched there and this
+          // file flagged itself as the one bare `mailto:` it exists to ban.
+          !path.replaceAll("\\", "/").endsWith("lib/mailto.ts")
+        ) {
           if (readFileSync(path, "utf8").includes("mailto:"))
             offenders.push(path);
         }
