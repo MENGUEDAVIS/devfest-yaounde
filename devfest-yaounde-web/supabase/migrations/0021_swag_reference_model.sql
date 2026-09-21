@@ -106,13 +106,20 @@ rewritten as (
         (select jsonb_agg(sw->>'shopProductId')
          from jsonb_array_elements(coalesce(tier->'swag', '[]'::jsonb)) as sw
          where sw->>'shopProductId' is not null
-           and sw->>'shopProductId' = any((select ids from survivors))),
+           -- `= any(s.ids)` against the CROSS JOINed column value, NOT
+           -- `= any((select ids from survivors))` — Postgres reads that
+           -- subquery form as "any ROW of the subquery", and `survivors`
+           -- has exactly one row whose `ids` is itself a text[], so it
+           -- tried `text = text[]` and refused (never actually run before
+           -- this deploy, per ADR 0054's own "not verified" note).
+           and sw->>'shopProductId' = any(s.ids)),
         '[]'::jsonb
       )
     ) as tier,
     ordinality
   from public.editorial_documents d,
-       jsonb_array_elements(d.payload) with ordinality as t(tier, ordinality)
+       jsonb_array_elements(d.payload) with ordinality as t(tier, ordinality),
+       survivors s
   where d.id = 'ticket-tiers'
 )
 update public.editorial_documents d
