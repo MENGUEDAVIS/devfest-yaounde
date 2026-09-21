@@ -105,7 +105,7 @@ like a mistake.
 ## Effects
 
 **Looks** (one at a time): as shot, duotone, halftone, black & white,
-misprint (channel offset), screen print (posterised).
+misprint (channel offset), screen print (posterised), pixel art, mosaic.
 **Edges**: clean, torn, brushed — the edge is a mask, so a torn photo really
 does leave its own corner behind.
 **Textures** (independent): grain, paper, vignette, ripple, fisheye.
@@ -116,6 +116,21 @@ and compresses the rim, like a door peephole. Because the radius is normalised
 against the half-diagonal it never exceeds 1, so every sample lands inside the
 photo — no stretched corners to paper over. An earlier version drew a
 magnifying glass on top of the card instead.
+
+**Mosaic** (Phase 23 §C) is deliberately not "pixel art with bigger blocks".
+Pixel art floods square blocks flush together, so it reads as a low-resolution
+picture; a mosaic reads as a picture *made of pieces* — each tile takes the
+average colour under it, is inset so a seam of ink grout shows between tiles,
+and is nudged a few levels lighter or darker (seeded per style, so a photo
+always lays the same way). Everything is a fraction of the render — 34 columns,
+grout a fixed share of a tile, the tonal nudge drawn in a fixed order — so the
+2160px file is the same arrangement as the preview, only crisper. It has no
+intensity control because no other look does either (only stickers have
+sliders); a tile-size slider would be the natural addition if one is ever
+wanted, and `MOSAIC_COLUMNS` in `compose.ts` is the one number behind it.
+It runs once per render as a single read of the photo layer and ~1 200 rect
+fills, before the colour pass — so grain, paper and vignette still lay over the
+tiles.
 
 All of it is 2D canvas: one geometric pass for the ripple and the channel
 offset, one colour pass that does the look, the grain, the paper and the

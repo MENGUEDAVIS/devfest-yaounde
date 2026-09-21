@@ -114,6 +114,11 @@ export function teamFromCsv(
       ...(old?.hidden ? { hidden: true } : {}),
       ...(old?.years ? { years: old.years } : {}),
       ...(old?.social ? { social: old.social } : {}),
+      // PHASE23 §B. The CSV has no columns for these, and a re-import
+      // rebuilds every row — without carrying them over it would silently
+      // erase every tag and join year an organiser had entered.
+      ...(old?.expertise ? { expertise: old.expertise } : {}),
+      ...(old?.gdgSince ? { gdgSince: old.gdgSince } : {}),
     };
   });
 }

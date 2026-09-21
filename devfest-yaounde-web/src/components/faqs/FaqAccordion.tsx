@@ -1,9 +1,10 @@
 "use client";
 
 import { ArrowRight } from "@phosphor-icons/react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
+import { isMailtoHref, withMailDraft } from "@/lib/mailto";
 import type { FaqItem } from "@/data/types";
 
 export interface FaqAccordionProps {
@@ -34,6 +35,20 @@ export function FaqAccordion({
   children,
 }: FaqAccordionProps) {
   const locale = useLocale() as "fr" | "en";
+  const tMail = useTranslations("mail");
+  const question = faq.question[locale];
+  const isMailto = faq.cta ? isMailtoHref(faq.cta.href) : false;
+  // "Who do I contact?" is itself the general question — quoting it back in
+  // the subject would read oddly — so `general` answers use the plain hello.
+  // Every other answer names its own question, which tells whoever answers
+  // exactly which FAQ did not do the job.
+  const mailDraft =
+    faq.category === "general"
+      ? { subject: tMail("general.subject"), body: tMail("general.body") }
+      : {
+          subject: tMail("faq.subject", { question }),
+          body: tMail("faq.body", { question }),
+        };
 
   return (
     <div
@@ -100,10 +115,16 @@ export function FaqAccordion({
               (faq.cta.external ? (
                 <div className="mt-1">
                   <a
-                    href={faq.cta.href}
-                    // Same meaning as everywhere else: off-site, own tab.
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    // An "Email us" button arrives with a subject naming this
+                    // question and a friendly opening already written; a
+                    // mailto that carries its own query is left as authored.
+                    href={withMailDraft(faq.cta.href, mailDraft)}
+                    // Same meaning as everywhere else: off-site, own tab —
+                    // except a mailto, which opens the mail app and would only
+                    // leave an empty tab behind.
+                    {...(isMailto
+                      ? {}
+                      : { target: "_blank", rel: "noopener noreferrer" })}
                     className="faq-cta mt-5 inline-flex items-center gap-2 rounded-pill border-2 border-black02 bg-primary px-5 py-2.5 font-sans text-body-m font-bold text-black02 shadow-[0_4px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none motion-reduce:transform-none"
                   >
                     {faq.cta.label[locale]}

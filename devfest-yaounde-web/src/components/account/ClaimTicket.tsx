@@ -4,6 +4,7 @@ import { CheckCircle, WarningCircle } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
+import { mailtoHref } from "@/lib/mailto";
 import { CHAPTER_EMAIL } from "@/lib/site-config";
 import { signInWithGoogle, useSession } from "@/lib/use-session";
 
@@ -43,6 +44,7 @@ export function ClaimTicket({
   token: string;
 }) {
   const t = useTranslations("pages.claimTicket");
+  const tMail = useTranslations("mail");
   const locale = useLocale();
   const { profile, loading } = useSession();
   const [status, setStatus] = useState<Status>("idle");
@@ -155,7 +157,11 @@ export function ClaimTicket({
       <p className="mt-3 text-body-m text-black02/80">{t(message.body)}</p>
       {message.contact && (
         <a
-          href={`mailto:${CHAPTER_EMAIL}`}
+          href={mailtoHref(CHAPTER_EMAIL, {
+            subject: tMail("claim.subject"),
+            // The ticket's id, so we can find it — never the claim token.
+            body: tMail("claim.body", { ticketId }),
+          })}
           className="mt-4 inline-block font-mono text-caption font-bold text-black02 underline decoration-2 underline-offset-4"
         >
           {t("contact", { email: CHAPTER_EMAIL })}

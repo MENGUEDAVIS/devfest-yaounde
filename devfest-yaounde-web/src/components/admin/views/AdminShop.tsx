@@ -10,8 +10,8 @@ import type {
 } from "@/data/types";
 import { slugify } from "@/lib/admin/form-helpers";
 import type { AdminData } from "@/lib/admin/shape";
-import { feeInclusiveAmount } from "@/lib/payments/fees";
 import { EntityCrud } from "../forms/EntityCrud";
+import { PriceReadout } from "../forms/PriceReadout";
 import {
   ChipInput,
   Field,
@@ -90,9 +90,9 @@ export function AdminShop({
     <div className="flex flex-col gap-5">
       <InfoBanner>
         No category field — filtering is by status and search instead (see
-        `docs/backend/GAPS.md` G11). Categories were deferred again as
-        packages whose shape isn&rsquo;t settled yet; adding a real one is a
-        separate decision, not a quiet filter-bar addition.
+        `docs/backend/GAPS.md` G11). Categories were deferred again as packages
+        whose shape isn&rsquo;t settled yet; adding a real one is a separate
+        decision, not a quiet filter-bar addition.
       </InfoBanner>
 
       <EntityCrud<Product>
@@ -189,11 +189,8 @@ export function AdminShop({
               <p className="truncate font-sans text-body-m font-bold text-black02">
                 {row.name.en || row.name.fr || row.id}
               </p>
+              <PriceReadout base={row.priceXAF} />
               <p className="truncate text-caption text-black02/65">
-                {row.priceXAF.toLocaleString("en-CM")} XAF
-                {row.priceXAF > 0 &&
-                  ` (${feeInclusiveAmount(row.priceXAF).toLocaleString("en-CM")} with fee)`}{" "}
-                ·{" "}
                 {STATUSES.find((s) => s.value === row.status)?.label}
                 {row.published === false && " · Hidden"}
                 {tiersBundling(row.id).length > 0 &&
@@ -239,12 +236,8 @@ export function AdminShop({
               </Field>
 
               <Field
-                label="Price (XAF)"
-                hint={
-                  draft.priceXAF > 0
-                    ? `Base price — fee-free. Customers pay ${feeInclusiveAmount(draft.priceXAF).toLocaleString("en-CM")} XAF, which includes the 1.5% transaction fee added automatically everywhere this product is shown.`
-                    : "Base price — fee-free. The 1.5% transaction fee is added automatically wherever this product is shown to a buyer."
-                }
+                label="Base price (XAF)"
+                hint="Enter the base price, without the fee. The displayed price is worked out from it automatically, everywhere this product is shown."
               >
                 <TextInput
                   type="number"
@@ -253,6 +246,7 @@ export function AdminShop({
                     patch({ priceXAF: Math.max(0, Number(v) || 0) })
                   }
                 />
+                <PriceReadout base={draft.priceXAF} layout="panel" />
               </Field>
 
               <Field
@@ -367,7 +361,9 @@ function StockField({
   onChange: (v: { size?: string; color?: string; quantity: number }[]) => void;
 }) {
   function update(i: number, changes: Partial<(typeof stock)[number]>) {
-    onChange(stock.map((row, idx) => (idx === i ? { ...row, ...changes } : row)));
+    onChange(
+      stock.map((row, idx) => (idx === i ? { ...row, ...changes } : row)),
+    );
   }
   function remove(i: number) {
     onChange(stock.filter((_, idx) => idx !== i));
@@ -408,7 +404,9 @@ function StockField({
               min={0}
               value={row.quantity}
               onChange={(e) =>
-                update(i, { quantity: Math.max(0, Number(e.target.value) || 0) })
+                update(i, {
+                  quantity: Math.max(0, Number(e.target.value) || 0),
+                })
               }
               className="w-16 rounded-lg border border-black02/25 bg-offwhite px-2 py-1.5 text-center font-mono text-caption text-black02"
             />

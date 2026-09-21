@@ -51,6 +51,7 @@ import { AdminSponsors } from "./views/AdminSponsors";
 import { AdminTestimonials } from "./views/AdminTestimonials";
 import { AdminStats } from "./views/AdminStats";
 import { AdminMemoryLane } from "./views/AdminMemoryLane";
+import { OrganiserAvatar } from "./OrganiserAvatar";
 import { ToastProvider } from "./forms/Toast";
 import type {
   Product,
@@ -641,12 +642,10 @@ export function AdminShell({
               */}
               <div className="mt-3 shrink-0 border-t border-black02/15 pt-3">
                 <div className="flex items-center gap-2.5 px-1">
-                  <span
-                    aria-hidden
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill border border-black02/20 bg-pastel font-sans text-body-m font-bold text-black02"
-                  >
-                    {(data.organiserEmail?.trim()[0] ?? "?").toUpperCase()}
-                  </span>
+                  <OrganiserAvatar
+                    url={data.organiserAvatarUrl}
+                    fallbackSource={data.organiserName ?? data.organiserEmail}
+                  />
                   <span className="min-w-0">
                     <span className="block font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
                       Signed in

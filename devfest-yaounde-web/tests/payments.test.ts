@@ -30,9 +30,11 @@ import {
 import { feeInclusiveAmount, transactionFeeAmount } from "@/lib/payments/fees";
 import { verifyCallback } from "@/lib/pawapay/verify";
 import {
+  finalise,
   quoteTickets,
   quoteCart,
   quoteTierCounts,
+  type DiscountRow,
 } from "@/lib/payments/pricing";
 import { refundAcknowledgment } from "@/lib/payments/terms";
 import ticketTiersJson from "@/data/ticket-tiers.json";
@@ -57,6 +59,7 @@ import {
 } from "@/lib/email/templates";
 import type { PaymentIntentRow } from "@/lib/payments/intents";
 import {
+  allProducts,
   declaredStock,
   findProduct,
   findTier,
@@ -109,7 +112,8 @@ const DEPOSIT = "11111111-2222-3333-4444-555555555555";
 
 before(() => {
   process.env.BADGE_CODE_SECRET = "test-secret-that-is-comfortably-long-enough";
-  process.env.CLAIM_TOKEN_SECRET = "another-test-secret-comfortably-long-enough";
+  process.env.CLAIM_TOKEN_SECRET =
+    "another-test-secret-comfortably-long-enough";
 });
 
 after(() => {
@@ -240,16 +244,33 @@ describe("ticket claim tokens", () => {
   });
 });
 
-describe("the 1.5% transaction fee", () => {
-  it("adds exactly 1.5%, rounded to the nearest franc", () => {
-    assert.equal(feeInclusiveAmount(1000), 1015);
-    assert.equal(feeInclusiveAmount(2000), 2030);
-    assert.equal(feeInclusiveAmount(3600), 3654);
+describe("the 1.5% transaction fee, rounded up to the next 50 XAF", () => {
+  // The brief's formula, written out independently in exact BigInt integer
+  // arithmetic, so the implementation is checked against something that
+  // shares none of its floating-point behaviour.
+  const reference = (base: number) => {
+    const n = BigInt(base) * BigInt(1015);
+    const d = BigInt(50000);
+    return Number(((n + d - BigInt(1)) / d) * BigInt(50));
+  };
+
+  it("matches the worked examples from the brief", () => {
+    assert.equal(feeInclusiveAmount(2000), 2050); // 2030 -> up
+    assert.equal(feeInclusiveAmount(5000), 5100); // 5075 -> up
+    assert.equal(feeInclusiveAmount(10000), 10150); // already a multiple of 50
   });
 
-  it("rounds half up, not banker's rounding or truncation", () => {
-    // 100 * 1.015 = 101.5 exactly — half up means 102, not 101.
-    assert.equal(feeInclusiveAmount(100), 102);
+  it("leaves a figure that already lands on a multiple of 50 unchanged", () => {
+    // 10000 * 1.015 = 10150 exactly; the ceiling must not push it to 10200.
+    assert.equal(feeInclusiveAmount(10000), 10150);
+    assert.equal(feeInclusiveAmount(20000), 20300);
+    assert.equal(feeInclusiveAmount(50000), 50750);
+  });
+
+  it("rounds UP, never to the nearest — 1000 -> 1015 -> 1050, not 1000", () => {
+    assert.equal(feeInclusiveAmount(1000), 1050);
+    assert.equal(feeInclusiveAmount(3600), 3700); // 3654 -> up
+    assert.equal(feeInclusiveAmount(100), 150); // 101.5 -> up
   });
 
   it("is zero on a zero base — a genuinely free ticket stays free", () => {
@@ -257,19 +278,42 @@ describe("the 1.5% transaction fee", () => {
     assert.equal(transactionFeeAmount(0), 0);
   });
 
-  it("transactionFeeAmount is always exactly the difference the fee adds", () => {
-    for (const base of [0, 1, 100, 1015, 30000, 999999]) {
-      assert.equal(
-        transactionFeeAmount(base),
-        feeInclusiveAmount(base) - base,
-      );
+  it("agrees with the exact BigInt reference for every base in a wide range", () => {
+    for (let base = 0; base <= 60000; base++) {
+      assert.equal(feeInclusiveAmount(base), reference(base), `base ${base}`);
+    }
+    // Round admin-style prices well past that, on a coarser step.
+    for (let base = 60000; base <= 5_000_000; base += 250) {
+      assert.equal(feeInclusiveAmount(base), reference(base), `base ${base}`);
     }
   });
 
-  it("never returns a fractional franc — XAF has no subunit", () => {
-    for (const base of [1, 3, 7, 33, 101, 999, 12345]) {
-      assert.equal(Number.isInteger(feeInclusiveAmount(base)), true);
+  it("always returns a multiple of 50, at least base + 1.5%, and under 50 above it", () => {
+    for (const base of [1, 3, 7, 33, 101, 999, 12345, 30000, 999999]) {
+      const out = feeInclusiveAmount(base);
+      assert.equal(out % 50, 0, `${out} is not a multiple of 50`);
+      assert.ok(
+        out >= base * 1.015 - 1e-9,
+        `${out} under base+1.5% for ${base}`,
+      );
+      assert.ok(out < base * 1.015 + 50, `${out} rounded up by 50 or more`);
     }
+  });
+
+  it("transactionFeeAmount is always exactly the difference the price adds", () => {
+    // 1.5% AND the round-up together, so a summary's rows can't drift from
+    // the charged total.
+    for (const base of [0, 1, 100, 1015, 2000, 30000, 999999]) {
+      assert.equal(transactionFeeAmount(base), feeInclusiveAmount(base) - base);
+      assert.equal(base + transactionFeeAmount(base), feeInclusiveAmount(base));
+    }
+  });
+
+  it("a tiny post-discount remainder still costs at least 50 XAF, and 0 stays 0", () => {
+    // Documented consequence of rounding UP (ADR 0068): 10 XAF left after a
+    // discount is charged 50, not 10. A fully-discounted order is still free.
+    assert.equal(feeInclusiveAmount(10), 50);
+    assert.equal(feeInclusiveAmount(0), 0);
   });
 });
 
@@ -477,6 +521,92 @@ describe("catalog rules", () => {
   });
 });
 
+describe("rounded pricing across the real catalogue and a discount", () => {
+  const line = (amount: number) => ({
+    productId: "x",
+    name: { en: "x", fr: "x" },
+    quantity: 1,
+    unitAmount: amount,
+    lineAmount: amount,
+  });
+  const percent = (value: number): DiscountRow => ({
+    code: "TEST",
+    kind: "percent",
+    value,
+    applies_to: "both",
+    max_redemptions: null,
+    redeemed_count: 0,
+    expires_at: null,
+    active: true,
+  });
+  const fixed = (value: number): DiscountRow => ({
+    ...percent(0),
+    kind: "fixed",
+    value,
+  });
+
+  it("every ticket tier is charged exactly the price its card displays", async () => {
+    for (const tier of ticketTiers.filter(
+      (t) => t.priceXAF > 0 && !t.rsvpExternal,
+    )) {
+      // The card shows feeInclusiveAmount(priceXAF) (TicketCheckout); the
+      // charge is the server's basket. They must be the same number.
+      const displayed = feeInclusiveAmount(tier.priceXAF);
+      const basket = await quoteTierCounts([{ tierId: tier.id, quantity: 1 }]);
+      assert.equal(basket.charged, displayed, tier.id);
+      assert.equal(displayed % 50, 0, `${tier.id} not a multiple of 50`);
+      assert.equal(basket.subtotal, tier.priceXAF, "base stays untouched");
+    }
+  });
+
+  it("every shop product is charged exactly the price its card displays", async () => {
+    for (const product of allProducts().filter(isPurchasable)) {
+      const displayed = feeInclusiveAmount(product.priceXAF);
+      const variant = product.variants
+        ? {
+            size: product.variants.size?.[0],
+            color: product.variants.color?.[0],
+          }
+        : undefined;
+      const basket = await quoteCart([
+        { productId: product.id, quantity: 1, variant },
+      ]);
+      assert.equal(basket.charged, displayed, product.id);
+      assert.equal(displayed % 50, 0, `${product.id} not a multiple of 50`);
+    }
+  });
+
+  it("applies the discount to the BASE, then fee and rounding to what is left", () => {
+    // 5000 base, 10% off -> net 4500 -> 4567.5 -> up to 4600.
+    const basket = finalise([line(5000)], percent(10));
+    assert.equal(basket.subtotal, 5000);
+    assert.equal(basket.discountAmount, 500);
+    assert.equal(basket.net, 4500);
+    assert.equal(basket.charged, 4600);
+    assert.equal(basket.feeAmount, 100);
+    assert.equal(basket.net + basket.feeAmount, basket.charged);
+    // The other order (round the sticker first, then take 10% off it) would
+    // give 5100 - 510 = 4590 — a different number, and not what is charged.
+    assert.notEqual(basket.charged, 5100 - Math.floor((5100 * 10) / 100));
+  });
+
+  it("a fully discounted order stays free; a tiny remainder costs 50", () => {
+    assert.equal(finalise([line(5000)], fixed(5000)).charged, 0);
+    assert.equal(finalise([line(5000)], fixed(4990)).charged, 50);
+  });
+
+  it("rounds the whole basket once, not each unit — never above the sum of the sticker prices", () => {
+    // 3 x 2000 = 6000 -> 6090 -> 6100, versus 3 x 2050 = 6150 if each unit
+    // were rounded on its own. ADR 0068 records this as the intended rule.
+    const basket = finalise(
+      [{ ...line(6000), quantity: 3, unitAmount: 2000 }],
+      null,
+    );
+    assert.equal(basket.charged, 6100);
+    assert.ok(basket.charged <= 3 * feeInclusiveAmount(2000));
+  });
+});
+
 describe("server-side pricing", () => {
   it("prices tickets from the catalog, one per attendee", async () => {
     const basket = await quoteTickets([
@@ -554,7 +684,10 @@ describe("server-side pricing", () => {
         lineAmount: 1,
       } as never,
     ]);
-    assert.equal(basket.charged, feeInclusiveAmount(findTier("sonnet")!.priceXAF));
+    assert.equal(
+      basket.charged,
+      feeInclusiveAmount(findTier("sonnet")!.priceXAF),
+    );
   });
 
   it("demands an apparel size on an apparel tier", async () => {
@@ -739,7 +872,6 @@ describe("event structured data", () => {
     assert.equal(org.name, "GDG Yaoundé");
     assert.ok(org.url.startsWith("https://"));
   });
-
 
   it("PAST_GALLERY_YEAR is one edition back from the confirmed one", () => {
     assert.equal(PAST_GALLERY_YEAR, EVENT.year - 1);
@@ -1527,26 +1659,55 @@ describe("receipt emails", () => {
 
   it("shows the transaction fee as its own line, on the post-discount base — not folded into the subtotal", () => {
     // net_amount (3600) is the base AFTER the 400 discount, so the true base
-    // subtotal is 4000 (net + discount) — NOT charged_amount (3654) + discount,
+    // subtotal is 4000 (net + discount) — NOT charged_amount (3700) + discount,
     // which would double-count the fee. charged_amount is feeInclusiveAmount
-    // of net_amount: 3600 * 1.015 = 3654.
+    // of net_amount: 3600 * 1.015 = 3654, rounded up to the next 50 = 3700,
+    // so the fee line is 100.
     const email = renderTicketReceipt(
       ticketIntent({
         net_amount: 3600,
         discount_amount: 400,
-        charged_amount: 3654,
+        charged_amount: feeInclusiveAmount(3600),
       }),
       tickets,
     );
+    assert.equal(feeInclusiveAmount(3600), 3700);
     assert.match(email.html, /4\D?000/, "true base subtotal missing");
     assert.match(email.html, /-400/, "deduction missing");
     assert.ok(
       email.html.includes("Frais de transaction"),
       "fee row label missing",
     );
-    assert.match(email.html, /54/, "fee amount missing");
-    assert.match(email.html, /3\D?654/, "fee-inclusive total missing");
-    assert.match(email.text, /54\D?XAF/, "text fee missing");
+    assert.match(
+      email.html,
+      /Frais de transaction[^<]*<\/td>\s*<td[^>]*>\s*100\D/,
+      "fee amount missing",
+    );
+    assert.match(email.html, /3\D?700/, "fee-inclusive total missing");
+    assert.match(
+      email.text,
+      /Frais de transaction[^\n]*100/,
+      "text fee missing",
+    );
+  });
+
+  it("the support link in the footer arrives with a subject and a friendly opening", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const email = renderTicketReceipt(ticketIntent({ locale }), tickets);
+      const href = /href="(mailto:[^"]+)"/.exec(email.html)?.[1];
+      assert.ok(href, `${locale}: no mailto link in the footer`);
+      const url = new URL(href.replace(/&amp;/g, "&"));
+      const subject = url.searchParams.get("subject") ?? "";
+      const body = url.searchParams.get("body") ?? "";
+      assert.ok(subject.length > 10, `${locale}: subject ${subject}`);
+      assert.ok(body.includes("\r\n"), `${locale}: body has line breaks`);
+      // Names this email and carries the order reference, so whoever answers
+      // can find it.
+      assert.ok(
+        body.includes(ticketIntent({ locale }).deposit_id),
+        `${locale}: reference missing`,
+      );
+    }
   });
 
   it("hides the fee row when it computes to zero, same rule as the discount row", () => {

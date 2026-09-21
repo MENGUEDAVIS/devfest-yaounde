@@ -297,7 +297,7 @@ export function PersonSlider({
                     overflow was silently clipped. A definite row is what
                     lets the print shrink to fit.
                   */}
-                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-offwhite/15 bg-black02 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.45)] sm:p-8 md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
+                <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] items-center gap-6 overflow-hidden rounded-lg border-2 border-offwhite/15 bg-black02 shadow-[0_10px_40px_rgba(0,0,0,0.45)] md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] md:grid-rows-[minmax(0,1fr)] md:gap-8">
                   {/* Mobile: a circle avatar. It costs a fraction of the
                       height a polaroid does, which is what leaves room for
                       the whole detail to fit on a phone. */}

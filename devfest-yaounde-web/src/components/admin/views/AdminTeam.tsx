@@ -11,6 +11,7 @@ import {
   ImageField,
   usePendingPhoto,
   LocalizedInput,
+  LocalizedTagsField,
   Segmented,
   SocialLinks,
   TextInput,
@@ -244,8 +245,8 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
             </Field>
 
             <Field
-              label="One-liner"
-              hint="Optional, and theirs to write — leave it empty rather than inventing one."
+              label="Tagline"
+              hint="One short line on what they do beyond GDG — day job, studies, or something personal. Casual voice, optional, and theirs to write: leave it empty rather than inventing one."
             >
               <LocalizedInput
                 multiline
@@ -253,6 +254,39 @@ export function AdminTeam({ rows }: { rows: TeamMember[] }) {
                 onChange={(oneLiner) =>
                   patch({
                     oneLiner: oneLiner.fr || oneLiner.en ? oneLiner : undefined,
+                  })
+                }
+              />
+            </Field>
+
+            <Field
+              label="Expertise tags"
+              hint="Up to 3 short chips, e.g. Frontend, Community, Design. Fill one language and the other is copied — edit it if the word differs."
+            >
+              <LocalizedTagsField
+                key={draft.id || "new"}
+                max={3}
+                value={draft.expertise ?? []}
+                onChange={(expertise) =>
+                  patch({
+                    expertise: expertise.length ? expertise : undefined,
+                  })
+                }
+              />
+            </Field>
+
+            <Field
+              label="With GDG since"
+              hint="The year they joined, four digits — shown as “With GDG since 2022”. Optional."
+            >
+              <TextInput
+                type="number"
+                value={draft.gdgSince ? String(draft.gdgSince) : ""}
+                placeholder="2022"
+                onChange={(v) =>
+                  patch({
+                    gdgSince:
+                      v.trim() === "" ? undefined : Math.trunc(Number(v)),
                   })
                 }
               />

@@ -64,6 +64,18 @@ export interface TeamMember {
   icebreakerQuestion?: LocalizedString;
   /** Their short answer to it. Optional, for the same reason. */
   icebreakerAnswer?: LocalizedString;
+  /**
+   * Up to 3 short expertise / interest tags — "Frontend", "Community",
+   * "Design" (PHASE23 §B). Bilingual per tag, rendered as `Badge` chips.
+   * Optional for the same reason as the personality beats: the list is
+   * theirs, and nothing here invents one.
+   */
+  expertise?: LocalizedString[];
+  /**
+   * The year they joined GDG Yaoundé ("With GDG since 2022"). Language-
+   * neutral, so a plain number. Optional.
+   */
+  gdgSince?: number;
   /** Optional short, shareable funny note. */
   funnyMoment?: LocalizedString;
   /** true = rendered in the Alumni / Past Organizers section. */

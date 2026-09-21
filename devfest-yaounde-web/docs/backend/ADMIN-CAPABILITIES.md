@@ -90,6 +90,7 @@ so. Nothing offers a save button that would discard what you typed.
 | Order fulfilment                             | `PATCH /api/orders/:id/status` — exists, organiser-guarded         | **Wire for real** (the one real write)   |
 | DP wall queue                                | `GET /api/dp/gallery/pending`, `PATCH /api/dp/gallery/:id` — exist | **Wire for real**                        |
 | Users who signed in                          | `profiles` table                                                   | **Wire for real** (read, PII-restrained) |
+| Promote / remove admins (Users page)         | `organisers` via `set_organiser_role()` (migration 0026), audited  | **Wired** (Phase 23 §E, ADR 0069) — needs 0026 applied |
 | Discount codes                               | `discount_codes` + `POST/PATCH /api/admin/discounts`               | **Writable — ADR 0031**                  |
 | Speakers / team / sessions / sponsors / FAQs | `editorial_documents` (JSON files until first publish)             | **Writable — ADR 0031**                  |
 | Product catalogue                            | same store; checkout reads it                                      | **Writable — ADR 0031**                  |

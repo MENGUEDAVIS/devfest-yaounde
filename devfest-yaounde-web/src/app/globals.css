@@ -620,7 +620,8 @@ html:not(.has-custom-cursor) .cursor-layer {
  */
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .stat-inline-image,
-  .sponsor-inline-card {
+  .sponsor-inline-card,
+  .memory-inline-caption {
     display: none;
   }
 }

@@ -97,8 +97,9 @@ interface TicketTier {
   name: string; // e.g. "HAIKYU" — language-neutral (proper noun tier name)
   label?: LocalizedString; // optional sub-title beside the name; "" for most tiers
   // BASE price, fee-free — 0 for the free tier. Every displayed/charged
-  // price is feeInclusiveAmount(priceXAF), a 1.5% fee added at render and
-  // checkout time (ADR 0063). Never rewrite this field to include the fee.
+  // price is feeInclusiveAmount(priceXAF) = ceil(priceXAF*1.015/50)*50, a 1.5%
+  // fee rounded up to the next 50 XAF, added at render and checkout time
+  // (ADRs 0063, 0068). Never rewrite this field to include the fee.
   priceXAF: number;
   description: LocalizedString;
   // "What your ticket grants you" — reorderable, icon optional (fixed set,

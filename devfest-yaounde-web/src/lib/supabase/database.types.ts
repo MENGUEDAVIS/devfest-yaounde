@@ -610,6 +610,15 @@ export type Database = {
       }
       get_vault_secret: { Args: { p_name: string }; Returns: string }
       is_organiser: { Args: { p_user_id?: string }; Returns: boolean }
+      set_organiser_role: {
+        Args: {
+          p_action: string
+          p_actor: string
+          p_confirm_self?: boolean
+          p_target: string
+        }
+        Returns: string
+      }
       variant_taken: {
         Args: {
           p_color: string

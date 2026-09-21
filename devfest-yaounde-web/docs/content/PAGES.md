@@ -128,6 +128,10 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
      speaker/team slider's print (ADR 0060). With nothing uploaded, the grid
      shows a "coming soon" placeholder matching the sponsor strip's own
      empty-seat visual language, rather than a blank section.
+   - **Hover (Phase 23):** pointing at a print shows its description (alt
+     text, plus the year when set) in the cursor popover, lifts and straightens
+     the print, and steps its neighbours back. Touch and reduced-motion visitors
+     get the description written on the print's lower border instead.
    - **"View the {year} gallery"** — the past edition's album, opening in a
      new tab (`noopener noreferrer`), the year filled in automatically. The
      URL is a dashboard setting (Settings → Gallery links); empty hides the
@@ -240,6 +244,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 - Organizer photos (morphed frames), name, role/title (Lead Organizer, Design, Logistics, DevRel/Partnerships, Community, etc.) — grouped by sub-team if the org chart supports it, otherwise one grid.
 - Short, personality-forward one-liners rather than formal bios — e.g. "Keeps the Wi-Fi (and the vibes) running."
+- **Enriched in Phase 23 §B:** an optional row of up to 3 **expertise chips** (the shared `Badge`) and a quiet **"With GDG since {year}"** line join the tagline. The grid card face carries only the tagline (one clamped line); the chips and join year live in the detail — popover, bottom sheet, and slider — and inline on the static alumni cards. The shared slider centres and width-constrains (`max-w-xl`) its text so a one-line tagline or bio isn't stranded on the wide stage; Speakers gets that too.
 - Social links per person, same treatment as speakers.
 - Optional but valuable for a multi-year template: an **"Alumni / Past Organizers"** section lower on the page — reinforces the community-over-time story you're building the whole site around.
 
@@ -268,10 +273,12 @@ happened.
 
 **"Base price" is what's stored and what an admin edits — never what a
 buyer actually sees.** Every price shown anywhere on the site, and every
-amount actually charged, is the base price plus a 1.5% transaction fee
-(`feeInclusiveAmount()`, ADR 0063), rounded to the nearest franc — so
-SONNET's base 2,000 shows and charges as 2,030. The same rule applies to
-every shop product's price.
+amount actually charged, is the base price plus a 1.5% transaction fee,
+rounded **up to the next 50 XAF** (`feeInclusiveAmount()`, ADRs 0063 and
+0068: `ceil(base × 1.015 / 50) × 50`) — so SONNET's base 2,000 shows and
+charges as 2,050, and OPUS's 5,000 as 5,100. A figure that already lands
+on a multiple of 50 (FABLE's 10,000 → 10,150) is unchanged. The same rule
+applies to every shop product's price.
 
 SONNET has no sub-label — it dropped the "Student pass" framing (Phase 20):
 the tier is not restricted to students, and nothing on the site checked for

@@ -115,6 +115,14 @@ way it does on an image zone.
   needs its own element or it erases the position/tilt or the reveal scale.
 - Same inline fallback pattern: `.sponsor-inline-card`, hidden under exactly
   the cursor's own media query.
+- **Second user: Memory Lane's prints.** Each photo's description (its alt
+  text, in the visitor's language) is the card's title and the year, when set,
+  its body — `data-cursor-card` on the `.memory-polaroid`. The card sits in the
+  cursor's `aria-hidden` layer; the `<img alt>` is what assistive tech hears,
+  so nothing is announced twice. Its fallback is `.memory-inline-caption`: the
+  same description written on the print's lower border, shown for touch and
+  reduced motion and `aria-hidden` for the same no-double-announcement
+  reason. A photo with no description gets no popover and no caption.
 
 ## Changing it
 

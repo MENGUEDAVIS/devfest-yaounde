@@ -31,7 +31,7 @@ import { createAdminSupabase } from "@/lib/supabase/server";
 const MAX_QUANTITY_PER_LINE = 10;
 const MAX_TICKETS_PER_ORDER = 10;
 
-interface DiscountRow {
+export interface DiscountRow {
   code: string;
   kind: "percent" | "fixed";
   value: number;
@@ -87,7 +87,11 @@ function applyDiscount(subtotal: number, discount: DiscountRow): number {
 }
 
 /**
- * The one place the transaction fee (PHASE22 §D+) joins the total.
+ * The one place the transaction fee (PHASE22 §D+) joins the total, and the
+ * round-up to the next 50 XAF (PHASE23 §A) with it — both live in
+ * `feeInclusiveAmount`. Exported so the ordering below is testable without a
+ * database (a real discount lookup needs one); nothing outside this file and
+ * the tests calls it.
  *
  * ORDER MATTERS: the discount is computed against the BASE subtotal
  * (unchanged from before the fee existed — a code takes a percentage off
@@ -104,7 +108,7 @@ function applyDiscount(subtotal: number, discount: DiscountRow): number {
  * actually charged via PawaPay and shown everywhere as the total — the fee
  * is real money the buyer pays, so it can never be display-only.
  */
-function finalise(
+export function finalise(
   lines: PricedLine[],
   discount: DiscountRow | null,
 ): PricedBasket {

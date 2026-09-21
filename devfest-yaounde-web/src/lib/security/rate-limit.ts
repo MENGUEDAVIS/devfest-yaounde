@@ -74,6 +74,17 @@ export const RATE_LIMITS = {
   ticketClaim: { bucket: "ticket-claim", limit: 10, windowSeconds: 300 },
   /** Dashboard writes. Generous for a person, useless for a script. */
   adminWrite: { bucket: "admin-write", limit: 60, windowSeconds: 300 },
+  /**
+   * Promoting / demoting admins. A privilege-escalation surface: ten changes
+   * in ten minutes is far beyond any real reshuffle of a small team, and is
+   * exactly what a stolen session churning membership would look like. The
+   * fifth change in a window is also flagged (see the role-change handler).
+   */
+  adminRoleChange: {
+    bucket: "admin-role-change",
+    limit: 10,
+    windowSeconds: 600,
+  },
   /** One picture per remaining profile, so this is higher than adminWrite. */
   adminPhoto: { bucket: "admin-photo", limit: 120, windowSeconds: 300 },
 } as const satisfies Record<string, RateLimitRule>;

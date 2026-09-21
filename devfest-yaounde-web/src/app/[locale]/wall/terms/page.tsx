@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { pageMetadata } from "@/lib/seo";
+import { mailtoHref } from "@/lib/mailto";
 import { CHAPTER_EMAIL } from "@/lib/site-config";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
@@ -29,6 +30,7 @@ export default async function WallTermsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pages.wallTerms");
+  const tMail = await getTranslations("mail");
 
   return (
     <main id="main-content" tabIndex={-1} className="flex-1 pt-32 sm:pt-28">
@@ -61,7 +63,10 @@ export default async function WallTermsPage({
         </p>
         <div className="mt-10 flex flex-wrap gap-3">
           <a
-            href={`mailto:${CHAPTER_EMAIL}`}
+            href={mailtoHref(CHAPTER_EMAIL, {
+              subject: tMail("takedown.subject"),
+              body: tMail("takedown.body"),
+            })}
             className="rounded-pill border-2 border-black02 bg-primary px-6 py-3 font-sans text-body-m font-bold text-black02"
           >
             {t("removeCta")}

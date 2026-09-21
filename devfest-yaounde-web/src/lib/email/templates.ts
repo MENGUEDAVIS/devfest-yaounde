@@ -27,6 +27,7 @@
  * supplement with a support email.
  */
 import type { PaymentIntentRow } from "@/lib/payments/intents";
+import { mailtoHref } from "@/lib/mailto";
 import { CHAPTER_EMAIL, SITE_URL } from "@/lib/site-config";
 import { formatEventDates } from "@/lib/event";
 
@@ -111,7 +112,8 @@ const COPY = {
     orderHeading: "Ta commande",
     subtotal: "Sous-total",
     discount: "Réduction",
-    transactionFee: "Frais de transaction (1,5 %)",
+    transactionFee:
+      "Frais de transaction (1,5 %, arrondi aux 50 XAF supérieurs)",
     totalPaid: "Total payé",
     free: "Offert",
     myTickets: "Voir mes billets",
@@ -124,12 +126,18 @@ const COPY = {
     why: "Tu reçois cet e-mail parce que tu as commandé sur",
     contact: "Une question ? Réponds simplement à cet e-mail.",
     ref: "Référence",
+    helpSubject: "À propos de mon e-mail DevFest Yaoundé",
+    helpHello: "Bonjour l'équipe DevFest Yaoundé,",
+    helpAbout: "J'ai besoin d'aide au sujet de cet e-mail :",
+    helpAsk: "Ma question :",
+    helpThanks: "Merci !",
     claimSubject: "Un billet t'attend — DevFest Yaoundé 2026",
     claimTitle: "Celui-ci est pour toi.",
     claimIntro:
       "Quelqu'un t'a pris une place pour DevFest Yaoundé 2026. Récupère-la sur ton propre compte et c'est réglé — tu t'en serviras pour l'accueil le jour J.",
     claimCta: "Récupérer mon billet",
-    claimHint: "Tu te connectes avec Google — même compte, pas de nouveau mot de passe.",
+    claimHint:
+      "Tu te connectes avec Google — même compte, pas de nouveau mot de passe.",
   },
   en: {
     chapter: "GDG Yaoundé",
@@ -148,7 +156,7 @@ const COPY = {
     orderHeading: "Your order",
     subtotal: "Subtotal",
     discount: "Discount",
-    transactionFee: "Transaction fee (1.5%)",
+    transactionFee: "Transaction fee (1.5%, rounded up to the next 50 XAF)",
     totalPaid: "Total paid",
     free: "Free",
     myTickets: "See my tickets",
@@ -160,6 +168,11 @@ const COPY = {
     why: "You're getting this because you ordered on",
     contact: "A question? Just reply to this email.",
     ref: "Reference",
+    helpSubject: "About my DevFest Yaoundé email",
+    helpHello: "Hi DevFest Yaoundé team,",
+    helpAbout: "I need a hand with this email:",
+    helpAsk: "My question:",
+    helpThanks: "Thanks!",
     claimSubject: "A ticket's waiting for you — DevFest Yaoundé 2026",
     claimTitle: "This one's yours.",
     claimIntro:
@@ -173,8 +186,31 @@ const COPY = {
  * The shell every message shares: brand bar, yellow title band, content,
  * footer. One layout, so a second template cannot drift from the first.
  */
-function layout(l: Locale, title: string, bodyHtml: string): string {
+function layout(
+  l: Locale,
+  title: string,
+  bodyHtml: string,
+  /** The order/payment reference, when there is one — printed in the body too. */
+  reference?: string,
+): string {
   const c = COPY[l];
+  // The support link arrives with a subject and a friendly opening already
+  // written, naming THIS email and (for a receipt) its reference, so whoever
+  // answers can find the order without a round of "which one?".
+  const help = mailtoHref(CHAPTER_EMAIL, {
+    subject: `${c.helpSubject} — ${title}`,
+    body: [
+      c.helpHello,
+      "",
+      `${c.helpAbout} « ${title} »`,
+      ...(reference ? [`${c.ref} : ${reference}`] : []),
+      "",
+      c.helpAsk,
+      "",
+      "",
+      c.helpThanks,
+    ].join("\n"),
+  });
   const host = SITE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
   return `<!doctype html>
@@ -222,7 +258,7 @@ ${bodyHtml}
     <p style="margin:0 0 6px;font-family:${FONT};font-size:13px;line-height:1.6;color:${BRAND.muted};">${escapeHtml(c.contact)}</p>
     <p style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${BRAND.muted};">
       ${escapeHtml(c.why)} <a href="${SITE_URL}" style="color:${BRAND.ink};font-weight:600;">${escapeHtml(host)}</a>
-      &nbsp;·&nbsp; <a href="mailto:${CHAPTER_EMAIL}" style="color:${BRAND.ink};">${escapeHtml(CHAPTER_EMAIL)}</a>
+      &nbsp;·&nbsp; <a href="${escapeHtml(help)}" style="color:${BRAND.ink};">${escapeHtml(CHAPTER_EMAIL)}</a>
     </p>
   </td></tr>
 
@@ -412,6 +448,7 @@ ${totalsHtml(intent, l)}
 ${button(c.myTickets, `${SITE_URL}/${l}/account`)}
 
 <p style="margin:20px 0 0;font-family:${MONO};font-size:11px;color:${BRAND.muted};">${escapeHtml(c.ref)} ${escapeHtml(intent.deposit_id)}</p>`,
+    intent.deposit_id,
   );
 
   const text = [
@@ -502,6 +539,7 @@ ${fulfilmentHtml}
 ${button(c.myTickets, `${SITE_URL}/${l}/account`)}
 
 <p style="margin:20px 0 0;font-family:${MONO};font-size:11px;color:${BRAND.muted};">${escapeHtml(c.ref)} ${escapeHtml(intent.deposit_id)}</p>`,
+    intent.deposit_id,
   );
 
   const text = [

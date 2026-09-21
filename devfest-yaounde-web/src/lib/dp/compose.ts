@@ -86,7 +86,14 @@ export const DEFAULT_TRANSFORM: DpTransform = {
 
 /** The photo treatment. One at a time — these are alternatives, not layers. */
 export type DpLook =
-  "none" | "duotone" | "halftone" | "mono" | "chromatic" | "poster" | "pixel";
+  | "none"
+  | "duotone"
+  | "halftone"
+  | "mono"
+  | "chromatic"
+  | "poster"
+  | "pixel"
+  | "mosaic";
 
 /** How the photo's edge meets the card. */
 export type DpEdge = "clean" | "torn" | "brush";
@@ -264,6 +271,86 @@ function halftonePhoto(
       ctx.beginPath();
       ctx.arc(x + cell / 2, y + cell / 2, r, 0, Math.PI * 2);
       ctx.fill();
+    }
+  }
+}
+
+/**
+ * Mosaic: the photo laid out as tiles.
+ *
+ * Not `pixelate` with bigger blocks. Pixel art floods square blocks flush
+ * against each other, so it reads as a low-resolution picture; a mosaic
+ * reads as a picture MADE of pieces — each tile takes the average colour of
+ * the ground under it, is inset from its neighbours so a dark seam of grout
+ * shows between them, and is nudged a little lighter or darker (seeded, so a
+ * given photo always lays the same way) the way hand-set tesserae never
+ * quite match.
+ *
+ * EVERYTHING is a fraction of the render. The grid is a fixed number of
+ * columns, the grout a fixed share of a tile, and the tonal nudge is drawn
+ * in a fixed order from a seeded generator — so the 2160px file is the same
+ * picture as the preview, just crisper, rather than a different arrangement
+ * that happened to be exported.
+ *
+ * The tile boundaries come from rounding `i * w / cols`, not from repeating
+ * a fixed pixel width, so the grid tiles the box EXACTLY: no sliver of a
+ * partial tile down the right or bottom edge, and no seam of a different
+ * width from its neighbours.
+ */
+const MOSAIC_COLUMNS = 34;
+/** The tile's inset on each side, as a share of the tile's own size. */
+const MOSAIC_GROUT = 0.055;
+/** ± this much brightness (0-255 scale) per tile. */
+const MOSAIC_JITTER = 9;
+
+export function mosaicPhoto(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  seed: string,
+) {
+  const data = ctx.getImageData(0, 0, w, h).data;
+  const cols = Math.max(4, Math.min(MOSAIC_COLUMNS, Math.floor(w / 4)));
+  const rows = Math.max(4, Math.round((h * cols) / w));
+  const rand = seeded(`${seed}-mosaic`);
+  const inset = Math.max(0.5, (w / cols) * MOSAIC_GROUT);
+
+  // The grout: the site's ink, under everything.
+  ctx.fillStyle = "#1E1E1E";
+  ctx.fillRect(0, 0, w, h);
+
+  for (let row = 0; row < rows; row++) {
+    const y0 = Math.round((row * h) / rows);
+    const y1 = Math.round(((row + 1) * h) / rows);
+    for (let col = 0; col < cols; col++) {
+      const x0 = Math.round((col * w) / cols);
+      const x1 = Math.round(((col + 1) * w) / cols);
+
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let n = 0;
+      for (let y = y0; y < y1; y++) {
+        let i = (y * w + x0) * 4;
+        for (let x = x0; x < x1; x++, i += 4) {
+          r += data[i];
+          g += data[i + 1];
+          b += data[i + 2];
+          n++;
+        }
+      }
+      // Drawn BEFORE the degenerate-tile check, so the sequence of random
+      // draws — and therefore every other tile — never shifts.
+      const nudge = (rand() - 0.5) * 2 * MOSAIC_JITTER;
+      if (!n) continue;
+      const clamp = (v: number) => (v < 0 ? 0 : v > 255 ? 255 : Math.round(v));
+      ctx.fillStyle = `rgb(${clamp(r / n + nudge)},${clamp(g / n + nudge)},${clamp(b / n + nudge)})`;
+      ctx.fillRect(
+        x0 + inset,
+        y0 + inset,
+        Math.max(0, x1 - x0 - inset * 2),
+        Math.max(0, y1 - y0 - inset * 2),
+      );
     }
   }
 }
@@ -605,6 +692,7 @@ function renderPhotoLayer(
       frame.duotone?.[1] ?? frame.background,
     );
   }
+  if (effects.look === "mosaic") mosaicPhoto(ctx, w, h, frame.id);
   colourPass(ctx, w, h, effects, frame);
   applyEdge(ctx, w, h, radius, effects.edge, frame.id);
   return canvas;

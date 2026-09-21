@@ -22,7 +22,9 @@
     "person": {
       "icebreaker": "Quick question",
       "funny": "True story",
-      "contribution": "On the team"
+      "contribution": "On the team",
+      "gdgSince": "With GDG since {year}",
+      "expertise": "Expertise"
     },
     "theme": {
       "label": "Theme",
@@ -52,9 +54,25 @@
     "wall": "Every card here was made by somebody in this community, in a browser, probably instead of doing something more productive. Look at them all. Genuinely, thank you — this wall is just you lot."
   },
   "offline": {
-    "banner": "You're offline — {pages} still work.",
-    "install": "Install the app",
-    "installDismiss": "Dismiss install prompt"
+    "banner": "You're offline — {pages} still work."
+  },
+  "mail": {
+    "general": {
+      "subject": "Hello from a DevFest Yaoundé visitor",
+      "body": "Hi DevFest Yaoundé team,\n\nI have a question about:\n\n\nThanks!"
+    },
+    "claim": {
+      "subject": "I need help claiming my ticket",
+      "body": "Hi DevFest Yaoundé team,\n\nI can't claim my ticket.\n\nTicket reference: {ticketId}\nWhat I see on screen:\n\n\nThanks!"
+    },
+    "takedown": {
+      "subject": "Please take down a card from the Community Wall",
+      "body": "Hi DevFest Yaoundé team,\n\nPlease remove a card from the Community Wall.\n\nThe nickname on the card:\nWhat the picture shows (so you can find it):\n\n\nThank you!"
+    },
+    "faq": {
+      "subject": "FAQ: {question}",
+      "body": "Hi DevFest Yaoundé team,\n\nI read the FAQ (\"{question}\") and I still need a hand.\n\nWhat I'd like to know, or what happened:\n\n\nThanks!"
+    }
   },
   "footer": {
     "rsvpCta": "Come build with us",
@@ -284,7 +302,7 @@
       "apply": "Apply",
       "subtotal": "Subtotal",
       "discountRow": "Discount",
-      "transactionFeeRow": "Transaction fee (1.5%)",
+      "transactionFeeRow": "Transaction fee (1.5%, rounded up to the next 50 XAF)",
       "removeDiscount": "Remove",
       "applying": "Checking…",
       "totalToPay": "Total to pay",
@@ -416,7 +434,8 @@
         "mono": "Black & white",
         "chromatic": "Misprint",
         "poster": "Screen print",
-        "pixel": "Pixel art"
+        "pixel": "Pixel art",
+        "mosaic": "Mosaic"
       },
       "edges": {
         "legend": "Edge",
@@ -533,7 +552,7 @@
       "included": "What's included",
       "pricePaid": "Ticket price",
       "orderDiscount": "Discount {code}",
-      "orderFee": "Transaction fee (1.5%)",
+      "orderFee": "Transaction fee (1.5%, rounded up to the next 50 XAF)",
       "orderTotal": "Order total",
       "purchasedOn": "Bought on {date}",
       "reference": "Ref. {ref}",

@@ -80,6 +80,35 @@ adding a volunteer on the morning of the event is one row.
 
 **To remove someone**, delete their row. Access stops on their next request.
 
+### Once you are in, use the Users page instead
+
+The SQL above is how the **first** admin is created — somebody has to be able to
+open the dashboard before they can use it. After that, **Users** in the sidebar
+promotes and removes admins without the SQL console (Phase 23 §E, ADR 0069):
+
+- **Admins** are listed first, in full, with who you are marked. **Make admin**
+  is on every other signed-in user.
+- Both directions ask you to **type the person's email address** to confirm,
+  after a plain statement of what is being granted (full control of content,
+  money and other people's data, including making more admins) or lost
+  (immediately, on their next request).
+- **The last admin can never be removed** — the button is disabled with an
+  explanation, the server refuses it, and so does the database. Make someone
+  else an admin first.
+- Removing **yourself** needs an extra tick, and is refused by the server
+  without it.
+- Every promotion, removal **and refused attempt** goes in the audit log
+  (`admin_audit`: `organiser.promoted`, `organiser.demoted`,
+  `organiser.demote_refused`, `organiser.change_refused`,
+  `organiser.rapid_changes`), written in the same database transaction as the
+  change.
+- **Needs migration 0026 applied first.** Without it the buttons fail closed —
+  nothing changes.
+
+One consequence worth knowing: because of the database safeguard, **deleting the
+Supabase auth user of the last admin is refused too** (it cascades into
+`organisers`). Add the next admin first, then remove the old one.
+
 ---
 
 ## Why it is a table and not an env var
@@ -118,6 +147,20 @@ short version:
   legal URLs, creating a discount code.
 - **Fallback:** until a collection is published, the public site still reads
   `src/data/*.json`. See ADR 0031.
+
+### Your avatar in the sidebar
+
+The circle above "Back to site" shows your **Google profile picture**, with
+your email under it. There is nothing to configure: signing in with Google
+already returns the picture (the site requests the standard `openid email
+profile` scopes, and `profile` includes it), and no extra permission is asked
+for. If the picture is missing, or fails to load, it falls back to the first
+letter of your name.
+
+Only an `https` image on Google's own image host is ever shown — the value
+sits in account metadata that a signed-in person can edit for themselves, so
+anything else is ignored rather than trusted (`src/lib/admin/avatar.ts`).
+Change your picture in your Google account; it appears next time you sign in.
 
 ### Editing content record by record
 

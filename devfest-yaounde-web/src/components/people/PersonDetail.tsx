@@ -31,6 +31,9 @@ export interface PersonLike {
   icebreakerQuestion?: LocalizedString;
   icebreakerAnswer?: LocalizedString;
   funnyMoment?: LocalizedString;
+  /** Team only (PHASE23 §B): up to 3 expertise chips and a join year. */
+  expertise?: LocalizedString[];
+  gdgSince?: number;
   social?: { x?: string; linkedin?: string; website?: string };
 }
 
@@ -89,6 +92,7 @@ export function PersonDetail({
 
   const dark = tone === "dark";
   const roomy = size === "roomy";
+  const tags = person.expertise ?? [];
 
   const nameCls = dark ? "text-offwhite" : "text-black02";
   const metaCls = dark ? "text-primary" : "text-black02/70";
@@ -114,6 +118,12 @@ export function PersonDetail({
           {person.role[locale]}
           {person.company ? ` · ${person.company}` : ""}
         </p>
+        {person.gdgSince && (
+          // Deliberately quiet — a fact about them, not a badge to win.
+          <p className={`mt-1 text-caption ${labelCls}`}>
+            {t("gdgSince", { year: person.gdgSince })}
+          </p>
+        )}
         {person.contribution && (
           <div className="mt-3">
             <Badge tone="primary" variant={dark ? "solid" : "outline"}>
@@ -129,6 +139,20 @@ export function PersonDetail({
         >
           {blurb[locale]}
         </p>
+      )}
+
+      {/* Expertise chips — the same Badge as the contribution chip, outlined
+          so they stay visible on the dark scrim and the light sheet alike. */}
+      {tags.length > 0 && (
+        <ul aria-label={t("expertise")} className="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <li key={`${tag.en}|${tag.fr}`}>
+              <Badge tone="primary" variant="outline">
+                {tag[locale]}
+              </Badge>
+            </li>
+          ))}
+        </ul>
       )}
 
       {/* Icebreaker — a quote moment, not a data row. Skipped entirely when

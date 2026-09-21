@@ -41,6 +41,29 @@ try {
       }),
     })));
 
+  // ---- promoting / demoting admins (PHASE23 §E): the highest-stakes write ----
+  const roleBody = JSON.stringify({
+    userId: "00000000-0000-4000-8000-000000000000",
+    action: "promote",
+    confirmEmail: "someone@example.com",
+  });
+  const roleReq = (extra = {}) => ({
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...extra },
+    body: roleBody,
+  });
+  ok("9c the role-management endpoint refuses a stranger",
+    await code("/api/admin/organisers", roleReq()) === 403);
+  ok("9d ...and forged session / admin cookies change nothing",
+    await code("/api/admin/organisers", roleReq({ Cookie: "sb-access-token=forged; isAdmin=true; role=organiser" })) === 403);
+  const cross = await fetch(`${BASE}/api/admin/organisers`, roleReq({ Origin: "https://evil.example" }));
+  ok("9e ...a cross-site request is refused before any session is read",
+    cross.status === 403 && (await cross.json()).error === "cross_origin");
+  ok("9f ...and a body that is not JSON is refused",
+    await code("/api/admin/organisers", { method: "POST", headers: { "Content-Type": "text/plain" }, body: roleBody }) === 400);
+  ok("9g ...GET is not a thing it does",
+    [404, 405].includes(await code("/api/admin/organisers")));
+
   // ============ not advertised ============
   const sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();
   ok("10 admin is absent from the sitemap", !sitemap.includes("admin"));

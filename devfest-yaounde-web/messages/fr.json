@@ -22,7 +22,9 @@
     "person": {
       "icebreaker": "Petite question",
       "funny": "Histoire vraie",
-      "contribution": "Dans l'équipe"
+      "contribution": "Dans l'équipe",
+      "gdgSince": "Au GDG depuis {year}",
+      "expertise": "Expertise"
     },
     "theme": {
       "label": "Thème",
@@ -52,9 +54,25 @@
     "wall": "Chaque carte ici a été faite par quelqu'un de cette communauté, dans un navigateur, probablement au lieu de faire quelque chose de plus productif. Regarde-moi ça. Sincèrement, merci — ce mur, c'est juste vous."
   },
   "offline": {
-    "banner": "Tu es hors ligne — {pages} restent disponibles.",
-    "install": "Installer l'application",
-    "installDismiss": "Fermer la proposition d'installation"
+    "banner": "Tu es hors ligne — {pages} restent disponibles."
+  },
+  "mail": {
+    "general": {
+      "subject": "Bonjour depuis le site DevFest Yaoundé",
+      "body": "Bonjour l'équipe DevFest Yaoundé,\n\nJ'ai une question au sujet de :\n\n\nMerci !"
+    },
+    "claim": {
+      "subject": "J'ai besoin d'aide pour récupérer mon billet",
+      "body": "Bonjour l'équipe DevFest Yaoundé,\n\nJe n'arrive pas à récupérer mon billet.\n\nRéférence du billet : {ticketId}\nCe que je vois à l'écran :\n\n\nMerci !"
+    },
+    "takedown": {
+      "subject": "Merci de retirer une carte du mur de la communauté",
+      "body": "Bonjour l'équipe DevFest Yaoundé,\n\nMerci de retirer une carte du mur de la communauté.\n\nLe surnom sur la carte :\nCe que montre l'image (pour la retrouver) :\n\n\nMerci beaucoup !"
+    },
+    "faq": {
+      "subject": "FAQ : {question}",
+      "body": "Bonjour l'équipe DevFest Yaoundé,\n\nJ'ai lu la FAQ (« {question} ») et j'ai encore besoin d'aide.\n\nCe que je voudrais savoir, ou ce qui s'est passé :\n\n\nMerci !"
+    }
   },
   "footer": {
     "rsvpCta": "Viens construire avec nous",
@@ -284,7 +302,7 @@
       "apply": "Appliquer",
       "subtotal": "Sous-total",
       "discountRow": "Réduction",
-      "transactionFeeRow": "Frais de transaction (1,5 %)",
+      "transactionFeeRow": "Frais de transaction (1,5 %, arrondi aux 50 XAF supérieurs)",
       "removeDiscount": "Retirer",
       "applying": "On vérifie…",
       "totalToPay": "Total à payer",
@@ -416,7 +434,8 @@
         "mono": "Noir et blanc",
         "chromatic": "Décalage",
         "poster": "Sérigraphie",
-        "pixel": "Pixel art"
+        "pixel": "Pixel art",
+        "mosaic": "Mosaïque"
       },
       "edges": {
         "legend": "Bord",
@@ -533,7 +552,7 @@
       "included": "Ce qui est compris",
       "pricePaid": "Prix du billet",
       "orderDiscount": "Réduction {code}",
-      "orderFee": "Frais de transaction (1,5 %)",
+      "orderFee": "Frais de transaction (1,5 %, arrondi aux 50 XAF supérieurs)",
       "orderTotal": "Total de la commande",
       "purchasedOn": "Acheté le {date}",
       "reference": "Réf. {ref}",

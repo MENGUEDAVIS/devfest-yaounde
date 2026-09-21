@@ -5,6 +5,7 @@ import { EVENT, PAST_GALLERY_YEAR, eventHasEnded } from "@/lib/event";
 import { MorphedImageFrame } from "@/components/ui/MorphedImageFrame";
 import { ScrollStage } from "@/components/ui/ScrollStage";
 import { SectionContainer } from "@/components/ui/SectionContainer";
+import type { PastEditionPhoto } from "@/data/types";
 import { getPastEditions } from "@/lib/content/store";
 import { loadSettings } from "@/lib/content/settings";
 import {
@@ -164,45 +165,100 @@ export async function MemoryLane() {
             <p className="sr-only col-span-full">{t("photosComingSoon")}</p>
           </div>
         ) : (
-          <div className="mt-16 grid grid-cols-2 gap-6 sm:grid-cols-4">
-            {photos.map((photo, i) => (
-              <div
-                key={photo.id}
-                className={`${stageParallax} ${PHOTO_NUDGE[i % PHOTO_NUDGE.length]}`}
-                style={parallaxStyle(PARALLAX_DEPTH[i % PARALLAX_DEPTH.length])}
-              >
-                {/* Parallax lives on the wrapper, stage choreography on the
-                    inner element — two elements so the two transforms don't
-                    overwrite each other. */}
-                <div
-                  className={stagePhoto}
-                  style={stagePhotoStyle(
-                    i,
-                    PHOTO_ROTATION[i % PHOTO_ROTATION.length],
-                  )}
-                >
-                  {/*
-                    The polaroid treatment already built for the speaker/team
-                    slider (`PersonSlider.tsx`), reused rather than rebuilt —
-                    same thick white border, black outline and offset shadow.
-                    `.memory-polaroid` only changes its SIZING (width-driven
-                    for a grid cell, instead of the slider's height-driven
-                    box) — see the note on that class in motion.css.
-                  */}
-                  <div className="polaroid memory-polaroid">
-                    <MorphedImageFrame
-                      src={photo.imageUrl}
-                      alt={photo.alt[locale]}
-                      aspectRatio="4/5"
-                      className="rounded-none border-0"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <MemoryPhotoGrid photos={photos} locale={locale} />
         )}
       </ScrollStage>
     </SectionContainer>
+  );
+}
+
+/**
+ * The prints (PHASE22 §A7, hover behaviour PHASE23 feedback).
+ *
+ * THE ALT TEXT IS ALSO THE POPOVER. Each print is a `data-cursor-card` zone —
+ * the same mechanism as the sponsor popups (`CustomCursor`) — so pointing at
+ * one on a desktop shows a small card carrying its description (and the year,
+ * when the photo has one) beside the pointer. That card lives in the cursor's
+ * `aria-hidden` layer; the photo's `alt` is what a screen reader hears, so
+ * nothing is announced twice and nothing is hover-only for assistive tech.
+ *
+ * Hover also acts on the print itself: it lifts and straightens a little, and
+ * its neighbours step back (`.memory-grid` / `.memory-polaroid` in
+ * motion.css). Touch and reduced-motion get neither — and, in their place,
+ * the description written on the print's deep lower border, exactly where you
+ * would caption a real one (`.memory-inline-caption`, hidden under the same
+ * media query the cursor runs under, so one of the two is always there).
+ */
+export function MemoryPhotoGrid({
+  photos,
+  locale,
+}: {
+  photos: PastEditionPhoto[];
+  locale: "fr" | "en";
+}) {
+  return (
+    <div className="memory-grid mt-16 grid grid-cols-2 gap-6 sm:grid-cols-4">
+      {photos.map((photo, i) => {
+        const alt = photo.alt[locale]?.trim();
+        return (
+          <div
+            key={photo.id}
+            className={`memory-photo ${stageParallax} ${PHOTO_NUDGE[i % PHOTO_NUDGE.length]}`}
+            style={parallaxStyle(PARALLAX_DEPTH[i % PARALLAX_DEPTH.length])}
+          >
+            {/* Parallax lives on the wrapper, stage choreography on the
+                inner element — two elements so the two transforms don't
+                overwrite each other. */}
+            <div
+              className={stagePhoto}
+              style={stagePhotoStyle(
+                i,
+                PHOTO_ROTATION[i % PHOTO_ROTATION.length],
+              )}
+            >
+              {/*
+                The polaroid treatment already built for the speaker/team
+                slider (`PersonSlider.tsx`), reused rather than rebuilt —
+                same thick white border, black outline and offset shadow.
+                `.memory-polaroid` only changes its SIZING (width-driven
+                for a grid cell, instead of the slider's height-driven
+                box) — see the note on that class in motion.css.
+
+                A photo with no description simply has no popover: an empty
+                card would be a rectangle with nothing in it.
+              */}
+              <div
+                className="polaroid memory-polaroid"
+                style={{ ["--memory-lift" as string]: i % 2 === 0 ? -2 : 2 }}
+                {...(alt
+                  ? {
+                      "data-cursor-card": alt,
+                      "data-cursor-tilt": i % 2 === 0 ? -3 : 3,
+                      ...(photo.year
+                        ? { "data-cursor-card-body": String(photo.year) }
+                        : {}),
+                    }
+                  : {})}
+              >
+                <MorphedImageFrame
+                  src={photo.imageUrl}
+                  alt={alt ?? ""}
+                  aspectRatio="4/5"
+                  className="rounded-none border-0"
+                />
+                {alt && (
+                  <p
+                    aria-hidden
+                    className="memory-inline-caption line-clamp-2 font-mono text-caption leading-tight text-black02/75"
+                  >
+                    {alt}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }

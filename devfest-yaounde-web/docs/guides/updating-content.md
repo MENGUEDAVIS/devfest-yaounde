@@ -152,6 +152,17 @@ Day 2 is worked out automatically as the following day. The buttons appear on
   with an empty heading.
 - Keep answers short and conversational. The search box matches both the
   question and the answer text.
+- **"Email us" buttons write the message for the visitor.** An answer can carry
+  a `cta` (`{ "label": {…}, "href": "mailto:gdgyaounde@gmail.com" }`). A bare
+  `mailto:` there is opened with a subject and a friendly opening already
+  filled in, in the visitor's language — a `general` answer gets a plain
+  "hello", any other names its own question in the subject so whoever answers
+  knows which FAQ fell short. **A `mailto:` that already has its own
+  `?subject=…` is left exactly as you wrote it.** The wording lives in
+  `messages/*.json` under `mail`, and every email link on the site (footer,
+  claim page, community-wall pages, the receipt emails) is built the same way
+  through `src/lib/mailto.ts` — a test fails if a bare `mailto:` is added to
+  the code.
 
 ---
 
@@ -169,6 +180,11 @@ Day 2 is worked out automatically as the following day. The buttons appear on
   "photoUrl": "/team/real-name.jpg",
   "social": { "linkedin": "https://..." },
   "contribution": { "fr": "Logistique", "en": "Logistics" },
+  "expertise": [
+    { "fr": "Front-end", "en": "Frontend" },
+    { "fr": "Communauté", "en": "Community" }
+  ],
+  "gdgSince": 2022,
   "icebreakerQuestion": { "fr": "...", "en": "..." },
   "icebreakerAnswer": { "fr": "...", "en": "..." },
   "funnyMoment": { "fr": "...", "en": "..." }
@@ -184,7 +200,17 @@ Day 2 is worked out automatically as the following day. The buttons appear on
   and render through the same component.
 
 - **`oneLiner`** is the point of this page — "keeps the Wi-Fi (and the vibes)
-  running" beats "responsible for infrastructure operations".
+  running" beats "responsible for infrastructure operations". In the admin it
+  is labelled **Tagline**: one line on what they do beyond GDG (day job,
+  studies, something personal). It shows on the card itself and in the detail.
+- **`expertise`** (admin: *Expertise tags*) is up to **3** short bilingual chips
+  — "Frontend", "Community", "Design". They show in the detail (popover, sheet
+  and slider) and on alumni cards, not on the grid card face, which stays a
+  portrait first. Fill one language in the admin and the other is copied.
+- **`gdgSince`** (admin: *With GDG since*) is the four-digit year they joined,
+  shown quietly under their role as "With GDG since 2022". All three are
+  optional — nothing is invented for someone who hasn't supplied them, and a
+  CSV re-import keeps whatever is already saved.
 - To move someone to the **past organizers** section, add
   `"alumni": true` and `"years": "2024"`. They keep their entry; it just moves
   down the page. Nobody gets deleted — that's the multi-year community story.
