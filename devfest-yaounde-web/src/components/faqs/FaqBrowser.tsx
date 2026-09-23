@@ -8,6 +8,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { isPlaceholderUrl } from "@/lib/site-config";
 import { scrollToY } from "@/lib/scroll-source";
 import { FaqAccordion } from "./FaqAccordion";
+import { FaqNoAnswerCta } from "./FaqNoAnswerCta";
 import type { FaqItem } from "@/data/types";
 
 const CATEGORY_ORDER = [
@@ -238,6 +239,10 @@ export function FaqBrowser({
           ))}
         </div>
       )}
+      {/* After the last answer — and after "no results", where it matters
+          most. Seeded from the search box, so a failed search becomes the
+          question. */}
+      <FaqNoAnswerCta search={query} />
     </FilterLayout>
   );
 }

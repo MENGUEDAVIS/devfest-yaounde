@@ -69,6 +69,10 @@
       "subject": "Please take down a card from the Community Wall",
       "body": "Hi DevFest Yaoundé team,\n\nPlease remove a card from the Community Wall.\n\nThe nickname on the card:\nWhat the picture shows (so you can find it):\n\n\nThank you!"
     },
+    "faqMissing": {
+      "subject": "A question that isn't in the FAQ",
+      "body": "Hi DevFest Yaoundé team,\n\nI couldn't find the answer in the FAQ.\n\nMy question:\n{question}\n\nMy name: {name}\n\nThanks!"
+    },
     "faq": {
       "subject": "FAQ: {question}",
       "body": "Hi DevFest Yaoundé team,\n\nI read the FAQ (\"{question}\") and I still need a hand.\n\nWhat I'd like to know, or what happened:\n\n\nThanks!"
@@ -240,7 +244,15 @@
       "catShop": "Shop & Swag",
       "catCodeOfConduct": "Participation Terms",
       "readConduct": "Read the participation terms",
-      "jumpLabel": "Jump to"
+      "jumpLabel": "Jump to",
+      "noAnswerTitle": "Didn't find your answer?",
+      "noAnswerBody": "Ask us directly. Write your question below and we'll open an email with it already written — a real human (well, a volunteer) will get back to you.",
+      "noAnswerQuestion": "Your question",
+      "noAnswerQuestionPlaceholder": "What would you like to know?",
+      "noAnswerName": "Your name (optional)",
+      "noAnswerNamePlaceholder": "So we know who to answer",
+      "noAnswerCta": "Email our team",
+      "noAnswerHint": "Opens your mail app, addressed to {email}. Nothing is sent until you press send."
     },
     "team": {
       "title": "Team",

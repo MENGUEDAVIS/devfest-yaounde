@@ -102,7 +102,13 @@ type MailCopy = Record<string, { subject: string; body: string }>;
 const mailOf = (messages: unknown) => (messages as { mail: MailCopy }).mail;
 
 describe("the mail copy, both languages", () => {
-  const namespaces = ["general", "claim", "takedown", "faq"] as const;
+  const namespaces = [
+    "general",
+    "claim",
+    "takedown",
+    "faq",
+    "faqMissing",
+  ] as const;
   const placeholders = (s: string) =>
     [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 
@@ -129,6 +135,11 @@ describe("the mail copy, both languages", () => {
     }
     assert.deepEqual(placeholders(mailOf(en).claim.body), ["ticketId"]);
     assert.deepEqual(placeholders(mailOf(en).faq.subject), ["question"]);
+    // The "not in the FAQ" draft is built from the two boxes on the page.
+    assert.deepEqual(placeholders(mailOf(en).faqMissing.body), [
+      "name",
+      "question",
+    ]);
   });
 });
 
