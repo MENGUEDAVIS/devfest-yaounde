@@ -81,8 +81,10 @@ export async function Footer() {
   const legal = settings.legal;
   // The navbar's tab switches (Config → Navigation) apply here too: a tab an
   // organiser has hidden must not reappear as a footer link. The footer's own
-  // extras (DP generator, community wall, Bevy, account, legal) are not navbar
-  // tabs and are unaffected.
+  // other extras (Bevy, account, legal) are not navbar tabs and are unaffected.
+  // The DP generator and the community wall share ONE switch (`dpGenerator`):
+  // the wall is where the generator's cards land, so they show or hide as a
+  // pair — never one without the other.
   const nav = settings.nav;
   const showEventGroup = nav.schedule || nav.speakers || nav.team || nav.faqs;
 
@@ -159,16 +161,20 @@ export async function Footer() {
                       </Link>
                     </li>
                   )}
-                  <li>
-                    <Link href="/dp-generator" className={LINK_CLASS}>
-                      {t("getInvolved.dpGenerator")}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/wall" className={LINK_CLASS}>
-                      {t("getInvolved.communityWall")}
-                    </Link>
-                  </li>
+                  {nav.dpGenerator && (
+                    <>
+                      <li>
+                        <Link href="/dp-generator" className={LINK_CLASS}>
+                          {t("getInvolved.dpGenerator")}
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/wall" className={LINK_CLASS}>
+                          {t("getInvolved.communityWall")}
+                        </Link>
+                      </li>
+                    </>
+                  )}
                   <li>
                     {/* Community join — distinct from the retired RSVP
                         action, and a different site: Bevy is where the

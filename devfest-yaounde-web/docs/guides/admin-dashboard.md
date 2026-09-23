@@ -174,6 +174,12 @@ live on the next page load (no deploy).
   off, that column disappears). It does not remove the page: the address still
   works, and buttons elsewhere (on the home page, say) that point to it keep
   working.
+- **DP generator & Community wall** is a seventh switch that is **footer-only**
+  (there is no navbar link for it). It is one switch for two pages on purpose —
+  the wall is where the generator's cards end up — so off hides **both** footer
+  links and on shows both; there is no way to show one without the other. The
+  pages themselves stay reachable (they link to each other), same as any hidden
+  tab.
 - Saving needs **migration 0027** applied to the database; until then the switch
   will not save (the panel says so) and every tab simply shows.
 

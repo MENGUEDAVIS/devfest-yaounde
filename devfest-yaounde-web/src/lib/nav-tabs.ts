@@ -15,7 +15,11 @@
  * link) still work. Taking a page down is a separate decision.
  */
 
-/** The toggleable tabs, in the order they appear in the navbar. */
+/**
+ * The toggleable tabs, in the order they appear in the navbar — then the one
+ * switch that is FOOTER-ONLY: `dpGenerator`, which governs the DP generator
+ * and the community wall together (see `FOOTER_ONLY_KEYS`).
+ */
 export const NAV_TAB_KEYS = [
   "schedule",
   "speakers",
@@ -23,9 +27,25 @@ export const NAV_TAB_KEYS = [
   "team",
   "shop",
   "tickets",
+  "dpGenerator",
 ] as const;
 
 export type NavTabKey = (typeof NAV_TAB_KEYS)[number];
+
+/**
+ * Switches that have NO navbar link — they only govern footer links.
+ *
+ * `dpGenerator` is one switch for two pages on purpose: the community wall is
+ * where the DP generator's cards end up, so the two go together. Off hides
+ * BOTH footer links (DP generator and Community wall); on shows both. There is
+ * deliberately no way to show one without the other.
+ */
+export const FOOTER_ONLY_KEYS = ["dpGenerator"] as const;
+
+/** The switches that also drive a navbar link — everything but the above. */
+export const NAVBAR_KEYS = NAV_TAB_KEYS.filter(
+  (key) => !(FOOTER_ONLY_KEYS as readonly string[]).includes(key),
+);
 
 /** `true` = the tab is shown. */
 export type NavSettings = Record<NavTabKey, boolean>;
@@ -38,6 +58,7 @@ export const DEFAULT_NAV: NavSettings = {
   team: true,
   shop: true,
   tickets: true,
+  dpGenerator: true,
 };
 
 /** The text links in the middle of the bar, and the routes they go to. */

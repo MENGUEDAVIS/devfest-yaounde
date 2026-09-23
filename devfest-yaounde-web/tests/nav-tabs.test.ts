@@ -2,6 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   DEFAULT_NAV,
+  FOOTER_ONLY_KEYS,
+  NAVBAR_KEYS,
   NAV_TAB_KEYS,
   visibleTextLinks,
   type NavSettings,
@@ -23,8 +25,33 @@ describe("navbar tab visibility", () => {
       "team",
       "shop",
       "tickets",
+      "dpGenerator",
     ]);
     for (const key of NAV_TAB_KEYS) assert.equal(DEFAULT_NAV[key], true, key);
+  });
+
+  it("the DP generator switch is footer-only — it has no navbar link", () => {
+    assert.deepEqual([...FOOTER_ONLY_KEYS], ["dpGenerator"]);
+    assert.ok(!(NAVBAR_KEYS as readonly string[]).includes("dpGenerator"));
+    // ...and every other switch still drives a navbar link.
+    assert.deepEqual(
+      [...NAVBAR_KEYS],
+      ["schedule", "speakers", "faqs", "team", "shop", "tickets"],
+    );
+    // It never shows up among the text links, on or off.
+    for (const nav of [DEFAULT_NAV, hide("dpGenerator")]) {
+      assert.ok(
+        !visibleTextLinks(nav).some((l) => (l.key as string) === "dpGenerator"),
+      );
+    }
+  });
+
+  it("the generator and the wall are ONE switch: there is no separate wall key", () => {
+    // Off hides both footer links, on shows both — by construction, since
+    // there is a single boolean and nothing else that could disagree with it.
+    assert.ok(!NAV_TAB_KEYS.some((key) => /wall/i.test(key)));
+    assert.equal(hide("dpGenerator").dpGenerator, false);
+    assert.equal(DEFAULT_NAV.dpGenerator, true);
   });
 
   it("lists the text links in navbar order", () => {
@@ -86,6 +113,18 @@ describe("saving the navigation setting", () => {
     const { shop: _shop, ...partial } = DEFAULT_NAV;
     void _shop;
     assert.equal(parse(partial), false);
+  });
+
+  it("requires the DP generator switch like any other — a stale payload without it is refused", () => {
+    const { dpGenerator: _dp, ...withoutIt } = DEFAULT_NAV;
+    void _dp;
+    assert.equal(parse(withoutIt), false);
+    assert.equal(parse({ ...DEFAULT_NAV, dpGenerator: false }), true);
+    assert.equal(
+      parse({ ...DEFAULT_NAV, wall: false }),
+      false,
+      "no separate wall key",
+    );
   });
 
   it("refuses unknown keys and non-boolean values", () => {

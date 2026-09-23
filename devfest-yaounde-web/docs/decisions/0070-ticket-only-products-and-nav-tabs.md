@@ -64,6 +64,14 @@ omission.
   point at it still work. Taking a page down is a different decision,
   deliberately not made here. *(The footer was added in a follow-up — the first
   cut only touched the navbar.)*
+- **A footer-only switch: `dpGenerator`.** The footer's DP generator and
+  Community wall links are governed by one extra key (`FOOTER_ONLY_KEYS` in
+  `nav-tabs.ts`; it has no navbar link and is not in the navbar preview). It is
+  one boolean for two pages by design — the wall is where the generator's cards
+  end up — so they show or hide as a pair; there is no separate `wall` key and
+  the schema refuses one. Like every key it is required in a save (a stale
+  admin tab that predates it is refused rather than silently un-hiding), while a
+  stored blob that lacks it simply reads as *shown*.
 - Deploy order: apply 0027 to *save*; reading is safe before it (`select *`,
   every tab shows).
 

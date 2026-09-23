@@ -390,6 +390,8 @@ const navSchema = z
     team: z.boolean(),
     shop: z.boolean(),
     tickets: z.boolean(),
+    /** DP generator + community wall footer links, together. */
+    dpGenerator: z.boolean(),
   })
   .strict();
 

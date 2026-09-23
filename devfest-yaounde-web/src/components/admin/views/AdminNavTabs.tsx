@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { NAV_TAB_KEYS, type NavSettings, type NavTabKey } from "@/lib/nav-tabs";
+import {
+  FOOTER_ONLY_KEYS,
+  NAVBAR_KEYS,
+  type NavSettings,
+  type NavTabKey,
+} from "@/lib/nav-tabs";
 import { Toggle } from "../forms/fields";
 import { InfoBanner, Panel } from "./shared";
+
+const ALL_KEYS = [...NAVBAR_KEYS, ...FOOTER_ONLY_KEYS] as const;
 
 const LABELS: Record<NavTabKey, { name: string; where: string }> = {
   schedule: { name: "Schedule", where: "Text link in the bar" },
@@ -12,6 +19,11 @@ const LABELS: Record<NavTabKey, { name: string; where: string }> = {
   team: { name: "Team", where: "Text link in the bar" },
   shop: { name: "Shop", where: "Outlined button on the right" },
   tickets: { name: "Tickets", where: "Yellow button on the right" },
+  dpGenerator: {
+    name: "DP generator & Community wall",
+    where:
+      "Two footer links that always show or hide together — the wall is where the generator's cards end up",
+  },
 };
 
 /**
@@ -35,8 +47,15 @@ export function AdminNavTabs({ nav }: { nav: NavSettings }) {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const dirty = NAV_TAB_KEYS.some((key) => draft[key] !== saved[key]);
-  const shown = NAV_TAB_KEYS.filter((key) => draft[key]);
+  const dirty = ALL_KEYS.some((key) => draft[key] !== saved[key]);
+  // The preview line is about the NAVBAR, so it lists only the switches that
+  // have a navbar link — the footer-only one is described in its own row.
+  const shown = NAVBAR_KEYS.filter((key) => draft[key]);
+
+  function setSwitch(key: NavTabKey, on: boolean) {
+    setStatus("idle");
+    setDraft((current) => ({ ...current, [key]: on }));
+  }
 
   async function save() {
     setStatus("saving");
@@ -67,7 +86,7 @@ export function AdminNavTabs({ nav }: { nav: NavSettings }) {
   return (
     <Panel
       title="Navigation"
-      subtitle="Choose which tabs the navbar shows. The language switch always stays."
+      subtitle="Choose which tabs the navbar and the footer show. The language switch always stays."
     >
       <InfoBanner>
         Hiding a tab removes its <strong>links</strong> from the navbar{" "}
@@ -77,21 +96,13 @@ export function AdminNavTabs({ nav }: { nav: NavSettings }) {
       </InfoBanner>
 
       <div className="flex max-w-2xl flex-col gap-3">
-        {NAV_TAB_KEYS.map((key) => (
-          <div
+        {NAVBAR_KEYS.map((key) => (
+          <SwitchRow
             key={key}
-            className="rounded-lg border border-black02/20 bg-offwhite px-4 py-3"
-          >
-            <Toggle
-              checked={draft[key]}
-              onChange={(on) => {
-                setStatus("idle");
-                setDraft((current) => ({ ...current, [key]: on }));
-              }}
-              label={LABELS[key].name}
-              hint={LABELS[key].where}
-            />
-          </div>
+            tab={key}
+            checked={draft[key]}
+            onChange={(on) => setSwitch(key, on)}
+          />
         ))}
         <p className="rounded-lg border border-dashed border-black02/25 px-4 py-3 text-body-m text-black02/70">
           <strong className="text-black02">Language switch (FR / EN)</strong> —
@@ -103,6 +114,18 @@ export function AdminNavTabs({ nav }: { nav: NavSettings }) {
             ? "The navbar will show only the logo and the language switch."
             : `The navbar will show: ${shown.map((k) => LABELS[k].name).join(" · ")}.`}
         </p>
+
+        <p className="mt-2 font-mono text-mono-tag font-bold uppercase tracking-wide text-black02/65">
+          Footer only
+        </p>
+        {FOOTER_ONLY_KEYS.map((key) => (
+          <SwitchRow
+            key={key}
+            tab={key}
+            checked={draft[key]}
+            onChange={(on) => setSwitch(key, on)}
+          />
+        ))}
 
         <button
           type="button"
@@ -124,5 +147,26 @@ export function AdminNavTabs({ nav }: { nav: NavSettings }) {
         )}
       </div>
     </Panel>
+  );
+}
+
+function SwitchRow({
+  tab,
+  checked,
+  onChange,
+}: {
+  tab: NavTabKey;
+  checked: boolean;
+  onChange: (on: boolean) => void;
+}) {
+  return (
+    <div className="rounded-lg border border-black02/20 bg-offwhite px-4 py-3">
+      <Toggle
+        checked={checked}
+        onChange={onChange}
+        label={LABELS[tab].name}
+        hint={LABELS[tab].where}
+      />
+    </div>
   );
 }
