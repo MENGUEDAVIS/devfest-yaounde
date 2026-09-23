@@ -305,6 +305,14 @@ export interface Product {
    * Toggleable straight from the Shop listing row (ADR 0055).
    */
   published?: boolean;
+  /**
+   * Comes WITH a ticket and is never sold alone — a certificate, say.
+   * Shown as swag on the tiers that bundle it; not listed in the shop, no
+   * product page, not in the sitemap, and refused at checkout. Absent = a
+   * normal shop product. A `published: false` product stays hidden everywhere
+   * regardless. See `lib/content/product-visibility.ts`.
+   */
+  ticketOnly?: boolean;
 }
 
 /** One chosen product + variant + quantity, as sent by the shop checkout. */

@@ -44,6 +44,7 @@ import { AdminUsers } from "./views/AdminUsers";
 import { AdminContent } from "./views/AdminContent";
 import { AdminWall } from "./views/AdminWall";
 import { AdminConfig } from "./views/AdminConfig";
+import { AdminNavTabs } from "./views/AdminNavTabs";
 import { AdminSpeakers } from "./views/AdminSpeakers";
 import { AdminTeam } from "./views/AdminTeam";
 import { AdminSchedule } from "./views/AdminSchedule";
@@ -294,7 +295,7 @@ const HEADERS: Record<ViewId, { title: string; blurb: string }> = {
   config: {
     title: "Info bar and policies",
     blurb:
-      "The announcement, the two calls, and the legal links — everything the site says that is not a record in a list.",
+      "The announcement, the two calls, the legal links, and which tabs the navbar shows — everything the site says that is not a record in a list.",
   },
 };
 
@@ -353,7 +354,8 @@ export function AdminShell({
    * every sold-out item somebody pulled would be an alarm about nothing.
    */
   const draftProductCount = collections.products.filter(
-    (p) => p.priceXAF <= 0 || p.images.length === 0,
+    // Ticket-only products are never priced or listed, so neither counts.
+    (p) => !p.ticketOnly && (p.priceXAF <= 0 || p.images.length === 0),
   ).length;
 
   /**
@@ -720,15 +722,18 @@ export function AdminShell({
               <AdminContent content={content} initialMissing={missingPhotos} />
             )}
             {view === "config" && (
-              <AdminConfig
-                settings={settings}
-                speakerCount={collections.speakers.length}
-                sponsorCount={collections.sponsors.length}
-                tierCapSum={collections.tiers.reduce(
-                  (sum, tier) => sum + (tier.quantityAvailable ?? 0),
-                  0,
-                )}
-              />
+              <div className="flex flex-col gap-5">
+                <AdminNavTabs nav={settings.nav} />
+                <AdminConfig
+                  settings={settings}
+                  speakerCount={collections.speakers.length}
+                  sponsorCount={collections.sponsors.length}
+                  tierCapSum={collections.tiers.reduce(
+                    (sum, tier) => sum + (tier.quantityAvailable ?? 0),
+                    0,
+                  )}
+                />
+              </div>
             )}
           </main>
         </div>

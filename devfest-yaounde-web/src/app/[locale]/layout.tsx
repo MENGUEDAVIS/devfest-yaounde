@@ -169,6 +169,7 @@ export default async function LocaleLayout({
           <GlobalChrome
             announcementMessage={announcementMessage}
             announcementCta={announcementCta}
+            nav={settings.nav}
           />
           <FloatingScrollbar />
           <CustomCursor />

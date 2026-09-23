@@ -7,7 +7,7 @@ import { AccountLink } from "@/components/account/AccountLink";
 import { ScrambleText } from "@/components/ui/ScrambleText";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { loadSettings } from "@/lib/content/settings";
-import { getProducts, getTiers } from "@/lib/content/store";
+import { getSwagProducts, getTiers } from "@/lib/content/store";
 import { getTicketCapacity } from "@/lib/payments/capacity";
 
 export async function generateMetadata({
@@ -47,10 +47,11 @@ export default async function TicketsPage({
     getTiers(),
     loadSettings(),
     getTicketCapacity(),
-    // PUBLISHED products only: a tier must never advertise swag that the
-    // shop is not showing. An id pointing at a hidden or deleted listing
-    // simply resolves to nothing and is skipped in the preview.
-    getProducts(),
+    // PUBLISHED products only — a hidden (draft) listing must not appear on a
+    // ticket — but INCLUDING ticket-only ones, which are deliberately not in
+    // the shop. An id pointing at a hidden or deleted listing simply resolves
+    // to nothing and is skipped in the preview.
+    getSwagProducts(),
   ]);
 
   /*

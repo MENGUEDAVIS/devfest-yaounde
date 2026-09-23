@@ -55,6 +55,7 @@ export function AdminShop({
     if (status !== "all" && row.status !== status) return false;
     if (visibility === "hidden" && row.published !== false) return false;
     if (visibility === "live" && row.published === false) return false;
+    if (visibility === "ticket-only" && !row.ticketOnly) return false;
     if (!needle) return true;
     return (
       row.id.toLowerCase().includes(needle) ||
@@ -66,6 +67,7 @@ export function AdminShop({
   }
 
   const hiddenCount = rows.filter((r) => r.published === false).length;
+  const ticketOnlyCount = rows.filter((r) => r.ticketOnly).length;
 
   /**
    * Which tiers bundle this product (ADR 0054).
@@ -126,6 +128,10 @@ export function AdminShop({
                   {
                     value: "hidden",
                     label: `Hidden${hiddenCount ? ` (${hiddenCount})` : ""}`,
+                  },
+                  {
+                    value: "ticket-only",
+                    label: `Ticket-only${ticketOnlyCount ? ` (${ticketOnlyCount})` : ""}`,
                   },
                 ],
               },
@@ -189,9 +195,17 @@ export function AdminShop({
               <p className="truncate font-sans text-body-m font-bold text-black02">
                 {row.name.en || row.name.fr || row.id}
               </p>
-              <PriceReadout base={row.priceXAF} />
+              {row.ticketOnly ? (
+                // No price to show: it is never sold on its own.
+                <p className="font-mono text-caption font-bold text-black02">
+                  Ticket-only — not sold in the shop
+                </p>
+              ) : (
+                <PriceReadout base={row.priceXAF} />
+              )}
               <p className="truncate text-caption text-black02/65">
-                {STATUSES.find((s) => s.value === row.status)?.label}
+                {!row.ticketOnly &&
+                  STATUSES.find((s) => s.value === row.status)?.label}
                 {row.published === false && " · Hidden"}
                 {tiersBundling(row.id).length > 0 &&
                   ` · In ${tiersBundling(row.id).join(", ")}`}
@@ -200,7 +214,11 @@ export function AdminShop({
           </div>
         )}
         renderForm={(draft, patch) => {
-          const canPublish = draft.priceXAF > 0 && draft.images.length > 0;
+          // A ticket-only product is never priced or listed, so it needs
+          // neither a price nor a picture to go live (the ticket card shows a
+          // placeholder for a missing image).
+          const canPublish =
+            draft.ticketOnly || (draft.priceXAF > 0 && draft.images.length > 0);
           return (
             <>
               <Field label="Name">
@@ -237,7 +255,11 @@ export function AdminShop({
 
               <Field
                 label="Base price (XAF)"
-                hint="Enter the base price, without the fee. The displayed price is worked out from it automatically, everywhere this product is shown."
+                hint={
+                  draft.ticketOnly
+                    ? undefined
+                    : "Enter the base price, without the fee. The displayed price is worked out from it automatically, everywhere this product is shown."
+                }
               >
                 <TextInput
                   type="number"
@@ -246,7 +268,14 @@ export function AdminShop({
                     patch({ priceXAF: Math.max(0, Number(v) || 0) })
                   }
                 />
-                <PriceReadout base={draft.priceXAF} layout="panel" />
+                {draft.ticketOnly ? (
+                  <p className="mt-2 text-caption text-black02/65">
+                    Not used while this is ticket-only — it is never sold on its
+                    own.
+                  </p>
+                ) : (
+                  <PriceReadout base={draft.priceXAF} layout="panel" />
+                )}
               </Field>
 
               <Field
@@ -344,6 +373,17 @@ export function AdminShop({
                 hint="Live on the public shop."
                 disabled={draft.published === false && !canPublish}
                 disabledHint="Add a price above 0 and at least one image before publishing."
+              />
+
+              <Toggle
+                checked={draft.ticketOnly === true}
+                // `undefined`, not `false`: the field is optional, and absent
+                // means an ordinary shop product.
+                onChange={(ticketOnly) =>
+                  patch({ ticketOnly: ticketOnly ? true : undefined })
+                }
+                label="Ticket-only"
+                hint="Comes with a ticket and is never sold alone — a certificate, for instance. It shows on the ticket tiers that bundle it, but is not listed in the shop and cannot be ordered."
               />
             </>
           );

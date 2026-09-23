@@ -27,6 +27,7 @@ Every route above exists in **both languages** (see §9 Localization) — e.g. `
 ### 1.1 Navbar
 
 - **Floating**, pill-shaped, fixed at top with a small offset from the viewport edge (not flush) — this alone makes it feel less "default template."
+- **Each tab except the language switch can be hidden from the dashboard** (Config → Navigation, ADR 0070) — it hides the link only, not the page.
 - Layout: **Logo** (far left) — **Schedule · Speakers · FAQs · Team** (center) — **Shop** (secondary button, outline style) + **Get Tickets** (primary button, filled, core color) (far right). Language switcher (EN/FR toggle) sits just before or after the ticket button, small and unobtrusive.
 - On scroll: navbar shrinks slightly and gains a soft shadow/blur background (glass effect) — a small, satisfying micro-animation (ease-out, ~200ms).
 - Mobile: collapses into a hamburger; the floating pill can morph into a rounded sheet that slides down — this transition is itself a fun **macro** animation moment (bouncy easing). The **current page is marked** in the mobile menu with a filled row (the day-toggle treatment) plus `aria-current="page"` (Phase 13 §7) — the desktop row marks it with its underline.
@@ -230,6 +231,7 @@ The home page is a **single scrolling story** — teasers everywhere, full detai
 
 - Grouped accordions by category: **General**, **Tickets & Pricing**, **Venue & Logistics**, **Shop/Swag**, **Code of Conduct**.
 - Search filters questions and answers live as you type; empty categories drop out entirely.
+- **After the last answer (Phase 24):** a "Didn't find your answer?" block — a question box pre-filled from the search, an optional name, and a button that opens the visitor's mail app to the chapter address with the subject and a polite message already composed around them. Nothing is posted or stored.
 - **Each answer may carry an optional CTA** — `cta: { label, href, external? }` on the FAQ item. It is per-item, not per-category: the useful next step differs between two questions in the same category, and the old category-wide link appended "See tickets" to answers that had nothing to do with buying one. Items without a real next step render no button.
 - The CTA is **block-level, on its own line below the answer** (Phase 11 §9) — never inline with the last line of the answer text, and that applies to plain text links too.
 - Keep answers short and conversational — this is a good place to let the playful voice show even while being genuinely useful.

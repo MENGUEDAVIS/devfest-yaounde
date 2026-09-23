@@ -37,6 +37,7 @@ import type {
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { toJson } from "@/lib/supabase/json";
 import { COLLECTIONS, collectionSchemas, type CollectionId } from "./schemas";
+import { isShopProduct, isSwagProduct } from "./product-visibility";
 
 export type { CollectionId };
 export { COLLECTIONS, isCollectionId } from "./schemas";
@@ -160,18 +161,26 @@ export const getSessions = () => loadCollection<Session[]>("sessions");
 export const getSponsors = () => loadCollection<Sponsor[]>("sponsors");
 export const getFaqs = () => loadCollection<FaqItem[]>("faqs");
 /**
- * Products, as the public shop should see them — hidden ones removed.
+ * Products, as the public SHOP should see them — hidden and ticket-only
+ * removed. This is also what checkout prices against, so a ticket-only
+ * product cannot be ordered even by a hand-built request.
  *
  * Same absent-means-visible convention as `hidden` on speakers/team:
  * `published` absent or true is live, `false` is hidden (still being
  * written, or deliberately pulled — toggled from the Shop row, ADR 0055).
- * Also what ticket tiers' swag previews resolve against (ADR 0054), so a
- * hidden product drops out of every tier card too.
+ * `ticketOnly` products come WITH a ticket and are never sold alone
+ * (`product-visibility.ts`).
  */
 export const getProducts = async () =>
-  (await loadCollection<Product[]>("products")).filter(
-    (row) => row.published !== false,
-  );
+  (await loadCollection<Product[]>("products")).filter(isShopProduct);
+/**
+ * Products a ticket tier may show as swag (ADR 0054): everything published,
+ * ticket-only included. The ticket cards resolve against THIS, not the shop
+ * list — otherwise a certificate that is deliberately not in the shop would
+ * vanish from the ticket it belongs to.
+ */
+export const getSwagProducts = async () =>
+  (await loadCollection<Product[]>("products")).filter(isSwagProduct);
 /** Everything, drafts included. For the dashboard, which completes them. */
 export const getAllProducts = () => loadCollection<Product[]>("products");
 export const getTiers = () => loadCollection<TicketTier[]>("ticket-tiers");

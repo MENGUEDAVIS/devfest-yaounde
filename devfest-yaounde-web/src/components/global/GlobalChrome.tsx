@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { navSettle } from "@/lib/motion";
 import { useSessionDismissed } from "@/lib/use-session-dismissed";
 import { AnnouncementBanner } from "./AnnouncementBanner";
+import type { NavSettings } from "@/lib/nav-tabs";
 import { Navbar } from "./Navbar";
 
 const DISMISS_KEY = "devfest-announcement-dismissed";
@@ -25,10 +26,13 @@ const DISMISS_KEY = "devfest-announcement-dismissed";
 export function GlobalChrome({
   announcementMessage,
   announcementCta,
+  nav,
 }: {
   announcementMessage?: string;
   announcementCta?: { href: string; label: string };
-} = {}) {
+  /** Which navbar tabs are shown — from the dashboard (PHASE24). */
+  nav: NavSettings;
+}) {
   const [dismissed, dismiss] = useSessionDismissed(DISMISS_KEY);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -118,7 +122,7 @@ export function GlobalChrome({
           </div>
         </div>
 
-        <Navbar compact={scrolled} />
+        <Navbar compact={scrolled} nav={nav} />
       </div>
     </header>
   );

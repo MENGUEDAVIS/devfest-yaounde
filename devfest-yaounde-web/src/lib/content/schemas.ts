@@ -182,6 +182,8 @@ export const productSchema = z.object({
    * Same absent-means-visible convention as `hidden` on speakers/team.
    */
   published: z.boolean().optional(),
+  /** Comes with a ticket, never sold alone — see `product-visibility.ts`. */
+  ticketOnly: z.boolean().optional(),
 });
 
 /** One thing a ticket grants — "what your ticket includes" (admin-editable). */
@@ -379,6 +381,18 @@ export const memoryLaneSchema = z.object({
   currentGalleryUrl: urlOrEmpty.optional().nullable(),
 });
 
+/** One boolean per navbar tab; `false` hides it. Strict, so a typo is refused. */
+const navSchema = z
+  .object({
+    schedule: z.boolean(),
+    speakers: z.boolean(),
+    faqs: z.boolean(),
+    team: z.boolean(),
+    shop: z.boolean(),
+    tickets: z.boolean(),
+  })
+  .strict();
+
 export const settingsSchema = z.object({
   announcement: localized.optional().nullable(),
   bevyUrl: urlOrEmpty.optional().nullable(),
@@ -388,6 +402,7 @@ export const settingsSchema = z.object({
   legal: legalSchema.optional().nullable(),
   capacity: capacitySchema.optional().nullable(),
   memoryLane: memoryLaneSchema.optional().nullable(),
+  nav: navSchema.optional().nullable(),
 });
 
 function blankToNull(value: unknown): unknown {
