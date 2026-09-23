@@ -79,6 +79,12 @@ export async function Footer() {
   const settings = await loadSettings();
   const BEVY_URL = settings.bevyUrl;
   const legal = settings.legal;
+  // The navbar's tab switches (Config → Navigation) apply here too: a tab an
+  // organiser has hidden must not reappear as a footer link. The footer's own
+  // extras (DP generator, community wall, Bevy, account, legal) are not navbar
+  // tabs and are unaffected.
+  const nav = settings.nav;
+  const showEventGroup = nav.schedule || nav.speakers || nav.team || nav.faqs;
 
   return (
     <footer
@@ -107,40 +113,52 @@ export async function Footer() {
           {/* Link groups — mixed into the same band, not stacked below it */}
           <Reveal index={1}>
             <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:pt-6">
-              <div className="link-group">
-                <h2 className={GROUP_TITLE_CLASS}>{t("event.title")}</h2>
-                <ul className="mt-5 flex flex-col gap-1">
-                  <li>
-                    <Link href="/schedule" className={LINK_CLASS}>
-                      {t("event.schedule")}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/speakers" className={LINK_CLASS}>
-                      {t("event.speakers")}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/team" className={LINK_CLASS}>
-                      {t("event.team")}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/faqs" className={LINK_CLASS}>
-                      {t("event.faqs")}
-                    </Link>
-                  </li>
-                </ul>
-              </div>
+              {showEventGroup && (
+                <div className="link-group">
+                  <h2 className={GROUP_TITLE_CLASS}>{t("event.title")}</h2>
+                  <ul className="mt-5 flex flex-col gap-1">
+                    {nav.schedule && (
+                      <li>
+                        <Link href="/schedule" className={LINK_CLASS}>
+                          {t("event.schedule")}
+                        </Link>
+                      </li>
+                    )}
+                    {nav.speakers && (
+                      <li>
+                        <Link href="/speakers" className={LINK_CLASS}>
+                          {t("event.speakers")}
+                        </Link>
+                      </li>
+                    )}
+                    {nav.team && (
+                      <li>
+                        <Link href="/team" className={LINK_CLASS}>
+                          {t("event.team")}
+                        </Link>
+                      </li>
+                    )}
+                    {nav.faqs && (
+                      <li>
+                        <Link href="/faqs" className={LINK_CLASS}>
+                          {t("event.faqs")}
+                        </Link>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )}
 
               <div className="link-group">
                 <h2 className={GROUP_TITLE_CLASS}>{t("getInvolved.title")}</h2>
                 <ul className="mt-5 flex flex-col gap-1">
-                  <li>
-                    <Link href="/shop" className={LINK_CLASS}>
-                      {t("getInvolved.shop")}
-                    </Link>
-                  </li>
+                  {nav.shop && (
+                    <li>
+                      <Link href="/shop" className={LINK_CLASS}>
+                        {t("getInvolved.shop")}
+                      </Link>
+                    </li>
+                  )}
                   <li>
                     <Link href="/dp-generator" className={LINK_CLASS}>
                       {t("getInvolved.dpGenerator")}
@@ -244,9 +262,11 @@ export async function Footer() {
                 {t("rsvpCta")}
               </p>
             </div>
-            <Button tone="primary" href="/tickets" size="lg">
-              {t("ticketsCta")}
-            </Button>
+            {nav.tickets && (
+              <Button tone="primary" href="/tickets" size="lg">
+                {t("ticketsCta")}
+              </Button>
+            )}
           </div>
         </Reveal>
       </div>

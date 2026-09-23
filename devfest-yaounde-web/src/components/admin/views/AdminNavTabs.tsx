@@ -70,9 +70,10 @@ export function AdminNavTabs({ nav }: { nav: NavSettings }) {
       subtitle="Choose which tabs the navbar shows. The language switch always stays."
     >
       <InfoBanner>
-        Hiding a tab hides the <strong>link</strong> only. The page still exists
-        at its address, and buttons elsewhere on the site that point to it (the
-        home page, the footer) keep working.
+        Hiding a tab removes its <strong>links</strong> from the navbar{" "}
+        <strong>and the footer</strong>. The page itself still exists at its
+        address, and buttons elsewhere on the site that point to it (on the home
+        page, for instance) keep working.
       </InfoBanner>
 
       <div className="flex max-w-2xl flex-col gap-3">

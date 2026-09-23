@@ -169,8 +169,11 @@ Team, Shop and Tickets**. The language switch (FR / EN) is always there. A line
 under the switches previews what the bar will show; **Save navigation** makes it
 live on the next page load (no deploy).
 
-- It hides the **link**, not the page: the address still works, and buttons
-  elsewhere (the home page, the footer) that point to it keep working.
+- It removes the tab's **links from the navbar and the footer** (the footer's
+  Event links, its Shop link and its Tickets button; with all four Event links
+  off, that column disappears). It does not remove the page: the address still
+  works, and buttons elsewhere (on the home page, say) that point to it keep
+  working.
 - Saving needs **migration 0027** applied to the database; until then the switch
   will not save (the panel says so) and every tab simply shows.
 

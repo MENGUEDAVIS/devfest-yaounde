@@ -56,9 +56,14 @@ omission.
   group (`saveSettings` replaces the column); the schema is `.strict()` and
   requires every key, so a partial write is refused rather than silently
   un-hiding a tab.
-- **It hides the link only.** The page still exists at its URL and buttons
-  elsewhere (home page, footer) that point at it still work. Taking a page down
-  is a different decision, deliberately not made here.
+- **It hides the links, not the page.** The tabs are removed from the navbar
+  **and the footer** (which repeats them: Schedule/Speakers/Team/FAQs in its
+  Event column, Shop under Get involved, and the Tickets call-to-action button
+  in the closing band; the Event heading goes too when all four are off). The
+  page still exists at its URL and buttons elsewhere (on the home page) that
+  point at it still work. Taking a page down is a different decision,
+  deliberately not made here. *(The footer was added in a follow-up — the first
+  cut only touched the navbar.)*
 - Deploy order: apply 0027 to *save*; reading is safe before it (`select *`,
   every tab shows).
 

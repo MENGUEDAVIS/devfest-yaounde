@@ -8,9 +8,11 @@
  * the tests can all share ONE definition of what the tabs are and in what
  * order they sit.
  *
- * Hiding a tab hides the LINK, nothing more: the page itself still exists at
- * its URL, and other places that point at it (a home-page button, the footer,
- * a shared link) still work. Taking a page down is a separate decision.
+ * Hiding a tab hides its LINKS — in the navbar AND in the footer, which
+ * repeats the same tabs (Schedule/Speakers/Team/FAQs, Shop, and the Tickets
+ * call-to-action button). It does nothing more: the page itself still exists at
+ * its URL, and other places that point at it (a home-page button, a shared
+ * link) still work. Taking a page down is a separate decision.
  */
 
 /** The toggleable tabs, in the order they appear in the navbar. */
