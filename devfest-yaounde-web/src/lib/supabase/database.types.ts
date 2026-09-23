@@ -471,6 +471,7 @@ export type Database = {
           id: string
           legal: Json | null
           memory_lane: Json | null
+          nav: Json | null
           sponsor_call: Json | null
           updated_at: string
           updated_by: string | null
@@ -484,6 +485,7 @@ export type Database = {
           id?: string
           legal?: Json | null
           memory_lane?: Json | null
+          nav?: Json | null
           sponsor_call?: Json | null
           updated_at?: string
           updated_by?: string | null
@@ -497,6 +499,7 @@ export type Database = {
           id?: string
           legal?: Json | null
           memory_lane?: Json | null
+          nav?: Json | null
           sponsor_call?: Json | null
           updated_at?: string
           updated_by?: string | null

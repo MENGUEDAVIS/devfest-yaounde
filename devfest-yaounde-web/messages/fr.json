@@ -307,7 +307,7 @@
       "payNow": "Payer avec Mobile Money",
       "rsvpFree": "Réserver gratuitement sur Bevy",
       "rsvpNote": "L'entrée gratuite se gère sur notre page communautaire, qui limite à une réservation par personne. Aucun compte nécessaire ici.",
-      "swagLabel": "{count} objets dans le pack",
+      "swagLabel": "{count, plural, one {# objet dans le pack} other {# objets dans le pack}}",
       "attendeePhone": "Téléphone (facultatif)",
       "signInPrefill": "Te connecter remplit tes informations automatiquement. Facultatif — tu peux continuer sans.",
       "addDiscount": "Ajouter un code de réduction",

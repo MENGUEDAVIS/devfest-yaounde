@@ -93,6 +93,7 @@ or amend an earlier one.
 | [0067](decisions/0067-a11y-audit-fixes.md)                              | `-ink` colour tokens, a lightened Red primary, and a skip link that actually moves focus | Accepted                            |
 | [0068](decisions/0068-round-up-to-nearest-50.md)                        | Fee-inclusive prices round UP to the next 50 XAF: `ceil(base × 1.015 / 50) × 50` | Accepted — **amends the rounding rule in 0063** |
 | [0069](decisions/0069-admin-role-management.md)                         | Promote/remove admins from Users; the last-admin rule, actor re-check and audit live in Postgres | Accepted — **apply migration 0026 first** |
+| [0070](decisions/0070-ticket-only-products-and-nav-tabs.md)             | Ticket-only products (swag that is never sold), hideable navbar tabs, free-tier swag, FAQ "no answer" CTA | Accepted — **apply migration 0027 to save nav changes** |
 
 **Site and design**
 

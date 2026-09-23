@@ -61,6 +61,10 @@ const PURCHASABLE: ReadonlySet<ProductStatus> = new Set([
 ]);
 
 export function isPurchasable(product: Product): boolean {
+  // A ticket-only product is never sold alone, whatever its status says.
+  // `loadProducts()` already leaves it out; this keeps the rule true even for
+  // a caller that hands `findProduct` an unfiltered list.
+  if (product.ticketOnly) return false;
   return PURCHASABLE.has(product.status);
 }
 

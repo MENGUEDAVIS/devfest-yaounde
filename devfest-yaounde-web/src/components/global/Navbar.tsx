@@ -5,15 +5,9 @@ import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { DevFestLogo } from "@/components/brand/DevFestLogo";
 import { Link, usePathname } from "@/i18n/navigation";
+import { visibleTextLinks, type NavSettings } from "@/lib/nav-tabs";
 import { ConfettiBurst } from "./ConfettiBurst";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-
-const NAV_LINKS = [
-  { href: "/schedule", key: "schedule" },
-  { href: "/speakers", key: "speakers" },
-  { href: "/faqs", key: "faqs" },
-  { href: "/team", key: "team" },
-] as const;
 
 const CONFETTI_CLICK_THRESHOLD = 6;
 const CONFETTI_CLICK_WINDOW_MS = 1500;
@@ -28,8 +22,16 @@ const CONFETTI_DURATION_MS = 1000;
  * caused logo/link collisions. The hamburger now persists until `lg`
  * (1024px), where there is real room for everything.
  */
-export function Navbar({ compact }: { compact: boolean }) {
+export function Navbar({
+  compact,
+  nav,
+}: {
+  compact: boolean;
+  /** Which tabs an admin has left showing. The language switch always shows. */
+  nav: NavSettings;
+}) {
   const t = useTranslations("nav");
+  const links = visibleTextLinks(nav);
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -73,7 +75,7 @@ export function Navbar({ compact }: { compact: boolean }) {
         </Link>
 
         <div className="hidden min-w-0 items-center gap-4 lg:flex xl:gap-6">
-          {NAV_LINKS.map((link) => {
+          {links.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
@@ -94,18 +96,22 @@ export function Navbar({ compact }: { compact: boolean }) {
 
         <div className="hidden shrink-0 items-center gap-2 lg:flex">
           <LanguageSwitcher />
-          <Link
-            href="/shop"
-            className="whitespace-nowrap rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-pastel active:translate-y-0.5"
-          >
-            {t("shop")}
-          </Link>
-          <Link
-            href="/tickets"
-            className="whitespace-nowrap rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02 shadow-[0_3px_0_0_var(--color-black02)] transition-[transform,box-shadow,background-color] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-halftone hover:shadow-[0_5px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none"
-          >
-            {t("tickets")}
-          </Link>
+          {nav.shop && (
+            <Link
+              href="/shop"
+              className="whitespace-nowrap rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02 transition-[background-color,transform] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-pastel active:translate-y-0.5"
+            >
+              {t("shop")}
+            </Link>
+          )}
+          {nav.tickets && (
+            <Link
+              href="/tickets"
+              className="whitespace-nowrap rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02 shadow-[0_3px_0_0_var(--color-black02)] transition-[transform,box-shadow,background-color] duration-200 ease-bouncy hover:-translate-y-0.5 hover:bg-halftone hover:shadow-[0_5px_0_0_var(--color-black02)] active:translate-y-0.5 active:shadow-none"
+            >
+              {t("tickets")}
+            </Link>
+          )}
         </div>
 
         <button
@@ -139,7 +145,7 @@ export function Navbar({ compact }: { compact: boolean }) {
               the same information to assistive tech, which the desktop nav
               was also missing.
             */}
-            {NAV_LINKS.map((link) => {
+            {links.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
@@ -160,22 +166,26 @@ export function Navbar({ compact }: { compact: boolean }) {
             })}
             <div className="mt-3 flex flex-wrap items-center gap-2.5">
               <LanguageSwitcher />
-              <Link
-                href="/shop"
-                onClick={() => setMobileOpen(false)}
-                tabIndex={mobileOpen ? undefined : -1}
-                className="rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02"
-              >
-                {t("shop")}
-              </Link>
-              <Link
-                href="/tickets"
-                onClick={() => setMobileOpen(false)}
-                tabIndex={mobileOpen ? undefined : -1}
-                className="rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02"
-              >
-                {t("tickets")}
-              </Link>
+              {nav.shop && (
+                <Link
+                  href="/shop"
+                  onClick={() => setMobileOpen(false)}
+                  tabIndex={mobileOpen ? undefined : -1}
+                  className="rounded-pill border-2 border-black02 px-4 py-2 font-sans text-body-m font-bold text-black02"
+                >
+                  {t("shop")}
+                </Link>
+              )}
+              {nav.tickets && (
+                <Link
+                  href="/tickets"
+                  onClick={() => setMobileOpen(false)}
+                  tabIndex={mobileOpen ? undefined : -1}
+                  className="rounded-pill border-2 border-black02 bg-primary px-4 py-2 font-sans text-body-m font-bold text-black02"
+                >
+                  {t("tickets")}
+                </Link>
+              )}
             </div>
           </div>
         </div>

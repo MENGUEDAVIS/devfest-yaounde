@@ -162,6 +162,18 @@ sits in account metadata that a signed-in person can edit for themselves, so
 anything else is ignored rather than trusted (`src/lib/admin/avatar.ts`).
 Change your picture in your Google account; it appears next time you sign in.
 
+### Choosing which navbar tabs show
+
+**Config → Navigation** has a switch for each of **Schedule, Speakers, FAQs,
+Team, Shop and Tickets**. The language switch (FR / EN) is always there. A line
+under the switches previews what the bar will show; **Save navigation** makes it
+live on the next page load (no deploy).
+
+- It hides the **link**, not the page: the address still works, and buttons
+  elsewhere (the home page, the footer) that point to it keep working.
+- Saving needs **migration 0027** applied to the database; until then the switch
+  will not save (the panel says so) and every tab simply shows.
+
 ### Editing content record by record
 
 **Content** in the sidebar is now four editors — Speakers, Schedule, Team,

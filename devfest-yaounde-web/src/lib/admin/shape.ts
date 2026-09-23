@@ -175,6 +175,8 @@ export interface MemoryLaneSettings {
   currentGalleryUrl: string;
 }
 
+import type { NavSettings } from "@/lib/nav-tabs";
+
 export interface AdminSettings {
   announcement: { fr: string; en: string } | null;
   bevyUrl: string;
@@ -184,6 +186,8 @@ export interface AdminSettings {
   legal: LegalSettings;
   capacity: CapacitySettings;
   memoryLane: MemoryLaneSettings;
+  /** Which navbar tabs are shown (PHASE24). */
+  nav: NavSettings;
   source: "database" | "repo";
 }
 

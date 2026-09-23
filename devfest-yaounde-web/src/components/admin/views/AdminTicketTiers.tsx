@@ -361,7 +361,13 @@ function SwagPickerField({
                   <span className="block text-caption text-black02/65">
                     {product ? (
                       <>
-                        <PriceReadout base={product.priceXAF} />
+                        {product.ticketOnly ? (
+                          <span className="block">
+                            Ticket-only — not sold in the shop
+                          </span>
+                        ) : (
+                          <PriceReadout base={product.priceXAF} />
+                        )}
                         {product.published === false && (
                           <span className="block">Hidden in shop</span>
                         )}

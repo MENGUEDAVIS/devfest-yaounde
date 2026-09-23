@@ -53,6 +53,12 @@ row is the live source and the file is no longer read.
   - **Nothing to pick from?** Add the products in **Shop** first — the field
     says so and links there. A tier with no swag attached is a normal state,
     not an error; it simply shows no swag on the public page.
+  - **Something that comes with a ticket but must not be sold** (a
+    certificate, say)? Add it in **Shop** as usual and switch on **Ticket-only**.
+    It then shows as swag on the tiers that bundle it — the free pass included —
+    but is **not listed in the shop, has no page, and cannot be ordered**. It
+    needs no price or picture. It still has to be *Published*: a hidden product
+    stays off the ticket cards too. (ADR 0070.)
   - **Detaching never touches the product.** It stays in the Shop exactly as
     it was, and any other tier bundling it is unaffected.
   - An attached item that has since been deleted from the Shop is flagged in

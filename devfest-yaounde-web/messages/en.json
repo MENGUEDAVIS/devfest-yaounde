@@ -307,7 +307,7 @@
       "payNow": "Pay with Mobile Money",
       "rsvpFree": "RSVP free on Bevy",
       "rsvpNote": "Free entry is handled on our community page, which keeps it to one RSVP per person. No account needed here.",
-      "swagLabel": "{count} things in the box",
+      "swagLabel": "{count, plural, one {# thing in the box} other {# things in the box}}",
       "attendeePhone": "Phone (optional)",
       "signInPrefill": "Signing in fills your details in for you. Optional — you can carry on without it.",
       "addDiscount": "Add a discount code",

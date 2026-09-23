@@ -1,7 +1,7 @@
 # 0054 — Swag references shop products; it does not create them
 
 Date: 2026-09-14
-Status: Accepted — **supersedes ADR 0050**
+Status: Accepted — **supersedes ADR 0050**; **amended by [0070](0070-ticket-only-products-and-nav-tabs.md)** — a tier's swag now resolves against published products *including* ticket-only ones, which are deliberately not in the shop
 
 ## What went wrong
 

@@ -20,6 +20,7 @@ import {
 } from "@/lib/site-config";
 import { createAdminSupabase } from "@/lib/supabase/server";
 import { toJson } from "@/lib/supabase/json";
+import { DEFAULT_NAV } from "@/lib/nav-tabs";
 import { settingsSchema, type SettingsWrite } from "./schemas";
 
 import type { AdminSettings } from "@/lib/admin/shape";
@@ -52,6 +53,8 @@ const REPO_DEFAULTS: SiteSettings = {
      show a public counter", not "zero tickets left". */
   capacity: { total: null },
   memoryLane: { galleryUrl: PAST_GALLERY_URL, currentGalleryUrl: "" },
+  /* Every tab shown until an admin hides one. */
+  nav: DEFAULT_NAV,
   source: "repo",
 };
 
@@ -153,6 +156,9 @@ async function readSettings(): Promise<SiteSettings> {
       legal: merge(REPO_DEFAULTS.legal, data.legal),
       capacity: { total: capacityTotal },
       memoryLane: merge(REPO_DEFAULTS.memoryLane, data.memory_lane),
+      // Key by key: a key missing from the stored blob is a tab that is SHOWN,
+      // never one that is hidden by omission.
+      nav: merge(REPO_DEFAULTS.nav, (data as { nav?: unknown }).nav),
       source: "database",
     };
   } catch (err) {
@@ -223,6 +229,9 @@ export async function saveSettings(
             ? toJson(parsed.data.memoryLane)
             : null,
         }
+      : {}),
+    ...(parsed.data.nav !== undefined
+      ? { nav: parsed.data.nav ? toJson(parsed.data.nav) : null }
       : {}),
     updated_at: new Date().toISOString(),
     updated_by: actor,

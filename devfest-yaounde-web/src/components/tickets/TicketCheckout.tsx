@@ -388,6 +388,10 @@ export function TicketCheckout({
                     );
                   })}
                 </ul>
+                {/* The free pass can carry swag too (a certificate, a sticker
+                    pack) — it used to render only on the paid tiers' cards,
+                    so whatever an admin attached here never showed. */}
+                <SwagPreview items={swagFor(tier)} />
                 <a
                   href={bevyUrl}
                   target="_blank"
