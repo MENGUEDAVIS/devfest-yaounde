@@ -29,12 +29,19 @@ export const MAX_LINES = 20;
  * Snapshots are cached: `useSyncExternalStore` compares by identity, so
  * parsing the JSON afresh on every call would loop forever.
  */
-let cached: CartLine[] = [];
+/**
+ * ONE empty array, reused. The server snapshot used to be `() => []`, which
+ * hands `useSyncExternalStore` a NEW array on every call — React compares
+ * snapshots by identity and warns ("getServerSnapshot should be cached") in
+ * development, and would spin if it ever saw two different ones in a row.
+ */
+const EMPTY_CART: CartLine[] = [];
+let cached: CartLine[] = EMPTY_CART;
 let cachedRaw: string | null = null;
 const listeners = new Set<() => void>();
 
 function read(): CartLine[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return EMPTY_CART;
   let raw: string | null = null;
   try {
     raw = window.localStorage.getItem(KEY);
@@ -84,7 +91,7 @@ const sameVariant = (a: CartLine["variant"], b: CartLine["variant"]) =>
   (a?.size ?? "") === (b?.size ?? "") && (a?.color ?? "") === (b?.color ?? "");
 
 export function useCart() {
-  const lines = useSyncExternalStore(subscribe, read, () => []);
+  const lines = useSyncExternalStore(subscribe, read, () => EMPTY_CART);
 
   const add = useCallback((line: CartLine) => {
     const current = read();

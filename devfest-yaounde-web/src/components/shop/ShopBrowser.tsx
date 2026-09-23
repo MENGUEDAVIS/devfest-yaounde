@@ -164,10 +164,15 @@ export function ShopBrowser({
         <div
           data-card-grid
           style={{ ["--card-min" as string]: "18rem" }}
-          className="grid items-start gap-8"
+          className="grid gap-8"
         >
           {visible.map((product, i) => (
-            <Reveal key={product.id} index={i % 3}>
+            /* `h-full` down the whole chain — Reveal, button, body — so every
+                card stretches to the tallest in its row, with the price
+                pinned to the bottom edge (below). Cards used to keep their
+                own height (`items-start`), so a one-line description and a
+                two-line one made a ragged row. */
+            <Reveal key={product.id} index={i % 3} className="h-full">
               {/*
                 A button, not a link: it opens a drawer rather than navigating.
                 The URL is still updated, so sharing and Back both work — but
@@ -178,9 +183,9 @@ export function ShopBrowser({
                 type="button"
                 onClick={() => openProduct(product.id)}
                 aria-haspopup="dialog"
-                className="group block w-full overflow-hidden rounded-lg border-2 border-black02 bg-offwhite text-left shadow-[0_6px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-1 motion-reduce:transform-none"
+                className="group flex h-full w-full flex-col overflow-hidden rounded-lg border-2 border-black02 bg-offwhite text-left shadow-[0_6px_0_0_var(--color-black02)] transition-transform duration-200 ease-bouncy hover:-translate-y-1 motion-reduce:transform-none"
               >
-                <div className="relative aspect-[4/3] overflow-hidden bg-pastel">
+                <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-pastel">
                   <ProductImage
                     src={product.images[0]}
                     alt={product.name[locale]}
@@ -193,14 +198,14 @@ export function ShopBrowser({
                     />
                   </span>
                 </div>
-                <div className="p-5">
+                <div className="flex flex-1 flex-col p-5">
                   <p className="font-sans text-heading-m font-bold leading-tight text-black02">
                     {product.name[locale]}
                   </p>
                   <p className="mt-2 line-clamp-2 text-body-m text-black02/70">
                     {product.description[locale]}
                   </p>
-                  <p className="mt-4 font-mono text-body-l font-bold text-black02">
+                  <p className="mt-auto pt-4 font-mono text-body-l font-bold text-black02">
                     {new Intl.NumberFormat(
                       locale === "fr" ? "fr-CM" : "en-CM",
                     ).format(feeInclusiveAmount(product.priceXAF))}{" "}
